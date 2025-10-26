@@ -79,6 +79,18 @@ closeDbConnection($conn);
 // GET request handler
 function handleGet($conn, $action) {
     switch ($action) {
+        case 'check_country':
+            checkCountryName($conn);
+            break;
+        case 'check_region':
+            checkRegionName($conn);
+            break;
+        case 'check_city':
+            checkCityName($conn);
+            break;
+        case 'check_sub_region':
+            checkSubRegionName($conn);
+            break;
         case 'countries':
             getCountries($conn);
             break;
@@ -185,6 +197,15 @@ function getCountries($conn) {
 
 function createCountry($conn, $data) {
     $name = pg_escape_string($conn, $data['name']);
+    
+    // Check if country name already exists
+    $checkQuery = "SELECT id FROM countries WHERE name = '$name'";
+    $checkResult = pg_query($conn, $checkQuery);
+    if ($checkResult && pg_num_rows($checkResult) > 0) {
+        echo json_encode(['success' => false, 'message' => 'A country with this name already exists']);
+        return;
+    }
+    
     $code = pg_escape_string($conn, $data['code'] ?? '');
     
     $query = "INSERT INTO countries (name, code, created_at) VALUES ('$name', '$code', NOW()) RETURNING id";
@@ -245,6 +266,14 @@ function getRegions($conn, $country_id = null) {
 function createRegion($conn, $data) {
     $name = pg_escape_string($conn, $data['name']);
     $country_id = $data['country_id'];
+    
+    // Check if region name already exists in the same country
+    $checkQuery = "SELECT id FROM regions WHERE name = '$name' AND country_id = $country_id";
+    $checkResult = pg_query($conn, $checkQuery);
+    if ($checkResult && pg_num_rows($checkResult) > 0) {
+        echo json_encode(['success' => false, 'message' => 'A region with this name already exists in this country']);
+        return;
+    }
     
     $query = "INSERT INTO regions (name, country_id, created_at) VALUES ('$name', $country_id, NOW()) RETURNING id";
     $result = pg_query($conn, $query);
@@ -308,6 +337,14 @@ function getCities($conn, $region_id = null) {
 function createCity($conn, $data) {
     $name = pg_escape_string($conn, $data['name']);
     $region_id = $data['region_id'];
+    
+    // Check if city name already exists in the same region
+    $checkQuery = "SELECT id FROM cities WHERE name = '$name' AND region_id = $region_id";
+    $checkResult = pg_query($conn, $checkQuery);
+    if ($checkResult && pg_num_rows($checkResult) > 0) {
+        echo json_encode(['success' => false, 'message' => 'A city with this name already exists in this region']);
+        return;
+    }
     
     $query = "INSERT INTO cities (name, region_id, created_at) VALUES ('$name', $region_id, NOW()) RETURNING id";
     $result = pg_query($conn, $query);
@@ -379,6 +416,14 @@ function createSubRegion($conn, $data) {
     $name = pg_escape_string($conn, $data['name']);
     $city_id = $data['city_id'];
     
+    // Check if sub region name already exists in the same city
+    $checkQuery = "SELECT id FROM sub_regions WHERE name = '$name' AND city_id = $city_id";
+    $checkResult = pg_query($conn, $checkQuery);
+    if ($checkResult && pg_num_rows($checkResult) > 0) {
+        echo json_encode(['success' => false, 'message' => 'A sub region with this name already exists in this city']);
+        return;
+    }
+    
     $query = "INSERT INTO sub_regions (name, city_id, created_at) VALUES ('$name', $city_id, NOW()) RETURNING id";
     $result = pg_query($conn, $query);
     
@@ -411,6 +456,101 @@ function deleteSubRegion($conn, $id) {
     
     if ($result) {
         echo json_encode(['success' => true]);
+    } else {
+        echo json_encode(['success' => false, 'message' => pg_last_error($conn)]);
+    }
+}
+
+// Check functions
+function checkCountryName($conn) {
+    $name = $_GET['name'] ?? '';
+    $name = pg_escape_string($conn, $name);
+    $id = $_GET['id'] ?? null;
+    
+    $query = "SELECT id FROM countries WHERE name = '$name'";
+    if ($id) {
+        $query .= " AND id != $id";
+    }
+    
+    $result = pg_query($conn, $query);
+    if ($result) {
+        $exists = pg_num_rows($result) > 0;
+        echo json_encode(['success' => true, 'exists' => $exists]);
+    } else {
+        echo json_encode(['success' => false, 'message' => pg_last_error($conn)]);
+    }
+}
+
+function checkRegionName($conn) {
+    $name = $_GET['name'] ?? '';
+    $name = pg_escape_string($conn, $name);
+    $country_id = $_GET['country_id'] ?? null;
+    $id = $_GET['id'] ?? null;
+    
+    if (!$country_id) {
+        echo json_encode(['success' => false, 'message' => 'country_id is required']);
+        return;
+    }
+    
+    $query = "SELECT id FROM regions WHERE name = '$name' AND country_id = $country_id";
+    if ($id) {
+        $query .= " AND id != $id";
+    }
+    
+    $result = pg_query($conn, $query);
+    if ($result) {
+        $exists = pg_num_rows($result) > 0;
+        echo json_encode(['success' => true, 'exists' => $exists]);
+    } else {
+        echo json_encode(['success' => false, 'message' => pg_last_error($conn)]);
+    }
+}
+
+function checkCityName($conn) {
+    $name = $_GET['name'] ?? '';
+    $name = pg_escape_string($conn, $name);
+    $region_id = $_GET['region_id'] ?? null;
+    $id = $_GET['id'] ?? null;
+    
+    if (!$region_id) {
+        echo json_encode(['success' => false, 'message' => 'region_id is required']);
+        return;
+    }
+    
+    $query = "SELECT id FROM cities WHERE name = '$name' AND region_id = $region_id";
+    if ($id) {
+        $query .= " AND id != $id";
+    }
+    
+    $result = pg_query($conn, $query);
+    if ($result) {
+        $exists = pg_num_rows($result) > 0;
+        echo json_encode(['success' => true, 'exists' => $exists]);
+    } else {
+        echo json_encode(['success' => false, 'message' => pg_last_error($conn)]);
+    }
+}
+
+function checkSubRegionName($conn) {
+    $name = $_GET['name'] ?? '';
+    $name = pg_escape_string($conn, $name);
+    $city_id = $_GET['city_id'] ?? null;
+    $id = $_GET['id'] ?? null;
+    
+    if (!$city_id) {
+        echo json_encode(['success' => false, 'message' => 'city_id is required']);
+        return;
+    }
+    
+    $query = "SELECT id FROM sub_regions WHERE name = '$name' AND city_id = $city_id";
+    if ($id) {
+        $query .= " AND id != $id";
+    }
+    
+    $result = pg_query($conn, $query);
+    if ($result) {
+        $exists = pg_num_rows($result) > 0;
+        echo json_encode(['success' => true, 'exists' => $exists]);
     } else {
         echo json_encode(['success' => false, 'message' => pg_last_error($conn)]);
     }

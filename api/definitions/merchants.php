@@ -187,6 +187,15 @@ function getMerchants($conn, $sub_region_id = null) {
 
 function createMerchant($conn, $data) {
     $name = pg_escape_string($conn, $data['name']);
+    
+    // Check if merchant name already exists
+    $checkQuery = "SELECT id FROM merchants WHERE name = '$name'";
+    $checkResult = pg_query($conn, $checkQuery);
+    if ($checkResult && pg_num_rows($checkResult) > 0) {
+        echo json_encode(['success' => false, 'message' => 'A merchant with this name already exists']);
+        return;
+    }
+    
     $official_title = pg_escape_string($conn, $data['official_title'] ?? '');
     $sub_region_id = $data['sub_region_id'];
     $authorized_person = pg_escape_string($conn, $data['authorized_person'] ?? '');

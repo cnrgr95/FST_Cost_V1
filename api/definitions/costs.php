@@ -218,6 +218,31 @@ function getCities($conn) {
 
 // Create cost
 function createCost($conn, $data) {
+    $country_id = !empty($data['country_id']) ? $data['country_id'] : null;
+    $region_id = !empty($data['region_id']) ? $data['region_id'] : null;
+    $city_id = !empty($data['city_id']) ? $data['city_id'] : null;
+    
+    // Check for duplicate in the same location scope
+    $checkWhere = [];
+    $checkParams = [];
+    
+    if ($country_id) {
+        $checkWhere[] = "country_id = $country_id AND region_id IS NULL AND city_id IS NULL";
+    } elseif ($region_id) {
+        $checkWhere[] = "country_id IS NULL AND region_id = $region_id AND city_id IS NULL";
+    } elseif ($city_id) {
+        $checkWhere[] = "country_id IS NULL AND region_id IS NULL AND city_id = $city_id";
+    }
+    
+    if (!empty($checkWhere)) {
+        $checkQuery = "SELECT id FROM costs WHERE " . implode(' OR ', $checkWhere);
+        $checkResult = pg_query($conn, $checkQuery);
+        if ($checkResult && pg_num_rows($checkResult) > 0) {
+            echo json_encode(['success' => false, 'message' => 'A cost already exists for this location']);
+            return;
+        }
+    }
+    
     // Generate automatic cost_code if not provided
     if (empty($data['cost_code'])) {
         $query_seq = "SELECT COALESCE(MAX(CAST(SUBSTRING(cost_code FROM 'FST-([0-9]+)') AS INTEGER)), 0) + 1 as next_num FROM costs WHERE cost_code LIKE 'FST-%'";

@@ -92,7 +92,7 @@ $t_positions = $all_translations['positions'] ?? [];
     </div>
     
     <!-- Department Modal -->
-    <div class="modal" id="departmentsModal">
+    <div class="modal" id="departmentModal">
         <div class="modal-content">
             <div class="modal-header">
                 <h2 id="departmentModalTitle">Add Department</h2>
@@ -124,7 +124,7 @@ $t_positions = $all_translations['positions'] ?? [];
     </div>
     
     <!-- Position Modal -->
-    <div class="modal" id="positionsModal">
+    <div class="modal" id="positionModal">
         <div class="modal-content">
             <div class="modal-header">
                 <h2 id="positionModalTitle">Add Position</h2>
@@ -219,7 +219,11 @@ $t_positions = $all_translations['positions'] ?? [];
         };
     </script>
     
+    <!-- Toast Notification Container -->
+    <div id="toastContainer" class="toast-container"></div>
+    
     <script src="<?php echo $basePath; ?>assets/js/sidebar.js"></script>
+    <script src="<?php echo $basePath; ?>assets/js/toast.js"></script>
     <script src="<?php echo $basePath; ?>assets/js/app/definitions/positions.js"></script>
 </body>
 </html>

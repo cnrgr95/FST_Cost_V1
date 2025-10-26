@@ -181,7 +181,11 @@ $t_tours = $all_translations['tours'] ?? [];
         };
     </script>
     
+    <!-- Toast Notification Container -->
+    <div id="toastContainer" class="toast-container"></div>
+    
     <script src="<?php echo $basePath; ?>assets/js/sidebar.js"></script>
+    <script src="<?php echo $basePath; ?>assets/js/toast.js"></script>
     <script src="<?php echo $basePath; ?>assets/js/app/definitions/tours.js"></script>
 </body>
 </html>

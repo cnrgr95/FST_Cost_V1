@@ -28,8 +28,15 @@
         });
         
         // Setup form submissions
-        document.getElementById('departmentForm').addEventListener('submit', handleDepartmentSubmit);
-        document.getElementById('positionForm').addEventListener('submit', handlePositionSubmit);
+        const departmentForm = document.getElementById('departmentForm');
+        const positionForm = document.getElementById('positionForm');
+        
+        if (departmentForm) {
+            departmentForm.addEventListener('submit', handleDepartmentSubmit);
+        }
+        if (positionForm) {
+            positionForm.addEventListener('submit', handlePositionSubmit);
+        }
         
         // Close modal when clicking outside
         document.addEventListener('click', function(e) {
@@ -185,7 +192,7 @@
                 <div class="positions-table-container">
                     <div class="positions-table-header">
                         <div class="positions-table-title">${typeText}</div>
-                        <button class="btn-add" onclick="openModal('${type}')">
+                        <button class="btn-add" onclick="window.openModal('${type}')">
                             <span class="material-symbols-rounded">add</span>
                             ${tPos.add_new_dept || 'Add New'}
                         </button>
@@ -205,7 +212,7 @@
         let html = '<div class="positions-table-container">';
         html += '<div class="positions-table-header">';
         html += `<div class="positions-table-title">${typeText}</div>`;
-        html += `<button class="btn-add" onclick="openModal('${type}')">
+        html += `<button class="btn-add" onclick="window.openModal('${type}')">
                     <span class="material-symbols-rounded">add</span>
                     ${tPos.add_new_dept || 'Add New'}
                  </button>`;
@@ -247,10 +254,10 @@
         
         html += '<td>';
         html += '<div class="table-actions">';
-        html += `<button class="btn-action btn-edit" onclick="editItem('${type}', ${item.id})">
+        html += `<button class="btn-action btn-edit" onclick="window.editItem('${type}', ${item.id})">
                     <span class="material-symbols-rounded">edit</span>
                  </button>`;
-        html += `<button class="btn-action btn-delete" onclick="deleteItem('${type}', ${item.id})">
+        html += `<button class="btn-action btn-delete" onclick="window.deleteItem('${type}', ${item.id})">
                     <span class="material-symbols-rounded">delete</span>
                  </button>`;
         html += '</div>';
@@ -274,22 +281,32 @@
     // Show error
     function showError(message) {
         console.error(message);
-        alert(message || (tCommon.error || 'Error'));
+        showToast('error', message || (tCommon.error || 'Error'));
     }
     
     // Open modal
-    window.openModal = function(type) {
-        const modal = document.getElementById(`${type}Modal`);
-        if (!modal) return;
+    window.openModal = async function(type) {
+        // Fix modal ID - departments -> departmentModal, positions -> positionModal
+        const modalId = type === 'departments' ? 'departmentModal' : 'positionModal';
+        const formId = type === 'departments' ? 'departmentForm' : 'positionForm';
+        
+        const modal = document.getElementById(modalId);
+        if (!modal) {
+            console.error('Modal not found:', modalId);
+            return;
+        }
+        
+        const form = document.getElementById(formId);
+        if (!form) {
+            console.error('Form not found:', formId);
+            return;
+        }
         
         modal.classList.add('active');
         
         // Reset form
-        const form = document.getElementById(`${type}Form`);
-        if (form) {
-            form.reset();
-            delete form.dataset.id;
-        }
+        form.reset();
+        delete form.dataset.id;
         
         // Update modal title
         const title = modal.querySelector('h2');
@@ -303,9 +320,9 @@
         
         // Load dependent data if needed
         if (type === 'departments') {
-            loadCitiesForSelect();
+            await loadCitiesForSelect();
         } else {
-            loadDepartmentsForSelect();
+            await loadDepartmentsForSelect();
         }
     };
     
@@ -322,14 +339,29 @@
     
     // Edit item
     window.editItem = async function(type, id) {
-        const item = currentData[type].find(item => item.id == id);
-        if (!item) return;
+        const item = (currentData[type] || []).find(item => item.id == id);
+        if (!item) {
+            console.error('Item not found:', type, id, currentData);
+            return;
+        }
         
-        const modal = document.getElementById(`${type}Modal`);
-        if (!modal) return;
+        console.log('Edit item:', type, id, item);
         
-        const form = document.getElementById(`${type}Form`);
-        if (!form) return;
+        // Fix modal ID - departments -> departmentModal, positions -> positionModal
+        const modalId = type === 'departments' ? 'departmentModal' : 'positionModal';
+        const formId = type === 'departments' ? 'departmentForm' : 'positionForm';
+        
+        const modal = document.getElementById(modalId);
+        if (!modal) {
+            console.error('Modal not found:', modalId);
+            return;
+        }
+        
+        const form = document.getElementById(formId);
+        if (!form) {
+            console.error('Form not found:', formId);
+            return;
+        }
         
         // Update modal title
         const title = modal.querySelector('h2');
@@ -369,6 +401,7 @@
             if (result.success) {
                 currentData[type] = [];
                 loadData(type);
+                showToast('success', 'Item deleted successfully');
             } else {
                 showError(result.message);
             }
@@ -427,6 +460,7 @@
                 currentData.departments = [];
                 loadData('departments');
                 closeModal();
+                showToast('success', 'Department created successfully');
             } else {
                 showError(result.message);
             }
@@ -449,6 +483,7 @@
                 currentData.positions = [];
                 loadData('positions');
                 closeModal();
+                showToast('success', 'Position created successfully');
             } else {
                 showError(result.message);
             }
@@ -472,6 +507,7 @@
                 currentData.departments = [];
                 loadData('departments');
                 closeModal();
+                showToast('success', 'Department updated successfully');
             } else {
                 showError(result.message);
             }
@@ -491,6 +527,7 @@
             const result = await response.json();
             
             if (result.success) {
+                showToast('success', 'Position updated successfully');
                 currentData.positions = [];
                 loadData('positions');
                 closeModal();
@@ -548,5 +585,54 @@
             });
         }
     }
+    
+    // Toast notification function
+    function showToast(type, message, duration = 5000) {
+        const container = document.getElementById('toastContainer');
+        if (!container) return;
+        
+        const toast = document.createElement('div');
+        toast.className = `toast ${type}`;
+        
+        let icon = '';
+        let title = '';
+        if (type === 'error') {
+            icon = 'error';
+            title = tCommon.error || 'Error';
+        } else if (type === 'warning') {
+            icon = 'warning';
+            title = 'Warning';
+        } else if (type === 'info') {
+            icon = 'info';
+            title = 'Information';
+        } else if (type === 'success') {
+            icon = 'check_circle';
+            title = tCommon.success || 'Success';
+        }
+        
+        toast.innerHTML = `
+            <span class="material-symbols-rounded toast-icon">${icon}</span>
+            <div class="toast-content">
+                <div class="toast-title">${title}</div>
+                <div class="toast-message">${message}</div>
+            </div>
+            <button class="toast-close">&times;</button>
+        `;
+        
+        container.appendChild(toast);
+        toast.querySelector('.toast-close').addEventListener('click', () => closeToast(toast));
+        if (duration > 0) {
+            setTimeout(() => closeToast(toast), duration);
+        }
+    }
+    
+    function closeToast(toast) {
+        toast.classList.add('fade-out');
+        setTimeout(() => {
+            if (toast.parentNode) toast.parentNode.removeChild(toast);
+        }, 300);
+    }
+    
+    // showToast is now from toast.js
 })();
 

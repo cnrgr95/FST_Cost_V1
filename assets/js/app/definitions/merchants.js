@@ -192,10 +192,10 @@
                     </td>
                     <td>
                         <div class="table-actions">
-                            <button class="btn-action btn-edit" onclick="editItem(${item.id})">
+                            <button class="btn-action btn-edit" onclick="window.editItem(${item.id})">
                                 <span class="material-symbols-rounded">edit</span>
                             </button>
-                            <button class="btn-action btn-delete" onclick="deleteItem(${item.id})">
+                            <button class="btn-action btn-delete" onclick="window.deleteItem(${item.id})">
                                 <span class="material-symbols-rounded">delete</span>
                             </button>
                         </div>

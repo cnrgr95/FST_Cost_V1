@@ -294,7 +294,11 @@ $t_locations = $all_translations['locations'] ?? [];
         };
     </script>
     
+    <!-- Toast Notification Container -->
+    <div id="toastContainer" class="toast-container"></div>
+    
     <script src="<?php echo $basePath; ?>assets/js/sidebar.js"></script>
+    <script src="<?php echo $basePath; ?>assets/js/toast.js"></script>
     <script src="<?php echo $basePath; ?>assets/js/app/definitions/locations.js"></script>
 </body>
 </html>

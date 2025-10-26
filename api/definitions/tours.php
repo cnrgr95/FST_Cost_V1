@@ -207,6 +207,14 @@ function getTours($conn) {
 // Create tour
 function createTour($conn, $data) {
     $name = pg_escape_string($conn, $data['name']);
+    
+    // Check if tour name already exists
+    $checkQuery = "SELECT id FROM tours WHERE name = '$name'";
+    $checkResult = pg_query($conn, $checkQuery);
+    if ($checkResult && pg_num_rows($checkResult) > 0) {
+        echo json_encode(['success' => false, 'message' => 'A tour with this name already exists']);
+        return;
+    }
     $sub_region_id = $data['sub_region_id'];
     $merchant_id = $data['merchant_id'];
     $description = pg_escape_string($conn, $data['description'] ?? '');

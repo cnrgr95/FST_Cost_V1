@@ -197,6 +197,7 @@ $t_costs = $all_translations['costs'] ?? [];
     </script>
     
     <script src="<?php echo $basePath; ?>assets/js/sidebar.js"></script>
+    <script src="<?php echo $basePath; ?>assets/js/toast.js"></script>
     <script src="<?php echo $basePath; ?>assets/js/app/definitions/costs.js"></script>
     
     <script>
@@ -267,5 +268,8 @@ $t_costs = $all_translations['costs'] ?? [];
             });
         });
     </script>
+    
+    <!-- Toast Notification Container -->
+    <div id="toastContainer" class="toast-container"></div>
 </body>
 </html>
