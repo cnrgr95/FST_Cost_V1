@@ -114,7 +114,6 @@
         })();
         
         // Render filtered results
-        console.log('Filtered results:', filtered.length);
         renderTable(tabType, filtered);
     }
     
@@ -371,11 +370,9 @@
         
         const item = (currentData[type] || []).find(item => item.id == id);
         if (!item) {
-            console.error('Item not found:', type, id, currentData);
+            console.error('Item not found:', type, id);
             return;
         }
-        
-        console.log('Edit item:', type, id, item);
         
         // Fix modal ID - companies -> companyModal, vehicles -> typeModal
         const modalId = type === 'companies' ? 'companyModal' : 'typeModal';
@@ -410,6 +407,16 @@
         if (type === 'companies') {
             await loadCitiesForSelect();
             form.querySelector('select[name="city_id"]').value = item.city_id;
+            // Fill contact information
+            if (form.querySelector('input[name="contact_person"]')) {
+                form.querySelector('input[name="contact_person"]').value = item.contact_person || '';
+            }
+            if (form.querySelector('input[name="contact_email"]')) {
+                form.querySelector('input[name="contact_email"]').value = item.contact_email || '';
+            }
+            if (form.querySelector('input[name="contact_phone"]')) {
+                form.querySelector('input[name="contact_phone"]').value = item.contact_phone || '';
+            }
         } else {
             await loadCompaniesForSelect();
             form.querySelector('select[name="vehicle_company_id"]').value = item.vehicle_company_id;
@@ -617,14 +624,14 @@
                 console.warn('No cities found or API error');
                 const select = document.querySelector('[name="city_id"]');
                 if (select) {
-                    select.innerHTML = `<option value="">Şehir bulunamadı</option>`;
+                    select.innerHTML = `<option value="">${tVehicles.no_cities_found || 'No cities found'}</option>`;
                 }
             }
         } catch (error) {
             console.error('Error loading cities:', error);
             const select = document.querySelector('[name="city_id"]');
             if (select) {
-                select.innerHTML = `<option value="">Hata - Şehirler yüklenemedi</option>`;
+                select.innerHTML = `<option value="">${tVehicles.error_cities_load || 'Error loading cities'}</option>`;
             }
         }
     }

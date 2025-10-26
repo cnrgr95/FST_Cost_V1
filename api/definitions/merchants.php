@@ -84,7 +84,7 @@ function handleGet($conn, $action) {
             getSubRegions($conn);
             break;
         case 'merchants':
-            $sub_region_id = $_GET['sub_region_id'] ?? null;
+            $sub_region_id = isset($_GET['sub_region_id']) ? (int)$_GET['sub_region_id'] : null;
             getMerchants($conn, $sub_region_id);
             break;
         default:
@@ -157,6 +157,7 @@ function getSubRegions($conn) {
 // Merchant functions
 function getMerchants($conn, $sub_region_id = null) {
     if ($sub_region_id) {
+        $sub_region_id = (int)$sub_region_id;
         $query = "SELECT m.*, sr.name as sub_region_name, c.name as city_name, r.name as region_name, co.name as country_name 
                   FROM merchants m 
                   LEFT JOIN sub_regions sr ON m.sub_region_id = sr.id 
@@ -197,7 +198,7 @@ function createMerchant($conn, $data) {
     }
     
     $official_title = pg_escape_string($conn, $data['official_title'] ?? '');
-    $sub_region_id = $data['sub_region_id'];
+    $sub_region_id = (int)$data['sub_region_id'];
     $authorized_person = pg_escape_string($conn, $data['authorized_person'] ?? '');
     $authorized_email = pg_escape_string($conn, $data['authorized_email'] ?? '');
     $authorized_phone = pg_escape_string($conn, $data['authorized_phone'] ?? '');
@@ -220,10 +221,10 @@ function createMerchant($conn, $data) {
 }
 
 function updateMerchant($conn, $data) {
-    $id = $data['id'];
+    $id = (int)$data['id'];
     $name = pg_escape_string($conn, $data['name']);
     $official_title = pg_escape_string($conn, $data['official_title'] ?? '');
-    $sub_region_id = $data['sub_region_id'];
+    $sub_region_id = (int)$data['sub_region_id'];
     $authorized_person = pg_escape_string($conn, $data['authorized_person'] ?? '');
     $authorized_email = pg_escape_string($conn, $data['authorized_email'] ?? '');
     $authorized_phone = pg_escape_string($conn, $data['authorized_phone'] ?? '');
@@ -255,6 +256,7 @@ function updateMerchant($conn, $data) {
 }
 
 function deleteMerchant($conn, $id) {
+    $id = (int)$id;
     // Check if merchant has tours
     $checkQuery = "SELECT COUNT(*) as count FROM tours WHERE merchant_id = $id";
     $checkResult = pg_query($conn, $checkQuery);

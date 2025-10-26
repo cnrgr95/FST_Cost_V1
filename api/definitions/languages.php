@@ -124,7 +124,7 @@ function getLanguages($langDir) {
 
 // Create new language file
 function createLanguage($langDir, $data) {
-    $code = strtolower($data['code'] ?? '');
+    $code = strtolower(preg_replace('/[^a-z0-9]/', '', $data['code'] ?? '')); // Sanitize: only allow letters and numbers
     $name = $data['name'] ?? '';
     
     if (empty($code)) {
@@ -166,7 +166,7 @@ function createLanguage($langDir, $data) {
 
 // Update language name
 function updateLanguage($langDir, $data) {
-    $code = strtolower($data['code'] ?? '');
+    $code = strtolower(preg_replace('/[^a-z0-9]/', '', $data['code'] ?? '')); // Sanitize: only allow letters and numbers
     $name = $data['name'] ?? '';
     
     if (empty($code)) {
@@ -205,7 +205,7 @@ function updateLanguage($langDir, $data) {
 
 // Delete language file
 function deleteLanguage($langDir, $code) {
-    $code = strtolower($code);
+    $code = strtolower(preg_replace('/[^a-z0-9]/', '', $code)); // Sanitize: only allow letters and numbers
     $filePath = $langDir . $code . '.json';
     
     // Prevent deleting English as it's the base language
@@ -230,7 +230,7 @@ function deleteLanguage($langDir, $code) {
 
 // Get translation content for a language
 function getTranslation($langDir, $code) {
-    $code = strtolower($code);
+    $code = strtolower(preg_replace('/[^a-z0-9]/', '', $code)); // Sanitize: only allow letters and numbers
     $filePath = $langDir . $code . '.json';
     
     if (!file_exists($filePath)) {
@@ -251,7 +251,7 @@ function getTranslation($langDir, $code) {
 
 // Update translation content for a language
 function updateTranslation($langDir, $code, $data) {
-    $code = strtolower($code);
+    $code = strtolower(preg_replace('/[^a-z0-9]/', '', $code)); // Sanitize: only allow letters and numbers
     $filePath = $langDir . $code . '.json';
     
     if (!file_exists($filePath)) {

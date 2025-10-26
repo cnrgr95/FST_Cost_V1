@@ -114,7 +114,6 @@
         })();
         
         // Render filtered results
-        console.log('Filtered results:', filtered.length);
         renderTable(tabType, filtered);
     }
     
@@ -264,16 +263,16 @@
         let html = '<tr>';
         
         if (type === 'departments') {
-            html += `<td>${item.name}</td>`;
-            html += `<td>${item.city_name || '-'}</td>`;
-            html += `<td>${item.region_name || '-'}</td>`;
-            html += `<td>${item.country_name || '-'}</td>`;
+            html += `<td>${escapeHtml(item.name)}</td>`;
+            html += `<td>${escapeHtml(item.city_name || '-')}</td>`;
+            html += `<td>${escapeHtml(item.region_name || '-')}</td>`;
+            html += `<td>${escapeHtml(item.country_name || '-')}</td>`;
         } else {
-            html += `<td>${item.name}</td>`;
-            html += `<td>${item.department_name || '-'}</td>`;
-            html += `<td>${item.city_name || '-'}</td>`;
-            html += `<td>${item.region_name || '-'}</td>`;
-            html += `<td>${item.country_name || '-'}</td>`;
+            html += `<td>${escapeHtml(item.name)}</td>`;
+            html += `<td>${escapeHtml(item.department_name || '-')}</td>`;
+            html += `<td>${escapeHtml(item.city_name || '-')}</td>`;
+            html += `<td>${escapeHtml(item.region_name || '-')}</td>`;
+            html += `<td>${escapeHtml(item.country_name || '-')}</td>`;
         }
         
         html += '<td>';
@@ -370,11 +369,9 @@
         
         const item = (currentData[type] || []).find(item => item.id == id);
         if (!item) {
-            console.error('Item not found:', type, id, currentData);
+            console.error('Item not found:', type, id);
             return;
         }
-        
-        console.log('Edit item:', type, id, item);
         
         // Fix modal ID - departments -> departmentModal, positions -> positionModal
         const modalId = type === 'departments' ? 'departmentModal' : 'positionModal';
@@ -404,7 +401,7 @@
         
         // Fill form
         form.dataset.id = id;
-        form.querySelector('input[name="name"]').value = item.name;
+        form.querySelector('input[name="name"]').value = escapeHtml(item.name);
         
         if (type === 'departments') {
             await loadCitiesForSelect();
@@ -687,5 +684,13 @@
     }
     
     // showToast is now from toast.js
+    
+    // Escape HTML to prevent XSS
+    function escapeHtml(text) {
+        if (!text) return '';
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+    }
 })();
 

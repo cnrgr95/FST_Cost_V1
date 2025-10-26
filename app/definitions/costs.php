@@ -173,10 +173,10 @@ $t_costs = $all_translations['costs'] ?? [];
                 const formData = new FormData(costForm);
                 
                 const costName = formData.get('cost_name');
-                console.log('Form submitted, cost_name:', costName);
                 
                 if (!costName || costName.trim() === '') {
-                    showToast('error', 'Maliyet adı gereklidir');
+                    const tCosts = window.Translations?.costs || {};
+                    showToast('error', tCosts.cost_name_required || 'Cost name is required');
                     return;
                 }
                 
@@ -189,12 +189,10 @@ $t_costs = $all_translations['costs'] ?? [];
                 if (costForm.dataset.id) {
                     data.id = costForm.dataset.id;
                     data.cost_code = formData.get('cost_code');
-                    console.log('Editing cost, calling updateCost with:', data);
                     updateCost(data);
                 } else {
                     // Empty string means auto-generate
                     data.cost_code = '';
-                    console.log('Creating cost, calling createCost with:', data);
                     createCost(data);
                 }
             });

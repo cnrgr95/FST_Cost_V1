@@ -84,7 +84,7 @@ function handleGet($conn, $action) {
             getSubRegions($conn);
             break;
         case 'merchants':
-            $sub_region_id = $_GET['sub_region_id'] ?? null;
+            $sub_region_id = isset($_GET['sub_region_id']) ? (int)$_GET['sub_region_id'] : null;
             getMerchantsBySubRegion($conn, $sub_region_id);
             break;
         case 'tours':
@@ -164,6 +164,7 @@ function getMerchantsBySubRegion($conn, $sub_region_id) {
         return;
     }
     
+    $sub_region_id = (int)$sub_region_id;
     $query = "SELECT m.*, sr.name as sub_region_name, c.name as city_name, r.name as region_name, co.name as country_name
               FROM merchants m 
               LEFT JOIN sub_regions sr ON m.sub_region_id = sr.id 
@@ -219,8 +220,8 @@ function createTour($conn, $data) {
         }
     }
     
-    $sub_region_id = $data['sub_region_id'];
-    $merchant_id = $data['merchant_id'];
+    $sub_region_id = (int)$data['sub_region_id'];
+    $merchant_id = (int)$data['merchant_id'];
     
     $sejour_tour_code_val = !empty($sejour_tour_code) ? "'$sejour_tour_code'" : 'NULL';
     
@@ -239,11 +240,11 @@ function createTour($conn, $data) {
 
 // Update tour
 function updateTour($conn, $data) {
-    $id = $data['id'];
+    $id = (int)$data['id'];
     $sejour_tour_code = strtoupper(pg_escape_string($conn, $data['sejour_tour_code'] ?? ''));
     $name = pg_escape_string($conn, $data['name']);
-    $sub_region_id = $data['sub_region_id'];
-    $merchant_id = $data['merchant_id'];
+    $sub_region_id = (int)$data['sub_region_id'];
+    $merchant_id = (int)$data['merchant_id'];
     
     // Check if sejour tour code already exists for another tour
     if (!empty($sejour_tour_code)) {
@@ -275,6 +276,7 @@ function updateTour($conn, $data) {
 
 // Delete tour
 function deleteTour($conn, $id) {
+    $id = (int)$id;
     $query = "DELETE FROM tours WHERE id = $id";
     $result = pg_query($conn, $query);
     

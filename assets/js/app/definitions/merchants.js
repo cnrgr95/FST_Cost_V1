@@ -95,7 +95,6 @@
         });
         
         // Render filtered results
-        console.log('Filtered results:', filtered.length, 'out of', currentData.merchants.length);
         renderTableFiltered(filtered);
     }
     
@@ -186,7 +185,7 @@
                     <td>${item.city_name || '-'}</td>
                     <td>${item.sub_region_name || '-'}</td>
                     <td>
-                        ${item.location_url ? `<button class="btn-action" onclick="window.open('${item.location_url}', '_blank')" style="background: #3b82f6; color: white;">
+                        ${item.location_url ? `<button class="btn-action btn-location-map" data-location-url="${escapeHtml(item.location_url)}" style="background: #3b82f6; color: white;">
                             <span class="material-symbols-rounded">map</span>
                         </button>` : '-'}
                     </td>
@@ -226,6 +225,16 @@
             btn.addEventListener('click', function() {
                 const id = parseInt(this.getAttribute('data-item-id'));
                 window.deleteItem(id);
+            });
+        });
+        
+        // Find all location map buttons and attach click handlers
+        document.querySelectorAll('.btn-location-map[data-location-url]').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const url = this.getAttribute('data-location-url');
+                if (url) {
+                    window.open(url, '_blank', 'noopener,noreferrer');
+                }
             });
         });
     }
@@ -533,4 +542,11 @@
             showToast('error', tMerchants.location_url_required || 'Please enter a location URL first');
         }
     };
+    // Escape HTML to prevent XSS
+    function escapeHtml(text) {
+        if (!text) return '';
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+    }
 })();

@@ -91,7 +91,6 @@
         });
         
         // Render filtered results
-        console.log('Filtered results:', filtered.length, 'out of', currentData.costs.length);
         renderTable(filtered);
     }
     
@@ -161,8 +160,8 @@
         data.forEach(item => {
             html += `
                 <tr>
-                    <td><strong>${item.cost_code}</strong></td>
-                    <td>${item.cost_name || '-'}</td>
+                    <td><strong>${escapeHtml(item.cost_code)}</strong></td>
+                    <td>${escapeHtml(item.cost_name || '-')}</td>
                     <td>
                         <div class="table-actions">
                             <button class="btn-action btn-edit" data-item-id="${item.id}">
@@ -327,14 +326,12 @@
     // Create cost
     window.createCost = async function(data) {
         try {
-            console.log('Creating cost with data:', data);
             const response = await fetch(`${API_BASE}?action=cost`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(data)
             });
             const result = await response.json();
-            console.log('Create response:', result);
             
             if (result.success) {
                 currentData.costs = [];
@@ -353,14 +350,12 @@
     // Update cost
     window.updateCost = async function(data) {
         try {
-            console.log('Updating cost with data:', data);
             const response = await fetch(`${API_BASE}?action=cost`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(data)
             });
             const result = await response.json();
-            console.log('Update response:', result);
             
             if (result.success) {
                 currentData.costs = [];
@@ -376,4 +371,11 @@
         }
     }
     
+    // Escape HTML to prevent XSS
+    function escapeHtml(text) {
+        if (!text) return '';
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+    }
 })();

@@ -95,15 +95,15 @@ function handleGet($conn, $action) {
             getCountries($conn);
             break;
         case 'regions':
-            $country_id = $_GET['country_id'] ?? null;
+            $country_id = isset($_GET['country_id']) ? (int)$_GET['country_id'] : null;
             getRegions($conn, $country_id);
             break;
         case 'cities':
-            $region_id = $_GET['region_id'] ?? null;
+            $region_id = isset($_GET['region_id']) ? (int)$_GET['region_id'] : null;
             getCities($conn, $region_id);
             break;
         case 'sub_regions':
-            $city_id = $_GET['city_id'] ?? null;
+            $city_id = isset($_GET['city_id']) ? (int)$_GET['city_id'] : null;
             getSubRegions($conn, $city_id);
             break;
         default:
@@ -220,7 +220,7 @@ function createCountry($conn, $data) {
 }
 
 function updateCountry($conn, $data) {
-    $id = $data['id'];
+    $id = (int)$data['id'];
     $name = pg_escape_string($conn, $data['name']);
     $code = pg_escape_string($conn, $data['code'] ?? '');
     
@@ -235,6 +235,7 @@ function updateCountry($conn, $data) {
 }
 
 function deleteCountry($conn, $id) {
+    $id = (int)$id;
     // Check if country has regions
     $checkQuery = "SELECT COUNT(*) as count FROM regions WHERE country_id = $id";
     $checkResult = pg_query($conn, $checkQuery);
@@ -263,6 +264,7 @@ function deleteCountry($conn, $id) {
 // Region functions
 function getRegions($conn, $country_id = null) {
     if ($country_id) {
+        $country_id = (int)$country_id;
         $query = "SELECT * FROM regions WHERE country_id = $country_id ORDER BY name ASC";
     } else {
         $query = "SELECT r.*, c.name as country_name FROM regions r LEFT JOIN countries c ON r.country_id = c.id ORDER BY r.name ASC";
@@ -280,7 +282,7 @@ function getRegions($conn, $country_id = null) {
 
 function createRegion($conn, $data) {
     $name = pg_escape_string($conn, $data['name']);
-    $country_id = $data['country_id'];
+    $country_id = (int)$data['country_id'];
     
     // Check if region name already exists in the same country
     $checkQuery = "SELECT id FROM regions WHERE name = '$name' AND country_id = $country_id";
@@ -302,9 +304,9 @@ function createRegion($conn, $data) {
 }
 
 function updateRegion($conn, $data) {
-    $id = $data['id'];
+    $id = (int)$data['id'];
     $name = pg_escape_string($conn, $data['name']);
-    $country_id = $data['country_id'];
+    $country_id = (int)$data['country_id'];
     
     $query = "UPDATE regions SET name = '$name', country_id = $country_id, updated_at = NOW() WHERE id = $id";
     $result = pg_query($conn, $query);
@@ -317,6 +319,7 @@ function updateRegion($conn, $data) {
 }
 
 function deleteRegion($conn, $id) {
+    $id = (int)$id;
     // Check if region has cities
     $checkQuery = "SELECT COUNT(*) as count FROM cities WHERE region_id = $id";
     $checkResult = pg_query($conn, $checkQuery);
@@ -345,6 +348,7 @@ function deleteRegion($conn, $id) {
 // City functions
 function getCities($conn, $region_id = null) {
     if ($region_id) {
+        $region_id = (int)$region_id;
         $query = "SELECT * FROM cities WHERE region_id = $region_id ORDER BY name ASC";
     } else {
         $query = "SELECT c.*, r.name as region_name, co.name as country_name 
@@ -366,7 +370,7 @@ function getCities($conn, $region_id = null) {
 
 function createCity($conn, $data) {
     $name = pg_escape_string($conn, $data['name']);
-    $region_id = $data['region_id'];
+    $region_id = (int)$data['region_id'];
     
     // Check if city name already exists in the same region
     $checkQuery = "SELECT id FROM cities WHERE name = '$name' AND region_id = $region_id";
@@ -388,9 +392,9 @@ function createCity($conn, $data) {
 }
 
 function updateCity($conn, $data) {
-    $id = $data['id'];
+    $id = (int)$data['id'];
     $name = pg_escape_string($conn, $data['name']);
-    $region_id = $data['region_id'];
+    $region_id = (int)$data['region_id'];
     
     $query = "UPDATE cities SET name = '$name', region_id = $region_id, updated_at = NOW() WHERE id = $id";
     $result = pg_query($conn, $query);
@@ -403,6 +407,7 @@ function updateCity($conn, $data) {
 }
 
 function deleteCity($conn, $id) {
+    $id = (int)$id;
     // Check if city has sub regions
     $checkQuery = "SELECT COUNT(*) as count FROM sub_regions WHERE city_id = $id";
     $checkResult = pg_query($conn, $checkQuery);
@@ -431,6 +436,7 @@ function deleteCity($conn, $id) {
 // Sub Region functions
 function getSubRegions($conn, $city_id = null) {
     if ($city_id) {
+        $city_id = (int)$city_id;
         $query = "SELECT sr.*, c.name as city_name, r.name as region_name, co.name as country_name 
                   FROM sub_regions sr 
                   LEFT JOIN cities c ON sr.city_id = c.id 
@@ -459,7 +465,7 @@ function getSubRegions($conn, $city_id = null) {
 
 function createSubRegion($conn, $data) {
     $name = pg_escape_string($conn, $data['name']);
-    $city_id = $data['city_id'];
+    $city_id = (int)$data['city_id'];
     
     // Check if sub region name already exists in the same city
     $checkQuery = "SELECT id FROM sub_regions WHERE name = '$name' AND city_id = $city_id";
@@ -481,9 +487,9 @@ function createSubRegion($conn, $data) {
 }
 
 function updateSubRegion($conn, $data) {
-    $id = $data['id'];
+    $id = (int)$data['id'];
     $name = pg_escape_string($conn, $data['name']);
-    $city_id = $data['city_id'];
+    $city_id = (int)$data['city_id'];
     
     $query = "UPDATE sub_regions SET name = '$name', city_id = $city_id, updated_at = NOW() WHERE id = $id";
     $result = pg_query($conn, $query);
@@ -496,6 +502,7 @@ function updateSubRegion($conn, $data) {
 }
 
 function deleteSubRegion($conn, $id) {
+    $id = (int)$id;
     // Check if sub region has merchants
     $checkQuery = "SELECT COUNT(*) as count FROM merchants WHERE sub_region_id = $id";
     $checkResult = pg_query($conn, $checkQuery);
@@ -529,6 +536,7 @@ function checkCountryName($conn) {
     
     $query = "SELECT id FROM countries WHERE name = '$name'";
     if ($id) {
+        $id = (int)$id;
         $query .= " AND id != $id";
     }
     
@@ -552,8 +560,10 @@ function checkRegionName($conn) {
         return;
     }
     
+    $country_id = (int)$country_id;
     $query = "SELECT id FROM regions WHERE name = '$name' AND country_id = $country_id";
     if ($id) {
+        $id = (int)$id;
         $query .= " AND id != $id";
     }
     
@@ -577,8 +587,10 @@ function checkCityName($conn) {
         return;
     }
     
+    $region_id = (int)$region_id;
     $query = "SELECT id FROM cities WHERE name = '$name' AND region_id = $region_id";
     if ($id) {
+        $id = (int)$id;
         $query .= " AND id != $id";
     }
     
@@ -602,8 +614,10 @@ function checkSubRegionName($conn) {
         return;
     }
     
+    $city_id = (int)$city_id;
     $query = "SELECT id FROM sub_regions WHERE name = '$name' AND city_id = $city_id";
     if ($id) {
+        $id = (int)$id;
         $query .= " AND id != $id";
     }
     

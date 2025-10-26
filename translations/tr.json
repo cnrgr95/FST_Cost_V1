@@ -108,7 +108,9 @@
         "close": "Kapat",
         "confirm": "Onayla",
         "yes": "Evet",
-        "no": "Hayır"
+        "no": "Hayır",
+        "warning": "Uyarı",
+        "information": "Bilgi"
     },
     "locations": {
         "title": "Lokasyonlar",
@@ -144,6 +146,7 @@
         "region_required": "Bölge seçimi zorunludur",
         "delete_confirm": "Bu kaydı silmek istediğinizden emin misiniz?",
         "loading_data": "Veriler yükleniyor...",
+        "search_placeholder": "Ülke, bölge, şehir, alt bölge...",
         "country_added": "Ülke başarıyla eklendi",
         "country_updated": "Ülke başarıyla güncellendi",
         "region_added": "Bölge başarıyla eklendi",
@@ -248,6 +251,9 @@
         "type_added": "Araç tipi başarıyla eklendi",
         "type_updated": "Araç tipi başarıyla güncellendi",
         "search_placeholder": "Araç firması, araç tipi, şehir...",
+        "no_cities_found": "Şehir bulunamadı",
+        "error_cities_load": "Hata - Şehirler yüklenemedi",
+        "cost_name_required": "Maliyet adı gereklidir",
         "add_new_dept": "Araç Firması Ekle",
         "add_new_pos": "Araç Tipi Ekle",
         "edit_dept": "Araç Firması Düzenle",

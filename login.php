@@ -56,14 +56,28 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     } else {
         // Simple authentication (for testing)
         if ($username === 'admin' && $password === 'admin') {
+            // Regenerate session ID to prevent session fixation
+            session_regenerate_id(true);
+            
             $_SESSION['user_id'] = 1;
             $_SESSION['username'] = $username;
             
-            // Handle remember me
+            // Handle remember me with secure cookie
             if (isset($_POST['remember_me']) && $_POST['remember_me'] === 'on') {
-                setcookie('remembered_username', $username, time() + (30 * 24 * 60 * 60), '/');
+                // Secure cookie: HttpOnly + SameSite
+                setcookie('remembered_username', $username, [
+                    'expires' => time() + (30 * 24 * 60 * 60),
+                    'path' => '/',
+                    'httponly' => true,
+                    'samesite' => 'Lax'
+                ]);
             } else {
-                setcookie('remembered_username', '', time() - 3600, '/');
+                setcookie('remembered_username', '', [
+                    'expires' => time() - 3600,
+                    'path' => '/',
+                    'httponly' => true,
+                    'samesite' => 'Lax'
+                ]);
             }
             
             header('Location: dashboard.php');

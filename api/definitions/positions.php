@@ -84,11 +84,11 @@ function handleGet($conn, $action) {
             getCities($conn);
             break;
         case 'departments':
-            $city_id = $_GET['city_id'] ?? null;
+            $city_id = isset($_GET['city_id']) ? (int)$_GET['city_id'] : null;
             getDepartments($conn, $city_id);
             break;
         case 'positions':
-            $dept_id = $_GET['department_id'] ?? null;
+            $dept_id = isset($_GET['department_id']) ? (int)$_GET['department_id'] : null;
             getPositions($conn, $dept_id);
             break;
         default:
@@ -169,6 +169,7 @@ function getCities($conn) {
 // Department functions
 function getDepartments($conn, $city_id = null) {
     if ($city_id) {
+        $city_id = (int)$city_id;
         $query = "SELECT d.*, c.name as city_name, r.name as region_name, co.name as country_name 
                   FROM departments d 
                   LEFT JOIN cities c ON d.city_id = c.id 
@@ -197,7 +198,7 @@ function getDepartments($conn, $city_id = null) {
 
 function createDepartment($conn, $data) {
     $name = pg_escape_string($conn, $data['name']);
-    $city_id = $data['city_id'];
+    $city_id = (int)$data['city_id'];
     
     // Check if department name already exists in the same city
     $checkQuery = "SELECT id FROM departments WHERE name = '$name' AND city_id = $city_id";
@@ -219,9 +220,9 @@ function createDepartment($conn, $data) {
 }
 
 function updateDepartment($conn, $data) {
-    $id = $data['id'];
+    $id = (int)$data['id'];
     $name = pg_escape_string($conn, $data['name']);
-    $city_id = $data['city_id'];
+    $city_id = (int)$data['city_id'];
     
     $query = "UPDATE departments SET name = '$name', city_id = $city_id, updated_at = NOW() WHERE id = $id";
     $result = pg_query($conn, $query);
@@ -234,6 +235,7 @@ function updateDepartment($conn, $data) {
 }
 
 function deleteDepartment($conn, $id) {
+    $id = (int)$id;
     // Check if department has positions
     $checkQuery = "SELECT COUNT(*) as count FROM positions WHERE department_id = $id";
     $checkResult = pg_query($conn, $checkQuery);
@@ -262,6 +264,7 @@ function deleteDepartment($conn, $id) {
 // Position functions
 function getPositions($conn, $dept_id = null) {
     if ($dept_id) {
+        $dept_id = (int)$dept_id;
         $query = "SELECT p.*, d.name as department_name, c.name as city_name, r.name as region_name, co.name as country_name
                   FROM positions p 
                   LEFT JOIN departments d ON p.department_id = d.id 
@@ -292,7 +295,7 @@ function getPositions($conn, $dept_id = null) {
 
 function createPosition($conn, $data) {
     $name = pg_escape_string($conn, $data['name']);
-    $department_id = $data['department_id'];
+    $department_id = (int)$data['department_id'];
     
     // Check if position name already exists in the same department
     $checkQuery = "SELECT id FROM positions WHERE name = '$name' AND department_id = $department_id";
@@ -314,9 +317,9 @@ function createPosition($conn, $data) {
 }
 
 function updatePosition($conn, $data) {
-    $id = $data['id'];
+    $id = (int)$data['id'];
     $name = pg_escape_string($conn, $data['name']);
-    $department_id = $data['department_id'];
+    $department_id = (int)$data['department_id'];
     
     $query = "UPDATE positions SET name = '$name', department_id = $department_id, updated_at = NOW() WHERE id = $id";
     $result = pg_query($conn, $query);
@@ -329,6 +332,7 @@ function updatePosition($conn, $data) {
 }
 
 function deletePosition($conn, $id) {
+    $id = (int)$id;
     $query = "DELETE FROM positions WHERE id = $id";
     $result = pg_query($conn, $query);
     

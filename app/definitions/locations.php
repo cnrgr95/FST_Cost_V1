@@ -63,7 +63,7 @@ $t_dependencies = $all_translations['dependencies'] ?? [];
                 <div class="locations-search-section">
                     <div class="search-box">
                         <span class="material-symbols-rounded search-icon">search</span>
-                        <input type="text" id="searchInput" placeholder="Ülke, bölge, şehir, alt bölge..." autocomplete="off">
+                        <input type="text" id="searchInput" placeholder="<?php echo $t_locations['search_placeholder'] ?? 'Search...'; ?>" autocomplete="off">
                         <button id="clearSearch" class="clear-btn" style="display: none;">
                             <span class="material-symbols-rounded">close</span>
                         </button>

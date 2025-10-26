@@ -84,11 +84,11 @@ function handleGet($conn, $action) {
             getCities($conn);
             break;
         case 'companies':
-            $city_id = $_GET['city_id'] ?? null;
+            $city_id = isset($_GET['city_id']) ? (int)$_GET['city_id'] : null;
             getCompanies($conn, $city_id);
             break;
         case 'types':
-            $company_id = $_GET['company_id'] ?? null;
+            $company_id = isset($_GET['company_id']) ? (int)$_GET['company_id'] : null;
             getTypes($conn, $company_id);
             break;
         default:
@@ -169,6 +169,7 @@ function getCities($conn) {
 // Company functions
 function getCompanies($conn, $city_id = null) {
     if ($city_id) {
+        $city_id = (int)$city_id;
         $query = "SELECT vc.*, c.name as city_name, r.name as region_name, co.name as country_name 
                   FROM vehicle_companies vc 
                   LEFT JOIN cities c ON vc.city_id = c.id 
@@ -197,7 +198,7 @@ function getCompanies($conn, $city_id = null) {
 
 function createCompany($conn, $data) {
     $name = pg_escape_string($conn, $data['name']);
-    $city_id = $data['city_id'];
+    $city_id = (int)$data['city_id'];
     $contact_person = isset($data['contact_person']) ? pg_escape_string($conn, $data['contact_person']) : null;
     $contact_email = isset($data['contact_email']) ? pg_escape_string($conn, $data['contact_email']) : null;
     $contact_phone = isset($data['contact_phone']) ? pg_escape_string($conn, $data['contact_phone']) : null;
@@ -225,9 +226,9 @@ function createCompany($conn, $data) {
 }
 
 function updateCompany($conn, $data) {
-    $id = $data['id'];
+    $id = (int)$data['id'];
     $name = pg_escape_string($conn, $data['name']);
-    $city_id = $data['city_id'];
+    $city_id = (int)$data['city_id'];
     $contact_person = isset($data['contact_person']) ? pg_escape_string($conn, $data['contact_person']) : null;
     $contact_email = isset($data['contact_email']) ? pg_escape_string($conn, $data['contact_email']) : null;
     $contact_phone = isset($data['contact_phone']) ? pg_escape_string($conn, $data['contact_phone']) : null;
@@ -247,6 +248,7 @@ function updateCompany($conn, $data) {
 }
 
 function deleteCompany($conn, $id) {
+    $id = (int)$id;
     // Check if company has vehicle types
     $checkQuery = "SELECT COUNT(*) as count FROM vehicle_types WHERE vehicle_company_id = $id";
     $checkResult = pg_query($conn, $checkQuery);
@@ -275,6 +277,7 @@ function deleteCompany($conn, $id) {
 // Type functions
 function getTypes($conn, $company_id = null) {
     if ($company_id) {
+        $company_id = (int)$company_id;
         $query = "SELECT vt.*, vc.name as company_name, c.name as city_name, r.name as region_name, co.name as country_name
                   FROM vehicle_types vt 
                   LEFT JOIN vehicle_companies vc ON vt.vehicle_company_id = vc.id 
@@ -305,7 +308,7 @@ function getTypes($conn, $company_id = null) {
 
 function createType($conn, $data) {
     $name = pg_escape_string($conn, $data['name']);
-    $company_id = $data['vehicle_company_id'];
+    $company_id = (int)$data['vehicle_company_id'];
     
     // Check if type name already exists in the same company
     $checkQuery = "SELECT id FROM vehicle_types WHERE name = '$name' AND vehicle_company_id = $company_id";
@@ -328,9 +331,9 @@ function createType($conn, $data) {
 }
 
 function updateType($conn, $data) {
-    $id = $data['id'];
+    $id = (int)$data['id'];
     $name = pg_escape_string($conn, $data['name']);
-    $company_id = $data['vehicle_company_id'];
+    $company_id = (int)$data['vehicle_company_id'];
     
     $query = "UPDATE vehicle_types SET name = '$name', vehicle_company_id = $company_id, 
               updated_at = NOW() WHERE id = $id";
@@ -344,6 +347,7 @@ function updateType($conn, $data) {
 }
 
 function deleteType($conn, $id) {
+    $id = (int)$id;
     $query = "DELETE FROM vehicle_types WHERE id = $id";
     $result = pg_query($conn, $query);
     

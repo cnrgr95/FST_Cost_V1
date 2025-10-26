@@ -87,7 +87,6 @@ define('INCLUDES_PATH', BASE_PATH . 'includes' . DIRECTORY_SEPARATOR);
 define('TRANSLATIONS_PATH', BASE_PATH . 'translations' . DIRECTORY_SEPARATOR);
 
 // Helpers
-require_once INCLUDES_PATH . 'database.php';
 require_once INCLUDES_PATH . 'translations.php';
 
 /**

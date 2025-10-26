@@ -223,25 +223,33 @@
             html += `<td>${item.name || '-'}</td>`;
             html += `<td>${item.city_name || '-'}</td>`;
             html += `<td>${item.authorized_person || '-'}</td>`;
-            html += `<td>${item.authorized_email ? '<a href="mailto:' + item.authorized_email + '">' + item.authorized_email + '</a>' : '-'}</td>`;
+            html += `<td>${item.authorized_email ? '<a href="mailto:' + encodeURIComponent(item.authorized_email) + '">' + escapeHtml(item.authorized_email) + '</a>' : '-'}</td>`;
             html += `<td>${item.authorized_phone || '-'}</td>`;
             html += `<td class="separator-column"></td>`;
             html += `<td>${item.operasyon_name || '-'}</td>`;
-            html += `<td>${item.operasyon_email ? '<a href="mailto:' + item.operasyon_email + '">' + item.operasyon_email + '</a>' : '-'}</td>`;
+            html += `<td>${item.operasyon_email ? '<a href="mailto:' + encodeURIComponent(item.operasyon_email) + '">' + escapeHtml(item.operasyon_email) + '</a>' : '-'}</td>`;
             html += `<td>${item.operasyon_phone || '-'}</td>`;
-            html += `<td>${item.location_url ? '<a href="' + item.location_url + '" target="_blank" rel="noopener noreferrer" class="location-link" title="' + (tGuide.view_on_map || 'Haritada Gör') + '"><span class="material-symbols-rounded">location_on</span></a>' : '-'}</td>`;
+            html += `<td>${item.location_url ? '<a href="' + encodeURI(item.location_url) + '" target="_blank" rel="noopener noreferrer" class="location-link" title="' + (tGuide.view_on_map || 'Haritada Gör') + '"><span class="material-symbols-rounded">location_on</span></a>' : '-'}</td>`;
         } else {
             html += `<td><span class="type-badge company">${tGuide.vehicle_company || 'Taşımacı'}</span></td>`;
             html += `<td>${item.name || '-'}</td>`;
             html += `<td>${item.city_name || '-'}</td>`;
             html += `<td>${item.contact_person || '-'}</td>`;
-            html += `<td>${item.contact_email ? '<a href="mailto:' + item.contact_email + '">' + item.contact_email + '</a>' : '-'}</td>`;
+            html += `<td>${item.contact_email ? '<a href="mailto:' + encodeURIComponent(item.contact_email) + '">' + escapeHtml(item.contact_email) + '</a>' : '-'}</td>`;
             html += `<td>${item.contact_phone || '-'}</td>`;
         }
         
         html += '</tr>';
         
         return html;
+    }
+    
+    // Escape HTML to prevent XSS
+    function escapeHtml(text) {
+        if (!text) return '';
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
     }
     
     // Show loading state

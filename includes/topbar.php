@@ -4,6 +4,20 @@
  * Can be included in any page
  */
 
+// Calculate base path dynamically
+if (!isset($basePath)) {
+    $callerFile = debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS, 2)[0]['file'] ?? __FILE__;
+    $callerDir = dirname($callerFile);
+    $rootDir = dirname(__DIR__);
+    $relativePath = str_replace($rootDir . DIRECTORY_SEPARATOR, '', $callerDir);
+    if ($relativePath === $callerDir) {
+        $basePath = '';
+    } else {
+        $depth = substr_count($relativePath, DIRECTORY_SEPARATOR);
+        $basePath = str_repeat('../', $depth);
+    }
+}
+
 // Load translation helper
 require_once __DIR__ . '/translations.php';
 
@@ -81,7 +95,7 @@ $t_topbar = $all_translations['topbar'] ?? [];
           <span class="material-symbols-rounded">help</span>
           <span><?php echo $t_topbar['help_support'] ?? 'Help & Support'; ?></span>
         </a>
-        <a href="logout.php" class="dropdown-item logout">
+        <a href="<?php echo $basePath; ?>logout.php" class="dropdown-item logout">
           <span class="material-symbols-rounded">logout</span>
           <span><?php echo $t_topbar['logout'] ?? 'Logout'; ?></span>
         </a>

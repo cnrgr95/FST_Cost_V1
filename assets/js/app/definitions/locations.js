@@ -132,7 +132,6 @@
         })();
         
         // Render filtered results
-        console.log('Filtered results:', filtered.length);
         renderTable(tabType, filtered);
     }
     

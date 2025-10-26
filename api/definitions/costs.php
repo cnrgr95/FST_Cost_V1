@@ -163,7 +163,7 @@ function createCost($conn, $data) {
         $cost_name = pg_escape_string($conn, $data['cost_name'] ?? '');
         
         if (empty($cost_name)) {
-            echo json_encode(['success' => false, 'message' => 'Maliyet adı gereklidir']);
+            echo json_encode(['success' => false, 'message' => 'Cost name is required']);
             return;
         }
         
@@ -178,16 +178,16 @@ function createCost($conn, $data) {
             echo json_encode(['success' => true, 'id' => $row['id'], 'cost_code' => $row['cost_code']]);
         } else {
             $error = pg_last_error($conn);
-            echo json_encode(['success' => false, 'message' => 'Veritabanı hatası: ' . $error]);
+            echo json_encode(['success' => false, 'message' => 'Database error: ' . $error]);
         }
     } catch (Exception $e) {
-        echo json_encode(['success' => false, 'message' => 'Hata: ' . $e->getMessage()]);
+        echo json_encode(['success' => false, 'message' => 'Error: ' . $e->getMessage()]);
     }
 }
 
 // Update cost
 function updateCost($conn, $data) {
-    $id = $data['id'];
+    $id = (int)$data['id'];
     $cost_code = pg_escape_string($conn, $data['cost_code'] ?? '');
     $cost_name = pg_escape_string($conn, $data['cost_name'] ?? '');
     
@@ -207,6 +207,7 @@ function updateCost($conn, $data) {
 
 // Delete cost
 function deleteCost($conn, $id) {
+    $id = (int)$id;
     $query = "DELETE FROM costs WHERE id = $id";
     $result = pg_query($conn, $query);
     

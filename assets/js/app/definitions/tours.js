@@ -180,13 +180,13 @@
         data.forEach(item => {
             html += `
                 <tr>
-                    <td><strong>${item.sejour_tour_code || '-'}</strong></td>
-                    <td><strong>${item.name}</strong></td>
-                    <td>${item.merchant_name || '-'}</td>
-                    <td>${item.country_name || '-'}</td>
-                    <td>${item.region_name || '-'}</td>
-                    <td>${item.city_name || '-'}</td>
-                    <td>${item.sub_region_name || '-'}</td>
+                    <td><strong>${escapeHtml(item.sejour_tour_code || '-')}</strong></td>
+                    <td><strong>${escapeHtml(item.name)}</strong></td>
+                    <td>${escapeHtml(item.merchant_name || '-')}</td>
+                    <td>${escapeHtml(item.country_name || '-')}</td>
+                    <td>${escapeHtml(item.region_name || '-')}</td>
+                    <td>${escapeHtml(item.city_name || '-')}</td>
+                    <td>${escapeHtml(item.sub_region_name || '-')}</td>
                     <td>
                         <div class="table-actions">
                             <button class="btn-action btn-edit" data-item-id="${item.id}">
@@ -462,5 +462,12 @@
         } catch (error) {
             console.error('Error loading merchants:', error);
         }
+    }
+    // Escape HTML to prevent XSS
+    function escapeHtml(text) {
+        if (!text) return '';
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
     }
 })();
