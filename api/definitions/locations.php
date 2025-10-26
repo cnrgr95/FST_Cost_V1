@@ -235,6 +235,21 @@ function updateCountry($conn, $data) {
 }
 
 function deleteCountry($conn, $id) {
+    // Check if country has regions
+    $checkQuery = "SELECT COUNT(*) as count FROM regions WHERE country_id = $id";
+    $checkResult = pg_query($conn, $checkQuery);
+    
+    if ($checkResult) {
+        $row = pg_fetch_assoc($checkResult);
+        if ($row['count'] > 0) {
+            echo json_encode([
+                'success' => false, 
+                'message' => 'This country cannot be deleted because it has ' . $row['count'] . ' region(s) associated with it. Please delete all regions first.'
+            ]);
+            return;
+        }
+    }
+    
     $query = "DELETE FROM countries WHERE id = $id";
     $result = pg_query($conn, $query);
     
@@ -302,6 +317,21 @@ function updateRegion($conn, $data) {
 }
 
 function deleteRegion($conn, $id) {
+    // Check if region has cities
+    $checkQuery = "SELECT COUNT(*) as count FROM cities WHERE region_id = $id";
+    $checkResult = pg_query($conn, $checkQuery);
+    
+    if ($checkResult) {
+        $row = pg_fetch_assoc($checkResult);
+        if ($row['count'] > 0) {
+            echo json_encode([
+                'success' => false, 
+                'message' => 'This region cannot be deleted because it has ' . $row['count'] . ' city/cities associated with it. Please delete all cities first.'
+            ]);
+            return;
+        }
+    }
+    
     $query = "DELETE FROM regions WHERE id = $id";
     $result = pg_query($conn, $query);
     
@@ -373,6 +403,21 @@ function updateCity($conn, $data) {
 }
 
 function deleteCity($conn, $id) {
+    // Check if city has sub regions
+    $checkQuery = "SELECT COUNT(*) as count FROM sub_regions WHERE city_id = $id";
+    $checkResult = pg_query($conn, $checkQuery);
+    
+    if ($checkResult) {
+        $row = pg_fetch_assoc($checkResult);
+        if ($row['count'] > 0) {
+            echo json_encode([
+                'success' => false, 
+                'message' => 'This city cannot be deleted because it has ' . $row['count'] . ' sub region(s) associated with it. Please delete all sub regions first.'
+            ]);
+            return;
+        }
+    }
+    
     $query = "DELETE FROM cities WHERE id = $id";
     $result = pg_query($conn, $query);
     
@@ -451,6 +496,21 @@ function updateSubRegion($conn, $data) {
 }
 
 function deleteSubRegion($conn, $id) {
+    // Check if sub region has merchants
+    $checkQuery = "SELECT COUNT(*) as count FROM merchants WHERE sub_region_id = $id";
+    $checkResult = pg_query($conn, $checkQuery);
+    
+    if ($checkResult) {
+        $row = pg_fetch_assoc($checkResult);
+        if ($row['count'] > 0) {
+            echo json_encode([
+                'success' => false, 
+                'message' => 'This sub region cannot be deleted because it has ' . $row['count'] . ' merchant(s) associated with it. Please delete all merchants first.'
+            ]);
+            return;
+        }
+    }
+    
     $query = "DELETE FROM sub_regions WHERE id = $id";
     $result = pg_query($conn, $query);
     

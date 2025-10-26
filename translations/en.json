@@ -90,6 +90,12 @@
         "city_updated": "City updated successfully",
         "sub_region_created": "Sub region created successfully",
         "sub_region_updated": "Sub region updated successfully",
+        "save_failed": "Save operation failed",
+        "update_failed": "Update operation failed",
+        "delete_failed": "Delete operation failed",
+        "failed_to_load_data": "Failed to load data",
+        "operation_completed_successfully": "Operation completed successfully",
+        "an_error_occurred": "An error occurred",
         "search": "Search",
         "filter": "Filter",
         "export": "Export",
@@ -135,7 +141,15 @@
         "country_required": "Country selection is required",
         "region_required": "Region selection is required",
         "delete_confirm": "Are you sure you want to delete this item?",
-        "loading_data": "Loading data..."
+        "loading_data": "Loading data...",
+        "country_added": "Country added successfully",
+        "country_updated": "Country updated successfully",
+        "region_added": "Region added successfully",
+        "region_updated": "Region updated successfully",
+        "city_added": "City added successfully",
+        "city_updated": "City updated successfully",
+        "sub_region_added": "Sub region added successfully",
+        "sub_region_updated": "Sub region updated successfully"
     },
     "positions": {
         "title": "Position Management",
@@ -157,7 +171,11 @@
         "select_dept": "Select Department",
         "name_required": "Name field is required",
         "city_required": "City selection is required",
-        "dept_required": "Department selection is required"
+        "dept_required": "Department selection is required",
+        "dept_added": "Department added successfully",
+        "dept_updated": "Department updated successfully",
+        "pos_added": "Position added successfully",
+        "pos_updated": "Position updated successfully"
     },
     "merchants": {
         "title": "Merchant Management",
@@ -169,6 +187,12 @@
         "sub_region_required": "Sub Region selection is required",
         "delete_confirm": "Are you sure you want to delete this item?",
         "loading_data": "Loading data...",
+        "merchant_added": "Merchant added successfully",
+        "merchant_updated": "Merchant updated successfully",
+        "location_retrieved": "Location retrieved",
+        "location_error": "Error getting location",
+        "location_not_supported": "Geolocation is not supported by your browser",
+        "location_url_required": "Please enter a location URL first",
         "authorized_person": "Authorized Person",
         "authorized_email": "Authorized Email",
         "authorized_phone": "Authorized Phone",
@@ -184,19 +208,27 @@
         "get_location": "Get Location",
         "search_placeholder": "Merchant name, country, region, city, phone, email..."
     },
+    "dependencies": {
+        "country_has_regions": "This country cannot be deleted because it has {count} region(s) associated with it. Please delete all regions first.",
+        "region_has_cities": "This region cannot be deleted because it has {count} city/cities associated with it. Please delete all cities first.",
+        "city_has_sub_regions": "This city cannot be deleted because it has {count} sub region(s) associated with it. Please delete all sub regions first.",
+        "sub_region_has_merchants": "This sub region cannot be deleted because it has {count} merchant(s) associated with it. Please delete all merchants first.",
+        "department_has_positions": "This department cannot be deleted because it has {count} position(s) associated with it. Please delete all positions first.",
+        "merchant_has_tours": "This merchant cannot be deleted because it has {count} tour(s) associated with it. Please delete all tours first."
+    },
     "tours": {
         "title": "Tour Management",
+        "sejour_tour_code": "Sejour Tour Code",
         "tour_name": "Tour Name",
         "add_tour": "Add Tour",
         "edit_tour": "Edit Tour",
         "no_tours": "No tours found",
         "select_merchant": "Select Merchant",
         "select_sub_region": "Select Sub Region",
-        "tour_description": "Tour Description",
-        "start_date": "Start Date",
-        "end_date": "End Date",
         "delete_confirm": "Are you sure you want to delete this item?",
-        "loading_data": "Loading data..."
+        "loading_data": "Loading data...",
+        "tour_added": "Tour added successfully",
+        "tour_updated": "Tour updated successfully"
     },
     "navigation": {
         "home": "Home",
@@ -214,6 +246,8 @@
         "add_cost": "Add Cost",
         "edit_cost": "Edit Cost",
         "no_costs": "No costs found",
+        "cost_added": "Cost added successfully",
+        "cost_updated": "Cost updated successfully",
         "location_type": "Cost Scope",
         "select_location_type": "Select Scope",
         "for_country": "By Country",

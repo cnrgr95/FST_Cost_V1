@@ -23,6 +23,7 @@ require_once $basePath . 'includes/translations.php';
 $t_sidebar = $all_translations['sidebar'] ?? [];
 $t_common = $all_translations['common'] ?? [];
 $t_positions = $all_translations['positions'] ?? [];
+$t_dependencies = $all_translations['dependencies'] ?? [];
 ?>
 <!DOCTYPE html>
 <html lang="<?php echo $lang; ?>">
@@ -40,6 +41,7 @@ $t_positions = $all_translations['positions'] ?? [];
     <!-- CSS Files -->
     <link rel="stylesheet" href="<?php echo $basePath; ?>assets/css/sidebar.css">
     <link rel="stylesheet" href="<?php echo $basePath; ?>assets/css/topbar.css">
+    <link rel="stylesheet" href="<?php echo $basePath; ?>assets/css/confirm-dialog.css">
     <link rel="stylesheet" href="<?php echo $basePath; ?>assets/css/app/definitions/positions.css">
     
     <link rel="icon" type="image/svg+xml" href="<?php echo $basePath; ?>assets/images/logo.svg">
@@ -215,7 +217,8 @@ $t_positions = $all_translations['positions'] ?? [];
         window.Translations = {
             positions: <?php echo json_encode($t_positions); ?>,
             common: <?php echo json_encode($t_common); ?>,
-            sidebar: <?php echo json_encode($t_sidebar); ?>
+            sidebar: <?php echo json_encode($t_sidebar); ?>,
+            dependencies: <?php echo json_encode($t_dependencies); ?>
         };
     </script>
     

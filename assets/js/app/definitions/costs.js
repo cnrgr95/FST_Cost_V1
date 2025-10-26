@@ -11,7 +11,6 @@
     const tSidebar = t.sidebar || {};
     
     let currentData = {
-        countries: [],
         costs: []
     };
     
@@ -87,10 +86,7 @@
             const searchText = query.toLowerCase();
             return (
                 (item.cost_name && item.cost_name.toLowerCase().includes(searchText)) ||
-                (item.cost_code && item.cost_code.toLowerCase().includes(searchText)) ||
-                (item.country_name && item.country_name.toLowerCase().includes(searchText)) ||
-                (item.region_name && item.region_name.toLowerCase().includes(searchText)) ||
-                (item.city_name && item.city_name.toLowerCase().includes(searchText))
+                (item.cost_code && item.cost_code.toLowerCase().includes(searchText))
             );
         });
         
@@ -111,13 +107,13 @@
             } else {
                 currentData.costs = [];
                 renderTable();
-                showError(result.message);
+                showToast('error', result.message);
             }
         } catch (error) {
             console.error('Error fetching data:', error);
             currentData.costs = [];
             renderTable();
-            showError('Failed to load data');
+            showToast('error', tCommon.failed_to_load_data || 'Failed to load data');
         }
     }
     
@@ -158,9 +154,6 @@
         html += '<thead><tr>';
         html += `<th>${tCosts.cost_code || 'Cost Code'}</th>`;
         html += `<th>${tCosts.cost_name || 'Cost Name'}</th>`;
-        html += `<th>${tSidebar.country || 'Country'}</th>`;
-        html += `<th>${tSidebar.region || 'Region'}</th>`;
-        html += `<th>${tSidebar.city || 'City'}</th>`;
         html += `<th>${tCommon.actions || 'Actions'}</th>`;
         html += '</tr></thead>';
         
@@ -170,15 +163,12 @@
                 <tr>
                     <td><strong>${item.cost_code}</strong></td>
                     <td>${item.cost_name || '-'}</td>
-                    <td>${item.country_name || '-'} ${item.country_code ? '(' + item.country_code + ')' : ''}</td>
-                    <td>${item.region_name || '-'}</td>
-                    <td>${item.city_name || '-'}</td>
                     <td>
                         <div class="table-actions">
-                            <button class="btn-action btn-edit" onclick="window.editItem(${item.id})">
+                            <button class="btn-action btn-edit" data-item-id="${item.id}">
                                 <span class="material-symbols-rounded">edit</span>
                             </button>
-                            <button class="btn-action btn-delete" onclick="window.deleteItem(${item.id})">
+                            <button class="btn-action btn-delete" data-item-id="${item.id}">
                                 <span class="material-symbols-rounded">delete</span>
                             </button>
                         </div>
@@ -189,6 +179,28 @@
         html += '</tbody></table></div>';
         
         container.innerHTML = html;
+        
+        // Attach event listeners to action buttons
+        attachActionListeners();
+    }
+    
+    // Attach event listeners to action buttons
+    function attachActionListeners() {
+        // Find all edit buttons and attach click handlers
+        document.querySelectorAll('.btn-edit[data-item-id]').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const id = parseInt(this.getAttribute('data-item-id'));
+                window.editItem(id);
+            });
+        });
+        
+        // Find all delete buttons and attach click handlers
+        document.querySelectorAll('.btn-delete[data-item-id]').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const id = parseInt(this.getAttribute('data-item-id'));
+                window.deleteItem(id);
+            });
+        });
     }
     
     // Show loading state
@@ -205,7 +217,7 @@
     // Show error
     function showError(message) {
         console.error(message);
-        alert(message || (tCommon.error || 'Error'));
+        showToast('error', message || tCommon.error || 'Error');
     }
     
     // Open modal
@@ -220,12 +232,6 @@
         if (form) {
             form.reset();
             delete form.dataset.id;
-            
-            // Reset radio button to fixed (default)
-            const fixedRadio = form.querySelector('input[value="fixed"]');
-            if (fixedRadio) {
-                fixedRadio.checked = true;
-            }
         }
         
         // Update modal title
@@ -233,9 +239,6 @@
         if (title) {
             title.textContent = tCosts.add_cost || 'Add Cost';
         }
-        
-        // Load countries
-        await loadCountriesForSelect();
     };
     
     // Close modal
@@ -252,13 +255,22 @@
     // Edit item
     window.editItem = async function(id) {
         const item = currentData.costs.find(item => item.id == id);
-        if (!item) return;
+        if (!item) {
+            console.error('Item not found:', id);
+            return;
+        }
         
         const modal = document.getElementById('costsModal');
-        if (!modal) return;
+        if (!modal) {
+            console.error('Modal not found: costsModal');
+            return;
+        }
         
         const form = document.getElementById('costForm');
-        if (!form) return;
+        if (!form) {
+            console.error('Form not found: costForm');
+            return;
+        }
         
         // Update modal title
         const title = modal.querySelector('h2');
@@ -268,122 +280,100 @@
         
         // Fill form
         form.dataset.id = id;
-        form.querySelector('input[name="cost_code"]').value = item.cost_code || '';
-        form.querySelector('input[name="cost_name"]').value = item.cost_name || '';
-        form.querySelector('input[name="amount"]').value = item.amount || '';
         
-        // Set radio button
-        const isPercentage = item.is_percentage === 't' || item.is_percentage === true;
-        const fixedRadio = form.querySelector('input[value="fixed"]');
-        const percentRadio = form.querySelector('input[value="percentage"]');
-        if (isPercentage) {
-            percentRadio.checked = true;
-        } else {
-            fixedRadio.checked = true;
+        // Set cost code
+        const costCodeInput = form.querySelector('input[name="cost_code"]');
+        if (costCodeInput) {
+            costCodeInput.value = item.cost_code || '';
         }
         
-        // Trigger change event to update label
-        const radioToTrigger = isPercentage ? percentRadio : fixedRadio;
-        if (radioToTrigger) {
-            radioToTrigger.dispatchEvent(new Event('change'));
+        // Set cost name
+        const costNameInput = form.querySelector('input[name="cost_name"]');
+        if (costNameInput) {
+            costNameInput.value = item.cost_name || '';
         }
-        
-        await loadCountriesForSelect();
-        form.querySelector('select[name="country_id"]').value = item.country_id;
         
         modal.classList.add('active');
     };
     
     // Delete item
     window.deleteItem = async function(id) {
-        if (!confirm(tCosts.delete_confirm || 'Are you sure you want to delete this item?')) return;
+        const t = window.Translations || {};
+        const tLoc = t.locations || {};
+        const deleteConfirmMessage = tCosts.delete_confirm || tLoc.delete_confirm || 'Are you sure you want to delete this item?';
         
-        try {
-            const response = await fetch(`${API_BASE}?action=cost&id=${id}`, {
-                method: 'DELETE'
-            });
-            const result = await response.json();
-            
-            if (result.success) {
-                currentData.costs = [];
-                await loadData();
-            } else {
-                showError(result.message);
+        showConfirmDialog(deleteConfirmMessage, async function() {
+            try {
+                const response = await fetch(`${API_BASE}?action=cost&id=${id}`, {
+                    method: 'DELETE'
+                });
+                const result = await response.json();
+                
+                if (result.success) {
+                    currentData.costs = [];
+                    await loadData();
+                    showToast('success', tCommon.item_deleted_successfully || 'Item deleted successfully');
+                } else {
+                    showToast('error', result.message);
+                }
+            } catch (error) {
+                console.error('Error deleting item:', error);
+                showToast('error', tCommon.delete_failed || 'Failed to delete item');
             }
-        } catch (error) {
-            console.error('Error deleting item:', error);
-            showError('Failed to delete item');
-        }
+        });
     };
     
     
     // Create cost
     window.createCost = async function(data) {
         try {
+            console.log('Creating cost with data:', data);
             const response = await fetch(`${API_BASE}?action=cost`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(data)
             });
             const result = await response.json();
+            console.log('Create response:', result);
             
             if (result.success) {
                 currentData.costs = [];
                 await loadData();
                 closeModal();
+                showToast('success', tCosts.cost_added || 'Cost created successfully');
             } else {
-                showError(result.message);
+                showToast('error', result.message || 'Failed to create cost');
             }
         } catch (error) {
             console.error('Error creating cost:', error);
-            showError('Failed to create cost');
+            showToast('error', tCommon.save_failed || 'Failed to create cost');
         }
     }
     
     // Update cost
     window.updateCost = async function(data) {
         try {
+            console.log('Updating cost with data:', data);
             const response = await fetch(`${API_BASE}?action=cost`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(data)
             });
             const result = await response.json();
+            console.log('Update response:', result);
             
             if (result.success) {
                 currentData.costs = [];
                 await loadData();
                 closeModal();
+                showToast('success', tCosts.cost_updated || 'Cost updated successfully');
             } else {
-                showError(result.message);
+                showToast('error', result.message || 'Failed to update cost');
             }
         } catch (error) {
             console.error('Error updating cost:', error);
-            showError('Failed to update cost');
+            showToast('error', tCommon.update_failed || 'Failed to update cost');
         }
     }
     
-    // Load countries for select
-    async function loadCountriesForSelect() {
-        if (currentData.countries.length === 0) {
-            try {
-                const response = await fetch(`${API_BASE}?action=countries`);
-                const result = await response.json();
-                if (result.success) {
-                    currentData.countries = result.data || [];
-                }
-            } catch (error) {
-                console.error('Error loading countries:', error);
-            }
-        }
-        
-        const select = document.querySelector('[name="country_id"]');
-        if (select) {
-            select.innerHTML = `<option value="">${tCosts.select_country || 'Select Country'}</option>`;
-            currentData.countries.forEach(country => {
-                const codeStr = country.code ? ' (' + country.code + ')' : '';
-                select.innerHTML += `<option value="${country.id}">${country.name}${codeStr}</option>`;
-            });
-        }
-    }
 })();

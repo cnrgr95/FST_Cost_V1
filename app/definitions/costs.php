@@ -39,6 +39,7 @@ $t_costs = $all_translations['costs'] ?? [];
     <!-- CSS Files -->
     <link rel="stylesheet" href="<?php echo $basePath; ?>assets/css/sidebar.css">
     <link rel="stylesheet" href="<?php echo $basePath; ?>assets/css/topbar.css">
+    <link rel="stylesheet" href="<?php echo $basePath; ?>assets/css/confirm-dialog.css">
     <link rel="stylesheet" href="<?php echo $basePath; ?>assets/css/app/definitions/costs.css">
     
     <link rel="icon" type="image/svg+xml" href="<?php echo $basePath; ?>assets/images/logo.svg">
@@ -61,7 +62,7 @@ $t_costs = $all_translations['costs'] ?? [];
                 <div class="costs-search-section">
                     <div class="search-box">
                         <span class="material-symbols-rounded search-icon">search</span>
-                        <input type="text" id="searchInput" placeholder="Maliyet adı, ülke, bölge, şehir..." autocomplete="off">
+                        <input type="text" id="searchInput" placeholder="<?php echo $t_costs['search_placeholder'] ?? 'Search by cost name or code...'; ?>" autocomplete="off">
                         <button id="clearSearch" class="clear-btn" style="display: none;">
                             <span class="material-symbols-rounded">close</span>
                         </button>
@@ -93,47 +94,8 @@ $t_costs = $all_translations['costs'] ?? [];
                 </div>
                 
                 <div class="form-group">
-                    <label><?php echo $t_costs['cost_name'] ?? 'Cost Name'; ?></label>
-                    <input type="text" name="cost_name" placeholder="<?php echo $t_costs['cost_name'] ?? 'Cost Name'; ?>">
-                </div>
-                
-                <div class="form-group">
-                    <label><?php echo $t_costs['location_type'] ?? 'Cost Scope'; ?> *</label>
-                    <div class="scope-buttons">
-                        <label class="scope-option">
-                            <input type="radio" name="location_scope" value="country">
-                            <span><?php echo $t_costs['for_country'] ?? 'By Country'; ?></span>
-                        </label>
-                        <label class="scope-option">
-                            <input type="radio" name="location_scope" value="region">
-                            <span><?php echo $t_costs['for_region'] ?? 'By Region'; ?></span>
-                        </label>
-                        <label class="scope-option">
-                            <input type="radio" name="location_scope" value="city">
-                            <span><?php echo $t_costs['for_city'] ?? 'By City'; ?></span>
-                        </label>
-                    </div>
-                </div>
-                
-                <div class="form-group" id="country-group" style="display: none;">
-                    <label><?php echo $t_sidebar['country'] ?? 'Country'; ?> *</label>
-                    <select name="country_id">
-                        <option value=""><?php echo $t_costs['select_country'] ?? 'Select Country'; ?></option>
-                    </select>
-                </div>
-                
-                <div class="form-group" id="region-group" style="display: none;">
-                    <label><?php echo $t_sidebar['region'] ?? 'Region'; ?> *</label>
-                    <select name="region_id">
-                        <option value=""><?php echo $t_costs['select_region'] ?? 'Select Region'; ?></option>
-                    </select>
-                </div>
-                
-                <div class="form-group" id="city-group" style="display: none;">
-                    <label><?php echo $t_sidebar['city'] ?? 'City'; ?> *</label>
-                    <select name="city_id">
-                        <option value=""><?php echo $t_costs['select_city'] ?? 'Select City'; ?></option>
-                    </select>
+                    <label><?php echo $t_costs['cost_name'] ?? 'Cost Name'; ?> *</label>
+                    <input type="text" name="cost_name" placeholder="<?php echo $t_costs['cost_name'] ?? 'Cost Name'; ?>" required>
                 </div>
                 
                 <div class="modal-footer">
@@ -201,68 +163,38 @@ $t_costs = $all_translations['costs'] ?? [];
     <script src="<?php echo $basePath; ?>assets/js/app/definitions/costs.js"></script>
     
     <script>
-        // Handle location scope selection and form submission
+        // Handle form submission
         document.addEventListener('DOMContentLoaded', function() {
             const costForm = document.getElementById('costForm');
-            const countryGroup = document.getElementById('country-group');
-            const regionGroup = document.getElementById('region-group');
-            const cityGroup = document.getElementById('city-group');
-            
-            // Show/hide location groups based on scope
-            function updateLocationGroups() {
-                const selectedScope = costForm.querySelector('input[name="location_scope"]:checked');
-                if (!selectedScope) {
-                    countryGroup.style.display = 'none';
-                    regionGroup.style.display = 'none';
-                    cityGroup.style.display = 'none';
-                    return;
-                }
-                
-                const scope = selectedScope.value;
-                countryGroup.style.display = scope === 'country' ? 'block' : 'none';
-                regionGroup.style.display = scope === 'region' ? 'block' : 'none';
-                cityGroup.style.display = scope === 'city' ? 'block' : 'none';
-            }
-            
-            // Update when scope changes
-            costForm.querySelectorAll('input[name="location_scope"]').forEach(radio => {
-                radio.addEventListener('change', updateLocationGroups);
-            });
-            
-            // Initialize
-            updateLocationGroups();
             
             // Override form submission
             costForm.addEventListener('submit', function(e) {
                 e.preventDefault();
                 const formData = new FormData(costForm);
-                const selectedScope = formData.get('location_scope');
+                
+                const costName = formData.get('cost_name');
+                console.log('Form submitted, cost_name:', costName);
+                
+                if (!costName || costName.trim() === '') {
+                    showToast('error', 'Maliyet adı gereklidir');
+                    return;
+                }
                 
                 const data = {
-                    cost_name: formData.get('cost_name'),
-                    country_id: null,
-                    region_id: null,
-                    city_id: null
+                    cost_name: costName
                 };
-                
-                // Set only the selected location
-                if (selectedScope === 'country') {
-                    data.country_id = formData.get('country_id');
-                } else if (selectedScope === 'region') {
-                    data.region_id = formData.get('region_id');
-                } else if (selectedScope === 'city') {
-                    data.city_id = formData.get('city_id');
-                }
                 
                 // Don't send cost_code when creating (it will be auto-generated)
                 // Only send cost_code when editing
                 if (costForm.dataset.id) {
                     data.id = costForm.dataset.id;
                     data.cost_code = formData.get('cost_code');
+                    console.log('Editing cost, calling updateCost with:', data);
                     updateCost(data);
                 } else {
                     // Empty string means auto-generate
                     data.cost_code = '';
+                    console.log('Creating cost, calling createCost with:', data);
                     createCost(data);
                 }
             });

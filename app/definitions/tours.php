@@ -40,6 +40,7 @@ $t_tours = $all_translations['tours'] ?? [];
     <!-- CSS Files -->
     <link rel="stylesheet" href="<?php echo $basePath; ?>assets/css/sidebar.css">
     <link rel="stylesheet" href="<?php echo $basePath; ?>assets/css/topbar.css">
+    <link rel="stylesheet" href="<?php echo $basePath; ?>assets/css/confirm-dialog.css">
     <link rel="stylesheet" href="<?php echo $basePath; ?>assets/css/app/definitions/tours.css">
     
     <link rel="icon" type="image/svg+xml" href="<?php echo $basePath; ?>assets/images/logo.svg">
@@ -62,7 +63,7 @@ $t_tours = $all_translations['tours'] ?? [];
                 <div class="tours-search-section">
                     <div class="search-box">
                         <span class="material-symbols-rounded search-icon">search</span>
-                        <input type="text" id="searchInput" placeholder="Tur adı, ülke, bölge, şehir, esnaf..." autocomplete="off">
+                        <input type="text" id="searchInput" placeholder="<?php echo $t_tours['sejour_tour_code'] ?? 'Sejour Tour Code'; ?>, tur adı, ülke, bölge, şehir, esnaf..." autocomplete="off">
                         <button id="clearSearch" class="clear-btn" style="display: none;">
                             <span class="material-symbols-rounded">close</span>
                         </button>
@@ -88,6 +89,11 @@ $t_tours = $all_translations['tours'] ?? [];
             </div>
             <form id="tourForm">
                 <div class="form-group">
+                    <label><?php echo $t_tours['sejour_tour_code'] ?? 'Sejour Tour Code'; ?> *</label>
+                    <input type="text" name="sejour_tour_code" placeholder="<?php echo $t_tours['sejour_tour_code'] ?? 'Sejour Tour Code'; ?>" required style="text-transform: uppercase;">
+                </div>
+                
+                <div class="form-group">
                     <label><?php echo $t_tours['tour_name'] ?? 'Tour Name'; ?> *</label>
                     <input type="text" name="name" required>
                 </div>
@@ -104,21 +110,6 @@ $t_tours = $all_translations['tours'] ?? [];
                     <select name="merchant_id" required>
                         <option value=""><?php echo $t_tours['select_merchant'] ?? 'Select Merchant'; ?></option>
                     </select>
-                </div>
-                
-                <div class="form-group">
-                    <label><?php echo $t_tours['tour_description'] ?? 'Description'; ?></label>
-                    <textarea name="description" rows="4" style="width: 100%; padding: 10px; border: 1px solid #d1d5db; border-radius: 6px;"></textarea>
-                </div>
-                
-                <div class="form-group">
-                    <label><?php echo $t_tours['start_date'] ?? 'Start Date'; ?></label>
-                    <input type="date" name="start_date">
-                </div>
-                
-                <div class="form-group">
-                    <label><?php echo $t_tours['end_date'] ?? 'End Date'; ?></label>
-                    <input type="date" name="end_date">
                 </div>
                 
                 <div class="modal-footer">

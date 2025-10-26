@@ -23,6 +23,7 @@ require_once $basePath . 'includes/translations.php';
 $t_sidebar = $all_translations['sidebar'] ?? [];
 $t_common = $all_translations['common'] ?? [];
 $t_merchants = $all_translations['merchants'] ?? [];
+$t_dependencies = $all_translations['dependencies'] ?? [];
 ?>
 <!DOCTYPE html>
 <html lang="<?php echo $lang; ?>">
@@ -40,6 +41,7 @@ $t_merchants = $all_translations['merchants'] ?? [];
     <!-- CSS Files -->
     <link rel="stylesheet" href="<?php echo $basePath; ?>assets/css/sidebar.css">
     <link rel="stylesheet" href="<?php echo $basePath; ?>assets/css/topbar.css">
+    <link rel="stylesheet" href="<?php echo $basePath; ?>assets/css/confirm-dialog.css">
     <link rel="stylesheet" href="<?php echo $basePath; ?>assets/css/app/definitions/merchants.css">
     
     <link rel="icon" type="image/svg+xml" href="<?php echo $basePath; ?>assets/images/logo.svg">
@@ -222,6 +224,7 @@ $t_merchants = $all_translations['merchants'] ?? [];
             merchants: <?php echo json_encode($t_merchants); ?>,
             common: <?php echo json_encode($t_common); ?>,
             sidebar: <?php echo json_encode($t_sidebar); ?>,
+            dependencies: <?php echo json_encode($t_dependencies); ?>,
             locations: {
                 "country": "<?php echo $t_sidebar['country'] ?? 'Country'; ?>",
                 "region": "<?php echo $t_sidebar['region'] ?? 'Region'; ?>",

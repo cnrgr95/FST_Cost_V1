@@ -168,13 +168,13 @@
             } else {
                 currentData[type] = [];
                 renderTable(type);
-                showError(result.message);
+                showToast('error', result.message);
             }
         } catch (error) {
             console.error('Error fetching data:', error);
             currentData[type] = [];
             renderTable(type);
-            showError('Failed to load data');
+            showToast('error', tCommon.failed_to_load_data || 'Failed to load data');
         }
     }
     
@@ -233,6 +233,30 @@
         html += '</tbody></table></div>';
         
         container.innerHTML = html;
+        
+        // Attach event listeners to action buttons
+        attachActionListeners();
+    }
+    
+    // Attach event listeners to action buttons
+    function attachActionListeners() {
+        // Find all edit buttons and attach click handlers
+        document.querySelectorAll('.btn-edit[data-item-type][data-item-id]').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const type = this.getAttribute('data-item-type');
+                const id = parseInt(this.getAttribute('data-item-id'));
+                window.editItem(type, id);
+            });
+        });
+        
+        // Find all delete buttons and attach click handlers
+        document.querySelectorAll('.btn-delete[data-item-type][data-item-id]').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const type = this.getAttribute('data-item-type');
+                const id = parseInt(this.getAttribute('data-item-id'));
+                window.deleteItem(type, id);
+            });
+        });
     }
     
     // Build table row
@@ -254,10 +278,10 @@
         
         html += '<td>';
         html += '<div class="table-actions">';
-        html += `<button class="btn-action btn-edit" onclick="window.editItem('${type}', ${item.id})">
+        html += `<button class="btn-action btn-edit" data-item-type="${type}" data-item-id="${item.id}">
                     <span class="material-symbols-rounded">edit</span>
                  </button>`;
-        html += `<button class="btn-action btn-delete" onclick="window.deleteItem('${type}', ${item.id})">
+        html += `<button class="btn-action btn-delete" data-item-type="${type}" data-item-id="${item.id}">
                     <span class="material-symbols-rounded">delete</span>
                  </button>`;
         html += '</div>';
@@ -281,7 +305,7 @@
     // Show error
     function showError(message) {
         console.error(message);
-        showToast('error', message || (tCommon.error || 'Error'));
+        showToast('error', message || tCommon.error || 'Error');
     }
     
     // Open modal
@@ -339,6 +363,11 @@
     
     // Edit item
     window.editItem = async function(type, id) {
+        // If data for this type hasn't been loaded yet, load it first
+        if (!currentData[type] || currentData[type].length === 0) {
+            await fetchData(type);
+        }
+        
         const item = (currentData[type] || []).find(item => item.id == id);
         if (!item) {
             console.error('Item not found:', type, id, currentData);
@@ -388,27 +417,51 @@
         modal.classList.add('active');
     };
     
+    // Helper function to convert type to API action (singular form)
+    function getApiAction(type) {
+        const actionMap = {
+            'departments': 'department',
+            'positions': 'position'
+        };
+        return actionMap[type] || type;
+    }
+    
     // Delete item
     window.deleteItem = async function(type, id) {
-        if (!confirm(tPos.delete_confirm || 'Are you sure you want to delete this item?')) return;
+        const t = window.Translations || {};
+        const tLoc = t.locations || {};
+        const tDeps = t.dependencies || {};
+        const deleteConfirmMessage = tPos.delete_confirm || tLoc.delete_confirm || 'Are you sure you want to delete this item?';
         
-        try {
-            const response = await fetch(`${API_BASE}?action=${type}&id=${id}`, {
-                method: 'DELETE'
-            });
-            const result = await response.json();
-            
-            if (result.success) {
-                currentData[type] = [];
-                loadData(type);
-                showToast('success', 'Item deleted successfully');
-            } else {
-                showError(result.message);
+        showConfirmDialog(deleteConfirmMessage, async function() {
+            try {
+                const action = getApiAction(type);
+                const response = await fetch(`${API_BASE}?action=${action}&id=${id}`, {
+                    method: 'DELETE'
+                });
+                const result = await response.json();
+                
+                if (result.success) {
+                    currentData[type] = [];
+                    loadData(type);
+                    showToast('success', tCommon.item_deleted_successfully || 'Item deleted successfully');
+                } else {
+                    // Translate dependency messages
+                    let errorMessage = result.message;
+                    if (errorMessage && typeof errorMessage === 'string') {
+                        // Try to match and translate department dependency pattern
+                        const positionMatch = errorMessage.match(/department.*?(\d+).*?position/i);
+                        if (positionMatch) {
+                            errorMessage = (tDeps.department_has_positions || errorMessage).replace('{count}', positionMatch[1]);
+                        }
+                    }
+                    showToast('error', errorMessage);
+                }
+            } catch (error) {
+                console.error('Error deleting item:', error);
+                showToast('error', tCommon.delete_failed || 'Failed to delete item');
             }
-        } catch (error) {
-            console.error('Error deleting item:', error);
-            showError('Failed to delete item');
-        }
+        });
     };
     
     // Handle form submission
@@ -460,13 +513,13 @@
                 currentData.departments = [];
                 loadData('departments');
                 closeModal();
-                showToast('success', 'Department created successfully');
+                showToast('success', tPos.dept_added || 'Department created successfully');
             } else {
-                showError(result.message);
+                showToast('error', result.message);
             }
         } catch (error) {
             console.error('Error creating department:', error);
-            showError('Failed to create department');
+            showToast('error', tCommon.save_failed || 'Failed to create department');
         }
     }
     
@@ -483,13 +536,13 @@
                 currentData.positions = [];
                 loadData('positions');
                 closeModal();
-                showToast('success', 'Position created successfully');
+                showToast('success', tPos.pos_added || 'Position created successfully');
             } else {
-                showError(result.message);
+                showToast('error', result.message);
             }
         } catch (error) {
             console.error('Error creating position:', error);
-            showError('Failed to create position');
+            showToast('error', tCommon.save_failed || 'Failed to create position');
         }
     }
     
@@ -507,13 +560,13 @@
                 currentData.departments = [];
                 loadData('departments');
                 closeModal();
-                showToast('success', 'Department updated successfully');
+                showToast('success', tPos.dept_updated || 'Department updated successfully');
             } else {
-                showError(result.message);
+                showToast('error', result.message);
             }
         } catch (error) {
             console.error('Error updating department:', error);
-            showError('Failed to update department');
+            showToast('error', tCommon.update_failed || 'Failed to update department');
         }
     }
     
@@ -527,16 +580,16 @@
             const result = await response.json();
             
             if (result.success) {
-                showToast('success', 'Position updated successfully');
                 currentData.positions = [];
                 loadData('positions');
                 closeModal();
+                showToast('success', tPos.pos_updated || 'Position updated successfully');
             } else {
-                showError(result.message);
+                showToast('error', result.message);
             }
         } catch (error) {
             console.error('Error updating position:', error);
-            showError('Failed to update position');
+            showToast('error', tCommon.update_failed || 'Failed to update position');
         }
     }
     

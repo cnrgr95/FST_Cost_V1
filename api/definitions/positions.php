@@ -234,6 +234,21 @@ function updateDepartment($conn, $data) {
 }
 
 function deleteDepartment($conn, $id) {
+    // Check if department has positions
+    $checkQuery = "SELECT COUNT(*) as count FROM positions WHERE department_id = $id";
+    $checkResult = pg_query($conn, $checkQuery);
+    
+    if ($checkResult) {
+        $row = pg_fetch_assoc($checkResult);
+        if ($row['count'] > 0) {
+            echo json_encode([
+                'success' => false, 
+                'message' => 'This department cannot be deleted because it has ' . $row['count'] . ' position(s) associated with it. Please delete all positions first.'
+            ]);
+            return;
+        }
+    }
+    
     $query = "DELETE FROM departments WHERE id = $id";
     $result = pg_query($conn, $query);
     

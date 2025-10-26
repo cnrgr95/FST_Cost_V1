@@ -110,21 +110,8 @@ CREATE TABLE IF NOT EXISTS costs (
     id SERIAL PRIMARY KEY,
     cost_code VARCHAR(50) NOT NULL UNIQUE,
     cost_name VARCHAR(255),
-    country_id INTEGER,
-    region_id INTEGER,
-    city_id INTEGER,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT NULL,
-    
-    CONSTRAINT chk_single_location CHECK (
-        (country_id IS NOT NULL AND region_id IS NULL AND city_id IS NULL) OR
-        (country_id IS NULL AND region_id IS NOT NULL AND city_id IS NULL) OR
-        (country_id IS NULL AND region_id IS NULL AND city_id IS NOT NULL)
-    ),
-    
-    FOREIGN KEY (country_id) REFERENCES countries(id) ON DELETE CASCADE,
-    FOREIGN KEY (region_id) REFERENCES regions(id) ON DELETE CASCADE,
-    FOREIGN KEY (city_id) REFERENCES cities(id) ON DELETE CASCADE
+    updated_at TIMESTAMP DEFAULT NULL
 );
 
 -- ============================================
@@ -135,22 +122,14 @@ DROP TABLE IF EXISTS tours CASCADE;
 
 CREATE TABLE IF NOT EXISTS tours (
     id SERIAL PRIMARY KEY,
+    sejour_tour_code VARCHAR(50) UNIQUE,
     name VARCHAR(255) NOT NULL,
     sub_region_id INTEGER,
     merchant_id INTEGER,
-    country_id INTEGER,
-    region_id INTEGER,
-    city_id INTEGER,
-    description TEXT,
-    start_date DATE,
-    end_date DATE,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT NULL,
     FOREIGN KEY (sub_region_id) REFERENCES sub_regions(id) ON DELETE SET NULL,
-    FOREIGN KEY (merchant_id) REFERENCES merchants(id) ON DELETE SET NULL,
-    FOREIGN KEY (country_id) REFERENCES countries(id) ON DELETE SET NULL,
-    FOREIGN KEY (region_id) REFERENCES regions(id) ON DELETE SET NULL,
-    FOREIGN KEY (city_id) REFERENCES cities(id) ON DELETE SET NULL
+    FOREIGN KEY (merchant_id) REFERENCES merchants(id) ON DELETE SET NULL
 );
 
 -- ============================================
@@ -179,18 +158,13 @@ CREATE INDEX IF NOT EXISTS idx_positions_department_id ON positions(department_i
 CREATE INDEX IF NOT EXISTS idx_merchants_sub_region_id ON merchants(sub_region_id);
 
 -- Costs indexes
-CREATE INDEX IF NOT EXISTS idx_costs_country_id ON costs(country_id);
-CREATE INDEX IF NOT EXISTS idx_costs_region_id ON costs(region_id);
-CREATE INDEX IF NOT EXISTS idx_costs_city_id ON costs(city_id);
 CREATE INDEX IF NOT EXISTS idx_costs_cost_code ON costs(cost_code);
 CREATE INDEX IF NOT EXISTS idx_costs_cost_name ON costs(cost_name);
 
 -- Tours indexes
+CREATE INDEX IF NOT EXISTS idx_tours_sejour_tour_code ON tours(sejour_tour_code);
 CREATE INDEX IF NOT EXISTS idx_tours_sub_region_id ON tours(sub_region_id);
 CREATE INDEX IF NOT EXISTS idx_tours_merchant_id ON tours(merchant_id);
-CREATE INDEX IF NOT EXISTS idx_tours_country_id ON tours(country_id);
-CREATE INDEX IF NOT EXISTS idx_tours_region_id ON tours(region_id);
-CREATE INDEX IF NOT EXISTS idx_tours_city_id ON tours(city_id);
 
 -- ============================================
 -- TRIGGERS

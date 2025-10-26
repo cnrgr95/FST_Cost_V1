@@ -10,6 +10,20 @@ select.error:focus {
     outline: 2px solid #dc3545 !important;
 }
 
+/* Error message under input */
+.input-error-message {
+    color: #dc3545;
+    font-size: 12px;
+    margin-top: 4px;
+    display: block;
+}
+
+/* Invalid validation feedback */
+input:invalid,
+select:invalid {
+    border-color: #dc3545 !important;
+}
+
 .locations-container {
     max-width: 1400px;
     margin: 0 auto;
@@ -463,10 +477,12 @@ select.error:focus {
 
 /* Toast Notification Styles */
 .toast-container {
-    position: fixed;
-    top: 20px;
-    right: 20px;
-    z-index: 9999;
+    position: fixed !important;
+    top: 20px !important;
+    right: 20px !important;
+    bottom: auto !important;
+    left: auto !important;
+    z-index: 9999 !important;
     pointer-events: none;
 }
 

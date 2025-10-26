@@ -182,14 +182,14 @@
                 // Even on error, show empty state with add button
                 currentData[type] = [];
                 renderTable(type);
-                showError(result.message);
+                showToast('error', result.message);
             }
         } catch (error) {
             console.error('Error fetching data:', error);
             // Even on error, show empty state with add button
             currentData[type] = [];
             renderTable(type);
-            showError('Failed to load data');
+            showToast('error', tCommon.failed_to_load_data || 'Failed to load data');
         }
     }
     
@@ -260,6 +260,30 @@
         html += '</tbody></table></div>';
         
         container.innerHTML = html;
+        
+        // Attach event listeners to action buttons
+        attachActionListeners();
+    }
+    
+    // Attach event listeners to action buttons
+    function attachActionListeners() {
+        // Find all edit buttons and attach click handlers
+        document.querySelectorAll('.btn-edit[data-item-type][data-item-id]').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const type = this.getAttribute('data-item-type');
+                const id = parseInt(this.getAttribute('data-item-id'));
+                window.editItem(type, id);
+            });
+        });
+        
+        // Find all delete buttons and attach click handlers
+        document.querySelectorAll('.btn-delete[data-item-type][data-item-id]').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const type = this.getAttribute('data-item-type');
+                const id = parseInt(this.getAttribute('data-item-id'));
+                window.deleteItem(type, id);
+            });
+        });
     }
     
     // Build table row
@@ -285,10 +309,10 @@
         
         html += '<td>';
         html += '<div class="table-actions">';
-        html += `<button class="btn-action btn-edit" onclick="window.editItem('${type}', ${item.id})">
+        html += `<button class="btn-action btn-edit" data-item-type="${type}" data-item-id="${item.id}">
                     <span class="material-symbols-rounded">edit</span>
                  </button>`;
-        html += `<button class="btn-action btn-delete" onclick="window.deleteItem('${type}', ${item.id})">
+        html += `<button class="btn-action btn-delete" data-item-type="${type}" data-item-id="${item.id}">
                     <span class="material-symbols-rounded">delete</span>
                  </button>`;
         html += '</div>';
@@ -312,7 +336,7 @@
     // Show error (using toast now)
     function showError(message) {
         console.error(message);
-        showToast('error', message || (tCommon.error || 'Error'));
+        showToast('error', message || tCommon.error || 'Error');
     }
     
     // Open modal
@@ -323,7 +347,8 @@
         modal.classList.add('active');
         
         // Reset form
-        const form = document.getElementById(`${type}Form`);
+        const formId = getFormId(type);
+        const form = document.getElementById(formId);
         if (form) {
             form.reset();
             delete form.dataset.id;
@@ -364,16 +389,42 @@
         });
     };
     
+    // Helper function to get correct form ID based on type
+    function getFormId(type) {
+        const formIdMap = {
+            'countries': 'countryForm',
+            'regions': 'regionForm',
+            'cities': 'cityForm',
+            'sub_regions': 'sub_regionsForm'
+        };
+        return formIdMap[type] || `${type}Form`;
+    }
+    
     // Edit item
     window.editItem = async function(type, id) {
+        // If data for this type hasn't been loaded yet, load it first
+        if (!currentData[type] || currentData[type].length === 0) {
+            await fetchData(type);
+        }
+        
         const item = currentData[type].find(item => item.id == id);
-        if (!item) return;
+        if (!item) {
+            console.error('Item not found:', type, id);
+            return;
+        }
         
         const modal = document.getElementById(`${type}Modal`);
-        if (!modal) return;
+        if (!modal) {
+            console.error('Modal not found:', `${type}Modal`);
+            return;
+        }
         
-        const form = document.getElementById(`${type}Form`);
-        if (!form) return;
+        const formId = getFormId(type);
+        const form = document.getElementById(formId);
+        if (!form) {
+            console.error('Form not found:', formId);
+            return;
+        }
         
         // Update modal title
         const title = modal.querySelector('h2');
@@ -391,45 +442,108 @@
         
         // Fill form
         form.dataset.id = id;
-        form.querySelector('input[name="name"]').value = item.name;
+        const nameInput = form.querySelector('input[name="name"]');
+        if (nameInput) {
+            nameInput.value = item.name;
+        }
         
         if (type === 'countries') {
-            form.querySelector('input[name="code"]').value = item.code || '';
+            const codeInput = form.querySelector('input[name="code"]');
+            if (codeInput) {
+                codeInput.value = item.code || '';
+            }
         } else if (type === 'regions') {
             await loadCountriesForSelect();
-            form.querySelector('select[name="country_id"]').value = item.country_id;
+            const countrySelect = form.querySelector('select[name="country_id"]');
+            if (countrySelect) {
+                countrySelect.value = item.country_id || '';
+            }
         } else if (type === 'cities') {
             await loadRegionsForSelect();
-            form.querySelector('select[name="region_id"]').value = item.region_id;
+            const regionSelect = form.querySelector('select[name="region_id"]');
+            if (regionSelect) {
+                regionSelect.value = item.region_id || '';
+            }
         } else if (type === 'sub_regions') {
             await loadCitiesForSelect();
-            form.querySelector('select[name="city_id"]').value = item.city_id;
+            const citySelect = form.querySelector('select[name="city_id"]');
+            if (citySelect) {
+                citySelect.value = item.city_id || '';
+            }
         }
         
         modal.classList.add('active');
     };
     
+    // Helper function to convert type to API action (singular form)
+    function getApiAction(type) {
+        const actionMap = {
+            'countries': 'country',
+            'regions': 'region',
+            'cities': 'city',
+            'sub_regions': 'sub_region'
+        };
+        return actionMap[type] || type;
+    }
+    
     // Delete item
     window.deleteItem = async function(type, id) {
-        if (!confirm(tLoc.delete_confirm || 'Are you sure you want to delete this item?')) return;
+        const tDeps = window.Translations?.dependencies || {};
+        const deleteConfirmMessage = tLoc.delete_confirm || 'Are you sure you want to delete this item?';
         
-        try {
-            const response = await fetch(`${API_BASE}?action=${type}&id=${id}`, {
-                method: 'DELETE'
-            });
-            const result = await response.json();
-            
-            if (result.success) {
-                currentData[type] = [];
-                loadData(type);
-                showToast('success', 'Item deleted successfully');
-            } else {
-                showError(result.message);
+        showConfirmDialog(deleteConfirmMessage, async function() {
+            try {
+                const action = getApiAction(type);
+                const response = await fetch(`${API_BASE}?action=${action}&id=${id}`, {
+                    method: 'DELETE'
+                });
+                const result = await response.json();
+                
+                if (result.success) {
+                    currentData[type] = [];
+                    loadData(type);
+                    showToast('success', tCommon.item_deleted_successfully || 'Item deleted successfully');
+                } else {
+                    // Translate dependency messages
+                    let errorMessage = result.message;
+                    
+                    if (errorMessage && typeof errorMessage === 'string') {
+                        // Try to match and translate common dependency patterns
+                        // Match: "This country cannot be deleted because it has 2 region(s) associated..."
+                        const regionMatch = errorMessage.match(/country.*?(\d+).*?region/i);
+                        if (regionMatch) {
+                            const count = regionMatch[1];
+                            errorMessage = (tDeps.country_has_regions || errorMessage).replace('{count}', count);
+                        }
+                        
+                        // Match: "This region cannot be deleted because it has 2 city/cities associated..."
+                        const cityMatch = errorMessage.match(/region.*?(\d+).*?city/i);
+                        if (cityMatch) {
+                            const count = cityMatch[1];
+                            errorMessage = (tDeps.region_has_cities || errorMessage).replace('{count}', count);
+                        }
+                        
+                        // Match: "This city cannot be deleted because it has 2 sub region(s) associated..."
+                        const subRegionMatch = errorMessage.match(/city.*?(\d+).*?sub region/i);
+                        if (subRegionMatch) {
+                            const count = subRegionMatch[1];
+                            errorMessage = (tDeps.city_has_sub_regions || errorMessage).replace('{count}', count);
+                        }
+                        
+                        // Match: "This sub region cannot be deleted because it has 2 merchant(s) associated..."
+                        const merchantMatch = errorMessage.match(/sub region.*?(\d+).*?merchant/i);
+                        if (merchantMatch) {
+                            const count = merchantMatch[1];
+                            errorMessage = (tDeps.sub_region_has_merchants || errorMessage).replace('{count}', count);
+                        }
+                    }
+                    showToast('error', errorMessage);
+                }
+            } catch (error) {
+                console.error('Error deleting item:', error);
+                showToast('error', tCommon.delete_failed || 'Failed to delete item');
             }
-        } catch (error) {
-            console.error('Error deleting item:', error);
-            showError('Failed to delete item');
-        }
+        });
     };
     
     // Handle form submission
@@ -448,6 +562,15 @@
         } else {
             createCountry(data);
         }
+    }
+    
+    // Handle success/error toasts
+    function handleSuccess(message) {
+        showToast('success', message || tCommon.operation_completed_successfully || 'Operation completed successfully');
+    }
+    
+    function handleError(message) {
+        showToast('error', message || tCommon.an_error_occurred || 'An error occurred');
     }
     
     function handleRegionSubmit(e) {
@@ -515,13 +638,22 @@
                 currentData.countries = [];
                 loadData('countries');
                 closeModal();
-                showToast('success', 'Country created successfully');
+                showToast('success', tLoc.country_added || 'Country created successfully');
             } else {
-                showError(result.message);
+                if (result.message && result.message.toLowerCase().includes('already exists')) {
+                    // Show error under input field
+                    const input = document.querySelector('#countryForm input[name="name"]');
+                    if (input) {
+                        input.classList.add('error');
+                        input.setCustomValidity(result.message);
+                        input.reportValidity();
+                    }
+                }
+                showToast('error', result.message);
             }
         } catch (error) {
             console.error('Error creating country:', error);
-            showError('Failed to create country');
+            showToast('error', tCommon.save_failed || 'Failed to create country');
         }
     }
     
@@ -538,13 +670,21 @@
                 currentData.regions = [];
                 loadData('regions');
                 closeModal();
-                showToast('success', 'Region created successfully');
+                showToast('success', tLoc.region_added || 'Region created successfully');
             } else {
-                showError(result.message);
+                if (result.message && result.message.toLowerCase().includes('already exists')) {
+                    const input = document.querySelector('#regionForm input[name="name"]');
+                    if (input) {
+                        input.classList.add('error');
+                        input.setCustomValidity(result.message);
+                        input.reportValidity();
+                    }
+                }
+                showToast('error', result.message);
             }
         } catch (error) {
             console.error('Error creating region:', error);
-            showError('Failed to create region');
+            showToast('error', tCommon.save_failed || 'Failed to create region');
         }
     }
     
@@ -561,13 +701,21 @@
                 currentData.cities = [];
                 loadData('cities');
                 closeModal();
-                showToast('success', 'City created successfully');
+                showToast('success', tLoc.city_added || 'City created successfully');
             } else {
-                showError(result.message);
+                if (result.message && result.message.toLowerCase().includes('already exists')) {
+                    const input = document.querySelector('#cityForm input[name="name"]');
+                    if (input) {
+                        input.classList.add('error');
+                        input.setCustomValidity(result.message);
+                        input.reportValidity();
+                    }
+                }
+                showToast('error', result.message);
             }
         } catch (error) {
             console.error('Error creating city:', error);
-            showError('Failed to create city');
+            showToast('error', tCommon.save_failed || 'Failed to create city');
         }
     }
     
@@ -585,13 +733,21 @@
                 currentData.countries = [];
                 loadData('countries');
                 closeModal();
-                showToast('success', 'Country updated successfully');
+                showToast('success', tLoc.country_updated || 'Country updated successfully');
             } else {
-                showError(result.message);
+                if (result.message && result.message.toLowerCase().includes('already exists')) {
+                    const input = document.querySelector('#countryForm input[name="name"]');
+                    if (input) {
+                        input.classList.add('error');
+                        input.setCustomValidity(result.message);
+                        input.reportValidity();
+                    }
+                }
+                showToast('error', result.message);
             }
         } catch (error) {
             console.error('Error updating country:', error);
-            showError('Failed to update country');
+            showToast('error', tCommon.update_failed || 'Failed to update country');
         }
     }
     
@@ -608,13 +764,21 @@
                 currentData.regions = [];
                 loadData('regions');
                 closeModal();
-                showToast('success', 'Region updated successfully');
+                showToast('success', tLoc.region_updated || 'Region updated successfully');
             } else {
-                showError(result.message);
+                if (result.message && result.message.toLowerCase().includes('already exists')) {
+                    const input = document.querySelector('#regionForm input[name="name"]');
+                    if (input) {
+                        input.classList.add('error');
+                        input.setCustomValidity(result.message);
+                        input.reportValidity();
+                    }
+                }
+                showToast('error', result.message);
             }
         } catch (error) {
             console.error('Error updating region:', error);
-            showError('Failed to update region');
+            showToast('error', tCommon.update_failed || 'Failed to update region');
         }
     }
     
@@ -631,13 +795,21 @@
                 currentData.cities = [];
                 loadData('cities');
                 closeModal();
-                showToast('success', 'City updated successfully');
+                showToast('success', tLoc.city_updated || 'City updated successfully');
             } else {
-                showError(result.message);
+                if (result.message && result.message.toLowerCase().includes('already exists')) {
+                    const input = document.querySelector('#cityForm input[name="name"]');
+                    if (input) {
+                        input.classList.add('error');
+                        input.setCustomValidity(result.message);
+                        input.reportValidity();
+                    }
+                }
+                showToast('error', result.message);
             }
         } catch (error) {
             console.error('Error updating city:', error);
-            showError('Failed to update city');
+            showToast('error', tCommon.update_failed || 'Failed to update city');
         }
     }
     
@@ -665,7 +837,10 @@
         if (select) {
             select.innerHTML = `<option value="">${tLoc.select_region || 'Select Region'}</option>`;
             currentData.regions.forEach(region => {
-                select.innerHTML += `<option value="${region.id}">${region.name}</option>`;
+                const displayName = region.country_name ? 
+                    `${region.name} (${region.country_name})` : 
+                    region.name;
+                select.innerHTML += `<option value="${region.id}">${displayName}</option>`;
             });
         }
     }
@@ -698,13 +873,21 @@
                 currentData.sub_regions = [];
                 loadData('sub_regions');
                 closeModal();
-                showToast('success', 'Sub region created successfully');
+                showToast('success', tLoc.sub_region_added || 'Sub region created successfully');
             } else {
-                showError(result.message);
+                if (result.message && result.message.toLowerCase().includes('already exists')) {
+                    const input = document.querySelector('#sub_regionsForm input[name="name"]');
+                    if (input) {
+                        input.classList.add('error');
+                        input.setCustomValidity(result.message);
+                        input.reportValidity();
+                    }
+                }
+                showToast('error', result.message);
             }
         } catch (error) {
             console.error('Error creating sub region:', error);
-            showError('Failed to create sub region');
+            showToast('error', tCommon.save_failed || 'Failed to create sub region');
         }
     }
     
@@ -721,13 +904,21 @@
                 currentData.sub_regions = [];
                 loadData('sub_regions');
                 closeModal();
-                showToast('success', 'Sub region updated successfully');
+                showToast('success', tLoc.sub_region_updated || 'Sub region updated successfully');
             } else {
-                showError(result.message);
+                if (result.message && result.message.toLowerCase().includes('already exists')) {
+                    const input = document.querySelector('#sub_regionsForm input[name="name"]');
+                    if (input) {
+                        input.classList.add('error');
+                        input.setCustomValidity(result.message);
+                        input.reportValidity();
+                    }
+                }
+                showToast('error', result.message);
             }
         } catch (error) {
             console.error('Error updating sub region:', error);
-            showError('Failed to update sub region');
+            showToast('error', tCommon.update_failed || 'Failed to update sub region');
         }
     }
     
@@ -749,10 +940,16 @@
         // Country name validation
         const countryNameInput = document.querySelector('#countryForm input[name="name"]');
         if (countryNameInput) {
+            countryNameInput.addEventListener('input', function() {
+                this.classList.remove('error');
+                this.setCustomValidity('');
+            });
+            
             countryNameInput.addEventListener('blur', debounce(async function() {
                 const name = this.value.trim();
                 if (name.length < 2) {
                     this.classList.remove('error');
+                    this.setCustomValidity('');
                     return;
                 }
                 await checkNameExists('check_country', { name }, countryNameInput);
@@ -762,11 +959,17 @@
         // Region name validation
         const regionNameInput = document.querySelector('#regionForm input[name="name"]');
         if (regionNameInput) {
+            regionNameInput.addEventListener('input', function() {
+                this.classList.remove('error');
+                this.setCustomValidity('');
+            });
+            
             regionNameInput.addEventListener('blur', debounce(async function() {
                 const name = this.value.trim();
                 const countryId = document.querySelector('#regionForm select[name="country_id"]').value;
                 if (name.length < 2 || !countryId) {
                     this.classList.remove('error');
+                    this.setCustomValidity('');
                     return;
                 }
                 await checkNameExists('check_region', { name, country_id: countryId }, regionNameInput);
@@ -776,11 +979,17 @@
         // City name validation
         const cityNameInput = document.querySelector('#cityForm input[name="name"]');
         if (cityNameInput) {
+            cityNameInput.addEventListener('input', function() {
+                this.classList.remove('error');
+                this.setCustomValidity('');
+            });
+            
             cityNameInput.addEventListener('blur', debounce(async function() {
                 const name = this.value.trim();
                 const regionId = document.querySelector('#cityForm select[name="region_id"]').value;
                 if (name.length < 2 || !regionId) {
                     this.classList.remove('error');
+                    this.setCustomValidity('');
                     return;
                 }
                 await checkNameExists('check_city', { name, region_id: regionId }, cityNameInput);
@@ -790,11 +999,17 @@
         // Sub region name validation
         const subRegionNameInput = document.querySelector('#sub_regionsForm input[name="name"]');
         if (subRegionNameInput) {
+            subRegionNameInput.addEventListener('input', function() {
+                this.classList.remove('error');
+                this.setCustomValidity('');
+            });
+            
             subRegionNameInput.addEventListener('blur', debounce(async function() {
                 const name = this.value.trim();
                 const cityId = document.querySelector('#sub_regionsForm select[name="city_id"]').value;
                 if (name.length < 2 || !cityId) {
                     this.classList.remove('error');
+                    this.setCustomValidity('');
                     return;
                 }
                 await checkNameExists('check_sub_region', { name, city_id: cityId }, subRegionNameInput);
@@ -814,15 +1029,17 @@
             if (result.success) {
                 if (result.exists) {
                     inputElement.classList.add('error');
-                    // Show error message based on action type
-                    let messageKey = '';
-                    if (action === 'check_country') messageKey = 'country_exists';
-                    else if (action === 'check_region') messageKey = 'region_exists';
-                    else if (action === 'check_city') messageKey = 'city_exists';
-                    else if (action === 'check_sub_region') messageKey = 'sub_region_exists';
-                    showToast('error', tCommon[messageKey] || 'This name already exists');
+                    // Set custom validation message
+                    let message = '';
+                    if (action === 'check_country') message = tCommon.country_exists || 'This country name already exists';
+                    else if (action === 'check_region') message = tCommon.region_exists || 'This region name already exists in this country';
+                    else if (action === 'check_city') message = tCommon.city_exists || 'This city name already exists in this region';
+                    else if (action === 'check_sub_region') message = tCommon.sub_region_exists || 'This sub region name already exists in this city';
+                    inputElement.setCustomValidity(message);
+                    inputElement.reportValidity();
                 } else {
                     inputElement.classList.remove('error');
+                    inputElement.setCustomValidity('');
                 }
             }
         } catch (error) {

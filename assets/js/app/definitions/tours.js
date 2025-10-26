@@ -89,8 +89,8 @@
         const filtered = currentData.tours.filter(item => {
             const searchText = query.toLowerCase();
             return (
+                (item.sejour_tour_code && item.sejour_tour_code.toLowerCase().includes(searchText)) ||
                 (item.name && item.name.toLowerCase().includes(searchText)) ||
-                (item.description && item.description.toLowerCase().includes(searchText)) ||
                 (item.country_name && item.country_name.toLowerCase().includes(searchText)) ||
                 (item.region_name && item.region_name.toLowerCase().includes(searchText)) ||
                 (item.city_name && item.city_name.toLowerCase().includes(searchText)) ||
@@ -100,7 +100,6 @@
         });
         
         // Render filtered results
-        console.log('Filtered results:', filtered.length, 'out of', currentData.tours.length);
         renderTable(filtered);
     }
     
@@ -122,13 +121,13 @@
             } else {
                 currentData.tours = [];
                 renderTable();
-                showError(result.message);
+                showToast('error', result.message);
             }
         } catch (error) {
             console.error('Error fetching data:', error);
             currentData.tours = [];
             renderTable();
-            showError('Failed to load data');
+            showToast('error', tCommon.failed_to_load_data || 'Failed to load data');
         }
     }
     
@@ -167,6 +166,7 @@
         html += '</div>';
         html += '<table class="table">';
         html += '<thead><tr>';
+        html += `<th>${tTours.sejour_tour_code || 'Sejour Tour Code'}</th>`;
         html += `<th>${tTours.tour_name || 'Tour Name'}</th>`;
         html += `<th>${tSidebar.merchant || 'Merchant'}</th>`;
         html += `<th>${tSidebar.country || 'Country'}</th>`;
@@ -180,6 +180,7 @@
         data.forEach(item => {
             html += `
                 <tr>
+                    <td><strong>${item.sejour_tour_code || '-'}</strong></td>
                     <td><strong>${item.name}</strong></td>
                     <td>${item.merchant_name || '-'}</td>
                     <td>${item.country_name || '-'}</td>
@@ -188,10 +189,10 @@
                     <td>${item.sub_region_name || '-'}</td>
                     <td>
                         <div class="table-actions">
-                            <button class="btn-action btn-edit" onclick="window.editItem(${item.id})">
+                            <button class="btn-action btn-edit" data-item-id="${item.id}">
                                 <span class="material-symbols-rounded">edit</span>
                             </button>
-                            <button class="btn-action btn-delete" onclick="window.deleteItem(${item.id})">
+                            <button class="btn-action btn-delete" data-item-id="${item.id}">
                                 <span class="material-symbols-rounded">delete</span>
                             </button>
                         </div>
@@ -202,6 +203,28 @@
         html += '</tbody></table></div>';
         
         container.innerHTML = html;
+        
+        // Attach event listeners to action buttons
+        attachActionListeners();
+    }
+    
+    // Attach event listeners to action buttons
+    function attachActionListeners() {
+        // Find all edit buttons and attach click handlers
+        document.querySelectorAll('.btn-edit[data-item-id]').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const id = parseInt(this.getAttribute('data-item-id'));
+                window.editItem(id);
+            });
+        });
+        
+        // Find all delete buttons and attach click handlers
+        document.querySelectorAll('.btn-delete[data-item-id]').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const id = parseInt(this.getAttribute('data-item-id'));
+                window.deleteItem(id);
+            });
+        });
     }
     
     // Show loading state
@@ -218,7 +241,7 @@
     // Show error
     function showError(message) {
         console.error(message);
-        alert(message || (tCommon.error || 'Error'));
+        showToast('error', message || tCommon.error || 'Error');
     }
     
     // Open modal
@@ -259,13 +282,22 @@
     // Edit item
     window.editItem = async function(id) {
         const item = currentData.tours.find(item => item.id == id);
-        if (!item) return;
+        if (!item) {
+            console.error('Item not found:', id);
+            return;
+        }
         
         const modal = document.getElementById('toursModal');
-        if (!modal) return;
+        if (!modal) {
+            console.error('Modal not found: toursModal');
+            return;
+        }
         
         const form = document.getElementById('tourForm');
-        if (!form) return;
+        if (!form) {
+            console.error('Form not found: tourForm');
+            return;
+        }
         
         // Update modal title
         const title = modal.querySelector('h2');
@@ -275,10 +307,8 @@
         
         // Fill form
         form.dataset.id = id;
+        form.querySelector('input[name="sejour_tour_code"]').value = item.sejour_tour_code || '';
         form.querySelector('input[name="name"]').value = item.name || '';
-        form.querySelector('textarea[name="description"]').value = item.description || '';
-        form.querySelector('input[name="start_date"]').value = item.start_date || '';
-        form.querySelector('input[name="end_date"]').value = item.end_date || '';
         
         await loadSubRegionsForSelect();
         form.querySelector('select[name="sub_region_id"]').value = item.sub_region_id;
@@ -292,24 +322,29 @@
     
     // Delete item
     window.deleteItem = async function(id) {
-        if (!confirm(tTours.delete_confirm || 'Are you sure you want to delete this item?')) return;
+        const t = window.Translations || {};
+        const tLoc = t.locations || {};
+        const deleteConfirmMessage = tTours.delete_confirm || tLoc.delete_confirm || 'Are you sure you want to delete this item?';
         
-        try {
-            const response = await fetch(`${API_BASE}?action=tour&id=${id}`, {
-                method: 'DELETE'
-            });
-            const result = await response.json();
-            
-            if (result.success) {
-                currentData.tours = [];
-                await loadData();
-            } else {
-                showError(result.message);
+        showConfirmDialog(deleteConfirmMessage, async function() {
+            try {
+                const response = await fetch(`${API_BASE}?action=tour&id=${id}`, {
+                    method: 'DELETE'
+                });
+                const result = await response.json();
+                
+                if (result.success) {
+                    currentData.tours = [];
+                    await loadData();
+                    showToast('success', tCommon.item_deleted_successfully || 'Item deleted successfully');
+                } else {
+                    showToast('error', result.message);
+                }
+            } catch (error) {
+                console.error('Error deleting item:', error);
+                showToast('error', tCommon.delete_failed || 'Failed to delete item');
             }
-        } catch (error) {
-            console.error('Error deleting item:', error);
-            showError('Failed to delete item');
-        }
+        });
     };
     
     // Handle form submission
@@ -318,12 +353,10 @@
         const form = e.target;
         const formData = new FormData(form);
         const data = {
+            sejour_tour_code: formData.get('sejour_tour_code').toUpperCase(),
             name: formData.get('name'),
             sub_region_id: formData.get('sub_region_id'),
-            merchant_id: formData.get('merchant_id'),
-            description: formData.get('description'),
-            start_date: formData.get('start_date'),
-            end_date: formData.get('end_date')
+            merchant_id: formData.get('merchant_id')
         };
         
         if (form.dataset.id) {
@@ -348,12 +381,13 @@
                 currentData.tours = [];
                 await loadData();
                 closeModal();
+                showToast('success', tTours.tour_added || 'Tour created successfully');
             } else {
-                showError(result.message);
+                showToast('error', result.message);
             }
         } catch (error) {
             console.error('Error creating tour:', error);
-            showError('Failed to create tour');
+            showToast('error', tCommon.save_failed || 'Failed to create tour');
         }
     }
     
@@ -371,12 +405,13 @@
                 currentData.tours = [];
                 await loadData();
                 closeModal();
+                showToast('success', tTours.tour_updated || 'Tour updated successfully');
             } else {
-                showError(result.message);
+                showToast('error', result.message);
             }
         } catch (error) {
             console.error('Error updating tour:', error);
-            showError('Failed to update tour');
+            showToast('error', tCommon.update_failed || 'Failed to update tour');
         }
     }
     

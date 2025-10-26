@@ -43,12 +43,86 @@
             setTimeout(() => closeToast(toast), duration);
         }
     };
-    
+
     function closeToast(toast) {
         toast.classList.add('fade-out');
         setTimeout(() => {
             if (toast.parentNode) toast.parentNode.removeChild(toast);
         }, 300);
     }
+
+    // Global Confirm Dialog Function
+    window.showConfirmDialog = function(message, onConfirm, onCancel) {
+        const tCommon = window.Translations?.common || {};
+        
+        // Remove existing confirm dialog if any
+        const existingDialog = document.getElementById('confirmDialog');
+        if (existingDialog) {
+            existingDialog.remove();
+        }
+        
+        // Create dialog overlay
+        const overlay = document.createElement('div');
+        overlay.id = 'confirmDialog';
+        overlay.className = 'confirm-dialog-overlay';
+        
+        overlay.innerHTML = `
+            <div class="confirm-dialog">
+                <div class="confirm-dialog-header">
+                    <span class="material-symbols-rounded confirm-icon">help</span>
+                    <h3>${tCommon.confirm || 'Onay'}</h3>
+                </div>
+                <div class="confirm-dialog-body">
+                    <p>${message}</p>
+                </div>
+                <div class="confirm-dialog-footer">
+                    <button class="btn-cancel">${tCommon.no || 'Hayır'}</button>
+                    <button class="btn-confirm">${tCommon.yes || 'Evet'}</button>
+                </div>
+            </div>
+        `;
+        
+        document.body.appendChild(overlay);
+        
+        // Fade in animation
+        setTimeout(() => overlay.classList.add('show'), 10);
+        
+        // Button handlers
+        overlay.querySelector('.btn-confirm').addEventListener('click', function() {
+            closeDialog();
+            if (onConfirm) onConfirm();
+        });
+        
+        overlay.querySelector('.btn-cancel').addEventListener('click', function() {
+            closeDialog();
+            if (onCancel) onCancel();
+        });
+        
+        // Close on overlay click
+        overlay.addEventListener('click', function(e) {
+            if (e.target === overlay) {
+                closeDialog();
+                if (onCancel) onCancel();
+            }
+        });
+        
+        // Close on ESC key
+        function handleEscKey(e) {
+            if (e.key === 'Escape') {
+                closeDialog();
+                if (onCancel) onCancel();
+                document.removeEventListener('keydown', handleEscKey);
+            }
+        }
+        document.addEventListener('keydown', handleEscKey);
+        
+        function closeDialog() {
+            overlay.classList.remove('show');
+            setTimeout(() => {
+                if (overlay.parentNode) overlay.parentNode.removeChild(overlay);
+                document.removeEventListener('keydown', handleEscKey);
+            }, 200);
+        }
+    };
 })();
 

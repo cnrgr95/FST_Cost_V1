@@ -192,7 +192,7 @@ function getTours($conn) {
               LEFT JOIN cities c ON sr.city_id = c.id 
               LEFT JOIN regions r ON c.region_id = r.id 
               LEFT JOIN countries co ON r.country_id = co.id
-              ORDER BY t.name ASC";
+              ORDER BY t.sejour_tour_code, t.name ASC";
     
     $result = pg_query($conn, $query);
     
@@ -206,26 +206,26 @@ function getTours($conn) {
 
 // Create tour
 function createTour($conn, $data) {
+    $sejour_tour_code = strtoupper(pg_escape_string($conn, $data['sejour_tour_code'] ?? ''));
     $name = pg_escape_string($conn, $data['name']);
     
-    // Check if tour name already exists
-    $checkQuery = "SELECT id FROM tours WHERE name = '$name'";
-    $checkResult = pg_query($conn, $checkQuery);
-    if ($checkResult && pg_num_rows($checkResult) > 0) {
-        echo json_encode(['success' => false, 'message' => 'A tour with this name already exists']);
-        return;
+    // Check if sejour tour code already exists
+    if (!empty($sejour_tour_code)) {
+        $checkQuery = "SELECT id FROM tours WHERE sejour_tour_code = '$sejour_tour_code'";
+        $checkResult = pg_query($conn, $checkQuery);
+        if ($checkResult && pg_num_rows($checkResult) > 0) {
+            echo json_encode(['success' => false, 'message' => 'This Sejour Tour Code already exists']);
+            return;
+        }
     }
+    
     $sub_region_id = $data['sub_region_id'];
     $merchant_id = $data['merchant_id'];
-    $description = pg_escape_string($conn, $data['description'] ?? '');
-    $start_date = $data['start_date'] ?? null;
-    $end_date = $data['end_date'] ?? null;
     
-    $start_date_val = $start_date ? "'$start_date'" : 'NULL';
-    $end_date_val = $end_date ? "'$end_date'" : 'NULL';
+    $sejour_tour_code_val = !empty($sejour_tour_code) ? "'$sejour_tour_code'" : 'NULL';
     
-    $query = "INSERT INTO tours (name, sub_region_id, merchant_id, description, start_date, end_date, created_at) 
-              VALUES ('$name', $sub_region_id, $merchant_id, '$description', $start_date_val, $end_date_val, NOW()) 
+    $query = "INSERT INTO tours (sejour_tour_code, name, sub_region_id, merchant_id, created_at) 
+              VALUES ($sejour_tour_code_val, '$name', $sub_region_id, $merchant_id, NOW()) 
               RETURNING id";
     $result = pg_query($conn, $query);
     
@@ -240,23 +240,28 @@ function createTour($conn, $data) {
 // Update tour
 function updateTour($conn, $data) {
     $id = $data['id'];
+    $sejour_tour_code = strtoupper(pg_escape_string($conn, $data['sejour_tour_code'] ?? ''));
     $name = pg_escape_string($conn, $data['name']);
     $sub_region_id = $data['sub_region_id'];
     $merchant_id = $data['merchant_id'];
-    $description = pg_escape_string($conn, $data['description'] ?? '');
-    $start_date = $data['start_date'] ?? null;
-    $end_date = $data['end_date'] ?? null;
     
-    $start_date_val = $start_date ? "'$start_date'" : 'NULL';
-    $end_date_val = $end_date ? "'$end_date'" : 'NULL';
+    // Check if sejour tour code already exists for another tour
+    if (!empty($sejour_tour_code)) {
+        $checkQuery = "SELECT id FROM tours WHERE sejour_tour_code = '$sejour_tour_code' AND id != $id";
+        $checkResult = pg_query($conn, $checkQuery);
+        if ($checkResult && pg_num_rows($checkResult) > 0) {
+            echo json_encode(['success' => false, 'message' => 'This Sejour Tour Code already exists']);
+            return;
+        }
+    }
+    
+    $sejour_tour_code_val = !empty($sejour_tour_code) ? "'$sejour_tour_code'" : 'NULL';
     
     $query = "UPDATE tours SET 
+                sejour_tour_code = $sejour_tour_code_val,
                 name = '$name', 
                 sub_region_id = $sub_region_id, 
                 merchant_id = $merchant_id, 
-                description = '$description', 
-                start_date = $start_date_val, 
-                end_date = $end_date_val, 
                 updated_at = NOW() 
               WHERE id = $id";
     $result = pg_query($conn, $query);

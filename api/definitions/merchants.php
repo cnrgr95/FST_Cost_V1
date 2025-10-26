@@ -255,6 +255,21 @@ function updateMerchant($conn, $data) {
 }
 
 function deleteMerchant($conn, $id) {
+    // Check if merchant has tours
+    $checkQuery = "SELECT COUNT(*) as count FROM tours WHERE merchant_id = $id";
+    $checkResult = pg_query($conn, $checkQuery);
+    
+    if ($checkResult) {
+        $row = pg_fetch_assoc($checkResult);
+        if ($row['count'] > 0) {
+            echo json_encode([
+                'success' => false, 
+                'message' => 'This merchant cannot be deleted because it has ' . $row['count'] . ' tour(s) associated with it. Please delete all tours first.'
+            ]);
+            return;
+        }
+    }
+    
     $query = "DELETE FROM merchants WHERE id = $id";
     $result = pg_query($conn, $query);
     

@@ -122,13 +122,13 @@
             } else {
                 currentData.merchants = [];
                 renderTable();
-                showError(result.message);
+                showToast('error', result.message);
             }
         } catch (error) {
             console.error('Error fetching data:', error);
             currentData.merchants = [];
             renderTable();
-            showError('Failed to load data');
+            showToast('error', tCommon.failed_to_load_data || 'Failed to load data');
         }
     }
     
@@ -192,10 +192,10 @@
                     </td>
                     <td>
                         <div class="table-actions">
-                            <button class="btn-action btn-edit" onclick="window.editItem(${item.id})">
+                            <button class="btn-action btn-edit" data-item-id="${item.id}">
                                 <span class="material-symbols-rounded">edit</span>
                             </button>
-                            <button class="btn-action btn-delete" onclick="window.deleteItem(${item.id})">
+                            <button class="btn-action btn-delete" data-item-id="${item.id}">
                                 <span class="material-symbols-rounded">delete</span>
                             </button>
                         </div>
@@ -206,6 +206,28 @@
         html += '</tbody></table></div>';
         
         container.innerHTML = html;
+        
+        // Attach event listeners to action buttons
+        attachActionListeners();
+    }
+    
+    // Attach event listeners to action buttons
+    function attachActionListeners() {
+        // Find all edit buttons and attach click handlers
+        document.querySelectorAll('.btn-edit[data-item-id]').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const id = parseInt(this.getAttribute('data-item-id'));
+                window.editItem(id);
+            });
+        });
+        
+        // Find all delete buttons and attach click handlers
+        document.querySelectorAll('.btn-delete[data-item-id]').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const id = parseInt(this.getAttribute('data-item-id'));
+                window.deleteItem(id);
+            });
+        });
     }
     
     // Show loading state
@@ -222,7 +244,7 @@
     // Show error
     function showError(message) {
         console.error(message);
-        alert(message || (tCommon.error || 'Error'));
+        showToast('error', message || tCommon.error || 'Error');
     }
     
     // Open modal
@@ -263,13 +285,22 @@
     // Edit item
     window.editItem = async function(id) {
         const item = currentData.merchants.find(item => item.id == id);
-        if (!item) return;
+        if (!item) {
+            console.error('Item not found:', id);
+            return;
+        }
         
         const modal = document.getElementById('merchantsModal');
-        if (!modal) return;
+        if (!modal) {
+            console.error('Modal not found: merchantsModal');
+            return;
+        }
         
         const form = document.getElementById('merchantForm');
-        if (!form) return;
+        if (!form) {
+            console.error('Form not found: merchantForm');
+            return;
+        }
         
         // Update modal title
         const title = modal.querySelector('h2');
@@ -297,24 +328,39 @@
     
     // Delete item
     window.deleteItem = async function(id) {
-        if (!confirm(tMerchants.delete_confirm || 'Are you sure you want to delete this item?')) return;
+        const t = window.Translations || {};
+        const tLoc = t.locations || {};
+        const tDeps = t.dependencies || {};
+        const deleteConfirmMessage = tMerchants.delete_confirm || tLoc.delete_confirm || 'Are you sure you want to delete this item?';
         
-        try {
-            const response = await fetch(`${API_BASE}?action=merchant&id=${id}`, {
-                method: 'DELETE'
-            });
-            const result = await response.json();
-            
-            if (result.success) {
-                currentData.merchants = [];
-                loadData();
-            } else {
-                showError(result.message);
+        showConfirmDialog(deleteConfirmMessage, async function() {
+            try {
+                const response = await fetch(`${API_BASE}?action=merchant&id=${id}`, {
+                    method: 'DELETE'
+                });
+                const result = await response.json();
+                
+                if (result.success) {
+                    currentData.merchants = [];
+                    loadData();
+                    showToast('success', tCommon.item_deleted_successfully || 'Item deleted successfully');
+                } else {
+                    // Translate dependency messages
+                    let errorMessage = result.message;
+                    if (errorMessage && typeof errorMessage === 'string') {
+                        // Try to match and translate merchant dependency pattern
+                        const tourMatch = errorMessage.match(/merchant.*?(\d+).*?tour/i);
+                        if (tourMatch) {
+                            errorMessage = (tDeps.merchant_has_tours || errorMessage).replace('{count}', tourMatch[1]);
+                        }
+                    }
+                    showToast('error', errorMessage);
+                }
+            } catch (error) {
+                console.error('Error deleting item:', error);
+                showToast('error', tCommon.delete_failed || 'Failed to delete item');
             }
-        } catch (error) {
-            console.error('Error deleting item:', error);
-            showError('Failed to delete item');
-        }
+        });
     };
     
     // Handle form submission
@@ -357,12 +403,13 @@
                 currentData.merchants = [];
                 loadData();
                 closeModal();
+                showToast('success', tMerchants.merchant_added || 'Merchant created successfully');
             } else {
-                showError(result.message);
+                showToast('error', result.message);
             }
         } catch (error) {
             console.error('Error creating merchant:', error);
-            showError('Failed to create merchant');
+            showToast('error', tCommon.save_failed || 'Failed to create merchant');
         }
     }
     
@@ -380,12 +427,13 @@
                 currentData.merchants = [];
                 loadData();
                 closeModal();
+                showToast('success', tMerchants.merchant_updated || 'Merchant updated successfully');
             } else {
-                showError(result.message);
+                showToast('error', result.message);
             }
         } catch (error) {
             console.error('Error updating merchant:', error);
-            showError('Failed to update merchant');
+            showToast('error', tCommon.update_failed || 'Failed to update merchant');
         }
     }
     
@@ -412,6 +460,47 @@
         }
     }
     
+    // Toast notification function
+    function showToast(type, message, duration = 5000) {
+        const container = document.getElementById('toastContainer');
+        if (!container) return;
+        
+        const toast = document.createElement('div');
+        toast.className = `toast ${type}`;
+        
+        let icon = '';
+        let title = '';
+        if (type === 'error') {
+            icon = 'error';
+            title = tCommon.error || 'Error';
+        } else if (type === 'success') {
+            icon = 'check_circle';
+            title = tCommon.success || 'Success';
+        }
+        
+        toast.innerHTML = `
+            <span class="material-symbols-rounded toast-icon">${icon}</span>
+            <div class="toast-content">
+                <div class="toast-title">${title}</div>
+                <div class="toast-message">${message}</div>
+            </div>
+            <button class="toast-close">&times;</button>
+        `;
+        
+        container.appendChild(toast);
+        toast.querySelector('.toast-close').addEventListener('click', () => closeToast(toast));
+        if (duration > 0) {
+            setTimeout(() => closeToast(toast), duration);
+        }
+    }
+    
+    function closeToast(toast) {
+        toast.classList.add('fade-out');
+        setTimeout(() => {
+            if (toast.parentNode) toast.parentNode.removeChild(toast);
+        }, 300);
+    }
+    
     // Get current location
     window.getCurrentLocation = function() {
         if (navigator.geolocation) {
@@ -423,13 +512,13 @@
                 const input = document.querySelector('input[name="location_url"]');
                 if (input) {
                     input.value = locationUrl;
-                    alert('Location retrieved: ' + locationUrl);
+                    showToast('success', tMerchants.location_retrieved || 'Location retrieved');
                 }
             }, function(error) {
-                alert('Error getting location: ' + error.message);
+                showToast('error', tMerchants.location_error || 'Error getting location: ' + error.message);
             });
         } else {
-            alert('Geolocation is not supported by your browser');
+            showToast('error', tMerchants.location_not_supported || 'Geolocation is not supported by your browser');
         }
     };
     
@@ -441,7 +530,7 @@
         if (locationUrl) {
             window.open(locationUrl, '_blank');
         } else {
-            alert('Please enter a location URL first');
+            showToast('error', tMerchants.location_url_required || 'Please enter a location URL first');
         }
     };
 })();

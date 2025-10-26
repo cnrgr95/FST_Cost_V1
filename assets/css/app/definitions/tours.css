@@ -500,122 +500,124 @@ select.error:focus {
     }
 }
 
-> /* Toast Notification Styles */
-  .toast-container {
-      position: fixed;
-      top: 20px;
-      right: 20px;
-      z-index: 9999;
-      pointer-events: none;
-  }
-  
-  .toast {
-      min-width: 300px;
-      max-width: 500px;
-      margin-bottom: 12px;
-      padding: 16px 20px;
-      background: #fff;
-      border-radius: 8px;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-      display: flex;
-      align-items: flex-start;
-      gap: 12px;
-      pointer-events: auto;
-      animation: toastSlideIn 0.3s ease-out;
-  }
-  
-  .toast.error {
-      border-left: 4px solid #dc3545;
-  }
-  
-  .toast.warning {
-      border-left: 4px solid #ffc107;
-  }
-  
-  .toast.info {
-      border-left: 4px solid #0dcaf0;
-  }
-  
-  .toast.success {
-      border-left: 4px solid #198754;
-  }
-  
-  .toast-icon {
-      font-size: 24px;
-      flex-shrink: 0;
-  }
-  
-  .toast.error .toast-icon {
-      color: #dc3545;
-  }
-  
-  .toast.warning .toast-icon {
-      color: #ffc107;
-  }
-  
-  .toast.info .toast-icon {
-      color: #0dcaf0;
-  }
-  
-  .toast.success .toast-icon {
-      color: #198754;
-  }
-  
-  .toast-content {
-      flex: 1;
-  }
-  
-  .toast-title {
-      font-weight: 600;
-      font-size: 14px;
-      margin-bottom: 4px;
-      color: #1f2937;
-  }
-  
-  .toast-message {
-      font-size: 13px;
-      color: #6b7280;
-      line-height: 1.4;
-  }
-  
-  .toast-close {
-      background: none;
-      border: none;
-      cursor: pointer;
-      padding: 0;
-      color: #9ca3af;
-      font-size: 20px;
-      line-height: 1;
-      transition: color 0.2s;
-  }
-  
-  .toast-close:hover {
-      color: #1f2937;
-  }
-  
-  @keyframes toastSlideIn {
-      from {
-          transform: translateX(400px);
-          opacity: 0;
-      }
-      to {
-          transform: translateX(0);
-          opacity: 1;
-      }
-  }
-  
-  .toast.fade-out {
-      animation: toastFadeOut 0.3s ease-out;
-  }
-  
-  @keyframes toastFadeOut {
-      from {
-          transform: translateX(0);
-          opacity: 1;
-      }
-      to {
-          transform: translateX(400px);
-          opacity: 0;
-      }
-  }
+/* Toast Notification Styles */
+.toast-container {
+    position: fixed !important;
+    top: 20px !important;
+    right: 20px !important;
+    bottom: auto !important;
+    left: auto !important;
+    z-index: 9999 !important;
+    pointer-events: none;
+}
+
+.toast {
+    min-width: 300px;
+    max-width: 500px;
+    margin-bottom: 12px;
+    padding: 16px 20px;
+    background: #fff;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    pointer-events: auto;
+    animation: toastSlideIn 0.3s ease-out;
+}
+
+.toast.error {
+    border-left: 4px solid #dc3545;
+}
+
+.toast.warning {
+    border-left: 4px solid #ffc107;
+}
+
+.toast.info {
+    border-left: 4px solid #0dcaf0;
+}
+
+.toast.success {
+    border-left: 4px solid #198754;
+}
+
+.toast-icon {
+    font-size: 24px;
+    flex-shrink: 0;
+}
+
+.toast.error .toast-icon {
+    color: #dc3545;
+}
+
+.toast.warning .toast-icon {
+    color: #ffc107;
+}
+
+.toast.info .toast-icon {
+    color: #0dcaf0;
+}
+
+.toast.success .toast-icon {
+    color: #198754;
+}
+
+.toast-content {
+    flex: 1;
+}
+
+.toast-title {
+    font-weight: 600;
+    font-size: 14px;
+    margin-bottom: 4px;
+    color: #1f2937;
+}
+
+.toast-message {
+    font-size: 13px;
+    color: #6b7280;
+    line-height: 1.4;
+}
+
+.toast-close {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 0;
+    color: #9ca3af;
+    font-size: 20px;
+    line-height: 1;
+    transition: color 0.2s;
+}
+
+.toast-close:hover {
+    color: #1f2937;
+}
+
+@keyframes toastSlideIn {
+    from {
+        transform: translateX(400px);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+.toast.fade-out {
+    animation: toastFadeOut 0.3s ease-out;
+}
+
+@keyframes toastFadeOut {
+    from {
+        transform: translateX(0);
+        opacity: 1;
+    }
+    to {
+        transform: translateX(400px);
+        opacity: 0;
+    }
+}
   
