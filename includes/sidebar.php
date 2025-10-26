@@ -7,6 +7,26 @@
 // Load translation helper
 require_once __DIR__ . '/translations.php';
 
+// Calculate base path if not already set
+if (!isset($basePath)) {
+    // Get the calling file's directory
+    $callerFile = debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS, 2)[0]['file'] ?? __FILE__;
+    $callerDir = dirname($callerFile);
+    $rootDir = dirname(__DIR__); // Project root (one level up from includes/)
+    
+    // Calculate relative path
+    $relativePath = str_replace($rootDir . DIRECTORY_SEPARATOR, '', $callerDir);
+    
+    // Count directory separators to determine depth
+    if ($relativePath === $callerDir) {
+        // We're at root
+        $basePath = '';
+    } else {
+        $depth = substr_count($relativePath, DIRECTORY_SEPARATOR);
+        $basePath = str_repeat('../', $depth);
+    }
+}
+
 // Get username from session
 $username = isset($_SESSION['username']) ? htmlspecialchars($_SESSION['username']) : 'User';
 $user_initial = strtoupper(substr($username, 0, 1));
@@ -27,8 +47,8 @@ $t_sidebar = $all_translations['sidebar'] ?? [];
 <aside class="sidebar">
   <!-- Sidebar Header -->
   <header class="sidebar-header">
-    <a href="dashboard.php" class="header-logo">
-      <img src="assets/images/logo.svg" alt="FST Logo">
+    <a href="<?php echo $basePath; ?>dashboard.php" class="header-logo">
+      <img src="<?php echo $basePath; ?>assets/images/logo.svg" alt="FST Logo">
     </a>
     <button class="sidebar-toggler">
       <span class="material-symbols-rounded">chevron_left</span>
@@ -41,7 +61,7 @@ $t_sidebar = $all_translations['sidebar'] ?? [];
     <ul class="nav-list primary-nav">
       <!-- Dashboard -->
       <li class="nav-item">
-        <a href="dashboard.php" class="nav-link" data-tooltip="<?php echo $t_sidebar['dashboard'] ?? 'Dashboard'; ?>">
+        <a href="<?php echo $basePath; ?>dashboard.php" class="nav-link" data-tooltip="<?php echo $t_sidebar['dashboard'] ?? 'Dashboard'; ?>">
           <span class="material-symbols-rounded">dashboard</span>
           <span class="nav-label"><?php echo $t_sidebar['dashboard'] ?? 'Dashboard'; ?></span>
         </a>
@@ -96,9 +116,7 @@ $t_sidebar = $all_translations['sidebar'] ?? [];
           <li class="nav-item"><a href="#" class="nav-link dropdown-link"><?php echo $t_sidebar['language'] ?? 'Language'; ?></a></li>
           <li class="nav-item"><a href="#" class="nav-link dropdown-link"><?php echo $t_sidebar['tours'] ?? 'Tours'; ?></a></li>
           <li class="nav-item"><a href="#" class="nav-link dropdown-link"><?php echo $t_sidebar['cost_mgmt'] ?? 'Cost'; ?></a></li>
-          <li class="nav-item"><a href="#" class="nav-link dropdown-link"><?php echo $t_sidebar['country'] ?? 'Country'; ?></a></li>
-          <li class="nav-item"><a href="#" class="nav-link dropdown-link"><?php echo $t_sidebar['region'] ?? 'Region'; ?></a></li>
-          <li class="nav-item"><a href="#" class="nav-link dropdown-link"><?php echo $t_sidebar['city'] ?? 'City'; ?></a></li>
+          <li class="nav-item"><a href="<?php echo $basePath; ?>app/definitions/locations.php" class="nav-link dropdown-link"><?php echo $t_sidebar['locations'] ?? 'Locations'; ?></a></li>
           <li class="nav-item"><a href="#" class="nav-link dropdown-link"><?php echo $t_sidebar['department'] ?? 'Department'; ?></a></li>
           <li class="nav-item"><a href="#" class="nav-link dropdown-link"><?php echo $t_sidebar['position'] ?? 'Position'; ?></a></li>
           <li class="nav-item"><a href="#" class="nav-link dropdown-link"><?php echo $t_sidebar['contract_def'] ?? 'Contract'; ?></a></li>
