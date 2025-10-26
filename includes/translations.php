@@ -26,10 +26,17 @@ function loadTranslations($lang = 'en') {
     return $translations ?: [];
 }
 
-// Get current language
-$current_lang = $_GET['lang'] ?? $_SESSION['language'] ?? 'en';
-$_SESSION['language'] = $current_lang;
-$lang = $current_lang;
-
-// Load all translations
-$all_translations = loadTranslations($current_lang);
+// Get current language (only if not API request and session is active)
+if (!defined('API_REQUEST') && session_status() === PHP_SESSION_ACTIVE) {
+    $current_lang = $_GET['lang'] ?? $_SESSION['language'] ?? 'en';
+    $_SESSION['language'] = $current_lang;
+    $lang = $current_lang;
+    
+    // Load all translations
+    $all_translations = loadTranslations($current_lang);
+} else {
+    // Default values for API requests
+    $current_lang = 'en';
+    $lang = 'en';
+    $all_translations = [];
+}

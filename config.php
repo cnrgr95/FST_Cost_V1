@@ -45,7 +45,12 @@ date_default_timezone_set('Europe/Istanbul'); // Change as needed
 // Error Reporting
 if (APP_DEBUG) {
     error_reporting(E_ALL);
-    ini_set('display_errors', 1);
+    // Don't display errors for API requests (they need clean JSON output)
+    if (!defined('API_REQUEST')) {
+        ini_set('display_errors', 1);
+    } else {
+        ini_set('display_errors', 0);
+    }
 } else {
     error_reporting(0);
     ini_set('display_errors', 0);
@@ -86,8 +91,10 @@ define('ASSETS_PATH', BASE_PATH . 'assets' . DIRECTORY_SEPARATOR);
 define('INCLUDES_PATH', BASE_PATH . 'includes' . DIRECTORY_SEPARATOR);
 define('TRANSLATIONS_PATH', BASE_PATH . 'translations' . DIRECTORY_SEPARATOR);
 
-// Helpers
-require_once INCLUDES_PATH . 'translations.php';
+// Helpers (only load translations for web pages, not API calls)
+if (!defined('API_REQUEST')) {
+    require_once INCLUDES_PATH . 'translations.php';
+}
 
 /**
  * Get database connection
@@ -104,8 +111,14 @@ function getDbConnection() {
     } catch (Exception $e) {
         error_log("Database connection error: " . $e->getMessage());
         
-        if (APP_DEBUG) {
+        // Don't use die() in API requests, let the caller handle the error
+        if (APP_DEBUG && !defined('API_REQUEST')) {
             die("Database connection failed: " . $e->getMessage());
+        }
+        
+        // For API requests, throw exception so it can be caught and returned as JSON
+        if (defined('API_REQUEST')) {
+            throw $e;
         }
         
         return null;

@@ -5,42 +5,31 @@
  * Hierarchy: Country -> Region -> City -> Department -> Position
  */
 
+// Start output buffering to catch any errors
+ob_start();
+
+// Define API_REQUEST before loading config to prevent error display
+define('API_REQUEST', true);
+
+// Disable error display for API requests (errors will still be logged)
+ini_set('display_errors', 0);
+error_reporting(E_ALL); // Still log errors but don't display
+
 session_start();
 header('Content-Type: application/json');
 
 // Check if user is logged in
 if (!isset($_SESSION['user_id'])) {
+    ob_end_clean();
     echo json_encode(['success' => false, 'message' => 'Unauthorized']);
     exit;
 }
 
-// Database configuration
-if (!defined('DB_HOST')) {
-    define('DB_HOST', 'localhost');
-    define('DB_PORT', '5432');
-    define('DB_NAME', 'fst_cost_db');
-    define('DB_USER', 'postgres');
-    define('DB_PASS', '123456789');
-}
+// Load central configuration
+require_once __DIR__ . '/../../config.php';
 
-// Database connection function
-if (!function_exists('getDbConnection')) {
-    function getDbConnection() {
-        $conn = pg_connect("host=" . DB_HOST . " port=" . DB_PORT . " dbname=" . DB_NAME . " user=" . DB_USER . " password=" . DB_PASS);
-        if (!$conn) {
-            throw new Exception("Database connection failed: " . pg_last_error());
-        }
-        return $conn;
-    }
-}
-
-if (!function_exists('closeDbConnection')) {
-    function closeDbConnection($conn) {
-        if ($conn) {
-            pg_close($conn);
-        }
-    }
-}
+// Clear any output that might have been generated
+ob_end_clean();
 
 // Get database connection
 try {
