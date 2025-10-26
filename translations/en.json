@@ -280,6 +280,31 @@
         "en": "English",
         "tr": "Türkçe"
     },
+    "language_mgmt": {
+        "title": "Languages & Translations",
+        "languages": "Languages",
+        "add_language": "Add Language",
+        "edit_language": "Edit Language",
+        "language_code": "Language Code",
+        "language_name": "Language Name",
+        "language_name_placeholder": "e.g., Deutsch, Français, Español",
+        "language_code_placeholder": "e.g., de, fr, es",
+        "no_languages": "No languages found",
+        "select_language_prompt": "Select a language to edit translations",
+        "edit_translations": "Edit Translations",
+        "save_translations": "Save Translations",
+        "add": "Add",
+        "delete_confirm": "Are you sure you want to delete this language? This action cannot be undone.",
+        "language_created": "Language created successfully",
+        "language_updated": "Language name updated successfully",
+        "language_deleted": "Language deleted successfully",
+        "translations_saved": "Translations saved successfully",
+        "failed_to_load": "Failed to load languages",
+        "failed_to_create": "Failed to create language",
+        "failed_to_update": "Failed to update language name",
+        "failed_to_delete": "Failed to delete language",
+        "failed_to_save_translations": "Failed to save translations"
+    },
     "app": {
         "name": "FST Cost Management"
     },

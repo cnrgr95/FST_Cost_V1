@@ -21,6 +21,7 @@ require_once $basePath . 'includes/translations.php';
 // Get translations
 $t_sidebar = $all_translations['sidebar'] ?? [];
 $t_common = $all_translations['common'] ?? [];
+$t_lang_mgmt = $all_translations['language_mgmt'] ?? [];
 ?>
 <!DOCTYPE html>
 <html lang="<?php echo $lang; ?>">
@@ -133,7 +134,7 @@ $t_common = $all_translations['common'] ?? [];
             <div class="tours-container">
                 <!-- Page Header -->
                 <div class="tours-header">
-                    <h1>Languages & Translations</h1>
+                    <h1><?php echo $t_lang_mgmt['title'] ?? 'Languages & Translations'; ?></h1>
                 </div>
                 
                 <!-- Languages Container -->
@@ -141,10 +142,10 @@ $t_common = $all_translations['common'] ?? [];
                     <!-- Sidebar -->
                     <div class="languages-sidebar">
                         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
-                            <h2>Languages</h2>
+                            <h2><?php echo $t_lang_mgmt['languages'] ?? 'Languages'; ?></h2>
                             <button class="btn-add" onclick="openAddModal()" style="padding: 6px 12px; font-size: 14px;">
                                 <span class="material-symbols-rounded" style="font-size: 18px;">add</span>
-                                Add
+                                <?php echo $t_lang_mgmt['add'] ?? 'Add'; ?>
                             </button>
                         </div>
                         <div id="languages-list"></div>
@@ -155,7 +156,7 @@ $t_common = $all_translations['common'] ?? [];
                         <div id="editor-content">
                             <div style="text-align: center; padding: 40px; color: #9ca3af;">
                                 <span class="material-symbols-rounded" style="font-size: 48px;">language</span>
-                                <p>Select a language to edit translations</p>
+                                <p><?php echo $t_lang_mgmt['select_language_prompt'] ?? 'Select a language to edit translations'; ?></p>
                             </div>
                         </div>
                     </div>
@@ -168,24 +169,51 @@ $t_common = $all_translations['common'] ?? [];
     <div class="modal" id="addLanguageModal">
         <div class="modal-content">
             <div class="modal-header">
-                <h2>Add Language</h2>
+                <h2><?php echo $t_lang_mgmt['add_language'] ?? 'Add Language'; ?></h2>
                 <button class="btn-close">
                     <span class="material-symbols-rounded">close</span>
                 </button>
             </div>
             <form id="addLanguageForm">
                 <div class="form-group">
-                    <label>Language Code *</label>
-                    <input type="text" name="code" placeholder="e.g., de, fr, es" required maxlength="2" style="text-transform: lowercase;">
+                    <label><?php echo $t_lang_mgmt['language_code'] ?? 'Language Code'; ?> *</label>
+                    <input type="text" name="code" placeholder="<?php echo $t_lang_mgmt['language_code_placeholder'] ?? 'e.g., de, fr, es'; ?>" required maxlength="2" style="text-transform: lowercase;">
                 </div>
                 
                 <div class="form-group">
-                    <label>Language Name *</label>
-                    <input type="text" name="name" placeholder="e.g., Deutsch, Français, Español" required>
+                    <label><?php echo $t_lang_mgmt['language_name'] ?? 'Language Name'; ?> *</label>
+                    <input type="text" name="name" placeholder="<?php echo $t_lang_mgmt['language_name_placeholder'] ?? 'e.g., Deutsch, Français, Español'; ?>" required>
                 </div>
                 
                 <div class="modal-footer">
                     <button type="button" class="btn-secondary" onclick="closeAddModal()">
+                        <?php echo $t_common['cancel'] ?? 'Cancel'; ?>
+                    </button>
+                    <button type="submit" class="btn-primary">
+                        <?php echo $t_common['save'] ?? 'Save'; ?>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <!-- Edit Language Modal -->
+    <div class="modal" id="editLanguageModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2><?php echo $t_lang_mgmt['edit_language'] ?? 'Edit Language'; ?></h2>
+                <button class="btn-close">
+                    <span class="material-symbols-rounded">close</span>
+                </button>
+            </div>
+            <form id="editLanguageForm">
+                <div class="form-group">
+                    <label><?php echo $t_lang_mgmt['language_name'] ?? 'Language Name'; ?> *</label>
+                    <input type="text" name="name" required>
+                </div>
+                
+                <div class="modal-footer">
+                    <button type="button" class="btn-secondary" onclick="closeEditModal()">
                         <?php echo $t_common['cancel'] ?? 'Cancel'; ?>
                     </button>
                     <button type="submit" class="btn-primary">
@@ -246,7 +274,8 @@ $t_common = $all_translations['common'] ?? [];
         const BASE_PATH = '<?php echo $basePath; ?>';
         window.API_BASE = BASE_PATH + 'api/definitions/languages.php';
         window.Translations = {
-            common: <?php echo json_encode($t_common); ?>
+            common: <?php echo json_encode($t_common); ?>,
+            language_mgmt: <?php echo json_encode($t_lang_mgmt); ?>
         };
     </script>
     

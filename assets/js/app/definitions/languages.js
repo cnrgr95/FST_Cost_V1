@@ -7,6 +7,7 @@
     // Get translations
     const t = window.Translations || {};
     const tCommon = t.common || {};
+    const tLangMgmt = t.language_mgmt || {};
     
     let currentData = {
         languages: [],
@@ -20,16 +21,21 @@
     document.addEventListener('DOMContentLoaded', function() {
         // Setup modal close buttons
         document.querySelectorAll('.btn-close').forEach(btn => {
-            btn.addEventListener('click', closeAddModal);
+            btn.addEventListener('click', function() {
+                closeAddModal();
+                closeEditModal();
+            });
         });
         
         // Setup form submissions
         document.getElementById('addLanguageForm').addEventListener('submit', handleAddLanguage);
+        document.getElementById('editLanguageForm').addEventListener('submit', handleEditLanguage);
         
         // Close modal when clicking outside
         document.addEventListener('click', function(e) {
             if (e.target.classList.contains('modal')) {
                 closeAddModal();
+                closeEditModal();
             }
         });
         
@@ -67,14 +73,29 @@
         
         currentData.languages.forEach(lang => {
             const isActive = currentData.currentLang && currentData.currentLang.code === lang.code;
+            const isBase = lang.code === 'en';
             html += `
-                <div class="lang-item ${isActive ? 'active' : ''}" data-code="${lang.code}" onclick="selectLanguage('${lang.code}')">
-                    <div><strong>${lang.code.toUpperCase()}</strong> - ${lang.name}</div>
+                <div class="lang-item ${isActive ? 'active' : ''}" data-code="${lang.code}">
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <div onclick="selectLanguage('${lang.code}')" style="flex: 1; cursor: pointer;">
+                            <strong>${lang.code.toUpperCase()}</strong> - ${lang.name}
+                        </div>
+                        <div style="display: flex; gap: 5px;">
+                            ${!isBase ? `
+                            <button onclick="editLanguageName('${lang.code}', '${lang.name.replace(/'/g, "\\'")}')" style="padding: 4px 8px; background: #10b981; color: white; border: none; border-radius: 4px; cursor: pointer;">
+                                <span class="material-symbols-rounded" style="font-size: 16px;">edit</span>
+                            </button>
+                            <button onclick="deleteLanguage('${lang.code}')" style="padding: 4px 8px; background: #ef4444; color: white; border: none; border-radius: 4px; cursor: pointer;">
+                                <span class="material-symbols-rounded" style="font-size: 16px;">delete</span>
+                            </button>
+                            ` : ''}
+                        </div>
+                    </div>
                 </div>
             `;
         });
         
-        container.innerHTML = html || '<p style="color: #9ca3af;">No languages found</p>';
+        container.innerHTML = html || `<p style="color: #9ca3af;">${tLangMgmt.no_languages || 'No languages found'}</p>`;
     }
     
     // Select language
@@ -110,10 +131,10 @@
         
         let html = `
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-                <h2>Edit Translations - ${lang.name} (${lang.code.toUpperCase()})</h2>
+                <h2>${tLangMgmt.edit_translations || 'Edit Translations'} - ${lang.name} (${lang.code.toUpperCase()})</h2>
                 <button class="btn-primary" onclick="saveTranslations()" style="padding: 10px 20px;">
                     <span class="material-symbols-rounded">save</span>
-                    Save Translations
+                    ${tLangMgmt.save_translations || 'Save Translations'}
                 </button>
             </div>
         `;
@@ -184,7 +205,7 @@
             
             if (result.success) {
                 currentData.translations = editedData;
-                showToast('success', result.message || 'Translations saved successfully');
+                showToast('success', result.message || tLangMgmt.translations_saved || 'Translations saved successfully');
             } else {
                 showToast('error', result.message);
             }
@@ -227,7 +248,7 @@
                 closeAddModal();
                 await fetchLanguages();
                 await selectLanguage(data.code);
-                showToast('success', result.message || 'Language created successfully');
+                showToast('success', result.message || tLangMgmt.language_created || 'Language created successfully');
             } else {
                 showToast('error', result.message);
             }
@@ -236,4 +257,101 @@
             showToast('error', 'Failed to create language');
         }
     }
+    
+    // Edit language name
+    window.editLanguageName = function(code, currentName) {
+        currentData.editingCode = code;
+        currentData.editingName = currentName;
+        openEditModal();
+    };
+    
+    // Open edit modal
+    window.openEditModal = function() {
+        const modal = document.getElementById('editLanguageModal');
+        const form = document.getElementById('editLanguageForm');
+        form.querySelector('input[name="name"]').value = currentData.editingName;
+        modal.classList.add('active');
+    };
+    
+    // Close edit modal
+    window.closeEditModal = function() {
+        document.getElementById('editLanguageModal').classList.remove('active');
+        delete currentData.editingCode;
+        delete currentData.editingName;
+    };
+    
+    // Handle edit language form submission
+    async function handleEditLanguage(e) {
+        e.preventDefault();
+        const form = e.target;
+        const formData = new FormData(form);
+        const name = formData.get('name');
+        
+        if (name && name.trim() !== '' && name !== currentData.editingName) {
+            await updateLanguageName(currentData.editingCode, name.trim());
+            closeEditModal();
+        }
+    }
+    
+    // Update language name
+    async function updateLanguageName(code, name) {
+        try {
+            const response = await fetch(`${API_BASE}?action=language`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ code, name })
+            });
+            const result = await response.json();
+            
+            if (result.success) {
+                await fetchLanguages();
+                // Reload current language if it was the one being edited
+                if (currentData.currentLang && currentData.currentLang.code === code) {
+                    await selectLanguage(code);
+                }
+                showToast('success', result.message || tLangMgmt.language_updated || 'Language name updated successfully');
+            } else {
+                showToast('error', result.message);
+            }
+        } catch (error) {
+            console.error('Error updating language name:', error);
+            showToast('error', 'Failed to update language name');
+        }
+    }
+    
+    // Delete language
+    window.deleteLanguage = function(code) {
+        const lang = currentData.languages.find(l => l.code === code);
+        const confirmMessage = `${tLangMgmt.delete_confirm || 'Are you sure you want to delete this language? This action cannot be undone.'}`;
+        
+        showConfirmDialog(confirmMessage, async function() {
+            try {
+                const response = await fetch(`${API_BASE}?action=language&code=${code}`, {
+                    method: 'DELETE'
+                });
+                const result = await response.json();
+                
+                if (result.success) {
+                    // Clear current language if it was deleted
+                    if (currentData.currentLang && currentData.currentLang.code === code) {
+                        currentData.currentLang = null;
+                        currentData.translations = {};
+                        document.getElementById('editor-content').innerHTML = `
+                            <div style="text-align: center; padding: 40px; color: #9ca3af;">
+                                <span class="material-symbols-rounded" style="font-size: 48px;">language</span>
+                                <p>${tLangMgmt.select_language_prompt || 'Select a language to edit translations'}</p>
+                            </div>
+                        `;
+                    }
+                    await fetchLanguages();
+                    showToast('success', result.message || tLangMgmt.language_deleted || 'Language deleted successfully');
+                } else {
+                    showToast('error', result.message);
+                }
+            } catch (error) {
+                console.error('Error deleting language:', error);
+                showToast('error', 'Failed to delete language');
+            }
+        });
+    };
 })();

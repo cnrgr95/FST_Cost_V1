@@ -2,7 +2,7 @@
 -- PostgreSQL database dump
 --
 
-\restrict zftakGHHqiVId2tcF8kVi2otby4ehiA7yOgtdfaOfvyAcekJPM2vIKNPnsCptgJ
+\restrict HXGuEHL5JkAcedQP6rWTmJsNt8mHnJAObJOIPeWuarkhK7Ajkeh92Ei2l1MBOh2
 
 -- Dumped from database version 18.0
 -- Dumped by pg_dump version 18.0
@@ -89,8 +89,7 @@ CREATE TABLE public.costs (
     region_id integer,
     city_id integer,
     created_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP,
-    updated_at timestamp without time zone,
-    CONSTRAINT chk_single_location CHECK ((((country_id IS NOT NULL) AND (region_id IS NULL) AND (city_id IS NULL)) OR ((country_id IS NULL) AND (region_id IS NOT NULL) AND (city_id IS NULL)) OR ((country_id IS NULL) AND (region_id IS NULL) AND (city_id IS NOT NULL))))
+    updated_at timestamp without time zone
 );
 
 
@@ -361,7 +360,8 @@ CREATE TABLE public.tours (
     start_date date,
     end_date date,
     created_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP,
-    updated_at timestamp without time zone
+    updated_at timestamp without time zone,
+    sejour_tour_code character varying(50)
 );
 
 
@@ -549,6 +549,8 @@ ALTER TABLE ONLY public.users ALTER COLUMN id SET DEFAULT nextval('public.users_
 
 COPY public.cities (id, name, region_id, created_at, updated_at, sub_region_id) FROM stdin;
 1	Antalya	1	2025-10-26 15:18:40.16332	\N	\N
+6	Bodrum	35	2025-10-26 20:39:27.619768	\N	\N
+7	Marmaris	35	2025-10-26 20:39:37.954238	\N	\N
 \.
 
 
@@ -557,8 +559,7 @@ COPY public.cities (id, name, region_id, created_at, updated_at, sub_region_id) 
 --
 
 COPY public.costs (id, cost_code, cost_name, country_id, region_id, city_id, created_at, updated_at) FROM stdin;
-1	FST-00001	Yemek	1	\N	\N	2025-10-26 17:00:03.878669	\N
-4	FST-00002	Test	1	\N	\N	2025-10-26 17:20:04.681769	\N
+18	FST-00001	Yemek	\N	\N	\N	2025-10-26 22:26:31.569206	\N
 \.
 
 
@@ -568,7 +569,6 @@ COPY public.costs (id, cost_code, cost_name, country_id, region_id, city_id, cre
 
 COPY public.countries (id, name, code, created_at, updated_at) FROM stdin;
 1	Turkiye	TR	2025-10-26 15:18:17.775421	\N
-2	Türkiye	TR	2025-10-26 17:36:21.334368	\N
 \.
 
 
@@ -577,7 +577,6 @@ COPY public.countries (id, name, code, created_at, updated_at) FROM stdin;
 --
 
 COPY public.departments (id, name, city_id, created_at, updated_at) FROM stdin;
-1	Operasyon	1	2025-10-26 16:02:24.60684	\N
 2	Operasyon	1	2025-10-26 17:16:20.412471	\N
 \.
 
@@ -587,8 +586,8 @@ COPY public.departments (id, name, city_id, created_at, updated_at) FROM stdin;
 --
 
 COPY public.merchants (id, name, official_title, sub_region_id, authorized_person, authorized_email, authorized_phone, operasyon_name, operasyon_email, operasyon_phone, created_at, updated_at, location_url) FROM stdin;
-1	Land Of Legends Theme Park	Land Of Legends	1	Test Test	test@test.com	5555555555555	Test Test	test@test.com	5555555555	2025-10-26 16:23:56.172426	2025-10-26 16:28:32.456725	https://www.google.com/maps?q=36.91001610024603,30.77070027901653
-2	Tazı Kanyon	Daban Ogları	1	Test Test	test@test.com	5555555555555				2025-10-26 17:10:46.734022	\N	
+1	Land Of Legends Theme Park	Land Of Legends	1	Test Test	test@test.com	5555555555555	Test Test	test@test.com	5555555555	2025-10-26 16:23:56.172426	2025-10-26 22:58:50.011525	https://www.google.com/maps?q=36.8818763,30.7823927
+3	Tazı Kanyon Sun Global	Daban Ogları	2	Test Test	test@test.com	5555555555555	Test Test	test@test.com	5555555555	2025-10-26 22:35:32.907371	2025-10-26 22:59:26.155154	https://maps.app.goo.gl/6g7XepwXLEQsdw4s9
 \.
 
 
@@ -597,8 +596,11 @@ COPY public.merchants (id, name, official_title, sub_region_id, authorized_perso
 --
 
 COPY public.positions (id, name, department_id, created_at, updated_at) FROM stdin;
-2	Transfer Operasyon	2	2025-10-26 17:16:43.598174	2025-10-26 17:29:25.950282
-1	Tur Operasyon	2	2025-10-26 16:02:37.521418	2025-10-26 17:29:44.575065
+2	Tour Operasyon S1	2	2025-10-26 17:16:43.598174	2025-10-26 22:16:42.99002
+3	Tour Operasyon S2	2	2025-10-26 22:16:51.221272	\N
+4	Tour Operasyon S3	2	2025-10-26 22:16:58.779762	\N
+5	Tour Operasyon S4	2	2025-10-26 22:17:04.758312	\N
+6	Tour Operasyon S5	2	2025-10-26 22:17:18.201419	\N
 \.
 
 
@@ -608,7 +610,7 @@ COPY public.positions (id, name, department_id, created_at, updated_at) FROM std
 
 COPY public.regions (id, name, country_id, created_at, updated_at) FROM stdin;
 1	Akdeniz	1	2025-10-26 15:18:29.801624	\N
-2	Akdeniz	2	2025-10-26 17:36:49.818017	\N
+35	Ege	1	2025-10-26 20:38:00.894383	\N
 \.
 
 
@@ -619,6 +621,11 @@ COPY public.regions (id, name, country_id, created_at, updated_at) FROM stdin;
 COPY public.sub_regions (id, name, city_id, created_at, updated_at) FROM stdin;
 1	Belek	1	2025-10-26 16:01:56.70299	\N
 2	Side	1	2025-10-26 17:21:04.860603	\N
+3	Alanya	1	2025-10-26 20:38:30.038802	\N
+4	Kemer	1	2025-10-26 20:38:37.638921	\N
+5	Antalya	1	2025-10-26 20:38:48.003897	\N
+6	Finike	1	2025-10-26 20:38:54.726998	\N
+7	Demre	1	2025-10-26 20:39:01.023127	\N
 \.
 
 
@@ -626,9 +633,8 @@ COPY public.sub_regions (id, name, city_id, created_at, updated_at) FROM stdin;
 -- Data for Name: tours; Type: TABLE DATA; Schema: public; Owner: postgres
 --
 
-COPY public.tours (id, name, sub_region_id, merchant_id, description, start_date, end_date, created_at, updated_at) FROM stdin;
-1	Land Of Legends Theme Park	1	1	TEst	2025-10-26	2030-10-26	2025-10-26 16:34:17.835537	2025-10-26 16:35:06.044883
-2	Tazı Kanyon	1	2	test	\N	\N	2025-10-26 17:15:39.558821	\N
+COPY public.tours (id, name, sub_region_id, merchant_id, description, start_date, end_date, created_at, updated_at, sejour_tour_code) FROM stdin;
+3	Land Of Legends Theme Park	1	1	\N	\N	\N	2025-10-26 22:33:54.254521	\N	LOLPAR
 \.
 
 
@@ -653,21 +659,21 @@ COPY public.users (id, username, email, full_name, language, last_login, created
 -- Name: cities_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
-SELECT pg_catalog.setval('public.cities_id_seq', 1, true);
+SELECT pg_catalog.setval('public.cities_id_seq', 7, true);
 
 
 --
 -- Name: costs_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
-SELECT pg_catalog.setval('public.costs_id_seq', 4, true);
+SELECT pg_catalog.setval('public.costs_id_seq', 18, true);
 
 
 --
 -- Name: countries_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
-SELECT pg_catalog.setval('public.countries_id_seq', 34, true);
+SELECT pg_catalog.setval('public.countries_id_seq', 36, true);
 
 
 --
@@ -681,35 +687,35 @@ SELECT pg_catalog.setval('public.departments_id_seq', 2, true);
 -- Name: merchants_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
-SELECT pg_catalog.setval('public.merchants_id_seq', 2, true);
+SELECT pg_catalog.setval('public.merchants_id_seq', 3, true);
 
 
 --
 -- Name: positions_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
-SELECT pg_catalog.setval('public.positions_id_seq', 2, true);
+SELECT pg_catalog.setval('public.positions_id_seq', 6, true);
 
 
 --
 -- Name: regions_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
-SELECT pg_catalog.setval('public.regions_id_seq', 34, true);
+SELECT pg_catalog.setval('public.regions_id_seq', 35, true);
 
 
 --
 -- Name: sub_regions_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
-SELECT pg_catalog.setval('public.sub_regions_id_seq', 2, true);
+SELECT pg_catalog.setval('public.sub_regions_id_seq', 7, true);
 
 
 --
 -- Name: tours_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
-SELECT pg_catalog.setval('public.tours_id_seq', 2, true);
+SELECT pg_catalog.setval('public.tours_id_seq', 3, true);
 
 
 --
@@ -804,6 +810,14 @@ ALTER TABLE ONLY public.sub_regions
 
 ALTER TABLE ONLY public.tours
     ADD CONSTRAINT tours_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: tours tours_sejour_tour_code_key; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.tours
+    ADD CONSTRAINT tours_sejour_tour_code_key UNIQUE (sejour_tour_code);
 
 
 --
@@ -1008,6 +1022,13 @@ CREATE INDEX idx_tours_name ON public.tours USING btree (name);
 
 
 --
+-- Name: idx_tours_sejour_tour_code; Type: INDEX; Schema: public; Owner: postgres
+--
+
+CREATE INDEX idx_tours_sejour_tour_code ON public.tours USING btree (sejour_tour_code);
+
+
+--
 -- Name: idx_tours_sub_region_id; Type: INDEX; Schema: public; Owner: postgres
 --
 
@@ -1198,5 +1219,5 @@ ALTER TABLE ONLY public.user_sessions
 -- PostgreSQL database dump complete
 --
 
-\unrestrict zftakGHHqiVId2tcF8kVi2otby4ehiA7yOgtdfaOfvyAcekJPM2vIKNPnsCptgJ
+\unrestrict HXGuEHL5JkAcedQP6rWTmJsNt8mHnJAObJOIPeWuarkhK7Ajkeh92Ei2l1MBOh2
 

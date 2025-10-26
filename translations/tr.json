@@ -281,6 +281,31 @@
         "en": "English",
         "tr": "Türkçe"
     },
+    "language_mgmt": {
+        "title": "Diller ve Çeviriler",
+        "languages": "Diller",
+        "add_language": "Dil Ekle",
+        "edit_language": "Dil Düzenle",
+        "language_code": "Dil Kodu",
+        "language_name": "Dil Adı",
+        "language_name_placeholder": "örn., Deutsch, Français, Español",
+        "language_code_placeholder": "örn., de, fr, es",
+        "no_languages": "Dil bulunamadı",
+        "select_language_prompt": "Çevirileri düzenlemek için bir dil seçin",
+        "edit_translations": "Çevirileri Düzenle",
+        "save_translations": "Çevirileri Kaydet",
+        "add": "Ekle",
+        "delete_confirm": "Bu dili silmek istediğinizden emin misiniz? Bu işlem geri alınamaz.",
+        "language_created": "Dil başarıyla oluşturuldu",
+        "language_updated": "Dil adı başarıyla güncellendi",
+        "language_deleted": "Dil başarıyla silindi",
+        "translations_saved": "Çeviriler başarıyla kaydedildi",
+        "failed_to_load": "Diller yüklenemedi",
+        "failed_to_create": "Dil oluşturulamadı",
+        "failed_to_update": "Dil adı güncellenemedi",
+        "failed_to_delete": "Dil silinemedi",
+        "failed_to_save_translations": "Çeviriler kaydedilemedi"
+    },
     "app": {
         "name": "FST Maliyet Yönetimi"
     },
