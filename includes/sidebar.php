@@ -119,6 +119,7 @@ $t_sidebar = $all_translations['sidebar'] ?? [];
           <li class="nav-item"><a href="<?php echo $basePath; ?>app/definitions/locations.php" class="nav-link dropdown-link"><?php echo $t_sidebar['locations'] ?? 'Locations'; ?></a></li>
           <li class="nav-item"><a href="<?php echo $basePath; ?>app/definitions/positions.php" class="nav-link dropdown-link"><?php echo $t_sidebar['positions'] ?? 'Positions'; ?></a></li>
           <li class="nav-item"><a href="<?php echo $basePath; ?>app/definitions/merchants.php" class="nav-link dropdown-link"><?php echo $t_sidebar['merchants'] ?? 'Merchants'; ?></a></li>
+          <li class="nav-item"><a href="<?php echo $basePath; ?>app/definitions/vehicles.php" class="nav-link dropdown-link"><?php echo $t_sidebar['vehicles'] ?? 'Vehicles'; ?></a></li>
         </ul>
       </li>
 
