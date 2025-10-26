@@ -253,7 +253,8 @@
         "select_dept": "Select Vehicle Company",
         "region": "Region",
         "country": "Country",
-        "actions": "Actions"
+        "actions": "Actions",
+        "no_vehicles": "No vehicles found"
     },
     "tours": {
         "title": "Tour Management",

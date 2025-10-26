@@ -254,7 +254,8 @@
         "select_dept": "Araç Firması Seçin",
         "region": "Bölge",
         "country": "Ülke",
-        "actions": "İşlemler"
+        "actions": "İşlemler",
+        "no_vehicles": "Araç bulunamadı"
     },
     "tours": {
         "title": "Tur Yönetimi",
