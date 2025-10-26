@@ -31,17 +31,39 @@
 
   // Attach click event to sidebar toggle buttons
   document.querySelectorAll(".sidebar-toggler, .sidebar-menu-button").forEach((button) => {
-    button.addEventListener("click", () => {
+    button.addEventListener("click", (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      
       closeAllDropdowns(); // Close all open dropdowns
       const sidebar = document.querySelector(".sidebar");
-      sidebar.classList.toggle("collapsed");
+      const overlay = document.querySelector(".sidebar-overlay");
       
-      // Handle overlay on mobile
+      // Handle mobile sidebar
       if (window.innerWidth <= 768) {
-        const overlay = document.querySelector(".sidebar-overlay");
-        if (overlay) {
-          overlay.classList.toggle("active");
+        if (button.classList.contains("sidebar-menu-button")) {
+          // Toggle menu button - open/close sidebar
+          sidebar.classList.toggle("active");
+          if (overlay) {
+            overlay.classList.toggle("active");
+          }
+          // Prevent body scroll when sidebar is open
+          if (sidebar.classList.contains("active")) {
+            document.body.style.overflow = "hidden";
+          } else {
+            document.body.style.overflow = "";
+          }
+        } else if (button.classList.contains("sidebar-toggler")) {
+          // Close sidebar on mobile when clicking toggler (close button)
+          sidebar.classList.remove("active");
+          if (overlay) {
+            overlay.classList.remove("active");
+          }
+          document.body.style.overflow = "";
         }
+      } else {
+        // Desktop: toggle collapsed
+        sidebar.classList.toggle("collapsed");
       }
     });
   });
@@ -51,6 +73,7 @@
     const sidebar = document.querySelector(".sidebar");
     sidebar.classList.remove("active");
     document.querySelector(".sidebar-overlay").classList.remove("active");
+    document.body.style.overflow = "";
   });
 
   // User dropdown functionality
@@ -107,10 +130,29 @@
     });
   }
 
-  // Collapse sidebar by default on small screens
-  if (window.innerWidth <= 768) {
-    document.querySelector(".sidebar").classList.add("collapsed");
-  }
+  // Handle responsive sidebar behavior
+  const handleResize = () => {
+    const sidebar = document.querySelector(".sidebar");
+    const overlay = document.querySelector(".sidebar-overlay");
+    
+    // Close sidebar on mobile if it's open
+    if (window.innerWidth <= 768) {
+      // Remove active state from mobile view
+      sidebar.classList.remove("active");
+      if (overlay) {
+        overlay.classList.remove("active");
+      }
+      // Don't collapse on mobile - keep it hidden by default
+      sidebar.classList.remove("collapsed");
+      // Restore body scroll
+      document.body.style.overflow = "";
+    } else {
+      // On desktop, ensure collapsed class is handled properly
+      // Don't force collapse, let user control it
+      // Ensure body scroll is restored
+      document.body.style.overflow = "";
+    }
+  };
 
   // Close dropdowns when window is resized
   let resizeTimer;
@@ -118,11 +160,11 @@
     clearTimeout(resizeTimer);
     resizeTimer = setTimeout(() => {
       closeAllDropdowns();
-      
-      if (window.innerWidth <= 768) {
-        document.querySelector(".sidebar").classList.add("collapsed");
-      }
+      handleResize();
     }, 250);
   });
+  
+  // Initial call
+  handleResize();
 })();
 

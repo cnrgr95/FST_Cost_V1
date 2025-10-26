@@ -45,19 +45,27 @@ body {
   height: 40px;
   width: 42px;
   border-radius: 8px;
-  border: none;
+  border: 1px solid #e5e7eb;
   cursor: pointer;
-  color: #F1F4FF;
-  background: #151A2D;
+  color: #4b5563;
+  background: #ffffff;
   z-index: 999;
   align-items: center;
   justify-content: center;
   transition: all 0.3s ease;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
 }
 
 .sidebar-menu-button:hover {
-  background: #1e2435;
-  transform: scale(1.05);
+  background: #f3f4f6;
+  border-color: #d1d5db;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.sidebar-menu-button:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
 }
 
 .sidebar-menu-button .material-symbols-rounded {
@@ -93,12 +101,13 @@ body {
 }
 
 .sidebar.collapsed .sidebar-header {
-  justify-content: center;
+  justify-content: flex-start;
   align-items: center;
   flex-direction: column;
-  gap: 10px;
-  padding: 2px 10px;
+  gap: 2px;
+  padding: 2px 10px 8px 10px;
   min-height: 70px;
+  height: 70px;
 }
 
 .sidebar-header .header-logo {
@@ -121,9 +130,12 @@ body {
 }
 
 .sidebar.collapsed .sidebar-header .header-logo img {
-  width: 66px;
-  height: 66px;
+  width: 45px;
+  height: 45px;
   margin: 0 auto;
+  border-radius: 8px;
+  margin-top: -6px;
+  margin-bottom: 0;
 }
 
 .sidebar-header .header-logo .logo-text {
@@ -157,8 +169,10 @@ body {
 .sidebar.collapsed .sidebar-toggler {
   margin: 0 auto;
   align-self: center;
-  width: 30px;
-  height: 30px;
+  width: 24px;
+  height: 24px;
+  border-radius: 6px;
+  margin-top: 0px;
 }
 
 .sidebar-toggler:hover {
@@ -172,7 +186,7 @@ body {
 
 .sidebar.collapsed .sidebar-toggler .material-symbols-rounded {
   transform: rotate(180deg);
-  font-size: 20px;
+  font-size: 14px;
 }
 
 .sidebar-nav {
@@ -193,8 +207,12 @@ body {
   gap: 4px;
   padding: 0 15px;
   flex-direction: column;
-  transform: translateY(15px);
+  transform: translateY(0);
   transition: 0.4s ease;
+}
+
+.sidebar.collapsed .sidebar-nav .nav-list {
+  transform: translateY(0);
 }
 
 .sidebar-nav .primary-nav {
@@ -211,7 +229,7 @@ body {
 
 .sidebar.collapsed .sidebar-nav .primary-nav {
   overflow: visible;
-  transform: translateY(65px);
+  transform: translateY(0);
 }
 
 .sidebar-nav .nav-item .nav-link {
@@ -270,9 +288,15 @@ body {
   min-width: 22px;
 }
 
+/* Smaller icons in collapsed sidebar */
+.sidebar.collapsed .nav-link .material-symbols-rounded {
+  font-size: 20px;
+  min-width: 20px;
+}
+
 .sidebar-nav .secondary-nav {
   position: absolute;
-  bottom: 35px;
+  bottom: 5px;
   width: 100%;
   background: var(--primary-color);
 }
@@ -312,19 +336,23 @@ body {
 /* Collapsed sidebar branding */
 .sidebar.collapsed .nav-link-branding {
   justify-content: center;
+  padding: 5px 8px;
 }
 
 .sidebar.collapsed .brand-text {
   flex-direction: column;
-  gap: 2px;
+  gap: 0;
+  text-align: center;
 }
 
 .sidebar.collapsed .brand-name {
-  font-size: 14px;
+  font-size: 12px;
+  line-height: 1.2;
 }
 
 .sidebar.collapsed .brand-version {
-  font-size: 10px;
+  font-size: 9px;
+  line-height: 1.2;
 }
 
 /* Keep branding visible in collapsed sidebar */
@@ -333,6 +361,16 @@ body {
 .sidebar.collapsed .brand-version {
   opacity: 1 !important;
   pointer-events: auto !important;
+}
+
+/* Secondary nav at bottom with minimal spacing in collapsed sidebar */
+.sidebar.collapsed .secondary-nav {
+  bottom: 0;
+}
+
+.sidebar.collapsed .secondary-nav .nav-link {
+  justify-content: center;
+  padding: 5px 8px;
 }
 
 /* Dropdown Stylings */
@@ -414,7 +452,8 @@ body {
   padding: 7px 15px;
 }
 
-.sidebar.collapsed .dropdown-menu .nav-item .dropdown-title {
+/* Show dropdown title only in collapsed desktop sidebar */
+.sidebar.collapsed:not(.active) .dropdown-menu .nav-item .dropdown-title {
   display: block;
   padding: 12px 15px 8px 15px;
   border-bottom: 1px solid rgba(255, 255, 255, 0.1);
@@ -505,20 +544,31 @@ body {
 
   .sidebar {
     transform: translateX(-100%);
+    width: var(--sidebar-width);
   }
 
   .sidebar.active {
     transform: translateX(0);
   }
 
+  /* When collapsed class is present on mobile, still show full sidebar when active */
   .sidebar.collapsed {
     width: var(--sidebar-width);
     transform: translateX(-100%);
   }
 
+  .sidebar.collapsed.active {
+    transform: translateX(0);
+    width: var(--sidebar-width);
+  }
+
+  /* Override collapsed styles when active on mobile */
   .sidebar.active .sidebar-header {
     flex-direction: row;
     justify-content: space-between;
+    padding: 15px;
+    gap: 8px;
+    height: 70px;
   }
 
   .sidebar.active .sidebar-header .header-logo {
@@ -526,29 +576,120 @@ body {
     width: auto;
   }
 
-  .sidebar.active .sidebar-header .sidebar-toggler {
-    margin-left: auto;
-  }
-
-  .sidebar.collapsed .sidebar-header .sidebar-toggler {
-    transform: none;
+  .sidebar.active .sidebar-header .header-logo img {
+    width: 63px;
+    height: 63px;
     margin: 0;
   }
 
-  .sidebar.collapsed .sidebar-nav .primary-nav {
-    transform: translateY(15px);
+  .sidebar.active .sidebar-header .sidebar-toggler {
+    margin-left: auto;
+    width: 32px;
+    height: 32px;
   }
 
-  .sidebar.collapsed .sidebar-toggler .material-symbols-rounded {
-    transform: rotate(0deg);
+  .sidebar.active .sidebar-toggler .material-symbols-rounded {
+    transform: none;
+    font-size: 20px;
+  }
+
+  .sidebar.active .sidebar-nav .primary-nav {
+    overflow-y: auto;
+    transform: translateY(0);
+    height: calc(100vh - 227px);
+    scrollbar-width: thin;
+    scrollbar-color: transparent transparent;
   }
 
   .sidebar.active .sidebar-nav {
     overflow: hidden;
   }
 
-  .sidebar.active .sidebar-nav .primary-nav {
-    overflow-y: auto;
+  /* Restore navigation visibility when sidebar is active on mobile */
+  .sidebar.active .nav-link :where(.nav-label, .dropdown-icon) {
+    display: initial !important;
+    opacity: 1 !important;
+    pointer-events: auto !important;
+    width: auto;
+  }
+
+  .sidebar.active .nav-link {
+    justify-content: flex-start;
+    padding: 11px 15px;
+    gap: 12px;
+  }
+
+  .sidebar.active .nav-link .material-symbols-rounded:first-of-type {
+    margin: 0;
+  }
+
+  .sidebar.active .nav-link > * {
+    margin: initial;
+  }
+
+  /* Hide ALL dropdown menus by default on mobile */
+  .sidebar.active .nav-item .dropdown-menu {
+    position: static !important;
+    height: 0 !important;
+    padding: 0 !important;
+    opacity: 1 !important;
+    pointer-events: none !important;
+    left: auto !important;
+    box-shadow: none !important;
+    border-radius: 0 !important;
+    background: transparent !important;
+    min-width: auto !important;
+    overflow-y: hidden !important;
+    transition: height 0.4s ease !important;
+    margin: 0 !important;
+  }
+
+  /* Hide dropdown menus for nav-items that are NOT dropdown-containers */
+  .sidebar.active .nav-item:not(.dropdown-container) .dropdown-menu {
+    height: 0 !important;
+    display: none !important;
+  }
+
+  /* Only show dropdown when its parent nav-item has the open class */
+  .sidebar.active .nav-item.dropdown-container.open .dropdown-menu {
+    height: auto !important;
+    padding: 6px 0 6px 15px !important;
+    pointer-events: auto !important;
+    display: block !important;
+  }
+
+  .sidebar.active .dropdown-toggle {
+    pointer-events: all;
+  }
+
+  /* Secondary nav positioning on mobile */
+  .sidebar.active .secondary-nav {
+    position: static;
+    width: 100%;
+    margin-top: auto;
+  }
+
+  /* Hide tooltips on mobile */
+  .sidebar.active .nav-link::after {
+    display: none !important;
+  }
+
+  /* On mobile, hide dropdown titles when closed */
+  .sidebar.active .dropdown-menu .dropdown-title {
+    display: none !important;
+  }
+
+  /* Show dropdown title only when dropdown is open on mobile */
+  .sidebar.active .dropdown-container.open .dropdown-menu .dropdown-title {
+    display: block !important;
+    padding: 12px 15px 8px 15px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    margin-bottom: 4px;
+    font-size: 13px;
+    font-weight: 500;
+    letter-spacing: 0.3px;
+    text-transform: uppercase;
+    color: #b0b3d8;
   }
 }
 
