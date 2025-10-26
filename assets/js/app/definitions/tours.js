@@ -40,9 +40,69 @@
             }
         });
         
+        // Setup search functionality
+        setupSearch();
+        
         // Load data
         loadData();
     });
+    
+    // Setup search
+    function setupSearch() {
+        const searchInput = document.getElementById('searchInput');
+        const clearBtn = document.getElementById('clearSearch');
+        let searchTimeout;
+        
+        if (!searchInput) return;
+        
+        // Search on input
+        searchInput.addEventListener('input', function(e) {
+            const query = e.target.value.trim();
+            
+            // Show/hide clear button
+            clearBtn.style.display = query ? 'flex' : 'none';
+            
+            // Debounce search
+            clearTimeout(searchTimeout);
+            searchTimeout = setTimeout(() => {
+                filterTours(query);
+            }, 300);
+        });
+        
+        // Clear search
+        clearBtn.addEventListener('click', function() {
+            searchInput.value = '';
+            clearBtn.style.display = 'none';
+            filterTours('');
+        });
+    }
+    
+    // Filter tours
+    function filterTours(query) {
+        if (!query) {
+            // Show all
+            renderTable();
+            return;
+        }
+        
+        // Filter data
+        const filtered = currentData.tours.filter(item => {
+            const searchText = query.toLowerCase();
+            return (
+                (item.name && item.name.toLowerCase().includes(searchText)) ||
+                (item.description && item.description.toLowerCase().includes(searchText)) ||
+                (item.country_name && item.country_name.toLowerCase().includes(searchText)) ||
+                (item.region_name && item.region_name.toLowerCase().includes(searchText)) ||
+                (item.city_name && item.city_name.toLowerCase().includes(searchText)) ||
+                (item.sub_region_name && item.sub_region_name.toLowerCase().includes(searchText)) ||
+                (item.merchant_name && item.merchant_name.toLowerCase().includes(searchText))
+            );
+        });
+        
+        // Render filtered results
+        console.log('Filtered results:', filtered.length, 'out of', currentData.tours.length);
+        renderTable(filtered);
+    }
     
     // Load data
     function loadData() {
@@ -73,9 +133,9 @@
     }
     
     // Render table
-    function renderTable() {
+    function renderTable(dataToRender = null) {
         const container = document.getElementById('tours-content');
-        const data = currentData.tours;
+        const data = dataToRender !== null ? dataToRender : currentData.tours;
         
         if (data.length === 0) {
             container.innerHTML = `

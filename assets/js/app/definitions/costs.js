@@ -31,6 +31,9 @@
             }
         });
         
+        // Setup search functionality
+        setupSearch();
+        
         // Load data
         loadData();
     });
@@ -39,6 +42,61 @@
     function loadData() {
         showLoading();
         fetchData();
+    }
+    
+    // Setup search
+    function setupSearch() {
+        const searchInput = document.getElementById('searchInput');
+        const clearBtn = document.getElementById('clearSearch');
+        let searchTimeout;
+        
+        if (!searchInput) return;
+        
+        // Search on input
+        searchInput.addEventListener('input', function(e) {
+            const query = e.target.value.trim();
+            
+            // Show/hide clear button
+            clearBtn.style.display = query ? 'flex' : 'none';
+            
+            // Debounce search
+            clearTimeout(searchTimeout);
+            searchTimeout = setTimeout(() => {
+                filterCosts(query);
+            }, 300);
+        });
+        
+        // Clear search
+        clearBtn.addEventListener('click', function() {
+            searchInput.value = '';
+            clearBtn.style.display = 'none';
+            filterCosts('');
+        });
+    }
+    
+    // Filter costs
+    function filterCosts(query) {
+        if (!query) {
+            // Show all
+            renderTable();
+            return;
+        }
+        
+        // Filter data
+        const filtered = (currentData.costs || []).filter(item => {
+            const searchText = query.toLowerCase();
+            return (
+                (item.cost_name && item.cost_name.toLowerCase().includes(searchText)) ||
+                (item.cost_code && item.cost_code.toLowerCase().includes(searchText)) ||
+                (item.country_name && item.country_name.toLowerCase().includes(searchText)) ||
+                (item.region_name && item.region_name.toLowerCase().includes(searchText)) ||
+                (item.city_name && item.city_name.toLowerCase().includes(searchText))
+            );
+        });
+        
+        // Render filtered results
+        console.log('Filtered results:', filtered.length, 'out of', currentData.costs.length);
+        renderTable(filtered);
     }
     
     // Fetch data from API
@@ -64,9 +122,9 @@
     }
     
     // Render table
-    function renderTable() {
+    function renderTable(dataToRender = null) {
         const container = document.getElementById('costs-content');
-        const data = currentData.costs;
+        const data = dataToRender !== null ? dataToRender : (currentData.costs || []);
         
         if (data.length === 0) {
             container.innerHTML = `

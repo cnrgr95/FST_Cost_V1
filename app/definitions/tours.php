@@ -58,6 +58,17 @@ $t_tours = $all_translations['tours'] ?? [];
                     <h1><?php echo $t_tours['title'] ?? 'Tours'; ?></h1>
                 </div>
                 
+                <!-- Search/Filter Section -->
+                <div class="tours-search-section">
+                    <div class="search-box">
+                        <span class="material-symbols-rounded search-icon">search</span>
+                        <input type="text" id="searchInput" placeholder="Tur adı, ülke, bölge, şehir, esnaf..." autocomplete="off">
+                        <button id="clearSearch" class="clear-btn" style="display: none;">
+                            <span class="material-symbols-rounded">close</span>
+                        </button>
+                    </div>
+                </div>
+                
                 <!-- Content -->
                 <div class="tours-content" id="tours-content">
                     <!-- Content will be loaded by JavaScript -->

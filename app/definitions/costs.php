@@ -57,6 +57,17 @@ $t_costs = $all_translations['costs'] ?? [];
                     <h1><?php echo $t_costs['title'] ?? 'Cost Management'; ?></h1>
                 </div>
                 
+                <!-- Search/Filter Section -->
+                <div class="costs-search-section">
+                    <div class="search-box">
+                        <span class="material-symbols-rounded search-icon">search</span>
+                        <input type="text" id="searchInput" placeholder="Maliyet adı, ülke, bölge, şehir..." autocomplete="off">
+                        <button id="clearSearch" class="clear-btn" style="display: none;">
+                            <span class="material-symbols-rounded">close</span>
+                        </button>
+                    </div>
+                </div>
+                
                 <!-- Content -->
                 <div class="costs-content" id="costs-content">
                     <!-- Content will be loaded by JavaScript -->

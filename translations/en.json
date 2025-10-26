@@ -162,7 +162,8 @@
         "location": "Location",
         "location_url": "Location URL",
         "open_in_maps": "Open in Maps",
-        "get_location": "Get Location"
+        "get_location": "Get Location",
+        "search_placeholder": "Merchant name, country, region, city, phone, email..."
     },
     "tours": {
         "title": "Tour Management",

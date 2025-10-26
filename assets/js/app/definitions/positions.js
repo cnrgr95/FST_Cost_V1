@@ -37,7 +37,79 @@
                 closeModal();
             }
         });
+        
+        // Setup search functionality
+        setupSearch();
     });
+    
+    // Setup search
+    function setupSearch() {
+        const searchInput = document.getElementById('searchInput');
+        const clearBtn = document.getElementById('clearSearch');
+        let searchTimeout;
+        
+        if (!searchInput) return;
+        
+        // Search on input
+        searchInput.addEventListener('input', function(e) {
+            const query = e.target.value.trim();
+            
+            // Show/hide clear button
+            clearBtn.style.display = query ? 'flex' : 'none';
+            
+            // Debounce search
+            clearTimeout(searchTimeout);
+            searchTimeout = setTimeout(() => {
+                filterPositions(query);
+            }, 300);
+        });
+        
+        // Clear search
+        clearBtn.addEventListener('click', function() {
+            searchInput.value = '';
+            clearBtn.style.display = 'none';
+            filterPositions('');
+        });
+    }
+    
+    // Filter positions based on active tab
+    function filterPositions(query) {
+        if (!query) {
+            // Show all
+            loadData(currentTab);
+            return;
+        }
+        
+        const activeTab = document.querySelector('.positions-tab.active');
+        if (!activeTab) return;
+        
+        const tabType = activeTab.dataset.tab;
+        const searchText = query.toLowerCase();
+        
+        // Filter data
+        const filtered = (() => {
+            switch(tabType) {
+                case 'departments':
+                    return (currentData.departments || []).filter(item => {
+                        return (
+                            (item.name && item.name.toLowerCase().includes(searchText)) ||
+                            (item.city_name && item.city_name.toLowerCase().includes(searchText))
+                        );
+                    });
+                case 'positions':
+                    return (currentData.positions || []).filter(item => {
+                        return (
+                            (item.name && item.name.toLowerCase().includes(searchText)) ||
+                            (item.department_name && item.department_name.toLowerCase().includes(searchText))
+                        );
+                    });
+            }
+        })();
+        
+        // Render filtered results
+        console.log('Filtered results:', filtered.length);
+        renderTable(tabType, filtered);
+    }
     
     // Tab initialization
     function initTabs() {
@@ -100,9 +172,9 @@
     }
     
     // Render table
-    function renderTable(type) {
+    function renderTable(type, dataToRender = null) {
         const container = document.getElementById(`${type}-content`);
-        const data = currentData[type];
+        const data = dataToRender !== null ? dataToRender : currentData[type];
         
         if (data.length === 0) {
             const noFoundText = type === 'departments' ? tPos.no_departments : tPos.no_positions;

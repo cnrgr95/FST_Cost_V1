@@ -162,7 +162,8 @@
         "location": "Konum",
         "location_url": "Konum Linki",
         "open_in_maps": "Haritada Aç",
-        "get_location": "Konum Al"
+        "get_location": "Konum Al",
+        "search_placeholder": "Esnaf adı, ülke, bölge, şehir, telefon, e-posta..."
     },
     "tours": {
         "title": "Tur Yönetimi",

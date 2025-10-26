@@ -58,6 +58,17 @@ $t_positions = $all_translations['positions'] ?? [];
                     <h1><?php echo $t_positions['title'] ?? 'Positions'; ?></h1>
                 </div>
                 
+                <!-- Search/Filter Section -->
+                <div class="positions-search-section">
+                    <div class="search-box">
+                        <span class="material-symbols-rounded search-icon">search</span>
+                        <input type="text" id="searchInput" placeholder="Departman, pozisyon, şehir..." autocomplete="off">
+                        <button id="clearSearch" class="clear-btn" style="display: none;">
+                            <span class="material-symbols-rounded">close</span>
+                        </button>
+                    </div>
+                </div>
+                
                 <!-- Tabs -->
                 <div class="positions-tabs">
                     <button class="positions-tab active" data-tab="departments">

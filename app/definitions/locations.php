@@ -57,6 +57,17 @@ $t_locations = $all_translations['locations'] ?? [];
                     <h1><?php echo $t_sidebar['locations'] ?? 'Locations'; ?></h1>
                 </div>
                 
+                <!-- Search/Filter Section -->
+                <div class="locations-search-section">
+                    <div class="search-box">
+                        <span class="material-symbols-rounded search-icon">search</span>
+                        <input type="text" id="searchInput" placeholder="Ülke, bölge, şehir, alt bölge..." autocomplete="off">
+                        <button id="clearSearch" class="clear-btn" style="display: none;">
+                            <span class="material-symbols-rounded">close</span>
+                        </button>
+                    </div>
+                </div>
+                
                 <!-- Tabs -->
                 <div class="locations-tabs">
                     <button class="locations-tab active" data-tab="countries">

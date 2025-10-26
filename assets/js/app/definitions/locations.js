@@ -41,7 +41,97 @@
                 closeModal();
             }
         });
+        
+        // Setup search functionality
+        setupSearch();
     });
+    
+    // Setup search
+    function setupSearch() {
+        const searchInput = document.getElementById('searchInput');
+        const clearBtn = document.getElementById('clearSearch');
+        let searchTimeout;
+        
+        if (!searchInput) return;
+        
+        // Search on input
+        searchInput.addEventListener('input', function(e) {
+            const query = e.target.value.trim();
+            
+            // Show/hide clear button
+            clearBtn.style.display = query ? 'flex' : 'none';
+            
+            // Debounce search
+            clearTimeout(searchTimeout);
+            searchTimeout = setTimeout(() => {
+                filterLocations(query);
+            }, 300);
+        });
+        
+        // Clear search
+        clearBtn.addEventListener('click', function() {
+            searchInput.value = '';
+            clearBtn.style.display = 'none';
+            filterLocations('');
+        });
+    }
+    
+    // Filter locations based on active tab
+    function filterLocations(query) {
+        if (!query) {
+            // Show all
+            loadData(currentTab);
+            return;
+        }
+        
+        const activeTab = document.querySelector('.locations-tab.active');
+        if (!activeTab) return;
+        
+        const tabType = activeTab.dataset.tab;
+        const searchText = query.toLowerCase();
+        
+        // Filter data
+        const filtered = (() => {
+            switch(tabType) {
+                case 'countries':
+                    return (currentData.countries || []).filter(item => {
+                        const searchText = query.toLowerCase();
+                        return (
+                            (item.name && item.name.toLowerCase().includes(searchText)) ||
+                            (item.code && item.code.toLowerCase().includes(searchText))
+                        );
+                    });
+                case 'regions':
+                    return (currentData.regions || []).filter(item => {
+                        const searchText = query.toLowerCase();
+                        return (
+                            (item.name && item.name.toLowerCase().includes(searchText)) ||
+                            (item.country_name && item.country_name.toLowerCase().includes(searchText))
+                        );
+                    });
+                case 'cities':
+                    return (currentData.cities || []).filter(item => {
+                        const searchText = query.toLowerCase();
+                        return (
+                            (item.name && item.name.toLowerCase().includes(searchText)) ||
+                            (item.region_name && item.region_name.toLowerCase().includes(searchText))
+                        );
+                    });
+                case 'sub_regions':
+                    return (currentData.sub_regions || []).filter(item => {
+                        const searchText = query.toLowerCase();
+                        return (
+                            (item.name && item.name.toLowerCase().includes(searchText)) ||
+                            (item.city_name && item.city_name.toLowerCase().includes(searchText))
+                        );
+                    });
+            }
+        })();
+        
+        // Render filtered results
+        console.log('Filtered results:', filtered.length);
+        renderTable(tabType, filtered);
+    }
     
     // Tab initialization
     function initTabs() {
@@ -101,9 +191,9 @@
     }
     
     // Render table
-    function renderTable(type) {
+    function renderTable(type, dataToRender = null) {
         const container = document.getElementById(`${type}-content`);
-        const data = currentData[type];
+        const data = dataToRender !== null ? dataToRender : currentData[type];
         
         if (data.length === 0) {
             const typeText = type === 'countries' ? tLoc.countries : 

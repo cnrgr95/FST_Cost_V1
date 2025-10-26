@@ -58,6 +58,17 @@ $t_merchants = $all_translations['merchants'] ?? [];
                     <h1><?php echo $t_merchants['title'] ?? 'Merchants'; ?></h1>
                 </div>
                 
+                <!-- Search/Filter Section -->
+                <div class="merchants-search-section">
+                    <div class="search-box">
+                        <span class="material-symbols-rounded search-icon">search</span>
+                        <input type="text" id="searchInput" placeholder="<?php echo $t_merchants['search_placeholder'] ?? 'Esnaf adı, ülke, bölge, şehir, telefon, e-posta...'; ?>" autocomplete="off">
+                        <button id="clearSearch" class="clear-btn" style="display: none;">
+                            <span class="material-symbols-rounded">close</span>
+                        </button>
+                    </div>
+                </div>
+                
                 <!-- Content -->
                 <div class="merchants-content" id="merchants-content">
                     <!-- Content will be loaded by JavaScript -->
