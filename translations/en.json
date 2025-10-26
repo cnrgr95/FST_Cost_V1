@@ -14,9 +14,40 @@
     "dashboard": {
         "title": "Dashboard",
         "welcome": "Welcome",
+        "welcome_message": "Welcome to FST Cost Management System",
+        "dashboard_description": "You have successfully logged into the system. This is your main dashboard.",
         "logout": "Logout",
         "profile": "Profile",
         "settings": "Settings"
+    },
+    "sidebar": {
+        "dashboard": "Dashboard",
+        "cost": "Cost",
+        "contract": "Contract",
+        "tour_list": "Tour List",
+        "definitions": "Definitions",
+        "users": "Users",
+        "tours": "Tours",
+        "cost_mgmt": "Cost",
+        "country": "Country",
+        "region": "Region",
+        "city": "City",
+        "department": "Department",
+        "position": "Position",
+        "contract_def": "Contract",
+        "settings": "Settings",
+        "system_settings": "System Settings",
+        "cash_settings": "Cash Settings",
+        "support": "Support",
+        "fst": "FST"
+    },
+    "topbar": {
+        "search": "Search...",
+        "administrator": "Administrator",
+        "my_profile": "My Profile",
+        "settings": "Settings",
+        "help_support": "Help & Support",
+        "logout": "Logout"
     },
     "common": {
         "loading": "Loading...",
@@ -63,5 +94,6 @@
     },
     "app": {
         "name": "FST Cost Management"
-    }
+    },
+    "version": "v1.0.0"
 }

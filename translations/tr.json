@@ -14,9 +14,40 @@
     "dashboard": {
         "title": "Kontrol Paneli",
         "welcome": "Hoşgeldiniz",
+        "welcome_message": "FST Maliyet Yönetimi Sistemine Hoşgeldiniz",
+        "dashboard_description": "Sisteme başarıyla giriş yaptınız. Bu sizin ana kontrol panelinizdir.",
         "logout": "Çıkış",
         "profile": "Profil",
         "settings": "Ayarlar"
+    },
+    "sidebar": {
+        "dashboard": "Kontrol Paneli",
+        "cost": "Maliyet",
+        "contract": "Kontrat",
+        "tour_list": "Tur Listesi",
+        "definitions": "Tanımlamalar",
+        "users": "Kullanıcılar",
+        "tours": "Turlar",
+        "cost_mgmt": "Maliyet",
+        "country": "Ülke",
+        "region": "Bölge",
+        "city": "Şehir",
+        "department": "Departman",
+        "position": "Görev",
+        "contract_def": "Kontrat",
+        "settings": "Ayarlar",
+        "system_settings": "Sistem Ayarları",
+        "cash_settings": "Cash Ayarları",
+        "support": "Destek",
+        "fst": "FST"
+    },
+    "topbar": {
+        "search": "Ara...",
+        "administrator": "Yönetici",
+        "my_profile": "Profilim",
+        "settings": "Ayarlar",
+        "help_support": "Yardım & Destek",
+        "logout": "Çıkış"
     },
     "common": {
         "loading": "Yükleniyor...",
@@ -63,5 +94,6 @@
     },
     "app": {
         "name": "FST Maliyet Yönetimi"
-    }
+    },
+    "version": "v1.0.0"
 }

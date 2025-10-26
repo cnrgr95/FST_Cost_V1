@@ -11,34 +11,18 @@ if (!isset($_SESSION['user_id'])) {
     exit;
 }
 
-// Simple language handling
-$lang = $_GET['lang'] ?? $_SESSION['language'] ?? 'en';
-$_SESSION['language'] = $lang;
+// Load translation helper
+require_once __DIR__ . '/includes/translations.php';
 
-// Simple translations
-$translations = [
-    'en' => [
-        'title' => 'Dashboard',
-        'welcome' => 'Welcome',
-        'welcome_message' => 'Welcome to FST Cost Management System',
-        'dashboard_description' => 'You have successfully logged into the system. This is your main dashboard.'
-    ],
-    'tr' => [
-        'title' => 'Kontrol Paneli',
-        'welcome' => 'Hoşgeldiniz',
-        'welcome_message' => 'FST Maliyet Yönetimi Sistemine Hoşgeldiniz',
-        'dashboard_description' => 'Sisteme başarıyla giriş yaptınız. Bu sizin ana kontrol panelinizdir.'
-    ]
-];
-
-$t = $translations[$lang] ?? $translations['en'];
+// Get dashboard translations
+$t_dashboard = $all_translations['dashboard'] ?? [];
 ?>
 <!DOCTYPE html>
 <html lang="<?php echo $lang; ?>">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title><?php echo $t['title']; ?> - FST Cost Management</title>
+    <title><?php echo $t_dashboard['title'] ?? 'Dashboard'; ?> - <?php echo $all_translations['app']['name'] ?? 'FST Cost Management'; ?></title>
     
     <!-- Google Fonts for Icons -->
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@24,400,0,0" />
@@ -61,8 +45,8 @@ $t = $translations[$lang] ?? $translations['en'];
         <!-- Main Content Area -->
         <div class="content-wrapper">
             <div class="page-header">
-                <h1><?php echo $t['title']; ?></h1>
-                <p><?php echo $t['welcome_message']; ?></p>
+                <h1><?php echo $t_dashboard['title'] ?? 'Dashboard'; ?></h1>
+                <p><?php echo $t_dashboard['welcome_message'] ?? 'Welcome to FST Cost Management System'; ?></p>
             </div>
             
             <div class="dashboard-content">
@@ -71,8 +55,8 @@ $t = $translations[$lang] ?? $translations['en'];
                     <div class="welcome-icon">
                         <span class="material-symbols-rounded">dashboard</span>
                     </div>
-                    <h2><?php echo $t['welcome']; ?>, <?php echo htmlspecialchars($_SESSION['username']); ?>!</h2>
-                    <p><?php echo $t['dashboard_description']; ?></p>
+                    <h2><?php echo $t_dashboard['welcome'] ?? 'Welcome'; ?>, <?php echo htmlspecialchars($_SESSION['username']); ?>!</h2>
+                    <p><?php echo $t_dashboard['dashboard_description'] ?? 'You have successfully logged into the system. This is your main dashboard.'; ?></p>
                 </div>
                 
                 <!-- Dashboard Stats -->
