@@ -1,0 +1,67 @@
+{
+    "login": {
+        "title": "Giriş",
+        "username": "Kullanıcı Adı",
+        "password": "Şifre",
+        "language": "Dil",
+        "remember_me": "Beni Hatırla",
+        "login_button": "Giriş",
+        "invalid_credentials": "Geçersiz kullanıcı adı veya şifre",
+        "login_success": "Giriş başarılı",
+        "required_field": "Bu alan zorunludur",
+        "select_language": "Dil Seçin"
+    },
+    "dashboard": {
+        "title": "Kontrol Paneli",
+        "welcome": "Hoşgeldiniz",
+        "logout": "Çıkış",
+        "profile": "Profil",
+        "settings": "Ayarlar"
+    },
+    "common": {
+        "loading": "Yükleniyor...",
+        "error": "Hata",
+        "success": "Başarılı",
+        "cancel": "İptal",
+        "save": "Kaydet",
+        "delete": "Sil",
+        "edit": "Düzenle",
+        "add": "Ekle",
+        "search": "Ara",
+        "filter": "Filtrele",
+        "export": "Dışa Aktar",
+        "import": "İçe Aktar",
+        "back": "Geri",
+        "next": "İleri",
+        "previous": "Önceki",
+        "close": "Kapat",
+        "confirm": "Onayla",
+        "yes": "Evet",
+        "no": "Hayır"
+    },
+    "navigation": {
+        "home": "Ana Sayfa",
+        "dashboard": "Kontrol Paneli",
+        "users": "Kullanıcılar",
+        "reports": "Raporlar",
+        "settings": "Ayarlar",
+        "help": "Yardım",
+        "about": "Hakkında"
+    },
+    "errors": {
+        "page_not_found": "Sayfa bulunamadı",
+        "access_denied": "Erişim reddedildi",
+        "session_expired": "Oturumunuzun süresi doldu. Lütfen tekrar giriş yapın.",
+        "database_error": "Veritabanı hatası oluştu",
+        "ldap_error": "LDAP kimlik doğrulama başarısız",
+        "invalid_request": "Geçersiz istek",
+        "server_error": "Sunucu hatası"
+    },
+    "languages": {
+        "en": "English",
+        "tr": "Türkçe"
+    },
+    "app": {
+        "name": "FST Maliyet Yönetimi"
+    }
+}

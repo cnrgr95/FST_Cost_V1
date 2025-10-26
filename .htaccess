@@ -1,0 +1,9 @@
+# Simple .htaccess for FST Cost Management System
+
+# Enable URL rewriting
+RewriteEngine On
+
+# Redirect to index.php for all requests that don't match existing files
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule ^(.*)$ index.php [QSA,L]

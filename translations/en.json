@@ -1,0 +1,67 @@
+{
+    "login": {
+        "title": "Login",
+        "username": "Username",
+        "password": "Password",
+        "language": "Language",
+        "remember_me": "Remember Me",
+        "login_button": "Login",
+        "invalid_credentials": "Invalid username or password",
+        "login_success": "Login successful",
+        "required_field": "This field is required",
+        "select_language": "Select Language"
+    },
+    "dashboard": {
+        "title": "Dashboard",
+        "welcome": "Welcome",
+        "logout": "Logout",
+        "profile": "Profile",
+        "settings": "Settings"
+    },
+    "common": {
+        "loading": "Loading...",
+        "error": "Error",
+        "success": "Success",
+        "cancel": "Cancel",
+        "save": "Save",
+        "delete": "Delete",
+        "edit": "Edit",
+        "add": "Add",
+        "search": "Search",
+        "filter": "Filter",
+        "export": "Export",
+        "import": "Import",
+        "back": "Back",
+        "next": "Next",
+        "previous": "Previous",
+        "close": "Close",
+        "confirm": "Confirm",
+        "yes": "Yes",
+        "no": "No"
+    },
+    "navigation": {
+        "home": "Home",
+        "dashboard": "Dashboard",
+        "users": "Users",
+        "reports": "Reports",
+        "settings": "Settings",
+        "help": "Help",
+        "about": "About"
+    },
+    "errors": {
+        "page_not_found": "Page not found",
+        "access_denied": "Access denied",
+        "session_expired": "Your session has expired. Please login again.",
+        "database_error": "Database error occurred",
+        "ldap_error": "LDAP authentication failed",
+        "invalid_request": "Invalid request",
+        "server_error": "Internal server error"
+    },
+    "languages": {
+        "en": "English",
+        "tr": "Türkçe"
+    },
+    "app": {
+        "name": "FST Cost Management"
+    }
+}
