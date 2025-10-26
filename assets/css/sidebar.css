@@ -430,9 +430,10 @@ body {
 }
 
 .dropdown-menu .nav-item .nav-link {
-  color: #F1F4FF;
+  color: var(--text-color);
   padding: 9px 15px;
   border: none;
+  transition: all 0.3s ease;
 }
 
 .sidebar.collapsed .dropdown-menu .nav-link {
@@ -465,12 +466,19 @@ body {
   color: #b0b3d8;
 }
 
+/* Dropdown title hover effect */
+.sidebar.collapsed .dropdown-menu .nav-item .dropdown-title:hover {
+  color: #b0b3d8;
+  background: transparent;
+}
+
 .sidebar.collapsed .dropdown-menu .nav-item .dropdown-link {
   border: none;
   padding: 10px 15px;
   font-size: 14px;
   border-radius: 0;
-  transition: all 0.2s ease;
+  transition: all 0.3s ease;
+  color: var(--text-color);
 }
 
 .sidebar.collapsed .dropdown-menu .nav-item {
@@ -485,10 +493,13 @@ body {
   transition: all 0.2s ease;
 }
 
-/* Smooth hover effect for dropdown links */
+/* Smooth hover effect for dropdown links - same as normal view */
 .sidebar.collapsed .dropdown-menu .nav-item:hover .dropdown-link {
-  background: rgba(255, 255, 255, 0.1);
+  color: var(--hover-text);
+  background: var(--hover-color);
+  border-radius: 6px;
   transform: translateX(3px);
+  padding: 10px 12px;
 }
 
 /* Remove gap in dropdown menu */
