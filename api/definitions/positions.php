@@ -62,9 +62,12 @@ try {
     }
 } catch (Exception $e) {
     echo json_encode(['success' => false, 'message' => $e->getMessage()]);
+} finally {
+    // Always close database connection
+    if (isset($conn)) {
+        closeDbConnection($conn);
+    }
 }
-
-closeDbConnection($conn);
 
 // GET request handler
 function handleGet($conn, $action) {
@@ -151,7 +154,7 @@ function getCities($conn) {
         $cities = pg_fetch_all($result);
         echo json_encode(['success' => true, 'data' => $cities]);
     } else {
-        echo json_encode(['success' => false, 'message' => pg_last_error($conn)]);
+        echo json_encode(['success' => false, 'message' => getDbErrorMessage($conn)]);
     }
 }
 
@@ -181,7 +184,7 @@ function getDepartments($conn, $city_id = null) {
         $departments = pg_fetch_all($result);
         echo json_encode(['success' => true, 'data' => $departments]);
     } else {
-        echo json_encode(['success' => false, 'message' => pg_last_error($conn)]);
+        echo json_encode(['success' => false, 'message' => getDbErrorMessage($conn)]);
     }
 }
 
@@ -204,7 +207,7 @@ function createDepartment($conn, $data) {
         $row = pg_fetch_assoc($result);
         echo json_encode(['success' => true, 'id' => $row['id']]);
     } else {
-        echo json_encode(['success' => false, 'message' => pg_last_error($conn)]);
+        echo json_encode(['success' => false, 'message' => getDbErrorMessage($conn)]);
     }
 }
 
@@ -219,7 +222,7 @@ function updateDepartment($conn, $data) {
     if ($result) {
         echo json_encode(['success' => true]);
     } else {
-        echo json_encode(['success' => false, 'message' => pg_last_error($conn)]);
+        echo json_encode(['success' => false, 'message' => getDbErrorMessage($conn)]);
     }
 }
 
@@ -246,7 +249,7 @@ function deleteDepartment($conn, $id) {
     if ($result) {
         echo json_encode(['success' => true]);
     } else {
-        echo json_encode(['success' => false, 'message' => pg_last_error($conn)]);
+        echo json_encode(['success' => false, 'message' => getDbErrorMessage($conn)]);
     }
 }
 
@@ -278,7 +281,7 @@ function getPositions($conn, $dept_id = null) {
         $positions = pg_fetch_all($result);
         echo json_encode(['success' => true, 'data' => $positions]);
     } else {
-        echo json_encode(['success' => false, 'message' => pg_last_error($conn)]);
+        echo json_encode(['success' => false, 'message' => getDbErrorMessage($conn)]);
     }
 }
 
@@ -301,7 +304,7 @@ function createPosition($conn, $data) {
         $row = pg_fetch_assoc($result);
         echo json_encode(['success' => true, 'id' => $row['id']]);
     } else {
-        echo json_encode(['success' => false, 'message' => pg_last_error($conn)]);
+        echo json_encode(['success' => false, 'message' => getDbErrorMessage($conn)]);
     }
 }
 
@@ -316,7 +319,7 @@ function updatePosition($conn, $data) {
     if ($result) {
         echo json_encode(['success' => true]);
     } else {
-        echo json_encode(['success' => false, 'message' => pg_last_error($conn)]);
+        echo json_encode(['success' => false, 'message' => getDbErrorMessage($conn)]);
     }
 }
 
@@ -328,7 +331,7 @@ function deletePosition($conn, $id) {
     if ($result) {
         echo json_encode(['success' => true]);
     } else {
-        echo json_encode(['success' => false, 'message' => pg_last_error($conn)]);
+        echo json_encode(['success' => false, 'message' => getDbErrorMessage($conn)]);
     }
 }
 ?>

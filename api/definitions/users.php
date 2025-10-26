@@ -62,9 +62,12 @@ try {
     }
 } catch (Exception $e) {
     echo json_encode(['success' => false, 'message' => $e->getMessage()]);
+} finally {
+    // Always close database connection
+    if (isset($conn)) {
+        closeDbConnection($conn);
+    }
 }
-
-closeDbConnection($conn);
 
 // GET request handler
 function handleGet($conn, $action) {
@@ -157,7 +160,7 @@ function getUsers($conn) {
         $users = pg_fetch_all($result);
         echo json_encode(['success' => true, 'data' => $users]);
     } else {
-        echo json_encode(['success' => false, 'message' => pg_last_error($conn)]);
+        echo json_encode(['success' => false, 'message' => getDbErrorMessage($conn)]);
     }
 }
 
@@ -183,7 +186,7 @@ function checkUsername($conn) {
         $exists = pg_num_rows($result) > 0;
         echo json_encode(['success' => true, 'exists' => $exists]);
     } else {
-        echo json_encode(['success' => false, 'message' => pg_last_error($conn)]);
+        echo json_encode(['success' => false, 'message' => getDbErrorMessage($conn)]);
     }
 }
 
@@ -200,7 +203,7 @@ function getDepartments($conn) {
         $departments = pg_fetch_all($result);
         echo json_encode(['success' => true, 'data' => $departments]);
     } else {
-        echo json_encode(['success' => false, 'message' => pg_last_error($conn)]);
+        echo json_encode(['success' => false, 'message' => getDbErrorMessage($conn)]);
     }
 }
 
@@ -229,7 +232,7 @@ function getCities($conn) {
         $cities = pg_fetch_all($result);
         echo json_encode(['success' => true, 'data' => $cities]);
     } else {
-        echo json_encode(['success' => false, 'message' => pg_last_error($conn)]);
+        echo json_encode(['success' => false, 'message' => getDbErrorMessage($conn)]);
     }
 }
 
@@ -248,7 +251,7 @@ function getRegions($conn, $country_id = null) {
         $regions = pg_fetch_all($result);
         echo json_encode(['success' => true, 'data' => $regions]);
     } else {
-        echo json_encode(['success' => false, 'message' => pg_last_error($conn)]);
+        echo json_encode(['success' => false, 'message' => getDbErrorMessage($conn)]);
     }
 }
 
@@ -262,7 +265,7 @@ function getCountries($conn) {
         $countries = pg_fetch_all($result);
         echo json_encode(['success' => true, 'data' => $countries]);
     } else {
-        echo json_encode(['success' => false, 'message' => pg_last_error($conn)]);
+        echo json_encode(['success' => false, 'message' => getDbErrorMessage($conn)]);
     }
 }
 
@@ -275,6 +278,18 @@ function createUser($conn, $data) {
     $email = pg_escape_string($conn, $data['email'] ?? '');
     $phone = pg_escape_string($conn, $data['phone'] ?? '');
     $status = pg_escape_string($conn, $data['status'] ?? 'active');
+    
+    // Validate email if provided
+    if (!empty($email) && !validateEmail($email)) {
+        echo json_encode(['success' => false, 'message' => 'Invalid email format']);
+        return;
+    }
+    
+    // Validate phone if provided
+    if (!empty($phone) && !validatePhone($phone)) {
+        echo json_encode(['success' => false, 'message' => 'Invalid phone format']);
+        return;
+    }
     
     // Check if username already exists
     $checkQuery = "SELECT id FROM users WHERE username = '$username'";
@@ -299,7 +314,7 @@ function createUser($conn, $data) {
         $row = pg_fetch_assoc($result);
         echo json_encode(['success' => true, 'id' => $row['id']]);
     } else {
-        echo json_encode(['success' => false, 'message' => pg_last_error($conn)]);
+        echo json_encode(['success' => false, 'message' => getDbErrorMessage($conn)]);
     }
 }
 
@@ -313,6 +328,18 @@ function updateUser($conn, $data) {
     $email = pg_escape_string($conn, $data['email'] ?? '');
     $phone = pg_escape_string($conn, $data['phone'] ?? '');
     $status = pg_escape_string($conn, $data['status'] ?? 'active');
+    
+    // Validate email if provided
+    if (!empty($email) && !validateEmail($email)) {
+        echo json_encode(['success' => false, 'message' => 'Invalid email format']);
+        return;
+    }
+    
+    // Validate phone if provided
+    if (!empty($phone) && !validatePhone($phone)) {
+        echo json_encode(['success' => false, 'message' => 'Invalid phone format']);
+        return;
+    }
     
     // Username and full_name are readonly (LDAP), so we don't update them
     
@@ -334,7 +361,7 @@ function updateUser($conn, $data) {
     if ($result) {
         echo json_encode(['success' => true]);
     } else {
-        echo json_encode(['success' => false, 'message' => pg_last_error($conn)]);
+        echo json_encode(['success' => false, 'message' => getDbErrorMessage($conn)]);
     }
 }
 
@@ -348,7 +375,7 @@ function deleteUser($conn, $id) {
     if ($result) {
         echo json_encode(['success' => true]);
     } else {
-        echo json_encode(['success' => false, 'message' => pg_last_error($conn)]);
+        echo json_encode(['success' => false, 'message' => getDbErrorMessage($conn)]);
     }
 }
 

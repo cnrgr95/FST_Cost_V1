@@ -62,9 +62,12 @@ try {
     }
 } catch (Exception $e) {
     echo json_encode(['success' => false, 'message' => $e->getMessage()]);
+} finally {
+    // Always close database connection
+    if (isset($conn)) {
+        closeDbConnection($conn);
+    }
 }
-
-closeDbConnection($conn);
 
 // GET request handler
 function handleGet($conn, $action) {
@@ -142,7 +145,7 @@ function getSubRegions($conn) {
         $subRegions = pg_fetch_all($result);
         echo json_encode(['success' => true, 'data' => $subRegions]);
     } else {
-        echo json_encode(['success' => false, 'message' => pg_last_error($conn)]);
+        echo json_encode(['success' => false, 'message' => getDbErrorMessage($conn)]);
     }
 }
 
@@ -169,7 +172,7 @@ function getMerchantsBySubRegion($conn, $sub_region_id) {
         $merchants = pg_fetch_all($result);
         echo json_encode(['success' => true, 'data' => $merchants]);
     } else {
-        echo json_encode(['success' => false, 'message' => pg_last_error($conn)]);
+        echo json_encode(['success' => false, 'message' => getDbErrorMessage($conn)]);
     }
 }
 
@@ -190,7 +193,7 @@ function getTours($conn) {
         $tours = pg_fetch_all($result);
         echo json_encode(['success' => true, 'data' => $tours]);
     } else {
-        echo json_encode(['success' => false, 'message' => pg_last_error($conn)]);
+        echo json_encode(['success' => false, 'message' => getDbErrorMessage($conn)]);
     }
 }
 
@@ -223,7 +226,7 @@ function createTour($conn, $data) {
         $row = pg_fetch_assoc($result);
         echo json_encode(['success' => true, 'id' => $row['id']]);
     } else {
-        echo json_encode(['success' => false, 'message' => pg_last_error($conn)]);
+        echo json_encode(['success' => false, 'message' => getDbErrorMessage($conn)]);
     }
 }
 
@@ -259,7 +262,7 @@ function updateTour($conn, $data) {
     if ($result) {
         echo json_encode(['success' => true]);
     } else {
-        echo json_encode(['success' => false, 'message' => pg_last_error($conn)]);
+        echo json_encode(['success' => false, 'message' => getDbErrorMessage($conn)]);
     }
 }
 
@@ -272,7 +275,7 @@ function deleteTour($conn, $id) {
     if ($result) {
         echo json_encode(['success' => true]);
     } else {
-        echo json_encode(['success' => false, 'message' => pg_last_error($conn)]);
+        echo json_encode(['success' => false, 'message' => getDbErrorMessage($conn)]);
     }
 }
 ?>

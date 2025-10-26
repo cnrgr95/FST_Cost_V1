@@ -62,9 +62,12 @@ try {
     }
 } catch (Exception $e) {
     echo json_encode(['success' => false, 'message' => $e->getMessage()]);
+} finally {
+    // Always close database connection
+    if (isset($conn)) {
+        closeDbConnection($conn);
+    }
 }
-
-closeDbConnection($conn);
 
 // GET request handler
 function handleGet($conn, $action) {
@@ -139,7 +142,7 @@ function getSubRegions($conn) {
         $subRegions = pg_fetch_all($result);
         echo json_encode(['success' => true, 'data' => $subRegions]);
     } else {
-        echo json_encode(['success' => false, 'message' => pg_last_error($conn)]);
+        echo json_encode(['success' => false, 'message' => getDbErrorMessage($conn)]);
     }
 }
 
@@ -171,7 +174,7 @@ function getMerchants($conn, $sub_region_id = null) {
         $merchants = pg_fetch_all($result);
         echo json_encode(['success' => true, 'data' => $merchants]);
     } else {
-        echo json_encode(['success' => false, 'message' => pg_last_error($conn)]);
+        echo json_encode(['success' => false, 'message' => getDbErrorMessage($conn)]);
     }
 }
 
@@ -205,7 +208,7 @@ function createMerchant($conn, $data) {
         $row = pg_fetch_assoc($result);
         echo json_encode(['success' => true, 'id' => $row['id']]);
     } else {
-        echo json_encode(['success' => false, 'message' => pg_last_error($conn)]);
+        echo json_encode(['success' => false, 'message' => getDbErrorMessage($conn)]);
     }
 }
 
@@ -240,7 +243,7 @@ function updateMerchant($conn, $data) {
     if ($result) {
         echo json_encode(['success' => true]);
     } else {
-        echo json_encode(['success' => false, 'message' => pg_last_error($conn)]);
+        echo json_encode(['success' => false, 'message' => getDbErrorMessage($conn)]);
     }
 }
 
@@ -267,7 +270,7 @@ function deleteMerchant($conn, $id) {
     if ($result) {
         echo json_encode(['success' => true]);
     } else {
-        echo json_encode(['success' => false, 'message' => pg_last_error($conn)]);
+        echo json_encode(['success' => false, 'message' => getDbErrorMessage($conn)]);
     }
 }
 ?>

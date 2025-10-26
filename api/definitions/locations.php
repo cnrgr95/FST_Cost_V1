@@ -61,9 +61,12 @@ try {
     }
 } catch (Exception $e) {
     echo json_encode(['success' => false, 'message' => $e->getMessage()]);
+} finally {
+    // Always close database connection
+    if (isset($conn)) {
+        closeDbConnection($conn);
+    }
 }
-
-closeDbConnection($conn);
 
 // GET request handler
 function handleGet($conn, $action) {
@@ -180,7 +183,7 @@ function getCountries($conn) {
         $countries = pg_fetch_all($result);
         echo json_encode(['success' => true, 'data' => $countries]);
     } else {
-        echo json_encode(['success' => false, 'message' => pg_last_error($conn)]);
+        echo json_encode(['success' => false, 'message' => getDbErrorMessage($conn)]);
     }
 }
 
@@ -204,7 +207,7 @@ function createCountry($conn, $data) {
         $row = pg_fetch_assoc($result);
         echo json_encode(['success' => true, 'id' => $row['id']]);
     } else {
-        echo json_encode(['success' => false, 'message' => pg_last_error($conn)]);
+        echo json_encode(['success' => false, 'message' => getDbErrorMessage($conn)]);
     }
 }
 
@@ -219,7 +222,7 @@ function updateCountry($conn, $data) {
     if ($result) {
         echo json_encode(['success' => true]);
     } else {
-        echo json_encode(['success' => false, 'message' => pg_last_error($conn)]);
+        echo json_encode(['success' => false, 'message' => getDbErrorMessage($conn)]);
     }
 }
 
@@ -246,7 +249,7 @@ function deleteCountry($conn, $id) {
     if ($result) {
         echo json_encode(['success' => true]);
     } else {
-        echo json_encode(['success' => false, 'message' => pg_last_error($conn)]);
+        echo json_encode(['success' => false, 'message' => getDbErrorMessage($conn)]);
     }
 }
 
@@ -265,7 +268,7 @@ function getRegions($conn, $country_id = null) {
         $regions = pg_fetch_all($result);
         echo json_encode(['success' => true, 'data' => $regions]);
     } else {
-        echo json_encode(['success' => false, 'message' => pg_last_error($conn)]);
+        echo json_encode(['success' => false, 'message' => getDbErrorMessage($conn)]);
     }
 }
 
@@ -288,7 +291,7 @@ function createRegion($conn, $data) {
         $row = pg_fetch_assoc($result);
         echo json_encode(['success' => true, 'id' => $row['id']]);
     } else {
-        echo json_encode(['success' => false, 'message' => pg_last_error($conn)]);
+        echo json_encode(['success' => false, 'message' => getDbErrorMessage($conn)]);
     }
 }
 
@@ -303,7 +306,7 @@ function updateRegion($conn, $data) {
     if ($result) {
         echo json_encode(['success' => true]);
     } else {
-        echo json_encode(['success' => false, 'message' => pg_last_error($conn)]);
+        echo json_encode(['success' => false, 'message' => getDbErrorMessage($conn)]);
     }
 }
 
@@ -330,7 +333,7 @@ function deleteRegion($conn, $id) {
     if ($result) {
         echo json_encode(['success' => true]);
     } else {
-        echo json_encode(['success' => false, 'message' => pg_last_error($conn)]);
+        echo json_encode(['success' => false, 'message' => getDbErrorMessage($conn)]);
     }
 }
 
@@ -353,7 +356,7 @@ function getCities($conn, $region_id = null) {
         $cities = pg_fetch_all($result);
         echo json_encode(['success' => true, 'data' => $cities]);
     } else {
-        echo json_encode(['success' => false, 'message' => pg_last_error($conn)]);
+        echo json_encode(['success' => false, 'message' => getDbErrorMessage($conn)]);
     }
 }
 
@@ -376,7 +379,7 @@ function createCity($conn, $data) {
         $row = pg_fetch_assoc($result);
         echo json_encode(['success' => true, 'id' => $row['id']]);
     } else {
-        echo json_encode(['success' => false, 'message' => pg_last_error($conn)]);
+        echo json_encode(['success' => false, 'message' => getDbErrorMessage($conn)]);
     }
 }
 
@@ -391,7 +394,7 @@ function updateCity($conn, $data) {
     if ($result) {
         echo json_encode(['success' => true]);
     } else {
-        echo json_encode(['success' => false, 'message' => pg_last_error($conn)]);
+        echo json_encode(['success' => false, 'message' => getDbErrorMessage($conn)]);
     }
 }
 
@@ -418,7 +421,7 @@ function deleteCity($conn, $id) {
     if ($result) {
         echo json_encode(['success' => true]);
     } else {
-        echo json_encode(['success' => false, 'message' => pg_last_error($conn)]);
+        echo json_encode(['success' => false, 'message' => getDbErrorMessage($conn)]);
     }
 }
 
@@ -448,7 +451,7 @@ function getSubRegions($conn, $city_id = null) {
         $subRegions = pg_fetch_all($result);
         echo json_encode(['success' => true, 'data' => $subRegions]);
     } else {
-        echo json_encode(['success' => false, 'message' => pg_last_error($conn)]);
+        echo json_encode(['success' => false, 'message' => getDbErrorMessage($conn)]);
     }
 }
 
@@ -471,7 +474,7 @@ function createSubRegion($conn, $data) {
         $row = pg_fetch_assoc($result);
         echo json_encode(['success' => true, 'id' => $row['id']]);
     } else {
-        echo json_encode(['success' => false, 'message' => pg_last_error($conn)]);
+        echo json_encode(['success' => false, 'message' => getDbErrorMessage($conn)]);
     }
 }
 
@@ -486,7 +489,7 @@ function updateSubRegion($conn, $data) {
     if ($result) {
         echo json_encode(['success' => true]);
     } else {
-        echo json_encode(['success' => false, 'message' => pg_last_error($conn)]);
+        echo json_encode(['success' => false, 'message' => getDbErrorMessage($conn)]);
     }
 }
 
@@ -513,7 +516,7 @@ function deleteSubRegion($conn, $id) {
     if ($result) {
         echo json_encode(['success' => true]);
     } else {
-        echo json_encode(['success' => false, 'message' => pg_last_error($conn)]);
+        echo json_encode(['success' => false, 'message' => getDbErrorMessage($conn)]);
     }
 }
 
@@ -534,7 +537,7 @@ function checkCountryName($conn) {
         $exists = pg_num_rows($result) > 0;
         echo json_encode(['success' => true, 'exists' => $exists]);
     } else {
-        echo json_encode(['success' => false, 'message' => pg_last_error($conn)]);
+        echo json_encode(['success' => false, 'message' => getDbErrorMessage($conn)]);
     }
 }
 
@@ -561,7 +564,7 @@ function checkRegionName($conn) {
         $exists = pg_num_rows($result) > 0;
         echo json_encode(['success' => true, 'exists' => $exists]);
     } else {
-        echo json_encode(['success' => false, 'message' => pg_last_error($conn)]);
+        echo json_encode(['success' => false, 'message' => getDbErrorMessage($conn)]);
     }
 }
 
@@ -588,7 +591,7 @@ function checkCityName($conn) {
         $exists = pg_num_rows($result) > 0;
         echo json_encode(['success' => true, 'exists' => $exists]);
     } else {
-        echo json_encode(['success' => false, 'message' => pg_last_error($conn)]);
+        echo json_encode(['success' => false, 'message' => getDbErrorMessage($conn)]);
     }
 }
 
@@ -615,7 +618,7 @@ function checkSubRegionName($conn) {
         $exists = pg_num_rows($result) > 0;
         echo json_encode(['success' => true, 'exists' => $exists]);
     } else {
-        echo json_encode(['success' => false, 'message' => pg_last_error($conn)]);
+        echo json_encode(['success' => false, 'message' => getDbErrorMessage($conn)]);
     }
 }
 ?>

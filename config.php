@@ -163,5 +163,59 @@ function getBasePath() {
     return str_replace($_SERVER['DOCUMENT_ROOT'], '', BASE_PATH);
 }
 
+/**
+ * Get safe database error message
+ * Prevents information leakage in production
+ */
+function getDbErrorMessage($conn) {
+    if (APP_DEBUG) {
+        return pg_last_error($conn) ?: 'Database operation failed';
+    } else {
+        return 'Database operation failed. Please contact administrator.';
+    }
+}
+
+/**
+ * Send JSON response
+ */
+function sendJsonResponse($success, $data = null, $message = null) {
+    $response = ['success' => $success];
+    
+    if ($data !== null) {
+        $response['data'] = $data;
+    }
+    
+    if ($message !== null) {
+        $response['message'] = $message;
+    }
+    
+    echo json_encode($response);
+    exit;
+}
+
+/**
+ * Validate email format
+ */
+function validateEmail($email) {
+    return filter_var($email, FILTER_VALIDATE_EMAIL) !== false;
+}
+
+/**
+ * Validate phone format (basic)
+ */
+function validatePhone($phone) {
+    // Remove spaces, dashes, parentheses
+    $phone = preg_replace('/[\s\-\(\)]/', '', $phone);
+    // Check if it contains only digits and optional + at start
+    return preg_match('/^\+?[0-9]{10,15}$/', $phone);
+}
+
+/**
+ * Validate URL format
+ */
+function validateUrl($url) {
+    return filter_var($url, FILTER_VALIDATE_URL) !== false;
+}
+
 ?>
 

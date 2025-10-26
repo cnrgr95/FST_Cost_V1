@@ -4,14 +4,31 @@
  * Handles all CRUD operations for language files
  */
 
+// Start output buffering to catch any errors
+ob_start();
+
+// Define API_REQUEST before loading config to prevent error display
+define('API_REQUEST', true);
+
+// Disable error display for API requests (errors will still be logged)
+ini_set('display_errors', 0);
+error_reporting(E_ALL); // Still log errors but don't display
+
 session_start();
 header('Content-Type: application/json');
 
 // Check if user is logged in
 if (!isset($_SESSION['user_id'])) {
+    ob_end_clean();
     echo json_encode(['success' => false, 'message' => 'Unauthorized']);
     exit;
 }
+
+// Load central configuration
+require_once __DIR__ . '/../../config.php';
+
+// Clear any output that might have been generated
+ob_end_clean();
 
 // Get request method
 $method = $_SERVER['REQUEST_METHOD'];

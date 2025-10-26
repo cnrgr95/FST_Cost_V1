@@ -62,9 +62,12 @@ try {
     }
 } catch (Exception $e) {
     echo json_encode(['success' => false, 'message' => $e->getMessage()]);
+} finally {
+    // Always close database connection
+    if (isset($conn)) {
+        closeDbConnection($conn);
+    }
 }
-
-closeDbConnection($conn);
 
 // GET request handler
 function handleGet($conn, $action) {
@@ -131,7 +134,7 @@ function getCosts($conn) {
         $costs = pg_fetch_all($result);
         echo json_encode(['success' => true, 'data' => $costs]);
     } else {
-        echo json_encode(['success' => false, 'message' => pg_last_error($conn)]);
+        echo json_encode(['success' => false, 'message' => getDbErrorMessage($conn)]);
     }
 }
 
@@ -166,7 +169,7 @@ function createCost($conn, $data) {
             $row = pg_fetch_assoc($result);
             echo json_encode(['success' => true, 'id' => $row['id'], 'cost_code' => $row['cost_code']]);
         } else {
-            $error = pg_last_error($conn);
+            $error = getDbErrorMessage($conn);
             echo json_encode(['success' => false, 'message' => 'Database error: ' . $error]);
         }
     } catch (Exception $e) {
@@ -190,7 +193,7 @@ function updateCost($conn, $data) {
     if ($result) {
         echo json_encode(['success' => true]);
     } else {
-        echo json_encode(['success' => false, 'message' => pg_last_error($conn)]);
+        echo json_encode(['success' => false, 'message' => getDbErrorMessage($conn)]);
     }
 }
 
@@ -203,7 +206,7 @@ function deleteCost($conn, $id) {
     if ($result) {
         echo json_encode(['success' => true]);
     } else {
-        echo json_encode(['success' => false, 'message' => pg_last_error($conn)]);
+        echo json_encode(['success' => false, 'message' => getDbErrorMessage($conn)]);
     }
 }
 ?>
