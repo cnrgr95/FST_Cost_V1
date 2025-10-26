@@ -4,6 +4,7 @@
     
     const API_BASE_MERCHANTS = (typeof window.API_BASE_MERCHANTS !== 'undefined') ? window.API_BASE_MERCHANTS : '../api/definitions/merchants.php';
     const API_BASE_VEHICLES = (typeof window.API_BASE_VEHICLES !== 'undefined') ? window.API_BASE_VEHICLES : '../api/definitions/vehicles.php';
+    const API_BASE_USERS = (typeof window.API_BASE_USERS !== 'undefined') ? window.API_BASE_USERS : '../api/definitions/users.php';
     
     // Get translations
     const t = window.Translations || {};
@@ -13,7 +14,8 @@
     let currentTab = 'merchants';
     let currentData = {
         merchants: [],
-        companies: []
+        companies: [],
+        users: []
     };
     
     // Initialize
@@ -82,6 +84,16 @@
                             (item.contact_email && item.contact_email.toLowerCase().includes(searchText))
                         );
                     });
+                case 'users':
+                    return (currentData.users || []).filter(item => {
+                        return (
+                            (item.username && item.username.toLowerCase().includes(searchText)) ||
+                            (item.full_name && item.full_name.toLowerCase().includes(searchText)) ||
+                            (item.email && item.email.toLowerCase().includes(searchText)) ||
+                            (item.phone && item.phone.includes(searchText)) ||
+                            (item.department_name && item.department_name.toLowerCase().includes(searchText))
+                        );
+                    });
             }
         })();
         
@@ -125,8 +137,10 @@
             let url;
             if (type === 'merchants') {
                 url = API_BASE_MERCHANTS + '?action=merchants';
-            } else {
+            } else if (type === 'companies') {
                 url = API_BASE_VEHICLES + '?action=companies';
+            } else if (type === 'users') {
+                url = API_BASE_USERS + '?action=users';
             }
             
             const response = await fetch(url);
@@ -154,8 +168,17 @@
         const data = dataToRender !== null ? dataToRender : currentData[type];
         
         if (data.length === 0) {
-            const noFoundText = type === 'merchants' ? tGuide.no_merchants : tGuide.no_companies;
-            const typeText = type === 'merchants' ? tGuide.merchants : tGuide.vehicle_companies;
+            let noFoundText, typeText;
+            if (type === 'merchants') {
+                noFoundText = tGuide.no_merchants;
+                typeText = tGuide.merchants;
+            } else if (type === 'companies') {
+                noFoundText = tGuide.no_companies;
+                typeText = tGuide.vehicle_companies;
+            } else if (type === 'users') {
+                noFoundText = tGuide.no_users || 'No users found';
+                typeText = tGuide.users || 'Users';
+            }
             
             container.innerHTML = `
                 <div class="guide-table-container">
@@ -171,7 +194,14 @@
             return;
         }
         
-        const typeText = type === 'merchants' ? tGuide.merchants : tGuide.vehicle_companies;
+        let typeText;
+        if (type === 'merchants') {
+            typeText = tGuide.merchants;
+        } else if (type === 'companies') {
+            typeText = tGuide.vehicle_companies;
+        } else if (type === 'users') {
+            typeText = tGuide.users || 'Users';
+        }
         
         let html = '<div class="guide-table-container">';
         html += '<div class="guide-table-header">';
@@ -194,7 +224,7 @@
                 <th>${tGuide.operator_phone}</th>
                 <th>${tGuide.location}</th>
             </tr></thead>`;
-        } else {
+        } else if (type === 'companies') {
             html += `<thead><tr>
                 <th><span class="type-badge company">${tGuide.vehicle_company}</span></th>
                 <th>${tGuide.name}</th>
@@ -202,6 +232,16 @@
                 <th>${tGuide.contact_person}</th>
                 <th>${tGuide.contact_email}</th>
                 <th>${tGuide.contact_phone}</th>
+            </tr></thead>`;
+        } else if (type === 'users') {
+            html += `<thead><tr>
+                <th><span class="type-badge user">${tGuide.user || 'Kullanıcı'}</span></th>
+                <th>${tGuide.username || 'Username'}</th>
+                <th>${tGuide.full_name || 'Full Name'}</th>
+                <th>${tGuide.department || 'Department'}</th>
+                <th>${tGuide.city || 'City'}</th>
+                <th>${tGuide.email || 'Email'}</th>
+                <th>${tGuide.phone || 'Phone'}</th>
             </tr></thead>`;
         }
         
@@ -230,13 +270,21 @@
             html += `<td>${item.operasyon_email ? '<a href="mailto:' + encodeURIComponent(item.operasyon_email) + '">' + escapeHtml(item.operasyon_email) + '</a>' : '-'}</td>`;
             html += `<td>${item.operasyon_phone || '-'}</td>`;
             html += `<td>${item.location_url ? '<a href="' + encodeURI(item.location_url) + '" target="_blank" rel="noopener noreferrer" class="location-link" title="' + (tGuide.view_on_map || 'Haritada Gör') + '"><span class="material-symbols-rounded">location_on</span></a>' : '-'}</td>`;
-        } else {
+        } else if (type === 'companies') {
             html += `<td><span class="type-badge company">${tGuide.vehicle_company || 'Taşımacı'}</span></td>`;
             html += `<td>${item.name || '-'}</td>`;
             html += `<td>${item.city_name || '-'}</td>`;
             html += `<td>${item.contact_person || '-'}</td>`;
             html += `<td>${item.contact_email ? '<a href="mailto:' + encodeURIComponent(item.contact_email) + '">' + escapeHtml(item.contact_email) + '</a>' : '-'}</td>`;
             html += `<td>${item.contact_phone || '-'}</td>`;
+        } else if (type === 'users') {
+            html += `<td><span class="type-badge user">${tGuide.user || 'Kullanıcı'}</span></td>`;
+            html += `<td>${escapeHtml(item.username || '-')}</td>`;
+            html += `<td>${escapeHtml(item.full_name || '-')}</td>`;
+            html += `<td>${escapeHtml(item.department_name || '-')}</td>`;
+            html += `<td>${escapeHtml(item.city_name || '-')}</td>`;
+            html += `<td>${item.email ? '<a href="mailto:' + encodeURIComponent(item.email) + '">' + escapeHtml(item.email) + '</a>' : '-'}</td>`;
+            html += `<td>${escapeHtml(item.phone || '-')}</td>`;
         }
         
         html += '</tr>';

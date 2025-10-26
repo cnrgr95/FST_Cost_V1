@@ -123,7 +123,7 @@ $t_sidebar = $all_translations['sidebar'] ?? [];
         </a>
         <ul class="dropdown-menu">
           <li class="nav-item"><a class="nav-link dropdown-title"><?php echo $t_sidebar['definitions'] ?? 'Definitions'; ?></a></li>
-          <li class="nav-item"><a href="#" class="nav-link dropdown-link"><?php echo $t_sidebar['users'] ?? 'Users'; ?></a></li>
+          <li class="nav-item"><a href="<?php echo $basePath; ?>app/definitions/users.php" class="nav-link dropdown-link"><?php echo $t_sidebar['users'] ?? 'Users'; ?></a></li>
           <li class="nav-item"><a href="<?php echo $basePath; ?>app/definitions/languages.php" class="nav-link dropdown-link"><?php echo $t_sidebar['language'] ?? 'Languages'; ?></a></li>
           <li class="nav-item"><a href="<?php echo $basePath; ?>app/definitions/tours.php" class="nav-link dropdown-link"><?php echo $t_sidebar['tours'] ?? 'Tours'; ?></a></li>
           <li class="nav-item"><a href="<?php echo $basePath; ?>app/definitions/costs.php" class="nav-link dropdown-link"><?php echo $t_sidebar['cost_mgmt'] ?? 'Cost'; ?></a></li>

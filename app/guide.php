@@ -76,6 +76,9 @@ $t_guide = $all_translations['guide'] ?? [];
                     <button class="guide-tab" data-tab="companies">
                         <?php echo $t_guide['vehicle_companies'] ?? 'Vehicle Companies'; ?>
                     </button>
+                    <button class="guide-tab" data-tab="users">
+                        <?php echo $t_guide['users'] ?? 'Users'; ?>
+                    </button>
                 </div>
                 
                 <!-- Tab Content -->
@@ -84,6 +87,10 @@ $t_guide = $all_translations['guide'] ?? [];
                 </div>
                 
                 <div class="guide-content" id="companies-content">
+                    <!-- Content will be loaded by JavaScript -->
+                </div>
+                
+                <div class="guide-content" id="users-content">
                     <!-- Content will be loaded by JavaScript -->
                 </div>
             </div>
@@ -132,6 +139,7 @@ $t_guide = $all_translations['guide'] ?? [];
         const BASE_PATH = '<?php echo $basePath; ?>';
         window.API_BASE_MERCHANTS = BASE_PATH + 'api/definitions/merchants.php';
         window.API_BASE_VEHICLES = BASE_PATH + 'api/definitions/vehicles.php';
+        window.API_BASE_USERS = BASE_PATH + 'api/definitions/users.php';
         window.Translations = {
             guide: <?php echo json_encode($t_guide); ?>,
             common: <?php echo json_encode($t_common); ?>,

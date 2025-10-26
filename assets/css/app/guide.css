@@ -204,6 +204,11 @@
     color: #9f1239;
 }
 
+.type-badge.user {
+    background: #d1fae5;
+    color: #065f46;
+}
+
 /* Contact Info */
 .contact-info {
     display: flex;
