@@ -68,6 +68,9 @@ $t_locations = $all_translations['locations'] ?? [];
                     <button class="locations-tab" data-tab="cities">
                         <?php echo $t_sidebar['city'] ?? 'Cities'; ?>
                     </button>
+                    <button class="locations-tab" data-tab="sub_regions">
+                        <?php echo $t_locations['sub_regions'] ?? 'Sub Regions'; ?>
+                    </button>
                 </div>
                 
                 <!-- Tab Content -->
@@ -80,6 +83,10 @@ $t_locations = $all_translations['locations'] ?? [];
                 </div>
                 
                 <div class="locations-content" id="cities-content">
+                    <!-- Content will be loaded by JavaScript -->
+                </div>
+                
+                <div class="locations-content" id="sub_regions-content">
                     <!-- Content will be loaded by JavaScript -->
                 </div>
             </div>
@@ -165,6 +172,38 @@ $t_locations = $all_translations['locations'] ?? [];
                 <div class="form-group">
                     <label><?php echo $t_sidebar['region'] ?? 'Region'; ?> *</label>
                     <select name="region_id" required>
+                        <option value=""><?php echo $t_locations['loading_data'] ?? 'Loading...'; ?></option>
+                    </select>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn-secondary" onclick="closeModal()">
+                        <?php echo $t_common['cancel'] ?? 'Cancel'; ?>
+                    </button>
+                    <button type="submit" class="btn-primary">
+                        <?php echo $t_common['save'] ?? 'Save'; ?>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <!-- Sub Region Modal -->
+    <div class="modal" id="sub_regionsModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="subRegionModalTitle">Add Sub Region</h2>
+                <button class="btn-close">
+                    <span class="material-symbols-rounded">close</span>
+                </button>
+            </div>
+            <form id="sub_regionsForm">
+                <div class="form-group">
+                    <label><?php echo $t_locations['sub_region_name'] ?? 'Sub Region Name'; ?> *</label>
+                    <input type="text" name="name" required>
+                </div>
+                <div class="form-group">
+                    <label><?php echo $t_sidebar['city'] ?? 'City'; ?> *</label>
+                    <select name="city_id" required>
                         <option value=""><?php echo $t_locations['loading_data'] ?? 'Loading...'; ?></option>
                     </select>
                 </div>

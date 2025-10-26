@@ -90,6 +90,10 @@ function handleGet($conn, $action) {
             $region_id = $_GET['region_id'] ?? null;
             getCities($conn, $region_id);
             break;
+        case 'sub_regions':
+            $city_id = $_GET['city_id'] ?? null;
+            getSubRegions($conn, $city_id);
+            break;
         default:
             echo json_encode(['success' => false, 'message' => 'Invalid action']);
     }
@@ -109,6 +113,9 @@ function handlePost($conn, $action) {
         case 'city':
             createCity($conn, $data);
             break;
+        case 'sub_region':
+            createSubRegion($conn, $data);
+            break;
         default:
             echo json_encode(['success' => false, 'message' => 'Invalid action']);
     }
@@ -127,6 +134,9 @@ function handlePut($conn, $action) {
             break;
         case 'city':
             updateCity($conn, $data);
+            break;
+        case 'sub_region':
+            updateSubRegion($conn, $data);
             break;
         default:
             echo json_encode(['success' => false, 'message' => 'Invalid action']);
@@ -151,6 +161,9 @@ function handleDelete($conn, $action) {
             break;
         case 'city':
             deleteCity($conn, $id);
+            break;
+        case 'sub_region':
+            deleteSubRegion($conn, $id);
             break;
         default:
             echo json_encode(['success' => false, 'message' => 'Invalid action']);
@@ -324,6 +337,76 @@ function updateCity($conn, $data) {
 
 function deleteCity($conn, $id) {
     $query = "DELETE FROM cities WHERE id = $id";
+    $result = pg_query($conn, $query);
+    
+    if ($result) {
+        echo json_encode(['success' => true]);
+    } else {
+        echo json_encode(['success' => false, 'message' => pg_last_error($conn)]);
+    }
+}
+
+// Sub Region functions
+function getSubRegions($conn, $city_id = null) {
+    if ($city_id) {
+        $query = "SELECT sr.*, c.name as city_name, r.name as region_name, co.name as country_name 
+                  FROM sub_regions sr 
+                  LEFT JOIN cities c ON sr.city_id = c.id 
+                  LEFT JOIN regions r ON c.region_id = r.id 
+                  LEFT JOIN countries co ON r.country_id = co.id
+                  WHERE sr.city_id = $city_id 
+                  ORDER BY sr.name ASC";
+    } else {
+        $query = "SELECT sr.*, c.name as city_name, r.name as region_name, co.name as country_name 
+                  FROM sub_regions sr 
+                  LEFT JOIN cities c ON sr.city_id = c.id 
+                  LEFT JOIN regions r ON c.region_id = r.id 
+                  LEFT JOIN countries co ON r.country_id = co.id
+                  ORDER BY sr.name ASC";
+    }
+    
+    $result = pg_query($conn, $query);
+    
+    if ($result) {
+        $subRegions = pg_fetch_all($result);
+        echo json_encode(['success' => true, 'data' => $subRegions]);
+    } else {
+        echo json_encode(['success' => false, 'message' => pg_last_error($conn)]);
+    }
+}
+
+function createSubRegion($conn, $data) {
+    $name = pg_escape_string($conn, $data['name']);
+    $city_id = $data['city_id'];
+    
+    $query = "INSERT INTO sub_regions (name, city_id, created_at) VALUES ('$name', $city_id, NOW()) RETURNING id";
+    $result = pg_query($conn, $query);
+    
+    if ($result) {
+        $row = pg_fetch_assoc($result);
+        echo json_encode(['success' => true, 'id' => $row['id']]);
+    } else {
+        echo json_encode(['success' => false, 'message' => pg_last_error($conn)]);
+    }
+}
+
+function updateSubRegion($conn, $data) {
+    $id = $data['id'];
+    $name = pg_escape_string($conn, $data['name']);
+    $city_id = $data['city_id'];
+    
+    $query = "UPDATE sub_regions SET name = '$name', city_id = $city_id, updated_at = NOW() WHERE id = $id";
+    $result = pg_query($conn, $query);
+    
+    if ($result) {
+        echo json_encode(['success' => true]);
+    } else {
+        echo json_encode(['success' => false, 'message' => pg_last_error($conn)]);
+    }
+}
+
+function deleteSubRegion($conn, $id) {
+    $query = "DELETE FROM sub_regions WHERE id = $id";
     $result = pg_query($conn, $query);
     
     if ($result) {

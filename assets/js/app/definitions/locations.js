@@ -15,7 +15,8 @@
     let currentData = {
         countries: [],
         regions: [],
-        cities: []
+        cities: [],
+        sub_regions: []
     };
     
     // Initialize
@@ -32,6 +33,7 @@
         document.getElementById('countryForm').addEventListener('submit', handleCountrySubmit);
         document.getElementById('regionForm').addEventListener('submit', handleRegionSubmit);
         document.getElementById('cityForm').addEventListener('submit', handleCitySubmit);
+        document.getElementById('sub_regionsForm').addEventListener('submit', handleSubRegionSubmit);
         
         // Close modal when clicking outside
         document.addEventListener('click', function(e) {
@@ -68,18 +70,16 @@
     
     // Load data for current tab
     function loadData(type) {
-        if (currentData[type].length === 0) {
-            showLoading(type);
-            fetchData(type);
-        } else {
-            renderTable(type);
-        }
+        // Always fetch fresh data
+        showLoading(type);
+        fetchData(type);
     }
     
     // Fetch data from API
     async function fetchData(type) {
         try {
-            const response = await fetch(`${API_BASE}?action=${type}`);
+            const url = `${API_BASE}?action=${type}`;
+            const response = await fetch(url);
             const result = await response.json();
             
             if (result.success) {
@@ -106,9 +106,15 @@
         const data = currentData[type];
         
         if (data.length === 0) {
-            const typeText = type === 'countries' ? tLoc.countries : (type === 'regions' ? tLoc.regions : tLoc.cities);
-            const noFoundText = type === 'countries' ? tLoc.no_countries : (type === 'regions' ? tLoc.no_regions : tLoc.no_cities);
-            const addNewText = type === 'countries' ? tLoc.add_country : (type === 'regions' ? tLoc.add_region : tLoc.add_city);
+            const typeText = type === 'countries' ? tLoc.countries : 
+                             (type === 'regions' ? tLoc.regions : 
+                             (type === 'cities' ? tLoc.cities : tLoc.sub_regions));
+            const noFoundText = type === 'countries' ? tLoc.no_countries : 
+                               (type === 'regions' ? tLoc.no_regions : 
+                               (type === 'cities' ? tLoc.no_cities : tLoc.no_sub_regions));
+            const addNewText = type === 'countries' ? tLoc.add_country : 
+                              (type === 'regions' ? tLoc.add_region : 
+                              (type === 'cities' ? tLoc.add_city : tLoc.add_sub_region));
             
             container.innerHTML = `
                 <div class="locations-table-container">
@@ -129,7 +135,9 @@
             return;
         }
         
-        const typeText = type === 'countries' ? tLoc.countries : (type === 'regions' ? tLoc.regions : tLoc.cities);
+        const typeText = type === 'countries' ? tLoc.countries : 
+                         (type === 'regions' ? tLoc.regions : 
+                         (type === 'cities' ? tLoc.cities : tLoc.sub_regions));
         
         let html = '<div class="locations-table-container">';
         html += '<div class="locations-table-header">';
@@ -146,8 +154,10 @@
             html += `<thead><tr><th>${tLoc.country_name || 'Name'}</th><th>${tLoc.country_code || 'Code'}</th><th>${tLoc.actions || 'Actions'}</th></tr></thead>`;
         } else if (type === 'regions') {
             html += `<thead><tr><th>${tLoc.region_name || 'Name'}</th><th>${tSidebar.country || 'Country'}</th><th>${tLoc.actions || 'Actions'}</th></tr></thead>`;
-        } else {
+        } else if (type === 'cities') {
             html += `<thead><tr><th>${tLoc.city_name || 'Name'}</th><th>${tSidebar.region || 'Region'}</th><th>${tSidebar.country || 'Country'}</th><th>${tLoc.actions || 'Actions'}</th></tr></thead>`;
+        } else {
+            html += `<thead><tr><th>${tLoc.sub_region_name || 'Name'}</th><th>${tSidebar.city || 'City'}</th><th>${tSidebar.region || 'Region'}</th><th>${tSidebar.country || 'Country'}</th><th>${tLoc.actions || 'Actions'}</th></tr></thead>`;
         }
         
         html += '<tbody>';
@@ -169,8 +179,13 @@
         } else if (type === 'regions') {
             html += `<td>${item.name}</td>`;
             html += `<td>${item.country_name || '-'}</td>`;
+        } else if (type === 'cities') {
+            html += `<td>${item.name}</td>`;
+            html += `<td>${item.region_name || '-'}</td>`;
+            html += `<td>${item.country_name || '-'}</td>`;
         } else {
             html += `<td>${item.name}</td>`;
+            html += `<td>${item.city_name || '-'}</td>`;
             html += `<td>${item.region_name || '-'}</td>`;
             html += `<td>${item.country_name || '-'}</td>`;
         }
@@ -228,8 +243,10 @@
                 title.textContent = tLoc.add_country || 'Add Country';
             } else if (type === 'regions') {
                 title.textContent = tLoc.add_region || 'Add Region';
-            } else {
+            } else if (type === 'cities') {
                 title.textContent = tLoc.add_city || 'Add City';
+            } else {
+                title.textContent = tLoc.add_sub_region || 'Add Sub Region';
             }
         }
         
@@ -238,6 +255,8 @@
             loadCountriesForSelect();
         } else if (type === 'cities') {
             loadRegionsForSelect();
+        } else if (type === 'sub_regions') {
+            loadCitiesForSelect();
         }
     };
     
@@ -270,8 +289,10 @@
                 title.textContent = tLoc.edit_country || 'Edit Country';
             } else if (type === 'regions') {
                 title.textContent = tLoc.edit_region || 'Edit Region';
-            } else {
+            } else if (type === 'cities') {
                 title.textContent = tLoc.edit_city || 'Edit City';
+            } else {
+                title.textContent = tLoc.edit_sub_region || 'Edit Sub Region';
             }
         }
         
@@ -287,6 +308,9 @@
         } else if (type === 'cities') {
             await loadRegionsForSelect();
             form.querySelector('select[name="region_id"]').value = item.region_id;
+        } else if (type === 'sub_regions') {
+            await loadCitiesForSelect();
+            form.querySelector('select[name="city_id"]').value = item.city_id;
         }
         
         modal.classList.add('active');
@@ -363,6 +387,23 @@
             updateCity(data);
         } else {
             createCity(data);
+        }
+    }
+    
+    function handleSubRegionSubmit(e) {
+        e.preventDefault();
+        const form = e.target;
+        const formData = new FormData(form);
+        const data = {
+            name: formData.get('name'),
+            city_id: formData.get('city_id')
+        };
+        
+        if (form.dataset.id) {
+            data.id = form.dataset.id;
+            updateSubRegion(data);
+        } else {
+            createSubRegion(data);
         }
     }
     
@@ -526,6 +567,65 @@
             currentData.regions.forEach(region => {
                 select.innerHTML += `<option value="${region.id}">${region.name}</option>`;
             });
+        }
+    }
+    
+    async function loadCitiesForSelect() {
+        if (currentData.cities.length === 0) {
+            await fetchData('cities');
+        }
+        
+        const select = document.querySelector('[name="city_id"]');
+        if (select) {
+            select.innerHTML = `<option value="">${tLoc.select_city || 'Select City'}</option>`;
+            currentData.cities.forEach(city => {
+                select.innerHTML += `<option value="${city.id}">${city.name} (${city.region_name || ''} - ${city.country_name || ''})</option>`;
+            });
+        }
+    }
+    
+    // Sub Region CRUD operations
+    async function createSubRegion(data) {
+        try {
+            const response = await fetch(`${API_BASE}?action=sub_region`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data)
+            });
+            const result = await response.json();
+            
+            if (result.success) {
+                currentData.sub_regions = [];
+                loadData('sub_regions');
+                closeModal();
+            } else {
+                showError(result.message);
+            }
+        } catch (error) {
+            console.error('Error creating sub region:', error);
+            showError('Failed to create sub region');
+        }
+    }
+    
+    async function updateSubRegion(data) {
+        try {
+            const response = await fetch(`${API_BASE}?action=sub_region`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data)
+            });
+            const result = await response.json();
+            
+            if (result.success) {
+                currentData.sub_regions = [];
+                loadData('sub_regions');
+                closeModal();
+            } else {
+                showError(result.message);
+            }
+        } catch (error) {
+            console.error('Error updating sub region:', error);
+            showError('Failed to update sub region');
         }
     }
 })();
