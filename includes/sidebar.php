@@ -103,6 +103,17 @@ $t_sidebar = $all_translations['sidebar'] ?? [];
         </ul>
       </li>
 
+      <!-- Guide -->
+      <li class="nav-item">
+        <a href="<?php echo $basePath; ?>app/guide.php" class="nav-link" data-tooltip="<?php echo $t_sidebar['guide'] ?? 'Guide'; ?>">
+          <span class="material-symbols-rounded">contacts</span>
+          <span class="nav-label"><?php echo $t_sidebar['guide'] ?? 'Guide'; ?></span>
+        </a>
+        <ul class="dropdown-menu">
+          <li class="nav-item"><a class="nav-link dropdown-title"><?php echo $t_sidebar['guide'] ?? 'Guide'; ?></a></li>
+        </ul>
+      </li>
+
       <!-- Definitions -->
       <li class="nav-item dropdown-container">
         <a href="#" class="nav-link dropdown-toggle" data-tooltip="<?php echo $t_sidebar['definitions'] ?? 'Definitions'; ?>">
