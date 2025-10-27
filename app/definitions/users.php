@@ -376,6 +376,7 @@ $t_users = $all_translations['users'] ?? [];
     
     <script src="<?php echo $basePath; ?>assets/js/sidebar.js"></script>
     <script src="<?php echo $basePath; ?>assets/js/toast.js"></script>
+    <script src="<?php echo $basePath; ?>assets/js/common.js"></script>
     <script src="<?php echo $basePath; ?>assets/js/app/definitions/users.js"></script>
 </body>
 </html>

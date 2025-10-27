@@ -14,27 +14,60 @@ define('API_REQUEST', true);
 ini_set('display_errors', 0);
 error_reporting(E_ALL); // Still log errors but don't display
 
-session_start();
+// Start session
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+
+// Set JSON header early
 header('Content-Type: application/json');
 
 // Check if user is logged in
 if (!isset($_SESSION['user_id'])) {
-    ob_end_clean();
+    if (ob_get_level() > 0) {
+        ob_end_clean();
+    }
     echo json_encode(['success' => false, 'message' => 'Unauthorized']);
     exit;
 }
 
-// Load central configuration
-require_once __DIR__ . '/../config.php';
+// Load central configuration with error handling
+try {
+    require_once __DIR__ . '/../config.php';
+} catch (Throwable $e) {
+    if (ob_get_level() > 0) {
+        ob_end_clean();
+    }
+    header('Content-Type: application/json');
+    $msg = defined('APP_DEBUG') && APP_DEBUG ? $e->getMessage() . ' in ' . $e->getFile() . ':' . $e->getLine() : 'Configuration error';
+    echo json_encode(['success' => false, 'message' => $msg]);
+    exit;
+}
 
 // Clear any output that might have been generated
-ob_end_clean();
+if (ob_get_level() > 0) {
+    ob_end_clean();
+}
+
+// Ensure JSON header is set
+header('Content-Type: application/json');
 
 // Get database connection
 try {
+    if (!function_exists('getDbConnection')) {
+        throw new Exception('getDbConnection function not found');
+    }
     $conn = getDbConnection();
-} catch (Exception $e) {
-    echo json_encode(['success' => false, 'message' => 'Database connection failed: ' . $e->getMessage()]);
+    if (!$conn) {
+        throw new Exception('Database connection returned null');
+    }
+} catch (Throwable $e) {
+    if (ob_get_level() > 0) {
+        ob_end_clean();
+    }
+    header('Content-Type: application/json');
+    $msg = defined('APP_DEBUG') && APP_DEBUG ? $e->getMessage() : 'Database connection failed';
+    echo json_encode(['success' => false, 'message' => $msg]);
     exit;
 }
 
@@ -59,8 +92,14 @@ try {
         default:
             echo json_encode(['success' => false, 'message' => 'Invalid request method']);
     }
-} catch (Exception $e) {
-    echo json_encode(['success' => false, 'message' => $e->getMessage()]);
+} catch (Throwable $e) {
+    if (ob_get_level() > 0) {
+        ob_end_clean();
+    }
+    header('Content-Type: application/json');
+    $errorMsg = defined('APP_DEBUG') && APP_DEBUG ? $e->getMessage() : 'An error occurred';
+    echo json_encode(['success' => false, 'message' => $errorMsg]);
+    exit;
 } finally {
     // Always close database connection
     if (isset($conn)) {
@@ -101,6 +140,11 @@ function handleGet($conn, $action) {
 function handlePost($conn, $action) {
     $data = json_decode(file_get_contents('php://input'), true);
     
+    // CSRF protection for POST requests (only if token is provided)
+    if (isset($data[CSRF_TOKEN_NAME])) {
+        requireCsrfToken();
+    }
+    
     switch ($action) {
         case 'contract':
             createContract($conn, $data);
@@ -114,6 +158,11 @@ function handlePost($conn, $action) {
 function handlePut($conn, $action) {
     $data = json_decode(file_get_contents('php://input'), true);
     
+    // CSRF protection for PUT requests (only if token is provided)
+    if (isset($data[CSRF_TOKEN_NAME])) {
+        requireCsrfToken();
+    }
+    
     switch ($action) {
         case 'contract':
             updateContract($conn, $data);
@@ -126,6 +175,11 @@ function handlePut($conn, $action) {
 // DELETE request handler
 function handleDelete($conn, $action) {
     $id = $_GET['id'] ?? null;
+    
+    // CSRF protection for DELETE requests (optional for now, will be enforced later)
+    if (isset($_GET[CSRF_TOKEN_NAME])) {
+        requireCsrfToken();
+    }
     
     if (!$id) {
         echo json_encode(['success' => false, 'message' => 'ID is required']);
@@ -143,37 +197,74 @@ function handleDelete($conn, $action) {
 
 // Get contracts
 function getContracts($conn) {
-    $query = "SELECT c.*, 
-                     sr.name as sub_region_name,
-                     m.name as merchant_name,
-                     m.official_title as merchant_official_title,
-                     m.authorized_person as merchant_authorized_person,
-                     m.authorized_email as merchant_authorized_email,
-                     t.name as tour_name
-              FROM contracts c
-              LEFT JOIN sub_regions sr ON c.sub_region_id = sr.id
-              LEFT JOIN merchants m ON c.merchant_id = m.id
-              LEFT JOIN tours t ON c.tour_id = t.id
-              ORDER BY c.created_at DESC";
-    
-    $result = pg_query($conn, $query);
-    
-    if ($result) {
-        $contracts = pg_fetch_all($result) ?: [];
+    try {
+        // Main query - safe (no user input)
+        $query = "SELECT c.*, 
+                         sr.name as sub_region_name,
+                         m.name as merchant_name,
+                         m.official_title as merchant_official_title,
+                         m.authorized_person as merchant_authorized_person,
+                         m.authorized_email as merchant_authorized_email,
+                         t.name as tour_name
+                  FROM contracts c
+                  LEFT JOIN sub_regions sr ON c.sub_region_id = sr.id
+                  LEFT JOIN merchants m ON c.merchant_id = m.id
+                  LEFT JOIN tours t ON c.tour_id = t.id
+                  ORDER BY c.created_at DESC";
         
-        // Get regional prices for each contract
-        foreach ($contracts as &$contract) {
-            $contract_id = $contract['id'];
+        // Use pg_query for now (dbQueryAll might have issues)
+        $result = pg_query($conn, $query);
+        
+        if (!$result) {
+            $errorMsg = function_exists('getDbErrorMessage') ? getDbErrorMessage($conn) : 'Database query failed';
+            echo json_encode(['success' => false, 'message' => $errorMsg]);
+            return;
+        }
+        
+        $contracts = pg_fetch_all($result);
+        if ($contracts === false) {
+            $contracts = [];
+        }
+        
+        if (empty($contracts)) {
+            echo json_encode(['success' => true, 'data' => []]);
+            return;
+        }
+        
+        // Optimize: Get all regional prices in one query instead of N+1
+        $contract_ids = array_column($contracts, 'id');
+        
+        if (!empty($contract_ids)) {
+            // Get all regional prices at once using IN clause
+            $ids_str = implode(',', array_map('intval', $contract_ids));
             $pricesQuery = "SELECT crp.*, sr.name as sub_region_name
                            FROM contract_regional_prices crp
                            LEFT JOIN sub_regions sr ON crp.sub_region_id = sr.id
-                           WHERE crp.contract_id = $contract_id";
+                           WHERE crp.contract_id IN ($ids_str)";
+            
             $pricesResult = pg_query($conn, $pricesQuery);
             if ($pricesResult) {
-                $contract['regional_prices'] = pg_fetch_all($pricesResult) ?: [];
+                $allPrices = pg_fetch_all($pricesResult);
+                if ($allPrices === false) {
+                    $allPrices = [];
+                }
             } else {
-                $contract['regional_prices'] = [];
+                $allPrices = [];
             }
+        } else {
+            $allPrices = [];
+        }
+        
+        // Group prices by contract_id
+        $pricesByContract = [];
+        foreach ($allPrices as $price) {
+            $pricesByContract[$price['contract_id']][] = $price;
+        }
+        
+        // Attach prices to contracts
+        foreach ($contracts as &$contract) {
+            $contract_id = $contract['id'];
+            $contract['regional_prices'] = $pricesByContract[$contract_id] ?? [];
             
             // Default price_type if not set
             if (!isset($contract['price_type'])) {
@@ -182,8 +273,12 @@ function getContracts($conn) {
         }
         
         echo json_encode(['success' => true, 'data' => $contracts]);
-    } else {
-        echo json_encode(['success' => false, 'message' => getDbErrorMessage($conn)]);
+    } catch (Exception $e) {
+        if (function_exists('logError')) {
+            logError($e->getMessage(), __FILE__, __LINE__);
+        }
+        $errorMsg = function_exists('getDbErrorMessage') ? getDbErrorMessage($conn) : 'An error occurred';
+        echo json_encode(['success' => false, 'message' => $errorMsg]);
     }
 }
 
@@ -351,17 +446,28 @@ function createContract($conn, $data) {
     $fixed_child_price_val = $fixed_child_price !== null ? $fixed_child_price : 'NULL';
     $fixed_infant_price_val = $fixed_infant_price !== null ? $fixed_infant_price : 'NULL';
     
+    $transfer_price_val = $transfer_price !== null ? $transfer_price : 'NULL';
+    $transfer_currency_val = !empty($transfer_currency) ? "'$transfer_currency'" : 'NULL';
+    $transfer_price_mini_val = $transfer_price_mini !== null ? $transfer_price_mini : 'NULL';
+    $transfer_price_midi_val = $transfer_price_midi !== null ? $transfer_price_midi : 'NULL';
+    $transfer_price_bus_val = $transfer_price_bus !== null ? $transfer_price_bus : 'NULL';
+    $transfer_currency_fixed_val = !empty($transfer_currency_fixed) ? "'$transfer_currency_fixed'" : 'NULL';
+    
     $query = "INSERT INTO contracts (
                 sub_region_id, merchant_id, tour_id, vat_included, vat_rate,
                 adult_age, child_age_range, infant_age_range,
                 kickback_type, kickback_value, kickback_currency, kickback_per_person, kickback_min_persons, 
                 price_type, contract_currency, fixed_adult_price, fixed_child_price, fixed_infant_price,
+                transfer_owner, transfer_price_type, transfer_price, transfer_currency,
+                transfer_price_mini, transfer_price_midi, transfer_price_bus, transfer_currency_fixed,
                 included_content, start_date, end_date, created_at
               ) VALUES (
                 $sub_region_id, $merchant_id, $tour_id, " . ($vat_included ? 'true' : 'false') . ", 
                 $vat_rate_val, '$adult_age', '$child_age_range', '$infant_age_range',
                 '$kickback_type', $kickback_value_val, $kickback_currency_val, " . ($kickback_per_person ? 'true' : 'false') . ",
                 $kickback_min_persons_val, '$price_type', '$contract_currency', $fixed_adult_price_val, $fixed_child_price_val, $fixed_infant_price_val,
+                '$transfer_owner', '$transfer_price_type', $transfer_price_val, $transfer_currency_val,
+                $transfer_price_mini_val, $transfer_price_midi_val, $transfer_price_bus_val, $transfer_currency_fixed_val,
                 '$included_content', '$start_date', '$end_date', NOW()
               ) RETURNING id";
     
@@ -407,6 +513,16 @@ function updateContract($conn, $data) {
     $start_date = pg_escape_string($conn, $data['start_date']);
     $end_date = pg_escape_string($conn, $data['end_date']);
     
+    // Transfer fields
+    $transfer_owner = pg_escape_string($conn, $data['transfer_owner'] ?? '');
+    $transfer_price_type = pg_escape_string($conn, $data['transfer_price_type'] ?? '');
+    $transfer_price = isset($data['transfer_price']) && $data['transfer_price'] !== '' ? (float)$data['transfer_price'] : null;
+    $transfer_currency = pg_escape_string($conn, $data['transfer_currency'] ?? '');
+    $transfer_price_mini = isset($data['transfer_price_mini']) && $data['transfer_price_mini'] !== '' ? (float)$data['transfer_price_mini'] : null;
+    $transfer_price_midi = isset($data['transfer_price_midi']) && $data['transfer_price_midi'] !== '' ? (float)$data['transfer_price_midi'] : null;
+    $transfer_price_bus = isset($data['transfer_price_bus']) && $data['transfer_price_bus'] !== '' ? (float)$data['transfer_price_bus'] : null;
+    $transfer_currency_fixed = pg_escape_string($conn, $data['transfer_currency_fixed'] ?? '');
+    
     // Validate dates
     if ($start_date && $end_date && $end_date < $start_date) {
         echo json_encode(['success' => false, 'message' => 'End date must be after start date']);
@@ -433,6 +549,13 @@ function updateContract($conn, $data) {
     $fixed_child_price_val = $fixed_child_price !== null ? $fixed_child_price : 'NULL';
     $fixed_infant_price_val = $fixed_infant_price !== null ? $fixed_infant_price : 'NULL';
     
+    $transfer_price_val = $transfer_price !== null ? $transfer_price : 'NULL';
+    $transfer_currency_val = !empty($transfer_currency) ? "'$transfer_currency'" : 'NULL';
+    $transfer_price_mini_val = $transfer_price_mini !== null ? $transfer_price_mini : 'NULL';
+    $transfer_price_midi_val = $transfer_price_midi !== null ? $transfer_price_midi : 'NULL';
+    $transfer_price_bus_val = $transfer_price_bus !== null ? $transfer_price_bus : 'NULL';
+    $transfer_currency_fixed_val = !empty($transfer_currency_fixed) ? "'$transfer_currency_fixed'" : 'NULL';
+    
     $query = "UPDATE contracts SET 
                 sub_region_id = $sub_region_id,
                 merchant_id = $merchant_id,
@@ -452,6 +575,14 @@ function updateContract($conn, $data) {
                 fixed_adult_price = $fixed_adult_price_val,
                 fixed_child_price = $fixed_child_price_val,
                 fixed_infant_price = $fixed_infant_price_val,
+                transfer_owner = '$transfer_owner',
+                transfer_price_type = '$transfer_price_type',
+                transfer_price = $transfer_price_val,
+                transfer_currency = $transfer_currency_val,
+                transfer_price_mini = $transfer_price_mini_val,
+                transfer_price_midi = $transfer_price_midi_val,
+                transfer_price_bus = $transfer_price_bus_val,
+                transfer_currency_fixed = $transfer_currency_fixed_val,
                 included_content = '$included_content',
                 start_date = '$start_date',
                 end_date = '$end_date',
@@ -552,15 +683,34 @@ function saveRegionalPrices($conn, $contract_id, $regional_prices, $data = []) {
 
 // Delete contract
 function deleteContract($conn, $id) {
-    $id = (int)$id;
-    
-    $query = "DELETE FROM contracts WHERE id = $id";
-    $result = pg_query($conn, $query);
-    
-    if ($result) {
-        echo json_encode(['success' => true]);
-    } else {
-        echo json_encode(['success' => false, 'message' => getDbErrorMessage($conn)]);
+    try {
+        // Validate ID
+        $id = (int)$id;
+        if ($id <= 0) {
+            echo json_encode(['success' => false, 'message' => 'Invalid contract ID']);
+            return;
+        }
+        
+        // Delete regional prices first (cascade)
+        $deletePricesQuery = "DELETE FROM contract_regional_prices WHERE contract_id = $id";
+        pg_query($conn, $deletePricesQuery);
+        
+        // Delete contract
+        $query = "DELETE FROM contracts WHERE id = $id";
+        $result = pg_query($conn, $query);
+        
+        if ($result) {
+            echo json_encode(['success' => true]);
+        } else {
+            $errorMsg = function_exists('getDbErrorMessage') ? getDbErrorMessage($conn) : 'Failed to delete contract';
+            echo json_encode(['success' => false, 'message' => $errorMsg]);
+        }
+    } catch (Exception $e) {
+        if (function_exists('logError')) {
+            logError($e->getMessage(), __FILE__, __LINE__);
+        }
+        $errorMsg = function_exists('getDbErrorMessage') ? getDbErrorMessage($conn) : 'An error occurred';
+        echo json_encode(['success' => false, 'message' => $errorMsg]);
     }
 }
 ?>

@@ -87,6 +87,23 @@
         // Fade in animation
         setTimeout(() => overlay.classList.add('show'), 10);
         
+        // Define closeDialog and handleEscKey functions first
+        function closeDialog() {
+            overlay.classList.remove('show');
+            setTimeout(() => {
+                if (overlay.parentNode) overlay.parentNode.removeChild(overlay);
+                document.removeEventListener('keydown', handleEscKey);
+            }, 200);
+        }
+        
+        function handleEscKey(e) {
+            if (e.key === 'Escape') {
+                closeDialog();
+                if (onCancel) onCancel();
+                document.removeEventListener('keydown', handleEscKey);
+            }
+        }
+        
         // Button handlers
         overlay.querySelector('.btn-confirm').addEventListener('click', function() {
             closeDialog();
@@ -107,22 +124,7 @@
         });
         
         // Close on ESC key
-        function handleEscKey(e) {
-            if (e.key === 'Escape') {
-                closeDialog();
-                if (onCancel) onCancel();
-                document.removeEventListener('keydown', handleEscKey);
-            }
-        }
         document.addEventListener('keydown', handleEscKey);
-        
-        function closeDialog() {
-            overlay.classList.remove('show');
-            setTimeout(() => {
-                if (overlay.parentNode) overlay.parentNode.removeChild(overlay);
-                document.removeEventListener('keydown', handleEscKey);
-            }, 200);
-        }
     };
 })();
 

@@ -302,6 +302,7 @@ $t_dependencies = $all_translations['dependencies'] ?? [];
     
     <script src="<?php echo $basePath; ?>assets/js/sidebar.js"></script>
     <script src="<?php echo $basePath; ?>assets/js/toast.js"></script>
+    <script src="<?php echo $basePath; ?>assets/js/common.js"></script>
     <script src="<?php echo $basePath; ?>assets/js/app/definitions/locations.js"></script>
 </body>
 </html>

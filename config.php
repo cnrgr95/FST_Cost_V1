@@ -20,11 +20,26 @@ if (!defined('BASE_PATH')) {
 }
 
 // Database Configuration
-define('DB_HOST', 'localhost');
-define('DB_PORT', '5432');
-define('DB_NAME', 'fst_cost_db');
-define('DB_USER', 'postgres');
-define('DB_PASS', '123456789');
+// Load from .env file if exists, otherwise use defaults
+$envFile = BASE_PATH . '.env';
+if (file_exists($envFile)) {
+    $lines = @file($envFile, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
+    if ($lines !== false) {
+        foreach ($lines as $line) {
+            if (strpos(trim($line), '#') === 0) continue; // Skip comments
+            if (strpos($line, '=') !== false) {
+                list($key, $value) = explode('=', $line, 2);
+                $_ENV[trim($key)] = trim($value);
+            }
+        }
+    }
+}
+
+define('DB_HOST', $_ENV['DB_HOST'] ?? 'localhost');
+define('DB_PORT', $_ENV['DB_PORT'] ?? '5432');
+define('DB_NAME', $_ENV['DB_NAME'] ?? 'fst_cost_db');
+define('DB_USER', $_ENV['DB_USER'] ?? 'postgres');
+define('DB_PASS', $_ENV['DB_PASS'] ?? '123456789'); // Fallback to original password if .env not found
 
 // Database Connection String
 define('DB_CONNECTION_STRING', "host=" . DB_HOST . " port=" . DB_PORT . " dbname=" . DB_NAME . " user=" . DB_USER . " password=" . DB_PASS);
@@ -34,10 +49,12 @@ define('APP_NAME', 'FST Cost Management');
 define('APP_VERSION', '1.0.0');
 define('APP_AUTHOR', 'FST Team');
 
-// Session Configuration
+// Session Configuration (will be enhanced in security.php)
 ini_set('session.cookie_httponly', 1);
 ini_set('session.use_only_cookies', 1);
-ini_set('session.cookie_secure', 0); // Set to 1 if using HTTPS
+ini_set('session.use_strict_mode', 1);
+ini_set('session.cookie_samesite', 'Strict');
+ini_set('session.cookie_secure', isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? 1 : 0);
 
 // Timezone
 date_default_timezone_set('Europe/Istanbul'); // Change as needed
@@ -90,6 +107,13 @@ define('API_TIMEOUT', 30);
 define('ASSETS_PATH', BASE_PATH . 'assets' . DIRECTORY_SEPARATOR);
 define('INCLUDES_PATH', BASE_PATH . 'includes' . DIRECTORY_SEPARATOR);
 define('TRANSLATIONS_PATH', BASE_PATH . 'translations' . DIRECTORY_SEPARATOR);
+
+// Load security helpers only for web pages (not API)
+if (!defined('API_REQUEST')) {
+    if (file_exists(INCLUDES_PATH . 'security.php')) {
+        require_once INCLUDES_PATH . 'security.php';
+    }
+}
 
 // Helpers (only load translations for web pages, not API calls)
 if (!defined('API_REQUEST')) {

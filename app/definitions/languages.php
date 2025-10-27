@@ -284,6 +284,7 @@ $t_lang_mgmt = $all_translations['language_mgmt'] ?? [];
     
     <script src="<?php echo $basePath; ?>assets/js/sidebar.js"></script>
     <script src="<?php echo $basePath; ?>assets/js/toast.js"></script>
+    <script src="<?php echo $basePath; ?>assets/js/common.js"></script>
     <script src="<?php echo $basePath; ?>assets/js/app/definitions/languages.js"></script>
 </body>
 </html>

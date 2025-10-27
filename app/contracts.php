@@ -235,6 +235,83 @@ $t_contracts = $all_translations['contracts'] ?? [];
                     </div>
                 </div>
                 
+                <!-- Transfer Section -->
+                <div class="form-section">
+                    <h3 class="section-title"><?php echo $t_contracts['transfer'] ?? 'Transfer Bilgileri'; ?></h3>
+                    <div class="form-row">
+                        <div class="form-group full-width">
+                            <label><?php echo $t_contracts['transfer_owner'] ?? 'Transfer Kimde'; ?> *</label>
+                            <div class="checkbox-group">
+                                <label class="checkbox-label">
+                                    <input type="checkbox" id="transfer_owner_agency" name="transfer_owner[]" value="agency">
+                                    <span><?php echo $t_contracts['agency'] ?? 'Acente'; ?></span>
+                                </label>
+                                <label class="checkbox-label">
+                                    <input type="checkbox" id="transfer_owner_supplier" name="transfer_owner[]" value="supplier">
+                                    <span><?php echo $t_contracts['supplier'] ?? 'Supplier'; ?></span>
+                                </label>
+                            </div>
+                            <input type="hidden" id="transfer_owner" name="transfer_owner" value="">
+                        </div>
+                    </div>
+                    
+                    <div class="form-row" id="transfer_price_type_group" style="display: none;">
+                        <div class="form-group">
+                            <label for="transfer_price_type"><?php echo $t_contracts['transfer_price_type'] ?? 'Transfer Fiyat Tipi'; ?></label>
+                            <select id="transfer_price_type" name="transfer_price_type" class="form-select">
+                                <option value=""><?php echo $t_common['select'] ?? 'Seçiniz...'; ?></option>
+                                <option value="per_person"><?php echo $t_contracts['per_person'] ?? 'Kişi Başı'; ?></option>
+                                <option value="fixed"><?php echo $t_contracts['fixed_amount'] ?? 'Sabit Fiyat'; ?></option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <!-- Per Person Price -->
+                    <div class="form-row" id="transfer_per_person_price_group" style="display: none;">
+                        <div class="form-group">
+                            <label for="transfer_price"><?php echo $t_contracts['transfer_price'] ?? 'Transfer Fiyatı'; ?></label>
+                            <input type="number" id="transfer_price" name="transfer_price" step="0.01" min="0" placeholder="0.00">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="transfer_currency"><?php echo $t_contracts['transfer_currency'] ?? 'Transfer Dövizi'; ?></label>
+                            <select id="transfer_currency" name="transfer_currency">
+                                <option value=""><?php echo $t_common['loading'] ?? 'Yükleniyor...'; ?></option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <!-- Fixed Price by Vehicle Type -->
+                    <div class="form-group full-width" id="transfer_fixed_prices_group" style="display: none;">
+                        <label class="subsection-label"><?php echo $t_contracts['transfer_by_vehicle'] ?? 'Araç Tipine Göre Transfer Fiyatları'; ?></label>
+                        <div class="form-row three-columns">
+                            <div class="form-group">
+                                <label for="transfer_price_mini"><?php echo $t_contracts['mini'] ?? 'Mini'; ?></label>
+                                <input type="number" id="transfer_price_mini" name="transfer_price_mini" step="0.01" min="0" placeholder="0.00">
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="transfer_price_midi"><?php echo $t_contracts['midi'] ?? 'Midi'; ?></label>
+                                <input type="number" id="transfer_price_midi" name="transfer_price_midi" step="0.01" min="0" placeholder="0.00">
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="transfer_price_bus"><?php echo $t_contracts['bus'] ?? 'Bus'; ?></label>
+                                <input type="number" id="transfer_price_bus" name="transfer_price_bus" step="0.01" min="0" placeholder="0.00">
+                            </div>
+                        </div>
+                        
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="transfer_currency_fixed"><?php echo $t_contracts['transfer_currency'] ?? 'Transfer Dövizi'; ?></label>
+                                <select id="transfer_currency_fixed" name="transfer_currency_fixed">
+                                    <option value=""><?php echo $t_common['loading'] ?? 'Yükleniyor...'; ?></option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
                 <!-- Pricing Section -->
                 <div class="form-section" id="pricing_section" style="display: none;">
                     <h3 class="section-title"><?php echo $t_contracts['pricing'] ?? 'Fiyatlandırma'; ?></h3>
@@ -330,6 +407,26 @@ $t_contracts = $all_translations['contracts'] ?? [];
         </div>
     </div>
     
+    <!-- Contract Summary Modal -->
+    <div id="contractSummaryModal" class="modal">
+        <div class="modal-content" style="max-width: 800px; max-height: 90vh; display: flex; flex-direction: column;">
+            <div class="modal-header" style="flex-shrink: 0; display: flex; justify-content: space-between; align-items: center;">
+                <h2><?php echo $t_contracts['contract_summary'] ?? 'Kontrat Özeti'; ?></h2>
+                <div style="display: flex; gap: 8px;">
+                    <button class="btn-icon btn-info" onclick="printContractSummary()" title="<?php echo $t_common['print'] ?? 'Yazdır'; ?>" style="background: #e0f2fe; color: #0369a1;">
+                        <span class="material-symbols-rounded">print</span>
+                    </button>
+                    <button class="modal-close" onclick="closeContractSummary()">
+                        <span class="material-symbols-rounded">close</span>
+                    </button>
+                </div>
+            </div>
+            <div class="modal-body" id="contractSummaryContent" style="padding: 24px 30px; overflow-y: auto; flex: 1; max-height: calc(90vh - 100px);">
+                <!-- Summary content will be loaded here -->
+            </div>
+        </div>
+    </div>
+    
     <style>
         /* Main Content Styles */
         .main-content {
@@ -383,6 +480,7 @@ $t_contracts = $all_translations['contracts'] ?? [];
     
     <script src="<?php echo $basePath; ?>assets/js/sidebar.js"></script>
     <script src="<?php echo $basePath; ?>assets/js/toast.js"></script>
+    <script src="<?php echo $basePath; ?>assets/js/common.js"></script>
     <script src="<?php echo $basePath; ?>assets/js/app/contracts.js"></script>
 </body>
 </html>

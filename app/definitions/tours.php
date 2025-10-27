@@ -222,6 +222,7 @@ $t_tours = $all_translations['tours'] ?? [];
     
     <script src="<?php echo $basePath; ?>assets/js/sidebar.js"></script>
     <script src="<?php echo $basePath; ?>assets/js/toast.js"></script>
+    <script src="<?php echo $basePath; ?>assets/js/common.js"></script>
     <script src="<?php echo $basePath; ?>assets/js/app/definitions/tours.js"></script>
 </body>
 </html>

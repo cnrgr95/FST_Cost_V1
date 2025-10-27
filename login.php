@@ -3,7 +3,9 @@
  * Login Page
  */
 
-session_start();
+// Initialize secure session
+require_once __DIR__ . '/config.php';
+initSecureSession();
 
 // Redirect to dashboard if already logged in
 if (isset($_SESSION['user_id'])) {
@@ -48,19 +50,29 @@ $t = $translations[$lang] ?? $translations['en'];
 // Handle login form
 $error = '';
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $username = trim($_POST['username'] ?? '');
-    $password = trim($_POST['password'] ?? '');
-    
-    if (empty($username) || empty($password)) {
-        $error = $t['please_fill_all'];
+    // CSRF protection
+    if (!isset($_POST[CSRF_TOKEN_NAME]) || !validateCsrfToken($_POST[CSRF_TOKEN_NAME])) {
+        $error = 'Security token validation failed. Please try again.';
     } else {
-        // Simple authentication (for testing)
-        if ($username === 'admin' && $password === 'admin') {
-            // Regenerate session ID to prevent session fixation
-            session_regenerate_id(true);
-            
-            $_SESSION['user_id'] = 1;
-            $_SESSION['username'] = $username;
+        $username = trim($_POST['username'] ?? '');
+        $password = trim($_POST['password'] ?? '');
+        
+        // Rate limiting check
+        if (!checkRateLimit('login', 5, 300)) { // 5 attempts per 5 minutes
+            $error = 'Too many login attempts. Please try again later.';
+        } elseif (empty($username) || empty($password)) {
+            $error = $t['please_fill_all'];
+        } else {
+            // Simple authentication (for testing)
+            // TODO: Replace with database-based authentication
+            if ($username === 'admin' && $password === 'admin') {
+                // Regenerate session ID to prevent session fixation
+                session_regenerate_id(true);
+                
+                $_SESSION['user_id'] = 1;
+                $_SESSION['username'] = $username;
+                $_SESSION['last_activity'] = time();
+                $_SESSION['created'] = time();
             
             // Handle remember me with secure cookie
             if (isset($_POST['remember_me']) && $_POST['remember_me'] === 'on') {
@@ -84,6 +96,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             exit;
         } else {
             $error = $t['invalid_credentials'];
+            // Log failed login attempt
+            logError("Failed login attempt for username: $username", __FILE__, __LINE__);
         }
     }
 }
@@ -114,6 +128,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <?php endif; ?>
         
         <form method="POST" action="login.php">
+            <?php echo csrfField(); ?>
             <div class="form-group">
                 <div class="input-with-icon">
                     <i class="fas fa-user"></i>

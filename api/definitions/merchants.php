@@ -15,27 +15,60 @@ define('API_REQUEST', true);
 ini_set('display_errors', 0);
 error_reporting(E_ALL); // Still log errors but don't display
 
-session_start();
+// Start session
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+
+// Set JSON header early
 header('Content-Type: application/json');
 
 // Check if user is logged in
 if (!isset($_SESSION['user_id'])) {
-    ob_end_clean();
+    if (ob_get_level() > 0) {
+        ob_end_clean();
+    }
     echo json_encode(['success' => false, 'message' => 'Unauthorized']);
     exit;
 }
 
-// Load central configuration
-require_once __DIR__ . '/../../config.php';
+// Load central configuration with error handling
+try {
+    require_once __DIR__ . '/../../config.php';
+} catch (Throwable $e) {
+    if (ob_get_level() > 0) {
+        ob_end_clean();
+    }
+    header('Content-Type: application/json');
+    $msg = defined('APP_DEBUG') && APP_DEBUG ? $e->getMessage() . ' in ' . $e->getFile() . ':' . $e->getLine() : 'Configuration error';
+    echo json_encode(['success' => false, 'message' => $msg]);
+    exit;
+}
 
 // Clear any output that might have been generated
-ob_end_clean();
+if (ob_get_level() > 0) {
+    ob_end_clean();
+}
+
+// Ensure JSON header is set
+header('Content-Type: application/json');
 
 // Get database connection
 try {
+    if (!function_exists('getDbConnection')) {
+        throw new Exception('getDbConnection function not found');
+    }
     $conn = getDbConnection();
-} catch (Exception $e) {
-    echo json_encode(['success' => false, 'message' => 'Database connection failed: ' . $e->getMessage()]);
+    if (!$conn) {
+        throw new Exception('Database connection returned null');
+    }
+} catch (Throwable $e) {
+    if (ob_get_level() > 0) {
+        ob_end_clean();
+    }
+    header('Content-Type: application/json');
+    $msg = defined('APP_DEBUG') && APP_DEBUG ? $e->getMessage() : 'Database connection failed';
+    echo json_encode(['success' => false, 'message' => $msg]);
     exit;
 }
 
@@ -61,7 +94,21 @@ try {
             echo json_encode(['success' => false, 'message' => 'Invalid request method']);
     }
 } catch (Exception $e) {
-    echo json_encode(['success' => false, 'message' => $e->getMessage()]);
+    if (ob_get_level() > 0) {
+        ob_end_clean();
+    }
+    header('Content-Type: application/json');
+    $errorMsg = APP_DEBUG ? $e->getMessage() : 'An error occurred';
+    echo json_encode(['success' => false, 'message' => $errorMsg]);
+    exit;
+} catch (Error $e) {
+    if (ob_get_level() > 0) {
+        ob_end_clean();
+    }
+    header('Content-Type: application/json');
+    $errorMsg = APP_DEBUG ? $e->getMessage() : 'An error occurred';
+    echo json_encode(['success' => false, 'message' => $errorMsg]);
+    exit;
 } finally {
     // Always close database connection
     if (isset($conn)) {
@@ -148,33 +195,44 @@ function getSubRegions($conn) {
 
 // Merchant functions
 function getMerchants($conn, $sub_region_id = null) {
-    if ($sub_region_id) {
-        $sub_region_id = (int)$sub_region_id;
-        $query = "SELECT m.*, sr.name as sub_region_name, c.name as city_name, r.name as region_name, co.name as country_name 
-                  FROM merchants m 
-                  LEFT JOIN sub_regions sr ON m.sub_region_id = sr.id 
-                  LEFT JOIN cities c ON sr.city_id = c.id 
-                  LEFT JOIN regions r ON c.region_id = r.id 
-                  LEFT JOIN countries co ON r.country_id = co.id
-                  WHERE m.sub_region_id = $sub_region_id 
-                  ORDER BY m.name ASC";
-    } else {
-        $query = "SELECT m.*, sr.name as sub_region_name, c.name as city_name, r.name as region_name, co.name as country_name 
-                  FROM merchants m 
-                  LEFT JOIN sub_regions sr ON m.sub_region_id = sr.id 
-                  LEFT JOIN cities c ON sr.city_id = c.id 
-                  LEFT JOIN regions r ON c.region_id = r.id 
-                  LEFT JOIN countries co ON r.country_id = co.id
-                  ORDER BY m.name ASC";
-    }
-    
-    $result = pg_query($conn, $query);
-    
-    if ($result) {
-        $merchants = pg_fetch_all($result);
-        echo json_encode(['success' => true, 'data' => $merchants]);
-    } else {
-        echo json_encode(['success' => false, 'message' => getDbErrorMessage($conn)]);
+    try {
+        if ($sub_region_id) {
+            $sub_region_id = (int)$sub_region_id;
+            $query = "SELECT m.*, sr.name as sub_region_name, c.name as city_name, r.name as region_name, co.name as country_name 
+                      FROM merchants m 
+                      LEFT JOIN sub_regions sr ON m.sub_region_id = sr.id 
+                      LEFT JOIN cities c ON sr.city_id = c.id 
+                      LEFT JOIN regions r ON c.region_id = r.id 
+                      LEFT JOIN countries co ON r.country_id = co.id
+                      WHERE m.sub_region_id = $sub_region_id 
+                      ORDER BY m.name ASC";
+        } else {
+            $query = "SELECT m.*, sr.name as sub_region_name, c.name as city_name, r.name as region_name, co.name as country_name 
+                      FROM merchants m 
+                      LEFT JOIN sub_regions sr ON m.sub_region_id = sr.id 
+                      LEFT JOIN cities c ON sr.city_id = c.id 
+                      LEFT JOIN regions r ON c.region_id = r.id 
+                      LEFT JOIN countries co ON r.country_id = co.id
+                      ORDER BY m.name ASC";
+        }
+        
+        $result = pg_query($conn, $query);
+        
+        if ($result) {
+            $merchants = pg_fetch_all($result);
+            if ($merchants === false) {
+                $merchants = [];
+            }
+            echo json_encode(['success' => true, 'data' => $merchants]);
+        } else {
+            $errorMsg = function_exists('getDbErrorMessage') ? getDbErrorMessage($conn) : 'Database query failed';
+            echo json_encode(['success' => false, 'message' => $errorMsg]);
+        }
+    } catch (Exception $e) {
+        if (function_exists('logError')) {
+            logError($e->getMessage(), __FILE__, __LINE__);
+        }
+        echo json_encode(['success' => false, 'message' => 'An error occurred while fetching merchants']);
     }
 }
 

@@ -25,17 +25,43 @@ if (!isset($_SESSION['user_id'])) {
     exit;
 }
 
-// Load central configuration
-require_once __DIR__ . '/../../config.php';
+// Load central configuration with error handling
+try {
+    require_once __DIR__ . '/../../config.php';
+} catch (Throwable $e) {
+    if (ob_get_level() > 0) {
+        ob_end_clean();
+    }
+    header('Content-Type: application/json');
+    $msg = defined('APP_DEBUG') && APP_DEBUG ? $e->getMessage() . ' in ' . $e->getFile() . ':' . $e->getLine() : 'Configuration error';
+    echo json_encode(['success' => false, 'message' => $msg]);
+    exit;
+}
 
 // Clear any output that might have been generated
-ob_end_clean();
+if (ob_get_level() > 0) {
+    ob_end_clean();
+}
+
+// Ensure JSON header is set
+header('Content-Type: application/json');
 
 // Get database connection
 try {
+    if (!function_exists('getDbConnection')) {
+        throw new Exception('getDbConnection function not found');
+    }
     $conn = getDbConnection();
-} catch (Exception $e) {
-    echo json_encode(['success' => false, 'message' => 'Database connection failed: ' . $e->getMessage()]);
+    if (!$conn) {
+        throw new Exception('Database connection returned null');
+    }
+} catch (Throwable $e) {
+    if (ob_get_level() > 0) {
+        ob_end_clean();
+    }
+    header('Content-Type: application/json');
+    $msg = defined('APP_DEBUG') && APP_DEBUG ? $e->getMessage() : 'Database connection failed';
+    echo json_encode(['success' => false, 'message' => $msg]);
     exit;
 }
 

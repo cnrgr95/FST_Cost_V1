@@ -1,0 +1,30 @@
+# Environment variables
+.env
+
+# Logs
+logs/*.log
+*.log
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Uploads (if contains sensitive data)
+uploads/*
+!uploads/.gitkeep
+
+# Cache
+cache/
+*.cache
+
+# Temporary files
+tmp/
+temp/
+

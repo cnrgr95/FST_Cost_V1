@@ -199,6 +199,7 @@ $t_currencies = $all_translations['currencies'] ?? [];
     
     <script src="<?php echo $basePath; ?>assets/js/sidebar.js"></script>
     <script src="<?php echo $basePath; ?>assets/js/toast.js"></script>
+    <script src="<?php echo $basePath; ?>assets/js/common.js"></script>
     <script src="<?php echo $basePath; ?>assets/js/app/definitions/currencies.js"></script>
 </body>
 </html>
