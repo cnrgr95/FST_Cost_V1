@@ -228,7 +228,10 @@
         "sub_region_has_merchants": "Bu alt bölge {count} esnafa sahip olduğu için silinemez. Lütfen önce tüm esnafları silin.",
         "department_has_positions": "Bu departman {count} göreve sahip olduğu için silinemez. Lütfen önce tüm görevleri silin.",
         "merchant_has_tours": "Bu esnaf {count} tura sahip olduğu için silinemez. Lütfen önce tüm turları silin.",
-        "company_has_vehicle_types": "Bu araç firması {count} araç tipine sahip olduğu için silinemez. Lütfen önce tüm araç tiplerini silin."
+        "company_has_vehicle_types": "Bu araç firması {count} araç tipine sahip olduğu için silinemez. Lütfen önce tüm araç tiplerini silin.",
+        "company_has_contracts": "Bu araç firması {count} kontrata sahip olduğu için silinemez. Lütfen önce tüm kontratları silin.",
+        "type_has_contracts": "Bu araç tipi, bağlı olduğu araç firmasının {count} kontrata sahip olduğu için silinemez. Lütfen önce tüm kontratları silin.",
+        "contract_has_routes": "Bu kontrat {count} rotaya sahip olduğu için silinemez. Lütfen önce tüm rotaları silin."
     },
     "vehicles": {
         "title": "Araç Yönetimi",

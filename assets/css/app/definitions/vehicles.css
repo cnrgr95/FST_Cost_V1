@@ -264,8 +264,16 @@ select.error:focus {
     padding: 30px;
     width: 100%;
     max-width: 500px;
+    max-height: 90vh;
+    overflow-y: auto;
     box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
     animation: modalSlideIn 0.3s ease;
+    pointer-events: auto;
+    position: relative;
+}
+
+.modal-content.modal-large {
+    max-width: 800px;
 }
 
 @keyframes modalSlideIn {
@@ -479,6 +487,10 @@ select.error:focus {
     .modal-content {
         margin: 20px;
         padding: 24px;
+    }
+    
+    .modal-content.modal-large {
+        max-width: calc(100% - 40px);
     }
 }
 

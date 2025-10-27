@@ -44,10 +44,12 @@
         }
         
         // Close modal when clicking outside
-        document.addEventListener('click', function(e) {
-            if (e.target.classList.contains('modal')) {
-                closeModal();
-            }
+        document.querySelectorAll('.modal').forEach(modal => {
+            modal.addEventListener('click', function(e) {
+                if (e.target === this) {
+                    closeModal();
+                }
+            });
         });
         
         // Setup search functionality
@@ -560,12 +562,34 @@
                 } else {
                     // Translate dependency messages
                     let errorMessage = result.message;
-                    if (errorMessage && typeof errorMessage === 'string') {
-                        // Try to match and translate company dependency pattern
-                         const typeMatch = errorMessage.match(/company.*?(\d+).*?vehicle type/i);
-                         if (typeMatch) {
-                             errorMessage = (tDeps.company_has_vehicle_types || errorMessage).replace('{count}', typeMatch[1]);
-                         }
+                    
+                    // If API provides dependency_type and count, use them directly
+                    if (result.dependency_type && result.count !== undefined) {
+                        const depKey = result.dependency_type;
+                        if (tDeps[depKey]) {
+                            errorMessage = tDeps[depKey].replace('{count}', result.count);
+                        }
+                    } else if (errorMessage && typeof errorMessage === 'string') {
+                        // Fallback: Try to match and translate dependency patterns from message
+                        const companyTypesMatch = errorMessage.match(/company.*?(\d+).*?vehicle type/i);
+                        if (companyTypesMatch) {
+                            errorMessage = (tDeps.company_has_vehicle_types || errorMessage).replace('{count}', companyTypesMatch[1]);
+                        }
+                        
+                        const companyContractsMatch = errorMessage.match(/company.*?(\d+).*?contract/i);
+                        if (companyContractsMatch) {
+                            errorMessage = (tDeps.company_has_contracts || errorMessage).replace('{count}', companyContractsMatch[1]);
+                        }
+                        
+                        const typeContractsMatch = errorMessage.match(/vehicle type.*?(\d+).*?contract/i);
+                        if (typeContractsMatch) {
+                            errorMessage = (tDeps.type_has_contracts || errorMessage).replace('{count}', typeContractsMatch[1]);
+                        }
+                        
+                        const contractRoutesMatch = errorMessage.match(/contract.*?(\d+).*?route/i);
+                        if (contractRoutesMatch) {
+                            errorMessage = (tDeps.contract_has_routes || errorMessage).replace('{count}', contractRoutesMatch[1]);
+                        }
                     }
                     showToast('error', errorMessage);
                 }

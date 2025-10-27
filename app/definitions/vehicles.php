@@ -177,8 +177,8 @@ $t_dependencies = $all_translations['dependencies'] ?? [];
     </div>
     
     <!-- Contract Modal -->
-    <div class="modal" id="contractModal" style="max-width: 800px;">
-        <div class="modal-content">
+    <div class="modal" id="contractModal">
+        <div class="modal-content modal-large">
             <div class="modal-header">
                 <h2 id="contractModalTitle"><?php echo $t_vehicles['add_contract'] ?? 'Add Contract'; ?></h2>
                 <button class="btn-close">

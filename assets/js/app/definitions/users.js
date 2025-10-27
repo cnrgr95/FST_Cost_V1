@@ -27,6 +27,15 @@
             btn.addEventListener('click', closeModal);
         });
         
+        // Close modal when clicking outside
+        document.querySelectorAll('.modal').forEach(modal => {
+            modal.addEventListener('click', function(e) {
+                if (e.target === this) {
+                    closeModal();
+                }
+            });
+        });
+        
         // Setup form submission
         const userForm = document.getElementById('userForm');
         if (userForm) {

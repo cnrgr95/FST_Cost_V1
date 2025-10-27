@@ -261,6 +261,7 @@ function updateCompany($conn, $data) {
 
 function deleteCompany($conn, $id) {
     $id = (int)$id;
+    
     // Check if company has vehicle types
     $checkQuery = "SELECT COUNT(*) as count FROM vehicle_types WHERE vehicle_company_id = $id";
     $checkResult = pg_query($conn, $checkQuery);
@@ -270,7 +271,26 @@ function deleteCompany($conn, $id) {
         if ($row['count'] > 0) {
             echo json_encode([
                 'success' => false, 
-                'message' => 'This vehicle company cannot be deleted because it has ' . $row['count'] . ' vehicle type(s) associated with it. Please delete all vehicle types first.'
+                'message' => 'This vehicle company cannot be deleted because it has ' . $row['count'] . ' vehicle type(s) associated with it. Please delete all vehicle types first.',
+                'dependency_type' => 'company_has_vehicle_types',
+                'count' => $row['count']
+            ]);
+            return;
+        }
+    }
+    
+    // Check if company has contracts
+    $checkQuery2 = "SELECT COUNT(*) as count FROM vehicle_contracts WHERE vehicle_company_id = $id";
+    $checkResult2 = pg_query($conn, $checkQuery2);
+    
+    if ($checkResult2) {
+        $row2 = pg_fetch_assoc($checkResult2);
+        if ($row2['count'] > 0) {
+            echo json_encode([
+                'success' => false, 
+                'message' => 'This vehicle company cannot be deleted because it has ' . $row2['count'] . ' contract(s) associated with it. Please delete all contracts first.',
+                'dependency_type' => 'company_has_contracts',
+                'count' => $row2['count']
             ]);
             return;
         }
@@ -360,6 +380,25 @@ function updateType($conn, $data) {
 
 function deleteType($conn, $id) {
     $id = (int)$id;
+    
+    // Check if the vehicle company (that this type belongs to) has contracts
+    $checkQuery = "SELECT COUNT(*) as count FROM vehicle_contracts 
+                   WHERE vehicle_company_id = (SELECT vehicle_company_id FROM vehicle_types WHERE id = $id)";
+    $checkResult = pg_query($conn, $checkQuery);
+    
+    if ($checkResult) {
+        $row = pg_fetch_assoc($checkResult);
+        if ($row['count'] > 0) {
+            echo json_encode([
+                'success' => false, 
+                'message' => 'This vehicle type cannot be deleted because its vehicle company has ' . $row['count'] . ' contract(s) associated with it. Please delete all contracts first.',
+                'dependency_type' => 'type_has_contracts',
+                'count' => $row['count']
+            ]);
+            return;
+        }
+    }
+    
     $query = "DELETE FROM vehicle_types WHERE id = $id";
     $result = pg_query($conn, $query);
     
@@ -540,6 +579,24 @@ function updateContract($conn, $data) {
 
 function deleteContract($conn, $id) {
     $id = (int)$id;
+    
+    // Check if contract has routes
+    $checkQuery = "SELECT COUNT(*) as count FROM vehicle_contract_routes WHERE vehicle_contract_id = $id";
+    $checkResult = pg_query($conn, $checkQuery);
+    
+    if ($checkResult) {
+        $row = pg_fetch_assoc($checkResult);
+        if ($row['count'] > 0) {
+            echo json_encode([
+                'success' => false, 
+                'message' => 'This contract cannot be deleted because it has ' . $row['count'] . ' route(s) associated with it. Please delete all routes first.',
+                'dependency_type' => 'contract_has_routes',
+                'count' => $row['count']
+            ]);
+            return;
+        }
+    }
+    
     $query = "DELETE FROM vehicle_contracts WHERE id = $id";
     $result = pg_query($conn, $query);
     

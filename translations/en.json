@@ -227,7 +227,10 @@
         "sub_region_has_merchants": "This sub region cannot be deleted because it has {count} merchant(s) associated with it. Please delete all merchants first.",
         "department_has_positions": "This department cannot be deleted because it has {count} position(s) associated with it. Please delete all positions first.",
         "merchant_has_tours": "This merchant cannot be deleted because it has {count} tour(s) associated with it. Please delete all tours first.",
-        "company_has_vehicle_types": "This vehicle company cannot be deleted because it has {count} vehicle type(s) associated with it. Please delete all vehicle types first."
+        "company_has_vehicle_types": "This vehicle company cannot be deleted because it has {count} vehicle type(s) associated with it. Please delete all vehicle types first.",
+        "company_has_contracts": "This vehicle company cannot be deleted because it has {count} contract(s) associated with it. Please delete all contracts first.",
+        "type_has_contracts": "This vehicle type cannot be deleted because its vehicle company has {count} contract(s) associated with it. Please delete all contracts first.",
+        "contract_has_routes": "This contract cannot be deleted because it has {count} route(s) associated with it. Please delete all routes first."
     },
     "vehicles": {
         "title": "Vehicle Management",
