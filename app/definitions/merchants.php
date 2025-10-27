@@ -112,11 +112,11 @@ $t_dependencies = $all_translations['dependencies'] ?? [];
                 </div>
                 <div class="form-group">
                     <label><?php echo $t_merchants['authorized_email'] ?? 'Email'; ?></label>
-                    <input type="email" name="authorized_email" pattern="[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$" title="Geçerli bir e-posta adresi girin (örn: example@domain.com)">
+                    <input type="email" name="authorized_email" pattern="[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$" title="<?php echo htmlspecialchars($t_common['invalid_email'] ?? 'Please enter a valid email address'); ?>">
                 </div>
                 <div class="form-group">
                     <label><?php echo $t_merchants['authorized_phone'] ?? 'Phone'; ?></label>
-                    <input type="tel" name="authorized_phone" pattern="[0-9+\-\s()]+" title="Sadece rakam, +, -, (), ve boşluk karakterleri kullanılabilir" onkeypress="return (event.charCode >= 48 && event.charCode <= 57) || event.charCode === 43 || event.charCode === 45 || event.charCode === 40 || event.charCode === 41 || event.charCode === 32">
+                    <input type="tel" name="authorized_phone" pattern="[0-9+\-\s()]+" title="<?php echo htmlspecialchars($t_common['invalid_phone'] ?? 'Only numbers, +, -, (), and spaces are allowed'); ?>" onkeypress="return (event.charCode >= 48 && event.charCode <= 57) || event.charCode === 43 || event.charCode === 45 || event.charCode === 40 || event.charCode === 41 || event.charCode === 32">
                 </div>
                 
                 <h3 style="margin-top: 20px; color: #151A2D;"><?php echo $t_merchants['operasyon'] ?? 'Operasyon'; ?></h3>
@@ -127,11 +127,11 @@ $t_dependencies = $all_translations['dependencies'] ?? [];
                 </div>
                 <div class="form-group">
                     <label><?php echo $t_merchants['operasyon_email'] ?? 'Operasyon E-posta'; ?></label>
-                    <input type="email" name="operasyon_email" pattern="[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$" title="Geçerli bir e-posta adresi girin (örn: example@domain.com)">
+                    <input type="email" name="operasyon_email" pattern="[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$" title="<?php echo htmlspecialchars($t_common['invalid_email'] ?? 'Please enter a valid email address'); ?>">
                 </div>
                 <div class="form-group">
                     <label><?php echo $t_merchants['operasyon_phone'] ?? 'Operasyon Telefon'; ?></label>
-                    <input type="tel" name="operasyon_phone" pattern="[0-9+\-\s()]+" title="Sadece rakam, +, -, (), ve boşluk karakterleri kullanılabilir" onkeypress="return (event.charCode >= 48 && event.charCode <= 57) || event.charCode === 43 || event.charCode === 45 || event.charCode === 40 || event.charCode === 41 || event.charCode === 32">
+                    <input type="tel" name="operasyon_phone" pattern="[0-9+\-\s()]+" title="<?php echo htmlspecialchars($t_common['invalid_phone'] ?? 'Only numbers, +, -, (), and spaces are allowed'); ?>" onkeypress="return (event.charCode >= 48 && event.charCode <= 57) || event.charCode === 43 || event.charCode === 45 || event.charCode === 40 || event.charCode === 41 || event.charCode === 32">
                 </div>
                 
                 <h3 style="margin-top: 20px; color: #151A2D;"><?php echo $t_merchants['location'] ?? 'Location'; ?></h3>

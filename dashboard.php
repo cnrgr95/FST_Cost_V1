@@ -67,7 +67,7 @@ $t_dashboard = $all_translations['dashboard'] ?? [];
                         </div>
                         <div class="stat-info">
                             <h3>$125,000</h3>
-                            <p>Total Budget</p>
+                            <p><?php echo $t_dashboard['total_budget'] ?? 'Total Budget'; ?></p>
                         </div>
                     </div>
                     
@@ -77,7 +77,7 @@ $t_dashboard = $all_translations['dashboard'] ?? [];
                         </div>
                         <div class="stat-info">
                             <h3>$85,000</h3>
-                            <p>Total Spent</p>
+                            <p><?php echo $t_dashboard['total_spent'] ?? 'Total Spent'; ?></p>
                         </div>
                     </div>
                     
@@ -87,7 +87,7 @@ $t_dashboard = $all_translations['dashboard'] ?? [];
                         </div>
                         <div class="stat-info">
                             <h3>$40,000</h3>
-                            <p>Remaining</p>
+                            <p><?php echo $t_dashboard['remaining'] ?? 'Remaining'; ?></p>
                         </div>
                     </div>
                     
@@ -97,7 +97,7 @@ $t_dashboard = $all_translations['dashboard'] ?? [];
                         </div>
                         <div class="stat-info">
                             <h3>12</h3>
-                            <p>Active Projects</p>
+                            <p><?php echo $t_dashboard['active_projects'] ?? 'Active Projects'; ?></p>
                         </div>
                     </div>
                 </div>

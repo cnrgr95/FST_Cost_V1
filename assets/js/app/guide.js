@@ -219,9 +219,9 @@
                 <th>${tGuide.authorized_email}</th>
                 <th>${tGuide.authorized_phone}</th>
                 <th class="separator-column"></th>
-                <th>${tGuide.operator_name}</th>
-                <th>${tGuide.operator_email}</th>
-                <th>${tGuide.operator_phone}</th>
+                <th>${tGuide.operasyon_name || tGuide.operator_name}</th>
+                <th>${tGuide.operasyon_email || tGuide.operator_email}</th>
+                <th>${tGuide.operasyon_phone || tGuide.operator_phone}</th>
                 <th>${tGuide.location}</th>
             </tr></thead>`;
         } else if (type === 'companies') {

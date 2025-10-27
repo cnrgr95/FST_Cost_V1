@@ -9,7 +9,9 @@
         "invalid_credentials": "Geçersiz kullanıcı adı veya şifre",
         "login_success": "Giriş başarılı",
         "required_field": "Bu alan zorunludur",
-        "select_language": "Dil Seçin"
+        "select_language": "Dil Seçin",
+        "too_many_attempts": "Çok fazla giriş denemesi. Lütfen daha sonra tekrar deneyin.",
+        "security_token_failed": "Güvenlik token doğrulaması başarısız. Lütfen tekrar deneyin."
     },
     "dashboard": {
         "title": "Kontrol Paneli",
@@ -18,7 +20,11 @@
         "dashboard_description": "Sisteme başarıyla giriş yaptınız. Bu sizin ana kontrol panelinizdir.",
         "logout": "Çıkış",
         "profile": "Profil",
-        "settings": "Ayarlar"
+        "settings": "Ayarlar",
+        "total_budget": "Toplam Bütçe",
+        "total_spent": "Toplam Harcama",
+        "remaining": "Kalan",
+        "active_projects": "Aktif Projeler"
     },
     "sidebar": {
         "dashboard": "Kontrol Paneli",
@@ -80,6 +86,8 @@
         "select_merchant_first": "Önce firma seçiniz",
         "print": "Yazdır",
         "actions": "İşlemler",
+        "invalid_email": "Geçerli bir e-posta adresi girin (örn: example@domain.com)",
+        "invalid_phone": "Sadece rakam, +, -, (), ve boşluk karakterleri kullanılabilir",
         "name_exists": "Bu isim zaten kullanılıyor",
         "country_exists": "Bu ülke zaten mevcut",
         "region_exists": "Bu bölge bu ülkede zaten mevcut",
@@ -334,6 +342,9 @@
         "operator_name": "Operasyon Adı",
         "operator_email": "Operasyon Email",
         "operator_phone": "Operasyon Telefon",
+        "operasyon_name": "Operasyon Adı",
+        "operasyon_email": "Operasyon E-posta",
+        "operasyon_phone": "Operasyon Telefon",
         "location": "Konum",
         "view_on_map": "Haritada Gör"
     },

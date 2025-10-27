@@ -9,7 +9,9 @@
         "invalid_credentials": "Invalid username or password",
         "login_success": "Login successful",
         "required_field": "This field is required",
-        "select_language": "Select Language"
+        "select_language": "Select Language",
+        "too_many_attempts": "Too many login attempts. Please try again later.",
+        "security_token_failed": "Security token validation failed. Please try again."
     },
     "dashboard": {
         "title": "Dashboard",
@@ -18,7 +20,11 @@
         "dashboard_description": "You have successfully logged into the system. This is your main dashboard.",
         "logout": "Logout",
         "profile": "Profile",
-        "settings": "Settings"
+        "settings": "Settings",
+        "total_budget": "Total Budget",
+        "total_spent": "Total Spent",
+        "remaining": "Remaining",
+        "active_projects": "Active Projects"
     },
     "sidebar": {
         "dashboard": "Dashboard",
@@ -80,6 +86,8 @@
         "select_merchant_first": "Please select merchant first",
         "print": "Print",
         "actions": "Actions",
+        "invalid_email": "Please enter a valid email address (e.g., example@domain.com)",
+        "invalid_phone": "Only numbers, +, -, (), and spaces are allowed",
         "name_exists": "This name is already in use",
         "country_exists": "This country already exists",
         "region_exists": "This region already exists in this country",
@@ -333,6 +341,9 @@
         "operator_name": "Operator Name",
         "operator_email": "Operator Email",
         "operator_phone": "Operator Phone",
+        "operasyon_name": "Operation Name",
+        "operasyon_email": "Operation Email",
+        "operasyon_phone": "Operation Phone",
         "location": "Location",
         "view_on_map": "View on Map"
     },
