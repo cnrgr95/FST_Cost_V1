@@ -41,6 +41,7 @@ $t_dependencies = $all_translations['dependencies'] ?? [];
     <!-- CSS Files -->
     <link rel="stylesheet" href="<?php echo $basePath; ?>assets/css/sidebar.css">
     <link rel="stylesheet" href="<?php echo $basePath; ?>assets/css/topbar.css">
+    <link rel="stylesheet" href="<?php echo $basePath; ?>assets/css/common.css">
     <link rel="stylesheet" href="<?php echo $basePath; ?>assets/css/confirm-dialog.css">
     <link rel="stylesheet" href="<?php echo $basePath; ?>assets/css/app/definitions/merchants.css">
     
@@ -163,58 +164,6 @@ $t_dependencies = $all_translations['dependencies'] ?? [];
         </div>
     </div>
     
-    <style>
-        /* Main Content Styles */
-        .main-content {
-            margin-left: var(--sidebar-width);
-            min-height: 100vh;
-            transition: margin-left 0.4s ease;
-        }
-        
-        .sidebar.collapsed ~ .main-content {
-            margin-left: var(--sidebar-collapsed-width);
-        }
-        
-        .content-wrapper {
-            margin-top: 70px;
-            padding: 30px;
-        }
-        
-        .page-header {
-            margin-bottom: 30px;
-        }
-        
-        .page-header h1 {
-            font-size: 28px;
-            font-weight: 600;
-            color: #1f2937;
-            margin-bottom: 8px;
-        }
-        
-        .page-header p {
-            font-size: 16px;
-            color: #6b7280;
-        }
-        
-        /* Responsive */
-        @media (max-width: 768px) {
-            .main-content {
-                margin-left: 0 !important;
-            }
-            
-            .sidebar.collapsed ~ .main-content {
-                margin-left: 0 !important;
-            }
-            
-            .sidebar.active ~ .main-content {
-                margin-left: 0 !important;
-            }
-            
-            .content-wrapper {
-                padding: 20px;
-            }
-        }
-    </style>
     
     <!-- Define API base path and translations for JavaScript -->
     <script>

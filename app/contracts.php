@@ -39,6 +39,7 @@ $t_contracts = $all_translations['contracts'] ?? [];
     <!-- CSS Files -->
     <link rel="stylesheet" href="<?php echo $basePath; ?>assets/css/sidebar.css">
     <link rel="stylesheet" href="<?php echo $basePath; ?>assets/css/topbar.css">
+    <link rel="stylesheet" href="<?php echo $basePath; ?>assets/css/common.css">
     <link rel="stylesheet" href="<?php echo $basePath; ?>assets/css/confirm-dialog.css">
     <link rel="stylesheet" href="<?php echo $basePath; ?>assets/css/app/contracts.css">
     <link rel="stylesheet" href="<?php echo $basePath; ?>assets/css/app/contracts-regional.css">

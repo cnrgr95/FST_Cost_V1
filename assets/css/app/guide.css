@@ -108,10 +108,12 @@
 /* Content */
 .guide-content {
     display: none;
+    overflow: visible;
 }
 
 .guide-content.active {
     display: block;
+    overflow: visible;
 }
 
 /* Table Container */
@@ -119,7 +121,23 @@
     background: #fff;
     border-radius: 12px;
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-    overflow: hidden;
+    overflow: visible; /* Changed from hidden to visible */
+}
+
+/* Wrapper for responsive scrolling */
+.guide-table-wrapper {
+    overflow-x: auto !important;
+    overflow-y: visible;
+    -webkit-overflow-scrolling: touch;
+    width: 100%;
+    display: block;
+    position: relative;
+}
+
+/* Ensure table expands */
+.guide-table-wrapper > .guide-table {
+    min-width: 1200px;
+    width: max-content;
 }
 
 .guide-table-header {
@@ -140,6 +158,17 @@
 .guide-table {
     width: 100%;
     border-collapse: collapse;
+    min-width: 1200px; /* Minimum width to force horizontal scroll */
+    display: table;
+    table-layout: auto;
+}
+
+/* Force table to expand beyond container on smaller screens */
+@media (max-width: 1400px) {
+    .guide-table-wrapper .guide-table {
+        width: max-content !important;
+        min-width: 1200px !important;
+    }
 }
 
 .guide-table thead {
@@ -154,6 +183,7 @@
     color: #6b7280;
     text-transform: uppercase;
     letter-spacing: 0.5px;
+    white-space: nowrap;
 }
 
 /* Separator column for merchants */
@@ -174,6 +204,7 @@
     border-top: 1px solid #e5e7eb;
     font-size: 14px;
     color: #1f2937;
+    white-space: nowrap;
 }
 
 .guide-table tbody tr:hover {
@@ -304,5 +335,167 @@
     left: auto !important;
     z-index: 9999 !important;
     pointer-events: none;
+}
+
+/* Responsive Styles */
+@media (max-width: 768px) {
+    .guide-header h1 {
+        font-size: 24px;
+    }
+    
+    .guide-table-container {
+        border-radius: 8px;
+        overflow: visible;
+    }
+    
+    .guide-table-wrapper {
+        overflow-x: auto !important;
+        -webkit-overflow-scrolling: touch;
+        width: 100%;
+        display: block;
+        margin: 0 -15px;
+        padding: 0 15px;
+        position: relative;
+    }
+    
+    .guide-table-container {
+        overflow: visible !important;
+    }
+    
+    .guide-table {
+        min-width: 1200px !important; /* Force horizontal scroll */
+        width: max-content !important;
+        display: table !important;
+        table-layout: auto;
+    }
+    
+    .guide-table th,
+    .guide-table td {
+        padding: 12px 10px;
+        font-size: 13px;
+        white-space: nowrap !important;
+    }
+    
+    .guide-table th {
+        font-size: 11px;
+    }
+    
+    .guide-table-header {
+        padding: 15px 20px;
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 10px;
+    }
+    
+    .guide-table-title {
+        font-size: 15px;
+    }
+    
+    .type-badge {
+        font-size: 10px;
+        padding: 3px 8px;
+    }
+    
+    .location-link {
+        width: 36px;
+        height: 36px;
+    }
+    
+    .location-link .material-symbols-rounded {
+        font-size: 20px;
+    }
+    
+    .empty-state {
+        padding: 40px 15px;
+    }
+    
+    .empty-state .material-symbols-rounded {
+        font-size: 48px;
+    }
+    
+    .empty-state h3 {
+        font-size: 16px;
+    }
+    
+    .search-box {
+        max-width: 100%;
+    }
+    
+    .guide-tabs {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+    
+    .guide-tab {
+        padding: 10px 16px;
+        font-size: 13px;
+        white-space: nowrap;
+    }
+}
+
+@media (max-width: 480px) {
+    .guide-header h1 {
+        font-size: 20px;
+    }
+    
+    .guide-table-wrapper {
+        margin: 0 -10px;
+        padding: 0 10px;
+    }
+    
+    .guide-table {
+        min-width: 1100px !important;
+        width: max-content;
+    }
+    
+    .guide-table th,
+    .guide-table td {
+        padding: 10px 8px;
+        font-size: 12px;
+        white-space: nowrap !important;
+    }
+    
+    .guide-table th {
+        font-size: 10px;
+    }
+    
+    .guide-table-header {
+        padding: 12px 15px;
+    }
+    
+    .guide-table-title {
+        font-size: 14px;
+    }
+    
+    .type-badge {
+        font-size: 9px;
+        padding: 2px 6px;
+    }
+    
+    .location-link {
+        width: 32px;
+        height: 32px;
+    }
+    
+    .location-link .material-symbols-rounded {
+        font-size: 18px;
+    }
+    
+    .empty-state {
+        padding: 30px 10px;
+    }
+    
+    .empty-state .material-symbols-rounded {
+        font-size: 40px;
+    }
+    
+    .empty-state h3 {
+        font-size: 14px;
+    }
+    
+    .guide-tab {
+        padding: 8px 12px;
+        font-size: 12px;
+    }
 }
 

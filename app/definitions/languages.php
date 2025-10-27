@@ -39,8 +39,9 @@ $t_lang_mgmt = $all_translations['language_mgmt'] ?? [];
     <!-- CSS Files -->
     <link rel="stylesheet" href="<?php echo $basePath; ?>assets/css/sidebar.css">
     <link rel="stylesheet" href="<?php echo $basePath; ?>assets/css/topbar.css">
+    <link rel="stylesheet" href="<?php echo $basePath; ?>assets/css/common.css">
     <link rel="stylesheet" href="<?php echo $basePath; ?>assets/css/confirm-dialog.css">
-    <link rel="stylesheet" href="<?php echo $basePath; ?>assets/css/app/definitions/tours.css">
+    <link rel="stylesheet" href="<?php echo $basePath; ?>assets/css/app/definitions/languages.css">
     
     <link rel="icon" type="image/svg+xml" href="<?php echo $basePath; ?>assets/images/logo.svg">
     

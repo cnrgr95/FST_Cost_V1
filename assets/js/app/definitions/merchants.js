@@ -166,6 +166,7 @@
                     ${tMerchants.add_merchant || 'Add Merchant'}
                  </button>`;
         html += '</div>';
+        html += '<div class="table-wrapper">';
         html += '<table class="table">';
         html += '<thead><tr>';
         html += `<th>${tMerchants.merchant_name || 'Name'}</th>`;
@@ -204,7 +205,7 @@
                 </tr>
             `;
         });
-        html += '</tbody></table></div>';
+        html += '</tbody></table></div></div>';
         
         container.innerHTML = html;
         

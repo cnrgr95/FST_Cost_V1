@@ -241,6 +241,7 @@
                     ${tLoc.add_new || 'Add New'}
                  </button>`;
         html += '</div>';
+        html += '<div class="table-wrapper">';
         html += '<table class="table">';
         
         // Table headers
@@ -258,7 +259,7 @@
         data.forEach(item => {
             html += buildTableRow(type, item);
         });
-        html += '</tbody></table></div>';
+        html += '</tbody></table></div></div>';
         
         container.innerHTML = html;
         

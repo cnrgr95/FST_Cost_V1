@@ -33,6 +33,7 @@ $t_dashboard = $all_translations['dashboard'] ?? [];
     <!-- CSS Files -->
     <link rel="stylesheet" href="assets/css/sidebar.css">
     <link rel="stylesheet" href="assets/css/topbar.css">
+    <link rel="stylesheet" href="assets/css/common.css">
     
     <link rel="icon" type="image/svg+xml" href="assets/images/logo.svg">
 </head>
@@ -106,38 +107,6 @@ $t_dashboard = $all_translations['dashboard'] ?? [];
     </div>
     
     <style>
-        /* Main Content Styles */
-        .main-content {
-            margin-left: var(--sidebar-width);
-            min-height: 100vh;
-            transition: margin-left 0.4s ease;
-        }
-        
-        .sidebar.collapsed ~ .main-content {
-            margin-left: var(--sidebar-collapsed-width);
-        }
-        
-        .content-wrapper {
-            margin-top: 70px;
-            padding: 30px;
-        }
-        
-        .page-header {
-            margin-bottom: 30px;
-        }
-        
-        .page-header h1 {
-            font-size: 28px;
-            font-weight: 600;
-            color: #1f2937;
-            margin-bottom: 8px;
-        }
-        
-        .page-header p {
-            font-size: 16px;
-            color: #6b7280;
-        }
-        
         .dashboard-content {
             max-width: 1400px;
         }

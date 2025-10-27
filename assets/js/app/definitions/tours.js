@@ -176,6 +176,7 @@
                     ${tTours.add_tour || 'Add Tour'}
                  </button>`;
         html += '</div>';
+        html += '<div class="table-wrapper">';
         html += '<table class="table">';
         html += '<thead><tr>';
         html += `<th>${tTours.sejour_tour_code || 'Sejour Tour Code'}</th>`;
@@ -213,7 +214,7 @@
                 </tr>
             `;
         });
-        html += '</tbody></table></div>';
+        html += '</tbody></table></div></div>';
         
         container.innerHTML = html;
         

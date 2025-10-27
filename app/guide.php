@@ -39,6 +39,7 @@ $t_guide = $all_translations['guide'] ?? [];
     <!-- CSS Files -->
     <link rel="stylesheet" href="<?php echo $basePath; ?>assets/css/sidebar.css">
     <link rel="stylesheet" href="<?php echo $basePath; ?>assets/css/topbar.css">
+    <link rel="stylesheet" href="<?php echo $basePath; ?>assets/css/common.css">
     <link rel="stylesheet" href="<?php echo $basePath; ?>assets/css/app/guide.css">
     
     <link rel="icon" type="image/svg+xml" href="<?php echo $basePath; ?>assets/images/logo.svg">
@@ -97,42 +98,6 @@ $t_guide = $all_translations['guide'] ?? [];
         </div>
     </div>
     
-    <style>
-        /* Main Content Styles */
-        .main-content {
-            margin-left: var(--sidebar-width);
-            min-height: 100vh;
-            transition: margin-left 0.4s ease;
-        }
-        
-        .sidebar.collapsed ~ .main-content {
-            margin-left: var(--sidebar-collapsed-width);
-        }
-        
-        .content-wrapper {
-            margin-top: 70px;
-            padding: 30px;
-        }
-        
-        /* Responsive */
-        @media (max-width: 768px) {
-            .main-content {
-                margin-left: 0 !important;
-            }
-            
-            .sidebar.collapsed ~ .main-content {
-                margin-left: 0 !important;
-            }
-            
-            .sidebar.active ~ .main-content {
-                margin-left: 0 !important;
-            }
-            
-            .content-wrapper {
-                padding: 20px;
-            }
-        }
-    </style>
     
     <!-- Define API base path and translations for JavaScript -->
     <script>

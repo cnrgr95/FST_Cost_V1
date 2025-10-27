@@ -207,6 +207,7 @@
         html += '<div class="guide-table-header">';
         html += `<div class="guide-table-title">${typeText}</div>`;
         html += '</div>';
+        html += '<div class="guide-table-wrapper">';
         html += '<table class="guide-table">';
         
         // Table headers
@@ -249,7 +250,7 @@
         data.forEach(item => {
             html += buildTableRow(type, item);
         });
-        html += '</tbody></table></div>';
+        html += '</tbody></table></div></div>';
         
         container.innerHTML = html;
     }

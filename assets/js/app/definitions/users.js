@@ -271,6 +271,7 @@
         html += '<div class="users-table-header">';
         html += `<div class="users-table-title">${tUsers.title || 'Users'}</div>`;
         html += '</div>';
+        html += '<div class="table-wrapper">';
         html += '<table class="table">';
         html += '<thead><tr>';
         html += `<th>${tUsers.username || 'Username'}</th>`;
@@ -307,7 +308,7 @@
                 </tr>
             `;
         });
-        html += '</tbody></table></div>';
+        html += '</tbody></table></div></div>';
         
         container.innerHTML = html;
         

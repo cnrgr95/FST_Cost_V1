@@ -151,6 +151,7 @@
                     ${tCosts.add_cost || 'Add Cost'}
                  </button>`;
         html += '</div>';
+        html += '<div class="table-wrapper">';
         html += '<table class="table">';
         html += '<thead><tr>';
         html += `<th>${tCosts.cost_code || 'Cost Code'}</th>`;
@@ -177,7 +178,7 @@
                 </tr>
             `;
         });
-        html += '</tbody></table></div>';
+        html += '</tbody></table></div></div>';
         
         container.innerHTML = html;
         

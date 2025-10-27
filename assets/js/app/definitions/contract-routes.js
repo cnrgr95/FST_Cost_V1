@@ -117,6 +117,7 @@
         }
         
         let html = '<div class="vehicles-table-container">';
+        html += '<div class="table-wrapper">';
         html += '<table class="table">';
         html += `<thead><tr>
             <th>${tVehicles.from_location || 'From'}</th>
@@ -163,7 +164,7 @@
             `;
         });
         
-        html += '</tbody></table></div>';
+        html += '</tbody></table></div></div>';
         container.innerHTML = html;
     }
     
