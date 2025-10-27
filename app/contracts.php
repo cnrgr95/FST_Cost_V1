@@ -77,22 +77,24 @@ $t_contracts = $all_translations['contracts'] ?? [];
                 
                 <!-- Contracts Table -->
                 <div class="contracts-table-container">
-                    <table class="contracts-table" id="contractsTable">
-                        <thead>
-                            <tr>
-                                <th><?php echo $t_contracts['sub_region'] ?? 'Sub Region'; ?></th>
-                                <th><?php echo $t_contracts['merchant'] ?? 'Merchant'; ?></th>
-                                <th><?php echo $t_contracts['tour'] ?? 'Tour'; ?></th>
-                                <th><?php echo $t_contracts['price'] ?? 'Price'; ?></th>
-                                <th><?php echo $t_contracts['start_date'] ?? 'Start Date'; ?></th>
-                                <th><?php echo $t_contracts['end_date'] ?? 'End Date'; ?></th>
-                                <th><?php echo $t_common['actions'] ?? 'Actions'; ?></th>
-                            </tr>
-                        </thead>
-                        <tbody id="contractsTableBody">
-                            <!-- Data will be loaded here -->
-                        </tbody>
-                    </table>
+                    <div class="contracts-table-wrapper">
+                        <table class="contracts-table" id="contractsTable">
+                            <thead>
+                                <tr>
+                                    <th><?php echo $t_contracts['sub_region'] ?? 'Sub Region'; ?></th>
+                                    <th><?php echo $t_contracts['merchant'] ?? 'Merchant'; ?></th>
+                                    <th><?php echo $t_contracts['tour'] ?? 'Tour'; ?></th>
+                                    <th><?php echo $t_contracts['price'] ?? 'Price'; ?></th>
+                                    <th><?php echo $t_contracts['start_date'] ?? 'Start Date'; ?></th>
+                                    <th><?php echo $t_contracts['end_date'] ?? 'End Date'; ?></th>
+                                    <th><?php echo $t_common['actions'] ?? 'Actions'; ?></th>
+                                </tr>
+                            </thead>
+                            <tbody id="contractsTableBody">
+                                <!-- Data will be loaded here -->
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
         </div>

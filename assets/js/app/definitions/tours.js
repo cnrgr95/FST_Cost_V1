@@ -9,6 +9,7 @@
     const tTours = t.tours || {};
     const tCommon = t.common || {};
     const tSidebar = t.sidebar || {};
+    const tVehicles = t.vehicles || {};
     
     let currentData = {
         sub_regions: [],
@@ -195,6 +196,15 @@
                 tourRegionsHtml = regionNames.length > 0 ? regionNames.join(', ') : '-';
             }
             
+            // Create link to contract-routes page if vehicle_contract_id exists
+            let contractLink = '';
+            if (item.vehicle_contract_id) {
+                const contractRouteUrl = `../../app/definitions/contract-routes.php?id=${item.vehicle_contract_id}`;
+                contractLink = `<a href="${contractRouteUrl}" class="btn-action btn-link" title="${tVehicles.view_routes || 'View Routes'}" style="background: #3b82f6; color: white;">
+                    <span class="material-symbols-rounded">route</span>
+                </a>`;
+            }
+            
             html += `
                 <tr>
                     <td><strong>${escapeHtml(item.sejour_tour_code || '-')}</strong></td>
@@ -203,6 +213,10 @@
                     <td>${tourRegionsHtml}</td>
                     <td>
                         <div class="table-actions">
+                            <button class="btn-action btn-link" data-item-id="${item.id}" title="${tVehicles.link_prices || 'Link Prices'}" style="background: #10b981; color: white;">
+                                <span class="material-symbols-rounded">link</span>
+                            </button>
+                            ${contractLink}
                             <button class="btn-action btn-edit" data-item-id="${item.id}">
                                 <span class="material-symbols-rounded">edit</span>
                             </button>
@@ -239,6 +253,14 @@
                 window.deleteItem(id);
             });
         });
+        
+        // Find all link buttons and attach click handlers
+        document.querySelectorAll('.btn-link[data-item-id]').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const id = parseInt(this.getAttribute('data-item-id'));
+                window.linkContract(id);
+            });
+        });
     }
     
     // Show loading state
@@ -261,11 +283,12 @@
     // Open modal
     window.openModal = async function() {
         const modal = document.getElementById('toursModal');
-        if (!modal) return;
+        if (!modal) {
+            console.error('Modal not found: toursModal');
+            return;
+        }
         
-        modal.classList.add('active');
-        
-        // Reset form
+        // Reset form first
         const form = document.getElementById('tourForm');
         if (form) {
             form.reset();
@@ -273,19 +296,29 @@
         }
         
         // Update modal title
-        const title = modal.querySelector('h2');
+        const title = document.getElementById('tourModalTitle');
         if (title) {
             title.textContent = tTours.add_tour || 'Add Tour';
         }
         
-        // Load sub regions
-        await loadSubRegionsForSelect();
-        await loadCountries();
+        // Load data first, then show modal
+        try {
+            await loadSubRegionsForSelect();
+            await loadCountries();
+            
+            // Show modal after data is loaded
+            modal.classList.add('active');
+            document.body.style.overflow = 'hidden';
+        } catch (error) {
+            console.error('Error loading modal data:', error);
+            showToast('error', tCommon.failed_to_load_data || 'Failed to load data');
+        }
     };
     
     // Close modal
     window.closeModal = function() {
         document.querySelectorAll('.modal').forEach(m => m.classList.remove('active'));
+        document.body.style.overflow = '';
         
         // Reset all forms
         document.querySelectorAll('form').forEach(form => {
@@ -378,7 +411,9 @@
             await loadCountries();
         }
         
+        // Show modal after data is loaded
         modal.classList.add('active');
+        document.body.style.overflow = 'hidden';
     };
     
     // Delete item
@@ -744,6 +779,257 @@
             console.error('Error loading merchants:', error);
         }
     }
+    // Link contract to tour - region-based pricing
+    window.linkContract = async function(tourId) {
+        const tour = currentData.tours.find(t => t.id == tourId);
+        if (!tour) {
+            showToast('error', tCommon.item_not_found || 'Tour not found');
+            return;
+        }
+        
+        try {
+            // Load vehicle contracts
+            const contractsResponse = await fetch(`${API_BASE}?action=vehicle_contracts`);
+            const contractsResult = await contractsResponse.json();
+            
+            if (!contractsResult.success) {
+                showToast('error', contractsResult.message || tCommon.failed_to_load_data || 'Failed to load contracts');
+                return;
+            }
+            
+            const contracts = contractsResult.data || [];
+            
+            // Load tour's existing route mappings
+            const tourRoutesResponse = await fetch(`${API_BASE}?action=tour_routes&tour_id=${tourId}`);
+            const tourRoutesResult = await tourRoutesResponse.json();
+            const existingRoutes = tourRoutesResult.success ? tourRoutesResult.data || [] : [];
+            
+            // Build route map by sub_region_id
+            const routeMap = {};
+            existingRoutes.forEach(r => {
+                routeMap[r.sub_region_id] = r.vehicle_contract_route_id;
+            });
+            
+            // Get tour's sub regions
+            const subRegions = tour.sub_regions || [];
+            
+            // Build regions section HTML
+            let regionsHtml = '';
+            if (subRegions.length === 0) {
+                regionsHtml = '<div style="padding: 20px; text-align: center; color: #6b7280;">No regions found for this tour</div>';
+            } else {
+                // Group by contract for efficiency
+                const contractSelect = document.createElement('div');
+                contractSelect.className = 'form-group';
+                contractSelect.innerHTML = `
+                    <label>${tVehicles.select_contract || 'Select Contract'}</label>
+                    <select id="contractSelect" style="width: 100%; padding: 10px 12px; border: 1px solid #d1d5db; border-radius: 8px; margin-bottom: 20px;">
+                        <option value="">${tCommon.select || 'Select Contract...'}</option>
+                        ${contracts.map(c => `<option value="${c.id}">${escapeHtml(c.contract_code || '')} - ${escapeHtml(c.company_name || '')}</option>`).join('')}
+                    </select>
+                `;
+                
+                regionsHtml = subRegions.map(sr => {
+                    const existingRouteId = routeMap[sr.sub_region_id] || '';
+                    return `
+                        <div class="form-group" style="border: 1px solid #e5e7eb; padding: 15px; border-radius: 8px; margin-bottom: 15px;">
+                            <label style="font-weight: 600; margin-bottom: 10px; display: block;">
+                                ${escapeHtml(sr.sub_region_name || 'Unknown Region')}
+                            </label>
+                            <select class="region-route-select" data-sub-region-id="${sr.sub_region_id}" style="width: 100%; padding: 10px 12px; border: 1px solid #d1d5db; border-radius: 8px;">
+                                <option value="">${tCommon.none || 'None'}</option>
+                            </select>
+                        </div>
+                    `;
+                }).join('');
+            }
+            
+            // Create modal HTML
+            let modalHtml = `
+                <div class="modal" id="linkContractModal" style="display: flex;">
+                    <div class="modal-content" style="max-width: 700px; max-height: 90vh;">
+                        <div class="modal-header">
+                            <h2>${tVehicles.link_prices || 'Link Prices by Region'}</h2>
+                            <button class="btn-close" onclick="closeLinkModal()">
+                                <span class="material-symbols-rounded">close</span>
+                            </button>
+                        </div>
+                        <form id="linkContractForm" style="overflow-y: auto; max-height: calc(90vh - 150px);">
+                            <div class="form-group">
+                                <label>${tTours.tour_name || 'Tour'}</label>
+                                <input type="text" value="${escapeHtml(tour.name || '')}" readonly style="background: #f3f4f6; width: 100%; padding: 10px 12px; border: 1px solid #d1d5db; border-radius: 8px;">
+                            </div>
+                            <div class="form-group">
+                                <label>${tVehicles.select_contract || 'Select Contract'}</label>
+                                <select id="contractSelect" style="width: 100%; padding: 10px 12px; border: 1px solid #d1d5db; border-radius: 8px; margin-bottom: 20px;">
+                                    <option value="">${tCommon.select || 'Select Contract...'}</option>
+                                    ${contracts.map(c => `<option value="${c.id}">${escapeHtml(c.contract_code || '')} - ${escapeHtml(c.company_name || '')}</option>`).join('')}
+                                </select>
+                            </div>
+                            <div style="margin-top: 20px;">
+                                <label style="font-weight: 600; margin-bottom: 15px; display: block;">${tTours.tour_regions || 'Link Routes for Each Region'}</label>
+                                ${regionsHtml}
+                            </div>
+                            <div class="modal-footer" style="position: sticky; bottom: 0; background: white; border-top: 1px solid #e5e7eb; padding-top: 20px; margin-top: 20px;">
+                                <button type="button" class="btn-secondary" onclick="closeLinkModal()">
+                                    ${tCommon.cancel || 'Cancel'}
+                                </button>
+                                <button type="submit" class="btn-primary">
+                                    ${tCommon.save || 'Save'}
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            `;
+            
+            // Add modal to body
+            const existingModal = document.getElementById('linkContractModal');
+            if (existingModal) {
+                existingModal.remove();
+            }
+            
+            document.body.insertAdjacentHTML('beforeend', modalHtml);
+            
+            // Load routes when contract is selected
+            document.getElementById('contractSelect').addEventListener('change', async function() {
+                const contractId = this.value;
+                if (!contractId) {
+                    // Clear all selects
+                    document.querySelectorAll('.region-route-select').forEach(select => {
+                        select.innerHTML = '<option value="">None</option>';
+                    });
+                    return;
+                }
+                
+                try {
+                    const routesResponse = await fetch(`${API_BASE}?action=contract_routes&contract_id=${contractId}`);
+                    const routesResult = await routesResponse.json();
+                    
+                    if (routesResult.success) {
+                        const routes = routesResult.data || [];
+                        const routesOptions = routes.map(r => 
+                            `<option value="${r.id}">${escapeHtml(r.from_location || '')} → ${escapeHtml(r.to_location || '')}</option>`
+                        ).join('');
+                        
+                        // Update all region selects
+                        document.querySelectorAll('.region-route-select').forEach(select => {
+                            const currentValue = select.value;
+                            select.innerHTML = '<option value="">None</option>' + routesOptions;
+                            select.value = currentValue;
+                        });
+                    }
+                } catch (error) {
+                    console.error('Error loading routes:', error);
+                }
+            });
+            
+            // Pre-select contract if tour has one
+            if (tour.vehicle_contract_id) {
+                document.getElementById('contractSelect').value = tour.vehicle_contract_id;
+                document.getElementById('contractSelect').dispatchEvent(new Event('change'));
+                
+                // Wait a bit for routes to load, then set existing mappings
+                setTimeout(() => {
+                    existingRoutes.forEach(er => {
+                        const select = document.querySelector(`.region-route-select[data-sub-region-id="${er.sub_region_id}"]`);
+                        if (select) {
+                            select.value = er.vehicle_contract_route_id;
+                        }
+                    });
+                }, 500);
+            }
+            
+            // Setup form submission
+            document.getElementById('linkContractForm').addEventListener('submit', async function(e) {
+                e.preventDefault();
+                const contractId = document.getElementById('contractSelect').value;
+                
+                if (!contractId) {
+                    showToast('error', tVehicles.select_contract || 'Please select a contract');
+                    return;
+                }
+                
+                // Collect all region-route mappings
+                const routes = [];
+                document.querySelectorAll('.region-route-select').forEach(select => {
+                    const subRegionId = select.getAttribute('data-sub-region-id');
+                    const routeId = select.value;
+                    if (routeId) {
+                        routes.push({
+                            sub_region_id: subRegionId,
+                            vehicle_contract_route_id: routeId
+                        });
+                    }
+                });
+                
+                try {
+                    // Save contract link first
+                    const linkResponse = await fetch(`${API_BASE}?action=link_contract`, {
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            tour_id: tourId,
+                            vehicle_contract_id: contractId
+                        })
+                    });
+                    
+                    const linkResult = await linkResponse.json();
+                    if (!linkResult.success) {
+                        showToast('error', linkResult.message || tCommon.save_failed || 'Failed to link contract');
+                        return;
+                    }
+                    
+                    // Save region routes
+                    const routesResponse = await fetch(`${API_BASE}?action=save_tour_routes`, {
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            tour_id: tourId,
+                            routes: routes
+                        })
+                    });
+                    
+                    const routesResult = await routesResponse.json();
+                    
+                    if (routesResult.success) {
+                        showToast('success', tCommon.saved_successfully || 'Saved successfully');
+                        closeLinkModal();
+                        await loadData();
+                    } else {
+                        showToast('error', routesResult.message || tCommon.save_failed || 'Save failed');
+                        console.error('Save error:', routesResult);
+                    }
+                } catch (error) {
+                    console.error('Error saving routes:', error);
+                    showToast('error', error.message || tCommon.save_failed || 'Save failed');
+                }
+            });
+            
+            // Close modal handlers
+            window.closeLinkModal = function() {
+                const modal = document.getElementById('linkContractModal');
+                if (modal) {
+                    modal.remove();
+                }
+            };
+            
+            document.querySelectorAll('#linkContractModal .btn-close').forEach(btn => {
+                btn.addEventListener('click', closeLinkModal);
+            });
+            
+            document.getElementById('linkContractModal').addEventListener('click', function(e) {
+                if (e.target === this) {
+                    closeLinkModal();
+                }
+            });
+            
+        } catch (error) {
+            console.error('Error loading contracts:', error);
+            showToast('error', tCommon.failed_to_load_data || 'Failed to load contracts');
+        }
+    };
+    
     // Escape HTML to prevent XSS
     function escapeHtml(text) {
         if (!text) return '';

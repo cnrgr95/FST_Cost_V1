@@ -23,6 +23,7 @@ require_once $basePath . 'includes/translations.php';
 $t_sidebar = $all_translations['sidebar'] ?? [];
 $t_common = $all_translations['common'] ?? [];
 $t_tours = $all_translations['tours'] ?? [];
+$t_vehicles = $all_translations['vehicles'] ?? [];
 ?>
 <!DOCTYPE html>
 <html lang="<?php echo $lang; ?>">
@@ -88,48 +89,48 @@ $t_tours = $all_translations['tours'] ?? [];
                     <span class="material-symbols-rounded">close</span>
                 </button>
             </div>
-            <form id="tourForm">
+            <form id="tourForm" style="display: block;">
                 <div class="form-group">
                     <label><?php echo $t_tours['sejour_tour_code'] ?? 'Sejour Tour Code'; ?> *</label>
-                    <input type="text" name="sejour_tour_code" placeholder="<?php echo $t_tours['sejour_tour_code'] ?? 'Sejour Tour Code'; ?>" required style="text-transform: uppercase;">
+                    <input type="text" name="sejour_tour_code" placeholder="<?php echo $t_tours['sejour_tour_code'] ?? 'Sejour Tour Code'; ?>" required style="text-transform: uppercase; width: 100%; padding: 10px 12px; border: 1px solid #d1d5db; border-radius: 8px; font-size: 14px;">
                 </div>
                 
                 <div class="form-group">
                     <label><?php echo $t_tours['tour_name'] ?? 'Tour Name'; ?> *</label>
-                    <input type="text" name="name" required>
+                    <input type="text" name="name" required style="width: 100%; padding: 10px 12px; border: 1px solid #d1d5db; border-radius: 8px; font-size: 14px;">
                 </div>
                 
                 <div class="form-group">
                     <label><?php echo $t_sidebar['sub_region'] ?? 'Sub Region'; ?> *</label>
-                    <select name="sub_region_id" required>
+                    <select name="sub_region_id" required style="width: 100%; padding: 10px 12px; border: 1px solid #d1d5db; border-radius: 8px; font-size: 14px;">
                         <option value=""><?php echo $t_tours['loading_data'] ?? 'Loading...'; ?></option>
                     </select>
                 </div>
                 
                 <div class="form-group">
                     <label><?php echo $t_sidebar['merchant'] ?? 'Merchant'; ?> *</label>
-                    <select name="merchant_id" required>
+                    <select name="merchant_id" required style="width: 100%; padding: 10px 12px; border: 1px solid #d1d5db; border-radius: 8px; font-size: 14px;">
                         <option value=""><?php echo $t_tours['select_merchant'] ?? 'Select Merchant'; ?></option>
                     </select>
                 </div>
                 
                 <div class="form-group">
                     <label><?php echo $t_sidebar['country'] ?? 'Country'; ?></label>
-                    <select id="filter_country_id" name="filter_country_id">
+                    <select id="filter_country_id" name="filter_country_id" style="width: 100%; padding: 10px 12px; border: 1px solid #d1d5db; border-radius: 8px; font-size: 14px;">
                         <option value=""><?php echo $t_common['select'] ?? 'Select...'; ?></option>
                     </select>
                 </div>
                 
                 <div class="form-group">
                     <label><?php echo $t_sidebar['region'] ?? 'Region'; ?></label>
-                    <select id="filter_region_id" name="filter_region_id">
+                    <select id="filter_region_id" name="filter_region_id" style="width: 100%; padding: 10px 12px; border: 1px solid #d1d5db; border-radius: 8px; font-size: 14px;">
                         <option value=""><?php echo $t_common['select'] ?? 'Select...'; ?></option>
                     </select>
                 </div>
                 
                 <div class="form-group">
                     <label><?php echo $t_sidebar['city'] ?? 'City'; ?></label>
-                    <select id="filter_city_id" name="filter_city_id">
+                    <select id="filter_city_id" name="filter_city_id" style="width: 100%; padding: 10px 12px; border: 1px solid #d1d5db; border-radius: 8px; font-size: 14px;">
                         <option value=""><?php echo $t_common['select'] ?? 'Select...'; ?></option>
                     </select>
                 </div>
@@ -153,7 +154,7 @@ $t_tours = $all_translations['tours'] ?? [];
                         <input type="text" id="region_search" placeholder="<?php echo $t_tours['search_regions'] ?? 'Bölge ara...'; ?>" onkeyup="filterRegions(this.value)">
                         <span class="material-symbols-rounded">search</span>
                     </div>
-                    <div id="sub_regions_checkbox_container" class="checkbox-container">
+                    <div id="sub_regions_checkbox_container" class="checkbox-container" style="min-height: 100px; padding: 10px; border: 1px solid #e5e7eb; border-radius: 8px; background: #f9fafb;">
                         <div class="checkbox-message"><?php echo $t_tours['select_regions_first'] ?? 'Önce ülke, bölge ve şehir seçin'; ?></div>
                     </div>
                 </div>
@@ -214,7 +215,8 @@ $t_tours = $all_translations['tours'] ?? [];
         window.Translations = {
             tours: <?php echo json_encode($t_tours); ?>,
             common: <?php echo json_encode($t_common); ?>,
-            sidebar: <?php echo json_encode($t_sidebar); ?>
+            sidebar: <?php echo json_encode($t_sidebar); ?>,
+            vehicles: <?php echo json_encode($t_vehicles); ?>
         };
     </script>
     

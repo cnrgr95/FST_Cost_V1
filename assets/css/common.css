@@ -53,6 +53,25 @@
 [class*="-table-container"],
 [class*="table-container"] {
   overflow: visible;
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+/* Universal table headers - unified styling */
+[class*="-table-header"] {
+  padding: 20px 24px;
+  background: #f9fafb;
+  border-bottom: 1px solid #e5e7eb;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+[class*="-table-title"] {
+  font-size: 16px;
+  font-weight: 600;
+  color: #1f2937;
 }
 
 [class*="-table-wrapper"],
@@ -511,37 +530,40 @@ table tbody tr:last-child td {
     width: 100%;
   }
   
-  /* Headers */
-  .merchants-header,
-  .contracts-header,
-  .users-table-header,
-  .tours-table-header,
-  .costs-table-header {
+  /* Universal Headers - all pages */
+  [class*="-header"] {
     flex-direction: column;
     align-items: flex-start;
     gap: 15px;
   }
   
-  .merchants-header h1,
-  .contracts-header h1 {
+  [class*="-header"] h1 {
     font-size: 22px;
   }
   
-  /* Tabs */
-  .merchants-tabs,
-  .tours-tabs,
-  .guide-tabs {
+  /* Universal Tabs - all pages */
+  [class*="-tabs"] {
     overflow-x: auto;
     -webkit-overflow-scrolling: touch;
     gap: 8px;
   }
   
-  .merchants-tab,
-  .tours-tab,
-  .guide-tab {
+  [class*="-tab"] {
     padding: 10px 16px;
     font-size: 14px;
     white-space: nowrap;
+  }
+  
+  /* Universal Table Headers - all pages */
+  [class*="-table-header"] {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 15px;
+    padding: 15px 20px;
+  }
+  
+  [class*="-table-title"] {
+    font-size: 15px;
   }
   
   /* Action buttons in tables */
@@ -601,7 +623,7 @@ table tbody tr:last-child td {
   }
   
   table {
-    min-width: 700px;
+    min-width: 700px !important;
   }
   
   table th,
@@ -649,9 +671,18 @@ table tbody tr:last-child td {
     font-size: 16px;
   }
   
-  .merchants-header h1,
-  .contracts-header h1 {
+  /* Universal Headers - all pages */
+  [class*="-header"] h1 {
     font-size: 20px;
+  }
+  
+  /* Universal Table Headers - all pages */
+  [class*="-table-header"] {
+    padding: 12px 15px;
+  }
+  
+  [class*="-table-title"] {
+    font-size: 14px;
   }
   
   .stat-card {
@@ -664,6 +695,26 @@ table tbody tr:last-child td {
   
   .stat-card p {
     font-size: 13px;
+  }
+  
+  /* Universal Badges - all pages */
+  .status-badge,
+  .type-badge {
+    font-size: 10px;
+    padding: 3px 8px;
+  }
+  
+  /* Universal Tabs - all pages */
+  [class*="-tab"] {
+    padding: 8px 12px;
+    font-size: 12px;
+  }
+  
+  /* Universal Table Wrappers - all pages */
+  .table-wrapper,
+  [class*="-table-wrapper"] {
+    margin: 0 -10px;
+    padding: 0 10px;
   }
 }
 
@@ -707,6 +758,21 @@ table tbody tr:last-child td {
   .modal-content {
     max-width: 90%;
     padding: 25px;
+  }
+  
+  /* Universal Table Headers - tablet */
+  [class*="-table-header"] {
+    padding: 18px 22px;
+  }
+  
+  [class*="-table-title"] {
+    font-size: 15px;
+  }
+  
+  /* Universal Tabs - tablet */
+  [class*="-tab"] {
+    padding: 11px 20px;
+    font-size: 14px;
   }
 }
 

@@ -120,6 +120,17 @@ function handleGet($conn, $action) {
         case 'tours':
             getTours($conn);
             break;
+        case 'vehicle_contracts':
+            getVehicleContracts($conn);
+            break;
+        case 'contract_routes':
+            $contract_id = isset($_GET['contract_id']) ? (int)$_GET['contract_id'] : null;
+            getContractRoutes($conn, $contract_id);
+            break;
+        case 'tour_routes':
+            $tour_id = isset($_GET['tour_id']) ? (int)$_GET['tour_id'] : null;
+            getTourRoutes($conn, $tour_id);
+            break;
         default:
             echo json_encode(['success' => false, 'message' => 'Invalid action']);
     }
@@ -145,6 +156,12 @@ function handlePut($conn, $action) {
     switch ($action) {
         case 'tour':
             updateTour($conn, $data);
+            break;
+        case 'link_contract':
+            linkTourContract($conn, $data);
+            break;
+        case 'save_tour_routes':
+            saveTourRoutes($conn, $data['tour_id'], $data['routes'] ?? []);
             break;
         default:
             echo json_encode(['success' => false, 'message' => 'Invalid action']);
@@ -288,7 +305,7 @@ function getMerchantsBySubRegion($conn, $sub_region_id) {
 
 // Get tours
 function getTours($conn) {
-    $query = "SELECT t.*, m.name as merchant_name, sr.name as sub_region_name, c.name as city_name, r.name as region_name, co.name as country_name
+    $query = "SELECT t.*, t.vehicle_contract_id, m.name as merchant_name, sr.name as sub_region_name, c.name as city_name, r.name as region_name, co.name as country_name
               FROM tours t 
               LEFT JOIN merchants m ON t.merchant_id = m.id 
               LEFT JOIN sub_regions sr ON m.sub_region_id = sr.id 
@@ -314,6 +331,48 @@ function getTours($conn) {
                 $tour['sub_regions'] = pg_fetch_all($subRegionsResult) ?: [];
             } else {
                 $tour['sub_regions'] = [];
+            }
+            
+            // Get contract routes prices for this tour by region
+            $tour['region_routes'] = [];
+            // Check if tour_contract_routes table exists
+            $tableCheck = "SELECT EXISTS (
+                SELECT FROM information_schema.tables 
+                WHERE table_schema = 'public' 
+                AND table_name = 'tour_contract_routes'
+            )";
+            $tableExists = pg_query($conn, $tableCheck);
+            if ($tableExists) {
+                $exists = pg_fetch_result($tableExists, 0, 0);
+                if ($exists === 't') {
+                    $routesQuery = "SELECT tcr.sub_region_id, tcr.vehicle_contract_route_id, 
+                                          vcr.vip_mini_price, vcr.mini_price, vcr.midi_price, vcr.bus_price, vcr.currency,
+                                          vcr.from_location, vcr.to_location, sr.name as sub_region_name
+                                   FROM tour_contract_routes tcr
+                                   LEFT JOIN vehicle_contract_routes vcr ON tcr.vehicle_contract_route_id = vcr.id
+                                   LEFT JOIN sub_regions sr ON tcr.sub_region_id = sr.id
+                                   WHERE tcr.tour_id = $tour_id";
+                    $routesResult = pg_query($conn, $routesQuery);
+                    if ($routesResult) {
+                        $tour['region_routes'] = pg_fetch_all($routesResult) ?: [];
+                    }
+                }
+            }
+            
+            // For backward compatibility, also get vehicle_contract_id routes
+            $tour['contract_routes'] = [];
+            if (!empty($tour['vehicle_contract_id'])) {
+                $contract_id = (int)$tour['vehicle_contract_id'];
+                $contractRoutesQuery = "SELECT vcr.*, vc.contract_code
+                              FROM vehicle_contract_routes vcr
+                              INNER JOIN vehicle_contracts vc ON vcr.vehicle_contract_id = vc.id
+                              WHERE vcr.vehicle_contract_id = $contract_id
+                              ORDER BY vcr.from_location, vcr.to_location
+                              LIMIT 1";
+                $contractRoutesResult = pg_query($conn, $contractRoutesQuery);
+                if ($contractRoutesResult) {
+                    $tour['contract_routes'] = pg_fetch_all($contractRoutesResult) ?: [];
+                }
             }
         }
         
@@ -433,6 +492,182 @@ function deleteTour($conn, $id) {
     } else {
         echo json_encode(['success' => false, 'message' => getDbErrorMessage($conn)]);
     }
+}
+
+// Get vehicle contracts for linking
+function getVehicleContracts($conn) {
+    $query = "SELECT vc.id, vc.contract_code, vc.start_date, vc.end_date,
+                     vc2.name as company_name, c.name as city_name, r.name as region_name, co.name as country_name
+              FROM vehicle_contracts vc
+              LEFT JOIN vehicle_companies vc2 ON vc.vehicle_company_id = vc2.id
+              LEFT JOIN cities c ON vc2.city_id = c.id
+              LEFT JOIN regions r ON c.region_id = r.id
+              LEFT JOIN countries co ON r.country_id = co.id
+              ORDER BY vc.start_date DESC, vc.contract_code ASC";
+    
+    $result = pg_query($conn, $query);
+    
+    if ($result) {
+        $contracts = pg_fetch_all($result) ?: [];
+        echo json_encode(['success' => true, 'data' => $contracts]);
+    } else {
+        echo json_encode(['success' => false, 'message' => getDbErrorMessage($conn)]);
+    }
+}
+
+// Link tour to vehicle contract
+function linkTourContract($conn, $data) {
+    $tour_id = (int)$data['tour_id'];
+    $vehicle_contract_id = isset($data['vehicle_contract_id']) ? (int)$data['vehicle_contract_id'] : null;
+    
+    if (!$tour_id) {
+        echo json_encode(['success' => false, 'message' => 'Tour ID is required']);
+        return;
+    }
+    
+    $contract_id_val = $vehicle_contract_id ? $vehicle_contract_id : 'NULL';
+    
+    $query = "UPDATE tours SET 
+                vehicle_contract_id = $contract_id_val,
+                updated_at = NOW() 
+              WHERE id = $tour_id";
+    
+    $result = pg_query($conn, $query);
+    
+    if ($result) {
+        echo json_encode(['success' => true]);
+    } else {
+        echo json_encode(['success' => false, 'message' => getDbErrorMessage($conn)]);
+    }
+}
+
+// Get contract routes by contract_id
+function getContractRoutes($conn, $contract_id = null) {
+    if (!$contract_id) {
+        echo json_encode(['success' => false, 'message' => 'Contract ID is required']);
+        return;
+    }
+    
+    $contract_id = (int)$contract_id;
+    $query = "SELECT vcr.*, vc.contract_code
+              FROM vehicle_contract_routes vcr
+              INNER JOIN vehicle_contracts vc ON vcr.vehicle_contract_id = vc.id
+              WHERE vcr.vehicle_contract_id = $contract_id
+              ORDER BY vcr.from_location ASC, vcr.to_location ASC";
+    
+    $result = pg_query($conn, $query);
+    
+    if ($result) {
+        $routes = pg_fetch_all($result) ?: [];
+        echo json_encode(['success' => true, 'data' => $routes]);
+    } else {
+        echo json_encode(['success' => false, 'message' => getDbErrorMessage($conn)]);
+    }
+}
+
+// Get tour routes (region-route mappings)
+function getTourRoutes($conn, $tour_id) {
+    if (!$tour_id) {
+        echo json_encode(['success' => false, 'message' => 'Tour ID is required']);
+        return;
+    }
+    
+    $tour_id = (int)$tour_id;
+    
+    // Check if table exists
+    $tableCheck = "SELECT EXISTS (
+        SELECT FROM information_schema.tables 
+        WHERE table_schema = 'public' 
+        AND table_name = 'tour_contract_routes'
+    )";
+    $tableExists = pg_query($conn, $tableCheck);
+    
+    if (!$tableExists) {
+        echo json_encode(['success' => true, 'data' => []]);
+        return;
+    }
+    
+    $exists = pg_fetch_result($tableExists, 0, 0);
+    if ($exists !== 't') {
+        echo json_encode(['success' => true, 'data' => []]);
+        return;
+    }
+    
+    $query = "SELECT tcr.*, sr.name as sub_region_name, vcr.from_location, vcr.to_location
+              FROM tour_contract_routes tcr
+              LEFT JOIN sub_regions sr ON tcr.sub_region_id = sr.id
+              LEFT JOIN vehicle_contract_routes vcr ON tcr.vehicle_contract_route_id = vcr.id
+              WHERE tcr.tour_id = $tour_id";
+    
+    $result = pg_query($conn, $query);
+    
+    if ($result) {
+        $routes = pg_fetch_all($result) ?: [];
+        echo json_encode(['success' => true, 'data' => $routes]);
+    } else {
+        echo json_encode(['success' => false, 'message' => getDbErrorMessage($conn)]);
+    }
+}
+
+// Save tour region routes
+function saveTourRoutes($conn, $tour_id, $routes) {
+    if (!$tour_id) {
+        echo json_encode(['success' => false, 'message' => 'Tour ID is required']);
+        return;
+    }
+    
+    $tour_id = (int)$tour_id;
+    
+    // Check if table exists
+    $tableCheck = "SELECT EXISTS (
+        SELECT FROM information_schema.tables 
+        WHERE table_schema = 'public' 
+        AND table_name = 'tour_contract_routes'
+    )";
+    $tableExists = pg_query($conn, $tableCheck);
+    
+    if (!$tableExists) {
+        echo json_encode(['success' => false, 'message' => 'tour_contract_routes table does not exist. Please run migration first.']);
+        return;
+    }
+    
+    $exists = pg_fetch_result($tableExists, 0, 0);
+    if ($exists !== 't') {
+        echo json_encode(['success' => false, 'message' => 'tour_contract_routes table does not exist. Please run migration first.']);
+        return;
+    }
+    
+    // Delete existing mappings
+    $deleteQuery = "DELETE FROM tour_contract_routes WHERE tour_id = $tour_id";
+    $deleteResult = pg_query($conn, $deleteQuery);
+    
+    if (!$deleteResult) {
+        echo json_encode(['success' => false, 'message' => 'Failed to delete existing routes: ' . getDbErrorMessage($conn)]);
+        return;
+    }
+    
+    // Insert new mappings
+    if (!empty($routes) && is_array($routes)) {
+        foreach ($routes as $route) {
+            $sub_region_id = (int)$route['sub_region_id'];
+            $route_id = (int)$route['vehicle_contract_route_id'];
+            
+            if ($sub_region_id > 0 && $route_id > 0) {
+                $insertQuery = "INSERT INTO tour_contract_routes (tour_id, sub_region_id, vehicle_contract_route_id, created_at)
+                              VALUES ($tour_id, $sub_region_id, $route_id, NOW())
+                              ON CONFLICT (tour_id, sub_region_id) 
+                              DO UPDATE SET vehicle_contract_route_id = $route_id, updated_at = NOW()";
+                $insertResult = pg_query($conn, $insertQuery);
+                
+                if (!$insertResult) {
+                    echo json_encode(['success' => false, 'message' => 'Failed to save route: ' . getDbErrorMessage($conn)]);
+                    return;
+                }
+            }
+        }
+    }
+    
+    echo json_encode(['success' => true]);
 }
 ?>
 

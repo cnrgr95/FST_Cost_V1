@@ -83,15 +83,45 @@
     margin: 0;
 }
 
+/* Table Header - Same as other pages */
+.contracts-table-header {
+    padding: 20px 24px;
+    background: #f9fafb;
+    border-bottom: 1px solid #e5e7eb;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.contracts-table-title {
+    font-size: 16px;
+    font-weight: 600;
+    color: #1f2937;
+}
+
 /* Table */
 .contracts-table-container {
-    overflow-x: auto;
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    overflow: visible;
+}
+
+.contracts-table-wrapper {
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch;
+    width: 100%;
+    display: block;
+    position: relative;
 }
 
 .contracts-table {
     width: 100%;
     border-collapse: collapse;
     background: #fff;
+    min-width: 800px;
+    display: table;
+    table-layout: auto;
 }
 
 .contracts-table thead {
@@ -99,21 +129,21 @@
 }
 
 .contracts-table th {
-    padding: 14px 16px;
+    padding: 12px 16px;
     text-align: left;
     font-weight: 600;
-    font-size: 13px;
+    font-size: 14px;
     color: #374151;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
     border-bottom: 2px solid #e5e7eb;
+    white-space: nowrap;
 }
 
 .contracts-table td {
-    padding: 14px 16px;
+    padding: 12px 16px;
     border-bottom: 1px solid #e5e7eb;
     color: #1f2937;
     font-size: 14px;
+    white-space: nowrap;
 }
 
 .contracts-table tbody tr {
@@ -669,8 +699,55 @@
         gap: 16px;
     }
     
+    .contracts-table-wrapper {
+        overflow-x: auto !important;
+        -webkit-overflow-scrolling: touch;
+        width: 100%;
+        margin: 0 -15px;
+        padding: 0 15px;
+        display: block;
+    }
+    
+    .contracts-table {
+        min-width: 800px !important;
+        width: max-content !important;
+        font-size: 13px;
+    }
+    
+    .contracts-table th,
+    .contracts-table td {
+        padding: 10px 12px;
+        font-size: 13px;
+        white-space: nowrap !important;
+    }
+    
+    .contracts-table th {
+        font-size: 12px;
+    }
+    
     .modal-content {
         width: 95%;
         max-height: 95vh;
+    }
+}
+
+@media (max-width: 480px) {
+    .contracts-table-wrapper {
+        margin: 0 -10px;
+        padding: 0 10px;
+    }
+    
+    .contracts-table {
+        min-width: 700px !important;
+    }
+    
+    .contracts-table th,
+    .contracts-table td {
+        padding: 8px 10px;
+        font-size: 12px;
+    }
+    
+    .contracts-table th {
+        font-size: 11px;
     }
 }
