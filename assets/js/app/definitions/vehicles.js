@@ -14,7 +14,8 @@
     let currentData = {
         cities: [],
         companies: [],
-        types: []
+        types: [],
+        contracts: []
     };
     
     // Initialize
@@ -30,12 +31,16 @@
         // Setup form submissions
         const companyForm = document.getElementById('companyForm');
         const typeForm = document.getElementById('typeForm');
+        const contractForm = document.getElementById('contractForm');
         
         if (companyForm) {
             companyForm.addEventListener('submit', handleCompanySubmit);
         }
         if (typeForm) {
             typeForm.addEventListener('submit', handleTypeSubmit);
+        }
+        if (contractForm) {
+            contractForm.addEventListener('submit', handleContractSubmit);
         }
         
         // Close modal when clicking outside
@@ -108,6 +113,15 @@
                          return (
                              (item.name && item.name.toLowerCase().includes(searchText)) ||
                              (item.company_name && item.company_name.toLowerCase().includes(searchText))
+                         );
+                     });
+                case 'contracts':
+                     return (currentData.contracts || []).filter(item => {
+                         return (
+                             (item.contract_code && item.contract_code.toLowerCase().includes(searchText)) ||
+                             (item.company_name && item.company_name.toLowerCase().includes(searchText)) ||
+                             (item.from_location && item.from_location.toLowerCase().includes(searchText)) ||
+                             (item.to_location && item.to_location.toLowerCase().includes(searchText))
                          );
                      });
             }
@@ -183,9 +197,20 @@
         const data = dataToRender !== null ? dataToRender : currentData[type];
         
         if (data.length === 0) {
-            const noFoundText = type === 'companies' ? tVehicles.no_companies : tVehicles.no_types;
-            const addText = type === 'companies' ? tVehicles.add_company : tVehicles.add_type;
-            const typeText = type === 'companies' ? tVehicles.vehicle_company : tVehicles.vehicle_type;
+            let noFoundText, addText, typeText;
+            if (type === 'companies') {
+                noFoundText = tVehicles.no_companies;
+                addText = tVehicles.add_company;
+                typeText = tVehicles.vehicle_company;
+            } else if (type === 'types') {
+                noFoundText = tVehicles.no_types;
+                addText = tVehicles.add_type;
+                typeText = tVehicles.vehicle_type;
+            } else if (type === 'contracts') {
+                noFoundText = tVehicles.no_contracts;
+                addText = tVehicles.add_contract;
+                typeText = tVehicles.contracts;
+            }
             
             container.innerHTML = `
                 <div class="vehicles-table-container">
@@ -206,24 +231,37 @@
             return;
         }
         
-        const typeText = type === 'companies' ? tVehicles.vehicle_company : tVehicles.vehicle_type;
-        const addText = type === 'companies' ? tVehicles.add_company : tVehicles.add_type;
+        let typeText, addText;
+        if (type === 'companies') {
+            typeText = tVehicles.vehicle_company;
+            addText = tVehicles.add_company;
+        } else if (type === 'types') {
+            typeText = tVehicles.vehicle_type;
+            addText = tVehicles.add_type;
+        } else if (type === 'contracts') {
+            typeText = tVehicles.contracts;
+            addText = tVehicles.add_contract;
+        }
         
         let html = '<div class="vehicles-table-container">';
         html += '<div class="vehicles-table-header">';
         html += `<div class="vehicles-table-title">${typeText}</div>`;
+        html += '<div style="display: flex; gap: 10px;">';
         html += `<button class="btn-add" onclick="window.openModal('${type}')">
                     <span class="material-symbols-rounded">add</span>
                     ${addText || 'Add New'}
                  </button>`;
+        html += '</div>';
         html += '</div>';
         html += '<table class="table">';
         
          // Table headers
          if (type === 'companies') {
              html += `<thead><tr><th>${tVehicles.company_name || 'Name'}</th><th>${tVehicles.city || 'City'}</th><th>${tVehicles.region || 'Region'}</th><th>${tVehicles.country || 'Country'}</th><th>${tVehicles.actions || 'Actions'}</th></tr></thead>`;
-         } else {
+         } else if (type === 'types') {
              html += `<thead><tr><th>${tVehicles.type_name || 'Name'}</th><th>${tVehicles.vehicle_company || 'Vehicle Company'}</th><th>${tVehicles.city || 'City'}</th><th>${tVehicles.region || 'Region'}</th><th>${tVehicles.country || 'Country'}</th><th>${tVehicles.actions || 'Actions'}</th></tr></thead>`;
+        } else if (type === 'contracts') {
+            html += `<thead><tr><th>${tVehicles.contract_code || 'Contract Code'}</th><th>${tVehicles.vehicle_company || 'Company'}</th><th>${tVehicles.start_date || 'Start Date'}</th><th>${tVehicles.end_date || 'End Date'}</th><th>${tVehicles.actions || 'Actions'}</th></tr></thead>`;
          }
         
         html += '<tbody>';
@@ -268,19 +306,33 @@
             html += `<td>${item.city_name || '-'}</td>`;
             html += `<td>${item.region_name || '-'}</td>`;
             html += `<td>${item.country_name || '-'}</td>`;
-        } else {
+        } else if (type === 'types') {
             html += `<td>${item.name}</td>`;
             html += `<td>${item.company_name || '-'}</td>`;
             html += `<td>${item.city_name || '-'}</td>`;
             html += `<td>${item.region_name || '-'}</td>`;
             html += `<td>${item.country_name || '-'}</td>`;
+        } else if (type === 'contracts') {
+            html += `<td>${item.contract_code || '-'}</td>`;
+            html += `<td>${item.company_name || '-'}</td>`;
+            html += `<td>${item.start_date || '-'}</td>`;
+            html += `<td>${item.end_date || '-'}</td>`;
         }
         
         html += '<td>';
         html += '<div class="table-actions">';
-        html += `<button class="btn-action btn-edit" data-item-type="${type}" data-item-id="${item.id}">
-                    <span class="material-symbols-rounded">edit</span>
-                 </button>`;
+        if (type === 'contracts') {
+            html += `<button class="btn-action btn-edit" onclick="window.editContractRoutes(${item.id})" title="${tVehicles.edit_routes || 'Edit Routes'}">
+                        <span class="material-symbols-rounded">route</span>
+                     </button>`;
+            html += `<button class="btn-action btn-edit" data-item-type="${type}" data-item-id="${item.id}">
+                        <span class="material-symbols-rounded">edit</span>
+                     </button>`;
+        } else {
+            html += `<button class="btn-action btn-edit" data-item-type="${type}" data-item-id="${item.id}">
+                        <span class="material-symbols-rounded">edit</span>
+                     </button>`;
+        }
         html += `<button class="btn-action btn-delete" data-item-type="${type}" data-item-id="${item.id}">
                     <span class="material-symbols-rounded">delete</span>
                  </button>`;
@@ -310,9 +362,18 @@
     
     // Open modal
     window.openModal = async function(type) {
-        // Fix modal ID - companies -> companyModal, vehicles -> typeModal
-        const modalId = type === 'companies' ? 'companyModal' : 'typeModal';
-        const formId = type === 'companies' ? 'companyForm' : 'typeForm';
+        // Fix modal ID - companies -> companyModal, types -> typeModal, contracts -> contractModal
+        let modalId, formId;
+        if (type === 'companies') {
+            modalId = 'companyModal';
+            formId = 'companyForm';
+        } else if (type === 'types') {
+            modalId = 'typeModal';
+            formId = 'typeForm';
+        } else if (type === 'contracts') {
+            modalId = 'contractModal';
+            formId = 'contractForm';
+        }
         
         const modal = document.getElementById(modalId);
         if (!modal) {
@@ -337,16 +398,22 @@
          if (title) {
              if (type === 'companies') {
                  title.textContent = tVehicles.add_company || 'Add Vehicle Company';
-             } else {
+             } else if (type === 'types') {
                  title.textContent = tVehicles.add_type || 'Add Vehicle Type';
+             } else if (type === 'contracts') {
+                 title.textContent = tVehicles.add_contract || 'Add Contract';
              }
          }
         
         // Load dependent data if needed
         if (type === 'companies') {
             await loadCitiesForSelect();
-        } else {
+        } else if (type === 'types') {
             await loadCompaniesForSelect();
+        } else if (type === 'contracts') {
+            await loadCompaniesForContractSelect();
+            // Generate and set contract code automatically
+            await generateAndSetContractCode();
         }
     };
     
@@ -359,6 +426,18 @@
             form.reset();
             delete form.dataset.id;
         });
+        
+        // Reset contract form specifically
+        const contractId = document.getElementById('contractId');
+        if (contractId) {
+            contractId.value = '';
+        }
+        
+        // Reset contract code input readonly state when closing modal
+        const contractCodeInput = document.getElementById('contract_code');
+        if (contractCodeInput && !contractId.value) {
+            contractCodeInput.readOnly = true;
+        }
     };
     
     // Edit item
@@ -374,9 +453,18 @@
             return;
         }
         
-        // Fix modal ID - companies -> companyModal, vehicles -> typeModal
-        const modalId = type === 'companies' ? 'companyModal' : 'typeModal';
-        const formId = type === 'companies' ? 'companyForm' : 'typeForm';
+        // Fix modal ID - companies -> companyModal, types -> typeModal, contracts -> contractModal
+        let modalId, formId;
+        if (type === 'companies') {
+            modalId = 'companyModal';
+            formId = 'companyForm';
+        } else if (type === 'types') {
+            modalId = 'typeModal';
+            formId = 'typeForm';
+        } else if (type === 'contracts') {
+            modalId = 'contractModal';
+            formId = 'contractForm';
+        }
         
         const modal = document.getElementById(modalId);
         if (!modal) {
@@ -395,16 +483,18 @@
          if (title) {
              if (type === 'companies') {
                  title.textContent = tVehicles.edit_company || 'Edit Vehicle Company';
-             } else {
+             } else if (type === 'types') {
                  title.textContent = tVehicles.edit_type || 'Edit Vehicle Type';
+             } else if (type === 'contracts') {
+                 title.textContent = tVehicles.edit_contract || 'Edit Contract';
              }
          }
         
         // Fill form
         form.dataset.id = id;
-        form.querySelector('input[name="name"]').value = item.name;
         
         if (type === 'companies') {
+            form.querySelector('input[name="name"]').value = item.name;
             await loadCitiesForSelect();
             form.querySelector('select[name="city_id"]').value = item.city_id;
             // Fill contact information
@@ -417,19 +507,33 @@
             if (form.querySelector('input[name="contact_phone"]')) {
                 form.querySelector('input[name="contact_phone"]').value = item.contact_phone || '';
             }
-        } else {
+        } else if (type === 'types') {
+            form.querySelector('input[name="name"]').value = item.name;
             await loadCompaniesForSelect();
             form.querySelector('select[name="vehicle_company_id"]').value = item.vehicle_company_id;
+        } else if (type === 'contracts') {
+            document.getElementById('contractId').value = item.id;
+            document.getElementById('contract_vehicle_company_id').value = item.vehicle_company_id;
+            const contractCodeInput = document.getElementById('contract_code');
+            if (contractCodeInput) {
+                contractCodeInput.value = item.contract_code || '';
+                // Keep readonly in edit mode too
+                contractCodeInput.readOnly = true;
+            }
+            document.getElementById('contract_start_date').value = item.start_date || '';
+            document.getElementById('contract_end_date').value = item.end_date || '';
+            await loadCompaniesForContractSelect();
         }
         
         modal.classList.add('active');
     };
     
-    // Helper function to convert type to API action (singular form)
+     // Helper function to convert type to API action (singular form)
      function getApiAction(type) {
          const actionMap = {
              'companies': 'company',
-             'types': 'type'
+             'types': 'type',
+             'contracts': 'contract'
          };
          return actionMap[type] || type;
      }
@@ -509,6 +613,30 @@
             createType(data);
         }
     }
+    
+    function handleContractSubmit(e) {
+        e.preventDefault();
+        const form = e.target;
+        const data = {
+            vehicle_company_id: document.getElementById('contract_vehicle_company_id').value,
+            contract_code: document.getElementById('contract_code').value,
+            start_date: document.getElementById('contract_start_date').value,
+            end_date: document.getElementById('contract_end_date').value
+        };
+        
+        const contractId = document.getElementById('contractId').value;
+        if (contractId) {
+            data.id = contractId;
+            updateContract(data);
+        } else {
+            createContract(data);
+        }
+    }
+    
+    // Navigate to contract routes page
+    window.editContractRoutes = function(contractId) {
+        window.location.href = BASE_PATH + 'app/definitions/contract-routes.php?id=' + contractId;
+    };
     
     // Create operations
     async function createCompany(data) {
@@ -604,6 +732,53 @@
         }
     }
     
+    // Contract operations
+    async function createContract(data) {
+        try {
+            const response = await fetch(`${API_BASE}?action=contract`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data)
+            });
+            const result = await response.json();
+            
+            if (result.success) {
+                currentData.contracts = [];
+                loadData('contracts');
+                closeModal();
+                showToast('success', tVehicles.contract_added || 'Contract created successfully');
+            } else {
+                showToast('error', result.message);
+            }
+        } catch (error) {
+            console.error('Error creating contract:', error);
+            showToast('error', tCommon.save_failed || 'Failed to create contract');
+        }
+    }
+    
+    async function updateContract(data) {
+        try {
+            const response = await fetch(`${API_BASE}?action=contract`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data)
+            });
+            const result = await response.json();
+            
+            if (result.success) {
+                currentData.contracts = [];
+                loadData('contracts');
+                closeModal();
+                showToast('success', tVehicles.contract_updated || 'Contract updated successfully');
+            } else {
+                showToast('error', result.message);
+            }
+        } catch (error) {
+            console.error('Error updating contract:', error);
+            showToast('error', tCommon.update_failed || 'Failed to update contract');
+        }
+    }
+    
     // Load dependent data for selects
     async function loadCitiesForSelect() {
         // Fetch cities from locations API
@@ -650,53 +825,37 @@
         }
     }
     
-    // Toast notification function
-    function showToast(type, message, duration = 5000) {
-        const container = document.getElementById('toastContainer');
-        if (!container) return;
-        
-        const toast = document.createElement('div');
-        toast.className = `toast ${type}`;
-        
-        let icon = '';
-        let title = '';
-        if (type === 'error') {
-            icon = 'error';
-            title = tCommon.error || 'Error';
-        } else if (type === 'warning') {
-            icon = 'warning';
-            title = 'Warning';
-        } else if (type === 'info') {
-            icon = 'info';
-            title = 'Information';
-        } else if (type === 'success') {
-            icon = 'check_circle';
-            title = tCommon.success || 'Success';
+    async function loadCompaniesForContractSelect(selectId = 'contract_vehicle_company_id') {
+        if (currentData.companies.length === 0) {
+            await fetchData('companies');
         }
         
-        toast.innerHTML = `
-            <span class="material-symbols-rounded toast-icon">${icon}</span>
-            <div class="toast-content">
-                <div class="toast-title">${title}</div>
-                <div class="toast-message">${message}</div>
-            </div>
-            <button class="toast-close">&times;</button>
-        `;
-        
-        container.appendChild(toast);
-        toast.querySelector('.toast-close').addEventListener('click', () => closeToast(toast));
-        if (duration > 0) {
-            setTimeout(() => closeToast(toast), duration);
+        const select = document.getElementById(selectId);
+        if (select) {
+            select.innerHTML = `<option value="">${tVehicles.select_dept || 'Select Vehicle Company'}</option>`;
+            currentData.companies.forEach(company => {
+                select.innerHTML += `<option value="${company.id}">${company.name} (${company.city_name || ''})</option>`;
+            });
         }
     }
     
-    function closeToast(toast) {
-        toast.classList.add('fade-out');
-        setTimeout(() => {
-            if (toast.parentNode) toast.parentNode.removeChild(toast);
-        }, 300);
+    // Generate contract code automatically
+    async function generateAndSetContractCode() {
+        try {
+            const response = await fetch(`${API_BASE}?action=generate_contract_code`);
+            const result = await response.json();
+            
+            if (result.success && result.contract_code) {
+                const contractCodeInput = document.getElementById('contract_code');
+                if (contractCodeInput) {
+                    contractCodeInput.value = result.contract_code;
+                }
+            }
+        } catch (error) {
+            console.error('Error generating contract code:', error);
+        }
     }
     
-    // showToast is now from toast.js
+    // showToast is from toast.js
 })();
 

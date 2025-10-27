@@ -394,11 +394,22 @@ function getTourRegions($conn, $tour_id) {
 
 // Create contract
 function createContract($conn, $data) {
+    // Validate required fields
+    if (empty($data['sub_region_id']) || empty($data['merchant_id']) || empty($data['tour_id'])) {
+        echo json_encode(['success' => false, 'message' => 'Sub region, merchant, and tour are required']);
+        return;
+    }
+    
+    if (empty($data['start_date']) || empty($data['end_date'])) {
+        echo json_encode(['success' => false, 'message' => 'Start date and end date are required']);
+        return;
+    }
+    
     $sub_region_id = (int)$data['sub_region_id'];
     $merchant_id = (int)$data['merchant_id'];
     $tour_id = (int)$data['tour_id'];
     $vat_included = $data['vat_included'] === 'included' ? true : false;
-    $vat_rate = isset($data['vat_rate']) ? (float)$data['vat_rate'] : null;
+    $vat_rate = isset($data['vat_rate']) && $data['vat_rate'] !== '' ? (float)$data['vat_rate'] : null;
     $price = isset($data['price']) && $data['price'] !== '' ? (float)$data['price'] : null;
     $adult_age = pg_escape_string($conn, $data['adult_age'] ?? '');
     $adult_price = isset($data['adult_price']) && $data['adult_price'] !== '' ? (float)$data['adult_price'] : null;
@@ -410,20 +421,43 @@ function createContract($conn, $data) {
     $infant_price = isset($data['infant_price']) && $data['infant_price'] !== '' ? (float)$data['infant_price'] : null;
     $infant_currency = pg_escape_string($conn, $data['infant_currency'] ?? 'USD');
     $kickback_type = pg_escape_string($conn, $data['kickback_type'] ?? '');
-    $kickback_value = isset($data['kickback_value']) ? (float)$data['kickback_value'] : null;
+    $kickback_value = isset($data['kickback_value']) && $data['kickback_value'] !== '' ? (float)$data['kickback_value'] : null;
     $kickback_currency = pg_escape_string($conn, $data['kickback_currency'] ?? '');
     $kickback_per_person = isset($data['kickback_per_person']) ? (bool)$data['kickback_per_person'] : false;
-    $kickback_min_persons = isset($data['kickback_min_persons']) ? (int)$data['kickback_min_persons'] : null;
+    $kickback_min_persons = isset($data['kickback_min_persons']) && $data['kickback_min_persons'] !== '' ? (int)$data['kickback_min_persons'] : null;
     $price_type = pg_escape_string($conn, $data['price_type'] ?? 'regional');
     $contract_currency = pg_escape_string($conn, $data['contract_currency'] ?? 'USD');
     $included_content = pg_escape_string($conn, $data['included_content'] ?? '');
     $start_date = pg_escape_string($conn, $data['start_date']);
     $end_date = pg_escape_string($conn, $data['end_date']);
     
+    // Validate date format
+    if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $start_date) || !preg_match('/^\d{4}-\d{2}-\d{2}$/', $end_date)) {
+        echo json_encode(['success' => false, 'message' => 'Invalid date format. Use YYYY-MM-DD']);
+        return;
+    }
+    
     // Validate dates
     if ($start_date && $end_date && $end_date < $start_date) {
         echo json_encode(['success' => false, 'message' => 'End date must be after start date']);
         return;
+    }
+    
+    // Transfer fields - CRITICAL FIX: These were missing!
+    $transfer_owner = pg_escape_string($conn, $data['transfer_owner'] ?? '');
+    $transfer_price_type = pg_escape_string($conn, $data['transfer_price_type'] ?? '');
+    $transfer_price = isset($data['transfer_price']) && $data['transfer_price'] !== '' ? (float)$data['transfer_price'] : null;
+    $transfer_currency = pg_escape_string($conn, $data['transfer_currency'] ?? '');
+    $transfer_price_mini = isset($data['transfer_price_mini']) && $data['transfer_price_mini'] !== '' ? (float)$data['transfer_price_mini'] : null;
+    $transfer_price_midi = isset($data['transfer_price_midi']) && $data['transfer_price_midi'] !== '' ? (float)$data['transfer_price_midi'] : null;
+    $transfer_price_bus = isset($data['transfer_price_bus']) && $data['transfer_price_bus'] !== '' ? (float)$data['transfer_price_bus'] : null;
+    $transfer_currency_fixed = pg_escape_string($conn, $data['transfer_currency_fixed'] ?? '');
+    
+    // Validate currency codes (basic validation)
+    $validCurrencies = ['USD', 'EUR', 'TL', 'GBP', 'TRY'];
+    if (!empty($contract_currency) && !in_array(strtoupper($contract_currency), $validCurrencies)) {
+        // Allow other currencies but log warning
+        $contract_currency = strtoupper(substr($contract_currency, 0, 3));
     }
     
     // Handle fixed prices if price_type is 'fixed'
@@ -437,9 +471,9 @@ function createContract($conn, $data) {
         $fixed_infant_price = null;
     }
     
-    $vat_rate_val = $vat_rate ? $vat_rate : 'NULL';
-    $kickback_value_val = $kickback_value ? $kickback_value : 'NULL';
-    $kickback_min_persons_val = $kickback_min_persons ? $kickback_min_persons : 'NULL';
+    $vat_rate_val = $vat_rate !== null ? $vat_rate : 'NULL';
+    $kickback_value_val = $kickback_value !== null ? $kickback_value : 'NULL';
+    $kickback_min_persons_val = $kickback_min_persons !== null ? $kickback_min_persons : 'NULL';
     
     $kickback_currency_val = !empty($kickback_currency) ? "'$kickback_currency'" : 'NULL';
     $fixed_adult_price_val = $fixed_adult_price !== null ? $fixed_adult_price : 'NULL';
@@ -453,28 +487,38 @@ function createContract($conn, $data) {
     $transfer_price_bus_val = $transfer_price_bus !== null ? $transfer_price_bus : 'NULL';
     $transfer_currency_fixed_val = !empty($transfer_currency_fixed) ? "'$transfer_currency_fixed'" : 'NULL';
     
-    $query = "INSERT INTO contracts (
-                sub_region_id, merchant_id, tour_id, vat_included, vat_rate,
-                adult_age, child_age_range, infant_age_range,
-                kickback_type, kickback_value, kickback_currency, kickback_per_person, kickback_min_persons, 
-                price_type, contract_currency, fixed_adult_price, fixed_child_price, fixed_infant_price,
-                transfer_owner, transfer_price_type, transfer_price, transfer_currency,
-                transfer_price_mini, transfer_price_midi, transfer_price_bus, transfer_currency_fixed,
-                included_content, start_date, end_date, created_at
-              ) VALUES (
-                $sub_region_id, $merchant_id, $tour_id, " . ($vat_included ? 'true' : 'false') . ", 
-                $vat_rate_val, '$adult_age', '$child_age_range', '$infant_age_range',
-                '$kickback_type', $kickback_value_val, $kickback_currency_val, " . ($kickback_per_person ? 'true' : 'false') . ",
-                $kickback_min_persons_val, '$price_type', '$contract_currency', $fixed_adult_price_val, $fixed_child_price_val, $fixed_infant_price_val,
-                '$transfer_owner', '$transfer_price_type', $transfer_price_val, $transfer_currency_val,
-                $transfer_price_mini_val, $transfer_price_midi_val, $transfer_price_bus_val, $transfer_currency_fixed_val,
-                '$included_content', '$start_date', '$end_date', NOW()
-              ) RETURNING id";
+    // Start transaction for data consistency
+    pg_query($conn, 'BEGIN');
     
-    $result = pg_query($conn, $query);
-    
-    if ($result) {
+    try {
+        $query = "INSERT INTO contracts (
+                    sub_region_id, merchant_id, tour_id, vat_included, vat_rate,
+                    adult_age, child_age_range, infant_age_range,
+                    kickback_type, kickback_value, kickback_currency, kickback_per_person, kickback_min_persons, 
+                    price_type, contract_currency, fixed_adult_price, fixed_child_price, fixed_infant_price,
+                    transfer_owner, transfer_price_type, transfer_price, transfer_currency,
+                    transfer_price_mini, transfer_price_midi, transfer_price_bus, transfer_currency_fixed,
+                    included_content, start_date, end_date, created_at
+                  ) VALUES (
+                    $sub_region_id, $merchant_id, $tour_id, " . ($vat_included ? 'true' : 'false') . ", 
+                    $vat_rate_val, '$adult_age', '$child_age_range', '$infant_age_range',
+                    '$kickback_type', $kickback_value_val, $kickback_currency_val, " . ($kickback_per_person ? 'true' : 'false') . ",
+                    $kickback_min_persons_val, '$price_type', '$contract_currency', $fixed_adult_price_val, $fixed_child_price_val, $fixed_infant_price_val,
+                    '$transfer_owner', '$transfer_price_type', $transfer_price_val, $transfer_currency_val,
+                    $transfer_price_mini_val, $transfer_price_midi_val, $transfer_price_bus_val, $transfer_currency_fixed_val,
+                    '$included_content', '$start_date', '$end_date', NOW()
+                  ) RETURNING id";
+        
+        $result = pg_query($conn, $query);
+        
+        if (!$result) {
+            throw new Exception(getDbErrorMessage($conn));
+        }
+        
         $row = pg_fetch_assoc($result);
+        if (!$row) {
+            throw new Exception('Failed to retrieve contract ID');
+        }
         $contract_id = $row['id'];
         
         // Save regional prices (only if price_type is regional)
@@ -485,28 +529,47 @@ function createContract($conn, $data) {
             saveFixedPricesToRegions($conn, $contract_id, $tour_id, $fixed_adult_price, $fixed_child_price, $fixed_infant_price, $contract_currency);
         }
         
-        echo json_encode(['success' => true, 'id' => $contract_id]);
-    } else {
-        echo json_encode(['success' => false, 'message' => getDbErrorMessage($conn)]);
+        // Commit transaction
+        pg_query($conn, 'COMMIT');
+        
+        echo json_encode(['success' => true, 'id' => $contract_id, 'message' => 'Contract created successfully']);
+    } catch (Exception $e) {
+        // Rollback transaction on error
+        pg_query($conn, 'ROLLBACK');
+        if (function_exists('logError')) {
+            logError($e->getMessage(), __FILE__, __LINE__);
+        }
+        echo json_encode(['success' => false, 'message' => APP_DEBUG ? $e->getMessage() : 'Failed to create contract']);
     }
 }
 
 // Update contract
 function updateContract($conn, $data) {
+    // Validate required fields
+    if (empty($data['id']) || empty($data['sub_region_id']) || empty($data['merchant_id']) || empty($data['tour_id'])) {
+        echo json_encode(['success' => false, 'message' => 'ID, sub region, merchant, and tour are required']);
+        return;
+    }
+    
+    if (empty($data['start_date']) || empty($data['end_date'])) {
+        echo json_encode(['success' => false, 'message' => 'Start date and end date are required']);
+        return;
+    }
+    
     $id = (int)$data['id'];
     $sub_region_id = (int)$data['sub_region_id'];
     $merchant_id = (int)$data['merchant_id'];
     $tour_id = (int)$data['tour_id'];
     $vat_included = $data['vat_included'] === 'included' ? true : false;
-    $vat_rate = isset($data['vat_rate']) ? (float)$data['vat_rate'] : null;
+    $vat_rate = isset($data['vat_rate']) && $data['vat_rate'] !== '' ? (float)$data['vat_rate'] : null;
     $adult_age = pg_escape_string($conn, $data['adult_age'] ?? '');
     $child_age_range = pg_escape_string($conn, $data['child_age_range'] ?? '');
     $infant_age_range = pg_escape_string($conn, $data['infant_age_range'] ?? '');
     $kickback_type = pg_escape_string($conn, $data['kickback_type'] ?? '');
-    $kickback_value = isset($data['kickback_value']) ? (float)$data['kickback_value'] : null;
+    $kickback_value = isset($data['kickback_value']) && $data['kickback_value'] !== '' ? (float)$data['kickback_value'] : null;
     $kickback_currency = pg_escape_string($conn, $data['kickback_currency'] ?? '');
     $kickback_per_person = isset($data['kickback_per_person']) ? (bool)$data['kickback_per_person'] : false;
-    $kickback_min_persons = isset($data['kickback_min_persons']) ? (int)$data['kickback_min_persons'] : null;
+    $kickback_min_persons = isset($data['kickback_min_persons']) && $data['kickback_min_persons'] !== '' ? (int)$data['kickback_min_persons'] : null;
     $price_type = pg_escape_string($conn, $data['price_type'] ?? 'regional');
     $contract_currency = pg_escape_string($conn, $data['contract_currency'] ?? 'USD');
     $included_content = pg_escape_string($conn, $data['included_content'] ?? '');
@@ -523,6 +586,12 @@ function updateContract($conn, $data) {
     $transfer_price_bus = isset($data['transfer_price_bus']) && $data['transfer_price_bus'] !== '' ? (float)$data['transfer_price_bus'] : null;
     $transfer_currency_fixed = pg_escape_string($conn, $data['transfer_currency_fixed'] ?? '');
     
+    // Validate date format
+    if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $start_date) || !preg_match('/^\d{4}-\d{2}-\d{2}$/', $end_date)) {
+        echo json_encode(['success' => false, 'message' => 'Invalid date format. Use YYYY-MM-DD']);
+        return;
+    }
+    
     // Validate dates
     if ($start_date && $end_date && $end_date < $start_date) {
         echo json_encode(['success' => false, 'message' => 'End date must be after start date']);
@@ -540,9 +609,9 @@ function updateContract($conn, $data) {
         $fixed_infant_price = null;
     }
     
-    $vat_rate_val = $vat_rate ? $vat_rate : 'NULL';
-    $kickback_value_val = $kickback_value ? $kickback_value : 'NULL';
-    $kickback_min_persons_val = $kickback_min_persons ? $kickback_min_persons : 'NULL';
+    $vat_rate_val = $vat_rate !== null ? $vat_rate : 'NULL';
+    $kickback_value_val = $kickback_value !== null ? $kickback_value : 'NULL';
+    $kickback_min_persons_val = $kickback_min_persons !== null ? $kickback_min_persons : 'NULL';
     
     $kickback_currency_val = !empty($kickback_currency) ? "'$kickback_currency'" : 'NULL';
     $fixed_adult_price_val = $fixed_adult_price !== null ? $fixed_adult_price : 'NULL';
@@ -556,42 +625,49 @@ function updateContract($conn, $data) {
     $transfer_price_bus_val = $transfer_price_bus !== null ? $transfer_price_bus : 'NULL';
     $transfer_currency_fixed_val = !empty($transfer_currency_fixed) ? "'$transfer_currency_fixed'" : 'NULL';
     
-    $query = "UPDATE contracts SET 
-                sub_region_id = $sub_region_id,
-                merchant_id = $merchant_id,
-                tour_id = $tour_id,
-                vat_included = " . ($vat_included ? 'true' : 'false') . ",
-                vat_rate = $vat_rate_val,
-                adult_age = '$adult_age',
-                child_age_range = '$child_age_range',
-                infant_age_range = '$infant_age_range',
-                kickback_type = '$kickback_type',
-                kickback_value = $kickback_value_val,
-                kickback_currency = $kickback_currency_val,
-                kickback_per_person = " . ($kickback_per_person ? 'true' : 'false') . ",
-                kickback_min_persons = $kickback_min_persons_val,
-                price_type = '$price_type',
-                contract_currency = '$contract_currency',
-                fixed_adult_price = $fixed_adult_price_val,
-                fixed_child_price = $fixed_child_price_val,
-                fixed_infant_price = $fixed_infant_price_val,
-                transfer_owner = '$transfer_owner',
-                transfer_price_type = '$transfer_price_type',
-                transfer_price = $transfer_price_val,
-                transfer_currency = $transfer_currency_val,
-                transfer_price_mini = $transfer_price_mini_val,
-                transfer_price_midi = $transfer_price_midi_val,
-                transfer_price_bus = $transfer_price_bus_val,
-                transfer_currency_fixed = $transfer_currency_fixed_val,
-                included_content = '$included_content',
-                start_date = '$start_date',
-                end_date = '$end_date',
-                updated_at = NOW()
-              WHERE id = $id";
+    // Start transaction for data consistency
+    pg_query($conn, 'BEGIN');
     
-    $result = pg_query($conn, $query);
-    
-    if ($result) {
+    try {
+        $query = "UPDATE contracts SET 
+                    sub_region_id = $sub_region_id,
+                    merchant_id = $merchant_id,
+                    tour_id = $tour_id,
+                    vat_included = " . ($vat_included ? 'true' : 'false') . ",
+                    vat_rate = $vat_rate_val,
+                    adult_age = '$adult_age',
+                    child_age_range = '$child_age_range',
+                    infant_age_range = '$infant_age_range',
+                    kickback_type = '$kickback_type',
+                    kickback_value = $kickback_value_val,
+                    kickback_currency = $kickback_currency_val,
+                    kickback_per_person = " . ($kickback_per_person ? 'true' : 'false') . ",
+                    kickback_min_persons = $kickback_min_persons_val,
+                    price_type = '$price_type',
+                    contract_currency = '$contract_currency',
+                    fixed_adult_price = $fixed_adult_price_val,
+                    fixed_child_price = $fixed_child_price_val,
+                    fixed_infant_price = $fixed_infant_price_val,
+                    transfer_owner = '$transfer_owner',
+                    transfer_price_type = '$transfer_price_type',
+                    transfer_price = $transfer_price_val,
+                    transfer_currency = $transfer_currency_val,
+                    transfer_price_mini = $transfer_price_mini_val,
+                    transfer_price_midi = $transfer_price_midi_val,
+                    transfer_price_bus = $transfer_price_bus_val,
+                    transfer_currency_fixed = $transfer_currency_fixed_val,
+                    included_content = '$included_content',
+                    start_date = '$start_date',
+                    end_date = '$end_date',
+                    updated_at = NOW()
+                  WHERE id = $id";
+        
+        $result = pg_query($conn, $query);
+        
+        if (!$result) {
+            throw new Exception(getDbErrorMessage($conn));
+        }
+        
         // Update regional prices (only if price_type is regional)
         if ($price_type === 'regional' && isset($data['regional_prices']) && is_array($data['regional_prices'])) {
             saveRegionalPrices($conn, $id, $data['regional_prices'], $data);
@@ -600,43 +676,62 @@ function updateContract($conn, $data) {
             saveFixedPricesToRegions($conn, $id, $tour_id, $fixed_adult_price, $fixed_child_price, $fixed_infant_price, $contract_currency);
         }
         
-        echo json_encode(['success' => true]);
-    } else {
-        echo json_encode(['success' => false, 'message' => getDbErrorMessage($conn)]);
+        // Commit transaction
+        pg_query($conn, 'COMMIT');
+        
+        echo json_encode(['success' => true, 'message' => 'Contract updated successfully']);
+    } catch (Exception $e) {
+        // Rollback transaction on error
+        pg_query($conn, 'ROLLBACK');
+        if (function_exists('logError')) {
+            logError($e->getMessage(), __FILE__, __LINE__);
+        }
+        echo json_encode(['success' => false, 'message' => APP_DEBUG ? $e->getMessage() : 'Failed to update contract']);
     }
 }
 
 // Save fixed prices to all tour regions
 function saveFixedPricesToRegions($conn, $contract_id, $tour_id, $adult_price, $child_price, $infant_price, $currency) {
+    // Escape currency for SQL
+    $currency = pg_escape_string($conn, $currency);
+    
     // Get all tour regions
     $regionsQuery = "SELECT sub_region_id FROM tour_sub_regions WHERE tour_id = $tour_id";
     $regionsResult = pg_query($conn, $regionsQuery);
     
-    if ($regionsResult) {
-        // Delete existing regional prices
-        $deleteQuery = "DELETE FROM contract_regional_prices WHERE contract_id = $contract_id";
-        pg_query($conn, $deleteQuery);
-        
-        // Insert fixed prices for all regions
-        $adult_price_val = $adult_price !== null ? $adult_price : 'NULL';
-        $child_price_val = $child_price !== null ? $child_price : 'NULL';
-        $infant_price_val = $infant_price !== null ? $infant_price : 'NULL';
-        
-        while ($row = pg_fetch_assoc($regionsResult)) {
-            $sub_region_id = (int)$row['sub_region_id'];
-            $insertQuery = "INSERT INTO contract_regional_prices 
-                           (contract_id, sub_region_id, adult_price, adult_currency, child_price, child_currency, infant_price, infant_currency)
-                           VALUES ($contract_id, $sub_region_id, $adult_price_val, '$currency', $child_price_val, '$currency', $infant_price_val, '$currency')
-                           ON CONFLICT (contract_id, sub_region_id) 
-                           DO UPDATE SET 
-                               adult_price = $adult_price_val,
-                               adult_currency = '$currency',
-                               child_price = $child_price_val,
-                               child_currency = '$currency',
-                               infant_price = $infant_price_val,
-                               infant_currency = '$currency',
-                               updated_at = NOW()";
-            pg_query($conn, $insertQuery);
+    if (!$regionsResult) {
+        throw new Exception('Failed to fetch tour regions: ' . getDbErrorMessage($conn));
+    }
+    
+    // Delete existing regional prices
+    $deleteQuery = "DELETE FROM contract_regional_prices WHERE contract_id = $contract_id";
+    $deleteResult = pg_query($conn, $deleteQuery);
+    if (!$deleteResult) {
+        throw new Exception('Failed to delete existing regional prices: ' . getDbErrorMessage($conn));
+    }
+    
+    // Insert fixed prices for all regions
+    $adult_price_val = $adult_price !== null ? $adult_price : 'NULL';
+    $child_price_val = $child_price !== null ? $child_price : 'NULL';
+    $infant_price_val = $infant_price !== null ? $infant_price : 'NULL';
+    
+    while ($row = pg_fetch_assoc($regionsResult)) {
+        $sub_region_id = (int)$row['sub_region_id'];
+        $insertQuery = "INSERT INTO contract_regional_prices 
+                       (contract_id, sub_region_id, adult_price, adult_currency, child_price, child_currency, infant_price, infant_currency)
+                       VALUES ($contract_id, $sub_region_id, $adult_price_val, '$currency', $child_price_val, '$currency', $infant_price_val, '$currency')
+                       ON CONFLICT (contract_id, sub_region_id) 
+                       DO UPDATE SET 
+                           adult_price = $adult_price_val,
+                           adult_currency = '$currency',
+                           child_price = $child_price_val,
+                           child_currency = '$currency',
+                           infant_price = $infant_price_val,
+                           infant_currency = '$currency',
+                           updated_at = NOW()";
+        $insertResult = pg_query($conn, $insertQuery);
+        if (!$insertResult) {
+            throw new Exception('Failed to insert regional price: ' . getDbErrorMessage($conn));
         }
     }
 }
@@ -645,7 +740,10 @@ function saveFixedPricesToRegions($conn, $contract_id, $tour_id, $adult_price, $
 function saveRegionalPrices($conn, $contract_id, $regional_prices, $data = []) {
     // Delete existing regional prices
     $deleteQuery = "DELETE FROM contract_regional_prices WHERE contract_id = $contract_id";
-    pg_query($conn, $deleteQuery);
+    $deleteResult = pg_query($conn, $deleteQuery);
+    if (!$deleteResult) {
+        throw new Exception('Failed to delete existing regional prices: ' . getDbErrorMessage($conn));
+    }
     
     // Insert new regional prices
     if (!empty($regional_prices)) {
@@ -676,7 +774,10 @@ function saveRegionalPrices($conn, $contract_id, $regional_prices, $data = []) {
                                infant_price = $infant_price_val,
                                infant_currency = '$infant_currency',
                                updated_at = NOW()";
-            pg_query($conn, $insertQuery);
+            $insertResult = pg_query($conn, $insertQuery);
+            if (!$insertResult) {
+                throw new Exception('Failed to insert regional price: ' . getDbErrorMessage($conn));
+            }
         }
     }
 }

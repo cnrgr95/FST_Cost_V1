@@ -79,6 +79,9 @@ $t_dependencies = $all_translations['dependencies'] ?? [];
                     <button class="vehicles-tab" data-tab="types">
                         <?php echo $t_vehicles['vehicle_type'] ?? 'Vehicle Types'; ?>
                     </button>
+                    <button class="vehicles-tab" data-tab="contracts">
+                        <?php echo $t_vehicles['contracts'] ?? 'Contracts'; ?>
+                    </button>
                 </div>
                 
                 <!-- Tab Content -->
@@ -87,6 +90,10 @@ $t_dependencies = $all_translations['dependencies'] ?? [];
                 </div>
                 
                 <div class="vehicles-content" id="types-content">
+                    <!-- Content will be loaded by JavaScript -->
+                </div>
+                
+                <div class="vehicles-content" id="contracts-content">
                     <!-- Content will be loaded by JavaScript -->
                 </div>
             </div>
@@ -157,6 +164,57 @@ $t_dependencies = $all_translations['dependencies'] ?? [];
                         <option value=""><?php echo $t_vehicles['loading_data'] ?? 'Loading...'; ?></option>
                     </select>
                 </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn-secondary" onclick="closeModal()">
+                        <?php echo $t_common['cancel'] ?? 'Cancel'; ?>
+                    </button>
+                    <button type="submit" class="btn-primary">
+                        <?php echo $t_common['save'] ?? 'Save'; ?>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <!-- Contract Modal -->
+    <div class="modal" id="contractModal" style="max-width: 800px;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="contractModalTitle"><?php echo $t_vehicles['add_contract'] ?? 'Add Contract'; ?></h2>
+                <button class="btn-close">
+                    <span class="material-symbols-rounded">close</span>
+                </button>
+            </div>
+            <form id="contractForm">
+                <input type="hidden" id="contractId" name="id">
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label><?php echo $t_vehicles['vehicle_company'] ?? 'Vehicle Company'; ?> *</label>
+                        <select id="contract_vehicle_company_id" name="vehicle_company_id" required>
+                            <option value=""><?php echo $t_vehicles['loading_data'] ?? 'Loading...'; ?></option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label><?php echo $t_vehicles['contract_code'] ?? 'Contract Code'; ?> *</label>
+                        <input type="text" id="contract_code" name="contract_code" required readonly style="background-color: #f3f4f6; cursor: not-allowed;">
+                    </div>
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label><?php echo $t_vehicles['start_date'] ?? 'Start Date'; ?> *</label>
+                        <input type="date" id="contract_start_date" name="start_date" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label><?php echo $t_vehicles['end_date'] ?? 'End Date'; ?> *</label>
+                        <input type="date" id="contract_end_date" name="end_date" required>
+                    </div>
+                </div>
+                
+                
                 <div class="modal-footer">
                     <button type="button" class="btn-secondary" onclick="closeModal()">
                         <?php echo $t_common['cancel'] ?? 'Cancel'; ?>

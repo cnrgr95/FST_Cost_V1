@@ -79,8 +79,8 @@
         const tbody = document.getElementById('contractsTableBody');
         tbody.innerHTML = '';
         
-        if (filteredContracts.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; padding: 20px;">No contracts found</td></tr>';
+            if (filteredContracts.length === 0) {
+            tbody.innerHTML = `<tr><td colspan="7" style="text-align: center; padding: 20px;">${tContracts.no_contracts || 'No contracts found'}</td></tr>`;
             return;
         }
         
@@ -94,7 +94,7 @@
                 <td>${contract.start_date || '-'}</td>
                 <td>${contract.end_date || '-'}</td>
                 <td>
-                    <button class="btn-icon btn-info" onclick="showContractSummary(${contract.id})" title="${tContracts.summary || 'Kontrat Özeti'}">
+                    <button class="btn-icon btn-info" onclick="showContractSummary(${contract.id})" title="${tContracts.summary || 'Contract Summary'}">
                         <span class="material-symbols-rounded">info</span>
                     </button>
                     <button class="btn-icon" onclick="editContract(${contract.id})" title="Edit">
@@ -150,7 +150,7 @@
             if (subRegionId) {
                 loadMerchants(subRegionId);
             } else {
-                document.getElementById('merchant_id').innerHTML = '<option value="">Select sub region first</option>';
+                document.getElementById('merchant_id').innerHTML = `<option value="">${tCommon.select_sub_region_first || 'Please select sub region first'}</option>`;
                 clearMerchantData();
             }
         });
@@ -162,7 +162,7 @@
                 loadTours(merchantId);
                 fillMerchantData(merchantId);
             } else {
-                document.getElementById('tour_id').innerHTML = '<option value="">Select merchant first</option>';
+                document.getElementById('tour_id').innerHTML = `<option value="">${tCommon.select_merchant_first || 'Please select merchant first'}</option>`;
                 clearMerchantData();
             }
         });
@@ -286,7 +286,7 @@
                 if (data.success) {
                     subRegions = data.data;
                     const select = document.getElementById('sub_region_id');
-                    select.innerHTML = '<option value="">Select...</option>';
+                    select.innerHTML = `<option value="">${tCommon.select || 'Select...'}</option>`;
                     data.data.forEach(subRegion => {
                         const option = document.createElement('option');
                         option.value = subRegion.id;
@@ -330,7 +330,7 @@
         currencySelects.forEach(selectId => {
             const select = document.getElementById(selectId);
             if (select) {
-                select.innerHTML = '<option value="">Select...</option>';
+                    select.innerHTML = `<option value="">${tCommon.select || 'Select...'}</option>`;
                 currencies.forEach(currency => {
                     const option = document.createElement('option');
                     option.value = currency.code;
@@ -343,7 +343,7 @@
         // Populate transfer currency dropdowns
         const transferCurrencySelect = document.getElementById('transfer_currency');
         if (transferCurrencySelect) {
-            transferCurrencySelect.innerHTML = '<option value="">Select...</option>';
+            transferCurrencySelect.innerHTML = `<option value="">${tCommon.select || 'Select...'}</option>`;
             currencies.forEach(currency => {
                 const option = document.createElement('option');
                 option.value = currency.code;
@@ -354,7 +354,7 @@
         
         const transferCurrencyFixedSelect = document.getElementById('transfer_currency_fixed');
         if (transferCurrencyFixedSelect) {
-            transferCurrencyFixedSelect.innerHTML = '<option value="">Select...</option>';
+            transferCurrencyFixedSelect.innerHTML = `<option value="">${tCommon.select || 'Select...'}</option>`;
             currencies.forEach(currency => {
                 const option = document.createElement('option');
                 option.value = currency.code;
@@ -371,7 +371,7 @@
                 if (data.success) {
                     merchants = data.data;
                     const select = document.getElementById('merchant_id');
-                    select.innerHTML = '<option value="">Select...</option>';
+                    select.innerHTML = `<option value="">${tCommon.select || 'Select...'}</option>`;
                     data.data.forEach(merchant => {
                         const option = document.createElement('option');
                         option.value = merchant.id;
@@ -395,7 +395,7 @@
                 if (data.success) {
                     tours = data.data;
                     const select = document.getElementById('tour_id');
-                    select.innerHTML = '<option value="">Select...</option>';
+                    select.innerHTML = `<option value="">${tCommon.select || 'Select...'}</option>`;
                     data.data.forEach(tour => {
                         const option = document.createElement('option');
                         option.value = tour.id;
@@ -458,15 +458,15 @@
                 </div>
                 <div class="regional-price-row">
                     <div class="regional-price-field">
-                        <label>${tContracts.adult_price || 'Yetişkin Fiyat'}</label>
+                        <label>${tContracts.adult_price || 'Adult Price'}</label>
                         <input type="number" class="adult-price-input" step="0.01" min="0" placeholder="0.00">
                     </div>
                     <div class="regional-price-field">
-                        <label>${tContracts.child_price || 'Çocuk Fiyat'}</label>
+                        <label>${tContracts.child_price || 'Child Price'}</label>
                         <input type="number" class="child-price-input" step="0.01" min="0" placeholder="0.00">
                     </div>
                     <div class="regional-price-field">
-                        <label>${tContracts.infant_price || 'Bebek Fiyat'}</label>
+                        <label>${tContracts.infant_price || 'Infant Price'}</label>
                         <input type="number" class="infant-price-input" step="0.01" min="0" placeholder="0.00">
                     </div>
                 </div>
@@ -526,7 +526,7 @@
         
         if (contracts.length === 0) {
             const emptyRow = document.createElement('tr');
-            emptyRow.innerHTML = '<td colspan="7" style="text-align: center; padding: 20px;">No contracts found</td>';
+            emptyRow.innerHTML = `<td colspan="7" style="text-align: center; padding: 20px;">${tContracts.no_contracts || 'No contracts found'}</td>`;
             tbody.appendChild(emptyRow);
             return;
         }
@@ -557,7 +557,7 @@
             
             const infoBtn = document.createElement('button');
             infoBtn.className = 'btn-icon btn-info';
-            infoBtn.title = tContracts.summary || 'Kontrat Özeti';
+            infoBtn.title = tContracts.summary || 'Contract Summary';
             infoBtn.onclick = () => showContractSummary(contract.id);
             infoBtn.innerHTML = '<span class="material-symbols-rounded">info</span>';
             actionsCell.appendChild(infoBtn);
@@ -656,10 +656,10 @@
         
         // Set title
         if (contractId) {
-            title.textContent = (tCommon.edit || 'Edit') + ' ' + (tSidebar.contracts || 'Contract');
+            title.textContent = (tCommon.edit || 'Edit') + ' ' + (tSidebar.contract || 'Contract');
             loadContractData(contractId);
         } else {
-            title.textContent = (tCommon.add || 'Add') + ' ' + (tSidebar.contracts || 'Contract');
+            title.textContent = (tCommon.add || 'Add') + ' ' + (tSidebar.contract || 'Contract');
         }
         
         // Show modal using common.js function or fallback
@@ -982,7 +982,7 @@
     window.showContractSummary = function(id) {
         const contract = contracts.find(c => c.id == id);
         if (!contract) {
-            showToast('error', 'Kontrat bulunamadı');
+                showToast('error', tContracts.no_contracts || 'Contract not found');
             return;
         }
         
@@ -994,7 +994,7 @@
         if (contract.transfer_owner) {
             const owners = contract.transfer_owner.split(',');
             const ownerNames = owners.map(owner => {
-                return owner === 'agency' ? (tContracts.agency || 'Acente') : (tContracts.supplier || 'Supplier');
+                return owner === 'agency' ? (tContracts.agency || 'Agency') : (tContracts.supplier || 'Supplier');
             });
             transferOwnerText = ownerNames.join(', ');
         }
@@ -1002,7 +1002,7 @@
         // Format transfer price
         let transferPriceText = '-';
         if (contract.transfer_price_type === 'per_person') {
-            transferPriceText = `${contract.transfer_price || '0'} ${contract.transfer_currency || ''} (${tContracts.per_person || 'Kişi Başı'})`;
+            transferPriceText = `${contract.transfer_price || '0'} ${contract.transfer_currency || ''} (${tContracts.per_person || 'Per Person'})`;
         } else if (contract.transfer_price_type === 'fixed') {
             const prices = [];
             if (contract.transfer_price_mini) prices.push(`Mini: ${contract.transfer_price_mini}`);
@@ -1013,15 +1013,15 @@
         
         // Format VAT info
         const vatText = contract.vat_included === 't' || contract.vat_included === true ? 
-            (tContracts.vat_included_included || 'KDV Dahil') : 
+            (tContracts.vat_included_included || 'VAT Included') : 
             contract.vat_rate ? 
-                `${tContracts.vat_included_excluded || 'KDV Hariç'} (${contract.vat_rate}%)` : 
-                (tContracts.vat_included_included || 'KDV Dahil');
+                `${tContracts.vat_included_excluded || 'VAT Excluded'} (${contract.vat_rate}%)` : 
+                (tContracts.vat_included_included || 'VAT Included');
         
         // Format kickback calculation
         const kickbackCalcText = contract.kickback_per_person === 't' || contract.kickback_per_person === true ? 
-            (tContracts.per_person || 'Kişi Başı') : 
-            (tContracts.over_revenue || 'Ciro Üzerinden');
+            (tContracts.per_person || 'Per Person') : 
+            (tContracts.over_revenue || 'Over Revenue');
         
         // Format pricing info as table
         let pricingHTML = '';
@@ -1030,29 +1030,29 @@
                 <table class="pricing-table">
                     <thead>
                         <tr>
-                            <th>${tContracts.age_type || 'Yaş Tipi'}</th>
-                            <th>${tContracts.price || 'Fiyat'}</th>
-                            <th>${tContracts.currency || 'Döviz'}</th>
+                            <th>${tContracts.age_type || 'Age Type'}</th>
+                            <th>${tContracts.price || 'Price'}</th>
+                            <th>${tContracts.currency || 'Currency'}</th>
                         </tr>
                     </thead>
                     <tbody>
                         ${contract.fixed_adult_price ? `
                         <tr>
-                            <td>${tContracts.adult || 'Yetişkin'}</td>
+                            <td>${tContracts.adult || 'Adult'}</td>
                             <td>${contract.fixed_adult_price}</td>
                             <td>${contract.contract_currency || 'USD'}</td>
                         </tr>
                         ` : ''}
                         ${contract.fixed_child_price ? `
                         <tr>
-                            <td>${tContracts.child || 'Çocuk'}</td>
+                            <td>${tContracts.child || 'Child'}</td>
                             <td>${contract.fixed_child_price}</td>
                             <td>${contract.contract_currency || 'USD'}</td>
                         </tr>
                         ` : ''}
                         ${contract.fixed_infant_price ? `
                         <tr>
-                            <td>${tContracts.infant || 'Bebek'}</td>
+                            <td>${tContracts.infant || 'Infant'}</td>
                             <td>${contract.fixed_infant_price}</td>
                             <td>${contract.contract_currency || 'USD'}</td>
                         </tr>
@@ -1070,11 +1070,11 @@
                 <table class="pricing-table">
                     <thead>
                         <tr>
-                            <th>${tContracts.sub_region || 'Bölge'}</th>
-                            <th>${tContracts.adult || 'Yetişkin'}</th>
-                            <th>${tContracts.child || 'Çocuk'}</th>
-                            <th>${tContracts.infant || 'Bebek'}</th>
-                            <th>${tContracts.currency || 'Döviz'}</th>
+                            <th>${tContracts.sub_region || 'Sub Region'}</th>
+                            <th>${tContracts.adult || 'Adult'}</th>
+                            <th>${tContracts.child || 'Child'}</th>
+                            <th>${tContracts.infant || 'Infant'}</th>
+                            <th>${tContracts.currency || 'Currency'}</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -1094,128 +1094,135 @@
             pricingHTML = '<div>-</div>';
         }
         
+        // XSS protection helper
+        const escapeHtml = (text) => {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        };
+        
         const summaryHTML = `
             <div class="contract-summary">
                 <div class="summary-section">
-                    <h3>${tContracts.basic_info || 'Temel Bilgiler'}</h3>
+                    <h3>${escapeHtml(tContracts.basic_info || 'Basic Information')}</h3>
                     <div class="summary-row">
-                        <span class="summary-label">${tContracts.sub_region || 'Bölge'}:</span>
-                        <span class="summary-value">${contract.sub_region_name || '-'}</span>
+                        <span class="summary-label">${escapeHtml(tContracts.sub_region || 'Sub Region')}:</span>
+                        <span class="summary-value">${escapeHtml(contract.sub_region_name || '-')}</span>
                     </div>
                     <div class="summary-row">
-                        <span class="summary-label">${tContracts.merchant || 'Firma'}:</span>
-                        <span class="summary-value">${contract.merchant_name || '-'}</span>
+                        <span class="summary-label">${escapeHtml(tContracts.merchant || 'Merchant')}:</span>
+                        <span class="summary-value">${escapeHtml(contract.merchant_name || '-')}</span>
                     </div>
                     <div class="summary-row">
-                        <span class="summary-label">${tContracts.merchant_official_title || 'Resmi Ünvan'}:</span>
-                        <span class="summary-value">${contract.merchant_official_title || contract.official_title || '-'}</span>
+                        <span class="summary-label">${escapeHtml(tContracts.merchant_official_title || 'Official Title')}:</span>
+                        <span class="summary-value">${escapeHtml(contract.merchant_official_title || contract.official_title || '-')}</span>
                     </div>
                     <div class="summary-row">
-                        <span class="summary-label">${tContracts.authorized_person || 'Yetkili Kişi'}:</span>
-                        <span class="summary-value">${contract.authorized_person || contract.merchant_authorized_person || '-'}</span>
+                        <span class="summary-label">${escapeHtml(tContracts.authorized_person || 'Authorized Person')}:</span>
+                        <span class="summary-value">${escapeHtml(contract.authorized_person || contract.merchant_authorized_person || '-')}</span>
                     </div>
                     <div class="summary-row">
-                        <span class="summary-label">${tContracts.authorized_email || 'Yetkili E-Posta'}:</span>
-                        <span class="summary-value">${contract.authorized_email || contract.merchant_authorized_email || '-'}</span>
+                        <span class="summary-label">${escapeHtml(tContracts.authorized_email || 'Authorized Email')}:</span>
+                        <span class="summary-value">${escapeHtml(contract.authorized_email || contract.merchant_authorized_email || '-')}</span>
                     </div>
                     <div class="summary-row">
-                        <span class="summary-label">${tContracts.tour || 'Tur'}:</span>
-                        <span class="summary-value">${contract.tour_name || '-'}</span>
+                        <span class="summary-label">${escapeHtml(tContracts.tour || 'Tour')}:</span>
+                        <span class="summary-value">${escapeHtml(contract.tour_name || '-')}</span>
                     </div>
                     <div class="summary-row">
-                        <span class="summary-label">${tContracts.start_date || 'Başlangıç Tarihi'}:</span>
-                        <span class="summary-value">${contract.start_date || '-'}</span>
+                        <span class="summary-label">${escapeHtml(tContracts.start_date || 'Start Date')}:</span>
+                        <span class="summary-value">${escapeHtml(contract.start_date || '-')}</span>
                     </div>
                     <div class="summary-row">
-                        <span class="summary-label">${tContracts.end_date || 'Bitiş Tarihi'}:</span>
-                        <span class="summary-value">${contract.end_date || '-'}</span>
-                    </div>
-                </div>
-                
-                <div class="summary-section">
-                    <h3>${tContracts.contract_dates_vat || 'KDV Bilgileri'}</h3>
-                    <div class="summary-row">
-                        <span class="summary-label">${tContracts.vat_included || 'KDV Durumu'}:</span>
-                        <span class="summary-value">${vatText}</span>
-                    </div>
-                    <div class="summary-row">
-                        <span class="summary-label">${tContracts.vat_rate || 'KDV Oranı'}:</span>
-                        <span class="summary-value">${contract.vat_rate ? `${contract.vat_rate}%` : '-'}</span>
+                        <span class="summary-label">${escapeHtml(tContracts.end_date || 'End Date')}:</span>
+                        <span class="summary-value">${escapeHtml(contract.end_date || '-')}</span>
                     </div>
                 </div>
                 
                 <div class="summary-section">
-                    <h3>${tContracts.age_currency || 'Yaş Bilgileri'}</h3>
+                    <h3>${escapeHtml(tContracts.contract_dates_vat || 'Contract Dates & VAT')}</h3>
                     <div class="summary-row">
-                        <span class="summary-label">${tContracts.adult_age || 'Yetişkin Yaş'}:</span>
-                        <span class="summary-value">${contract.adult_age || '-'}</span>
+                        <span class="summary-label">${escapeHtml(tContracts.vat_included || 'VAT Status')}:</span>
+                        <span class="summary-value">${escapeHtml(vatText)}</span>
                     </div>
                     <div class="summary-row">
-                        <span class="summary-label">${tContracts.child_age || 'Çocuk Yaş'}:</span>
-                        <span class="summary-value">${contract.child_age_range || '-'}</span>
-                    </div>
-                    <div class="summary-row">
-                        <span class="summary-label">${tContracts.infant_age || 'Bebek Yaş'}:</span>
-                        <span class="summary-value">${contract.infant_age_range || '-'}</span>
-                    </div>
-                    <div class="summary-row">
-                        <span class="summary-label">${tContracts.currency || 'Döviz'}:</span>
-                        <span class="summary-value">${contract.contract_currency || 'USD'}</span>
+                        <span class="summary-label">${escapeHtml(tContracts.vat_rate || 'VAT Rate')}:</span>
+                        <span class="summary-value">${contract.vat_rate ? escapeHtml(`${contract.vat_rate}%`) : '-'}</span>
                     </div>
                 </div>
                 
                 <div class="summary-section">
-                    <h3>${tContracts.pricing || 'Fiyatlandırma'}</h3>
+                    <h3>${escapeHtml(tContracts.age_currency || 'Age Information')}</h3>
                     <div class="summary-row">
-                        <span class="summary-label">${tContracts.price_type || 'Fiyat Tipi'}:</span>
-                        <span class="summary-value">${contract.price_type === 'fixed' ? (tContracts.fixed_price || 'Sabit Fiyat') : (tContracts.regional_price || 'Bölge Bazlı')}</span>
+                        <span class="summary-label">${escapeHtml(tContracts.adult_age || 'Adult Age')}:</span>
+                        <span class="summary-value">${escapeHtml(contract.adult_age || '-')}</span>
+                    </div>
+                    <div class="summary-row">
+                        <span class="summary-label">${escapeHtml(tContracts.child_age || 'Child Age')}:</span>
+                        <span class="summary-value">${escapeHtml(contract.child_age_range || '-')}</span>
+                    </div>
+                    <div class="summary-row">
+                        <span class="summary-label">${escapeHtml(tContracts.infant_age || 'Infant Age')}:</span>
+                        <span class="summary-value">${escapeHtml(contract.infant_age_range || '-')}</span>
+                    </div>
+                    <div class="summary-row">
+                        <span class="summary-label">${escapeHtml(tContracts.currency || 'Currency')}:</span>
+                        <span class="summary-value">${escapeHtml(contract.contract_currency || 'USD')}</span>
+                    </div>
+                </div>
+                
+                <div class="summary-section">
+                    <h3>${escapeHtml(tContracts.pricing || 'Pricing')}</h3>
+                    <div class="summary-row">
+                        <span class="summary-label">${escapeHtml(tContracts.price_type || 'Price Type')}:</span>
+                        <span class="summary-value">${escapeHtml(contract.price_type === 'fixed' ? (tContracts.fixed_price || 'Fixed Price') : (tContracts.regional_price || 'Regional Price'))}</span>
                     </div>
                     <div class="summary-row" style="flex-direction: column; align-items: flex-start;">
-                        <span class="summary-label" style="margin-bottom: 8px;">${tContracts.pricing || 'Fiyatlar'}:</span>
+                        <span class="summary-label" style="margin-bottom: 8px;">${escapeHtml(tContracts.pricing || 'Prices')}:</span>
                         <div style="width: 100%; overflow-x: auto;">${pricingHTML}</div>
                     </div>
                 </div>
                 
                 <div class="summary-section">
-                    <h3>${tContracts.transfer || 'Transfer Bilgileri'}</h3>
+                    <h3>${escapeHtml(tContracts.transfer || 'Transfer Information')}</h3>
                     <div class="summary-row">
-                        <span class="summary-label">${tContracts.transfer_owner || 'Transfer Kimde'}:</span>
-                        <span class="summary-value">${transferOwnerText}</span>
+                        <span class="summary-label">${escapeHtml(tContracts.transfer_owner || 'Transfer Owner')}:</span>
+                        <span class="summary-value">${escapeHtml(transferOwnerText)}</span>
                     </div>
                     <div class="summary-row">
-                        <span class="summary-label">${tContracts.transfer_price_type || 'Transfer Fiyat Tipi'}:</span>
-                        <span class="summary-value">${contract.transfer_price_type === 'per_person' ? (tContracts.per_person || 'Kişi Başı') : contract.transfer_price_type === 'fixed' ? (tContracts.fixed_amount || 'Sabit Fiyat') : '-'}</span>
+                        <span class="summary-label">${escapeHtml(tContracts.transfer_price_type || 'Transfer Price Type')}:</span>
+                        <span class="summary-value">${escapeHtml(contract.transfer_price_type === 'per_person' ? (tContracts.per_person || 'Per Person') : contract.transfer_price_type === 'fixed' ? (tContracts.fixed_amount || 'Fixed Price') : '-')}</span>
                     </div>
                     <div class="summary-row">
-                        <span class="summary-label">${tContracts.transfer_price || 'Transfer Fiyatı'}:</span>
-                        <span class="summary-value">${transferPriceText}</span>
-                    </div>
-                </div>
-                
-                <div class="summary-section">
-                    <h3>${tContracts.kickback || 'Kickback Bilgileri'}</h3>
-                    <div class="summary-row">
-                        <span class="summary-label">${tContracts.kickback_type || 'Kickback Tipi'}:</span>
-                        <span class="summary-value">${contract.kickback_type === 'fixed' ? (tContracts.fixed_amount || 'Sabit Tutar') : contract.kickback_type === 'percentage' ? (tContracts.percentage || 'Yüzde') : '-'}</span>
-                    </div>
-                    <div class="summary-row">
-                        <span class="summary-label">${tContracts.kickback_value || 'Kickback Değeri'}:</span>
-                        <span class="summary-value">${contract.kickback_value ? `${contract.kickback_value} ${contract.kickback_currency || ''}` : '-'}</span>
-                    </div>
-                    <div class="summary-row">
-                        <span class="summary-label">${tContracts.kickback_calculation || 'Hesaplama Tipi'}:</span>
-                        <span class="summary-value">${contract.kickback_type ? kickbackCalcText : '-'}</span>
-                    </div>
-                    <div class="summary-row">
-                        <span class="summary-label">${tContracts.min_persons || 'Minimum Kişi'}:</span>
-                        <span class="summary-value">${contract.kickback_min_persons || '-'}</span>
+                        <span class="summary-label">${escapeHtml(tContracts.transfer_price || 'Transfer Price')}:</span>
+                        <span class="summary-value">${escapeHtml(transferPriceText)}</span>
                     </div>
                 </div>
                 
                 <div class="summary-section">
-                    <h3>${tContracts.included_content || 'Dahil Edilenler'}</h3>
+                    <h3>${escapeHtml(tContracts.kickback || 'Kickback Information')}</h3>
                     <div class="summary-row">
-                        <span class="summary-value" style="text-align: left; max-width: 100%; white-space: pre-wrap;">${contract.included_content || '-'}</span>
+                        <span class="summary-label">${escapeHtml(tContracts.kickback_type || 'Kickback Type')}:</span>
+                        <span class="summary-value">${escapeHtml(contract.kickback_type === 'fixed' ? (tContracts.fixed_amount || 'Fixed Amount') : contract.kickback_type === 'percentage' ? (tContracts.percentage || 'Percentage') : '-')}</span>
+                    </div>
+                    <div class="summary-row">
+                        <span class="summary-label">${escapeHtml(tContracts.kickback_value || 'Kickback Value')}:</span>
+                        <span class="summary-value">${contract.kickback_value ? escapeHtml(`${contract.kickback_value} ${contract.kickback_currency || ''}`) : '-'}</span>
+                    </div>
+                    <div class="summary-row">
+                        <span class="summary-label">${escapeHtml(tContracts.kickback_calculation || 'Calculation Type')}:</span>
+                        <span class="summary-value">${escapeHtml(contract.kickback_type ? kickbackCalcText : '-')}</span>
+                    </div>
+                    <div class="summary-row">
+                        <span class="summary-label">${escapeHtml(tContracts.min_persons || 'Minimum Persons')}:</span>
+                        <span class="summary-value">${escapeHtml(contract.kickback_min_persons || '-')}</span>
+                    </div>
+                </div>
+                
+                <div class="summary-section">
+                    <h3>${escapeHtml(tContracts.included_content || 'Included Content')}</h3>
+                    <div class="summary-row">
+                        <span class="summary-value" style="text-align: left; max-width: 100%; white-space: pre-wrap;">${escapeHtml(contract.included_content || '-')}</span>
                     </div>
                 </div>
             </div>
