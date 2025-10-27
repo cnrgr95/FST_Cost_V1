@@ -123,50 +123,65 @@
         }
         
         addBtn.addEventListener('click', () => openModal());
-        if (closeBtn) closeBtn.addEventListener('click', () => closeModal());
-        if (cancelBtn) cancelBtn.addEventListener('click', () => closeModal());
+        if (closeBtn) closeBtn.addEventListener('click', () => closeContractModal());
+        if (cancelBtn) cancelBtn.addEventListener('click', () => closeContractModal());
         
         // Form submission
         form.addEventListener('submit', handleSubmit);
         
         // VAT included change
-        document.getElementById('vat_included').addEventListener('change', function() {
-            const vatRateInput = document.getElementById('vat_rate');
-            const vatRateLabel = document.getElementById('vat_rate_label');
-            if (this.value === 'excluded') {
-                vatRateInput.disabled = false;
-                vatRateInput.style.opacity = '1';
-                vatRateLabel.style.opacity = '1';
-            } else {
-                vatRateInput.disabled = true;
-                vatRateInput.style.opacity = '0.5';
-                vatRateLabel.style.opacity = '0.5';
-                vatRateInput.value = '';
-            }
-        });
+        const vatIncludedEl = document.getElementById('vat_included');
+        if (vatIncludedEl) {
+            vatIncludedEl.addEventListener('change', function() {
+                const vatRateInput = document.getElementById('vat_rate');
+                const vatRateLabel = document.getElementById('vat_rate_label');
+                if (this.value === 'excluded') {
+                    if (vatRateInput) vatRateInput.disabled = false;
+                    if (vatRateInput) vatRateInput.style.opacity = '1';
+                    if (vatRateLabel) vatRateLabel.style.opacity = '1';
+                } else {
+                    if (vatRateInput) vatRateInput.disabled = true;
+                    if (vatRateInput) vatRateInput.style.opacity = '0.5';
+                    if (vatRateLabel) vatRateLabel.style.opacity = '0.5';
+                    if (vatRateInput) vatRateInput.value = '';
+                }
+            });
+        }
         
         // Sub region change - load merchants
-        document.getElementById('sub_region_id').addEventListener('change', function() {
-            const subRegionId = this.value;
-            if (subRegionId) {
-                loadMerchants(subRegionId);
-            } else {
-                document.getElementById('merchant_id').innerHTML = `<option value="">${tCommon.select_sub_region_first || 'Please select sub region first'}</option>`;
-                clearMerchantData();
-            }
-        });
+        const subRegionId = document.getElementById('sub_region_id');
+        if (subRegionId) {
+            subRegionId.addEventListener('change', function() {
+                const subRegionId = this.value;
+                if (subRegionId) {
+                    loadMerchants(subRegionId);
+                } else {
+                    const merchantIdSelect = document.getElementById('merchant_id');
+                    if (merchantIdSelect) {
+                        merchantIdSelect.innerHTML = `<option value="">${tCommon.select_sub_region_first || 'Please select sub region first'}</option>`;
+                    }
+                    clearMerchantData();
+                }
+            });
+        }
         
         // Merchant change - load tours and fill merchant data
-        document.getElementById('merchant_id').addEventListener('change', function() {
-            const merchantId = this.value;
-            if (merchantId) {
-                loadTours(merchantId);
-                fillMerchantData(merchantId);
-            } else {
-                document.getElementById('tour_id').innerHTML = `<option value="">${tCommon.select_merchant_first || 'Please select merchant first'}</option>`;
-                clearMerchantData();
-            }
-        });
+        const merchantId = document.getElementById('merchant_id');
+        if (merchantId) {
+            merchantId.addEventListener('change', function() {
+                const merchantId = this.value;
+                if (merchantId) {
+                    loadTours(merchantId);
+                    fillMerchantData(merchantId);
+                } else {
+                    const tourIdSelect = document.getElementById('tour_id');
+                    if (tourIdSelect) {
+                        tourIdSelect.innerHTML = `<option value="">${tCommon.select_merchant_first || 'Please select merchant first'}</option>`;
+                    }
+                    clearMerchantData();
+                }
+            });
+        }
         
         // Transfer owner checkbox change - show/hide transfer fields
         const transferOwnerAgency = document.getElementById('transfer_owner_agency');
@@ -205,80 +220,683 @@
         if (transferOwnerSupplier) transferOwnerSupplier.addEventListener('change', updateTransferOwner);
         
         // Transfer price type change - show/hide price field
-        document.getElementById('transfer_price_type').addEventListener('change', function() {
-            const priceType = this.value;
-            const perPersonGroup = document.getElementById('transfer_per_person_price_group');
-            const fixedPricesGroup = document.getElementById('transfer_fixed_prices_group');
-            
-            if (priceType === 'per_person') {
-                if (perPersonGroup) perPersonGroup.style.display = 'flex';
-                if (fixedPricesGroup) fixedPricesGroup.style.display = 'none';
-            } else if (priceType === 'fixed') {
-                if (perPersonGroup) perPersonGroup.style.display = 'none';
-                if (fixedPricesGroup) fixedPricesGroup.style.display = 'block';
-            } else {
-                if (perPersonGroup) perPersonGroup.style.display = 'none';
-                if (fixedPricesGroup) fixedPricesGroup.style.display = 'none';
-            }
-        });
+        const transferPriceType = document.getElementById('transfer_price_type');
+        if (transferPriceType) {
+            transferPriceType.addEventListener('change', function() {
+                const priceType = this.value;
+                const perPersonGroup = document.getElementById('transfer_per_person_price_group');
+                const fixedPricesGroup = document.getElementById('transfer_fixed_prices_group');
+                
+                if (priceType === 'per_person') {
+                    if (perPersonGroup) perPersonGroup.style.display = 'flex';
+                    if (fixedPricesGroup) fixedPricesGroup.style.display = 'none';
+                } else if (priceType === 'fixed') {
+                    if (perPersonGroup) perPersonGroup.style.display = 'none';
+                    if (fixedPricesGroup) fixedPricesGroup.style.display = 'block';
+                } else {
+                    if (perPersonGroup) perPersonGroup.style.display = 'none';
+                    if (fixedPricesGroup) fixedPricesGroup.style.display = 'none';
+                }
+            });
+        }
         
         // Tour change - load tour regions and show price sections
-        document.getElementById('tour_id').addEventListener('change', function() {
-            const tourId = this.value;
-            if (tourId) {
-                loadTourRegions(tourId);
-                document.getElementById('pricing_section').style.display = 'block';
-                document.getElementById('price_type_section').style.display = 'block';
-                document.getElementById('age_currency_section').style.display = 'block';
-            } else {
-                hideRegionalPrices();
-                document.getElementById('pricing_section').style.display = 'none';
-                document.getElementById('price_type_section').style.display = 'none';
-                document.getElementById('age_currency_section').style.display = 'none';
-                document.getElementById('fixed_price_section').style.display = 'none';
-            }
-        });
+        const tourIdSelect = document.getElementById('tour_id');
+        if (tourIdSelect) {
+            tourIdSelect.addEventListener('change', function() {
+                const tourId = this.value;
+                if (tourId) {
+                    loadTourRegions(tourId);
+                    // Show price periods section when tour is selected
+                    const pricePeriodsSection = document.getElementById('price_periods_section');
+                    if (pricePeriodsSection) pricePeriodsSection.style.display = 'block';
+                } else {
+                    hideRegionalPrices();
+                    const pricePeriodsSection = document.getElementById('price_periods_section');
+                    if (pricePeriodsSection) pricePeriodsSection.style.display = 'none';
+                }
+            });
+        }
         
-        // Price type change - show regional or fixed prices
+        // Price type change - show regional or fixed prices (for price period modal)
         document.addEventListener('change', function(e) {
             if (e.target.name === 'price_type') {
+                const regionalPricesSection = document.getElementById('regional_prices_section');
+                const fixedPriceSection = document.getElementById('fixed_price_section');
+                const periodRegionalPricesSection = document.getElementById('period_regional_prices_section');
+                const periodFixedPriceSection = document.getElementById('period_fixed_price_section');
+                
                 if (e.target.value === 'regional') {
-                    document.getElementById('regional_prices_section').style.display = 'block';
-                    document.getElementById('fixed_price_section').style.display = 'none';
+                    if (regionalPricesSection) regionalPricesSection.style.display = 'block';
+                    if (fixedPriceSection) fixedPriceSection.style.display = 'none';
+                    if (periodRegionalPricesSection) periodRegionalPricesSection.style.display = 'block';
+                    if (periodFixedPriceSection) periodFixedPriceSection.style.display = 'none';
                     // Render regional prices if tour regions are loaded
                     if (tourRegions && tourRegions.length > 0) {
-                        renderRegionalPrices();
+                        renderRegionalPricesForPeriod();
                     }
                 } else {
-                    document.getElementById('regional_prices_section').style.display = 'none';
-                    document.getElementById('fixed_price_section').style.display = 'block';
+                    if (regionalPricesSection) regionalPricesSection.style.display = 'none';
+                    if (fixedPriceSection) fixedPriceSection.style.display = 'block';
+                    if (periodRegionalPricesSection) periodRegionalPricesSection.style.display = 'none';
+                    if (periodFixedPriceSection) periodFixedPriceSection.style.display = 'block';
                 }
             }
         });
         
         // Kickback type change - show currency if fixed
-        document.getElementById('kickback_type').addEventListener('change', function() {
-            const currencySelect = document.getElementById('kickback_currency');
-            const currencyLabel = document.getElementById('kickback_currency_label');
-            if (this.value === 'fixed') {
-                currencySelect.disabled = false;
-                currencySelect.style.opacity = '1';
-                currencyLabel.style.opacity = '1';
-            } else {
-                currencySelect.disabled = true;
-                currencySelect.style.opacity = '0.5';
-                currencyLabel.style.opacity = '0.5';
-                currencySelect.value = '';
-            }
-        });
+        const kickbackType = document.getElementById('kickback_type');
+        if (kickbackType) {
+            kickbackType.addEventListener('change', function() {
+                const currencySelect = document.getElementById('kickback_currency');
+                const currencyLabel = document.getElementById('kickback_currency_label');
+                if (this.value === 'fixed') {
+                    if (currencySelect) currencySelect.disabled = false;
+                    if (currencySelect) currencySelect.style.opacity = '1';
+                    if (currencyLabel) currencyLabel.style.opacity = '1';
+                } else {
+                    if (currencySelect) currencySelect.disabled = true;
+                    if (currencySelect) currencySelect.style.opacity = '0.5';
+                    if (currencyLabel) currencyLabel.style.opacity = '0.5';
+                    if (currencySelect) currencySelect.value = '';
+                }
+            });
+        }
         
         // Close modal when clicking outside
-        document.getElementById('contractModal').addEventListener('click', function(e) {
-            if (e.target === this) {
-                closeModal();
+        const contractModal = document.getElementById('contractModal');
+        if (contractModal) {
+            contractModal.addEventListener('click', function(e) {
+                if (e.target === this) {
+                    closeContractModal();
+                }
+            });
+        }
+        
+    // Tab switching
+    document.querySelectorAll('.contract-form-tab').forEach(tab => {
+        tab.addEventListener('click', function() {
+            const tabName = this.getAttribute('data-tab');
+            
+            // Remove active class from all tabs
+            document.querySelectorAll('.contract-form-tab').forEach(t => t.classList.remove('active'));
+            // Add active class to clicked tab
+            this.classList.add('active');
+            
+            // Hide all tab contents
+            document.querySelectorAll('.contract-form-content').forEach(c => c.classList.remove('active'));
+            // Show selected tab content
+            document.getElementById(`${tabName}-tab`).classList.add('active');
+        });
+    });
+    
+    // Period type change - show/hide period fields
+    const periodTypeSelect = document.getElementById('period_type');
+    const periodTypeAdvSelect = document.getElementById('period_type_adv');
+    
+    if (periodTypeSelect) {
+        periodTypeSelect.addEventListener('change', function() {
+            const periodType = this.value;
+            const periodValueGroup = document.getElementById('period_value_group');
+            const periodUnitGroup = document.getElementById('period_unit_group');
+            
+            if (periodType === 'custom') {
+                if (periodValueGroup) periodValueGroup.style.display = 'flex';
+                if (periodUnitGroup) periodUnitGroup.style.display = 'flex';
+            } else {
+                if (periodValueGroup) periodValueGroup.style.display = 'none';
+                if (periodUnitGroup) periodUnitGroup.style.display = 'none';
             }
         });
     }
+    
+    // Kickback period type change
+    const kickbackPeriodTypeSelect = document.getElementById('kickback_period_type');
+    if (kickbackPeriodTypeSelect) {
+        kickbackPeriodTypeSelect.addEventListener('change', function() {
+            const periodType = this.value;
+            const periodValueGroup = document.getElementById('kickback_period_value_group');
+            const periodUnitGroup = document.getElementById('kickback_period_unit_group');
+            
+            if (periodType === 'custom') {
+                if (periodValueGroup) periodValueGroup.style.display = 'flex';
+                if (periodUnitGroup) periodUnitGroup.style.display = 'flex';
+            } else {
+                if (periodValueGroup) periodValueGroup.style.display = 'none';
+                if (periodUnitGroup) periodUnitGroup.style.display = 'none';
+            }
+        });
+    }
+        
+        // Action duration type change
+        const actionDurationType = document.getElementById('action_duration_type');
+        if (actionDurationType) {
+            actionDurationType.addEventListener('change', function() {
+                const durationType = this.value;
+                const durationDaysGroup = document.getElementById('action_duration_days_group');
+                
+                if (durationType === 'custom') {
+                    if (durationDaysGroup) durationDaysGroup.style.display = 'flex';
+                } else {
+                    if (durationDaysGroup) durationDaysGroup.style.display = 'none';
+                }
+            });
+        }
+        
+        // Add action button
+        const addActionBtnEl = document.getElementById('addActionBtn');
+        if (addActionBtnEl) {
+            addActionBtnEl.addEventListener('click', function() {
+                openActionModal();
+            });
+        }
+        
+        // Action modal controls
+        const closeActionModalBtn = document.getElementById('closeActionModal');
+        if (closeActionModalBtn) {
+            closeActionModalBtn.addEventListener('click', closeActionModal);
+        }
+        
+        const cancelActionBtn = document.getElementById('cancelActionBtn');
+        if (cancelActionBtn) {
+            cancelActionBtn.addEventListener('click', closeActionModal);
+        }
+        
+        const actionForm = document.getElementById('actionForm');
+        if (actionForm) {
+            actionForm.addEventListener('submit', handleActionSubmit);
+        }
+        
+        const actionModal = document.getElementById('actionModal');
+        if (actionModal) {
+            actionModal.addEventListener('click', function(e) {
+                if (e.target === this) {
+                    closeActionModal();
+                }
+            });
+        }
+        
+        // Price period modal controls
+        const addPricePeriodBtn = document.getElementById('addPricePeriodBtn');
+        if (addPricePeriodBtn) {
+            addPricePeriodBtn.addEventListener('click', function() {
+                openPricePeriodModal();
+            });
+        }
+        
+        const closePricePeriodModalBtn = document.getElementById('closePricePeriodModal');
+        if (closePricePeriodModalBtn) {
+            closePricePeriodModalBtn.addEventListener('click', closePricePeriodModal);
+        }
+        
+        const cancelPricePeriodBtn = document.getElementById('cancelPricePeriodBtn');
+        if (cancelPricePeriodBtn) {
+            cancelPricePeriodBtn.addEventListener('click', closePricePeriodModal);
+        }
+        
+        const pricePeriodForm = document.getElementById('pricePeriodForm');
+        if (pricePeriodForm) {
+            pricePeriodForm.addEventListener('submit', handlePricePeriodSubmit);
+        }
+        
+        const pricePeriodModal = document.getElementById('pricePeriodModal');
+        if (pricePeriodModal) {
+            pricePeriodModal.addEventListener('click', function(e) {
+                if (e.target === this) {
+                    closePricePeriodModal();
+                }
+            });
+        }
+        
+        // Kickback period modal controls
+        const addKickbackPeriodBtn = document.getElementById('addKickbackPeriodBtn');
+        if (addKickbackPeriodBtn) {
+            addKickbackPeriodBtn.addEventListener('click', function() {
+                openKickbackPeriodModal(null, currentContractId);
+            });
+        }
+        
+        const closeKickbackPeriodModalBtn = document.getElementById('closeKickbackPeriodModal');
+        if (closeKickbackPeriodModalBtn) {
+            closeKickbackPeriodModalBtn.addEventListener('click', closeKickbackPeriodModal);
+        }
+        
+        const cancelKickbackPeriodBtn = document.getElementById('cancelKickbackPeriodBtn');
+        if (cancelKickbackPeriodBtn) {
+            cancelKickbackPeriodBtn.addEventListener('click', closeKickbackPeriodModal);
+        }
+        
+        const kickbackPeriodForm = document.getElementById('kickbackPeriodForm');
+        if (kickbackPeriodForm) {
+            kickbackPeriodForm.addEventListener('submit', handleKickbackPeriodSubmit);
+        }
+        
+        // Transfer period modal controls
+        const addTransferPeriodBtn = document.getElementById('addTransferPeriodBtn');
+        if (addTransferPeriodBtn) {
+            addTransferPeriodBtn.addEventListener('click', function() {
+                openTransferPeriodModal(null, currentContractId);
+            });
+        }
+        
+        const closeTransferPeriodModalBtn = document.getElementById('closeTransferPeriodModal');
+        if (closeTransferPeriodModalBtn) {
+            closeTransferPeriodModalBtn.addEventListener('click', closeTransferPeriodModal);
+        }
+        
+        const cancelTransferPeriodBtn = document.getElementById('cancelTransferPeriodBtn');
+        if (cancelTransferPeriodBtn) {
+            cancelTransferPeriodBtn.addEventListener('click', closeTransferPeriodModal);
+        }
+        
+        const transferPeriodForm = document.getElementById('transferPeriodForm');
+        if (transferPeriodForm) {
+            transferPeriodForm.addEventListener('submit', handleTransferPeriodSubmit);
+        }
+        
+        // Transfer owner change listener
+        const transferOwnerAgencyRadio = document.getElementById('transfer_period_owner_agency');
+        const transferOwnerSupplierRadio = document.getElementById('transfer_period_owner_supplier');
+        
+        if (transferOwnerAgencyRadio) {
+            transferOwnerAgencyRadio.addEventListener('change', handleTransferOwnerChange);
+        }
+        if (transferOwnerSupplierRadio) {
+            transferOwnerSupplierRadio.addEventListener('change', handleTransferOwnerChange);
+        }
+        
+        // Transfer pricing method change listener
+        const transferPricingFixed = document.getElementById('transfer_pricing_fixed');
+        const transferPricingRegional = document.getElementById('transfer_pricing_regional');
+        const transferPricingGroup = document.getElementById('transfer_pricing_group');
+        
+        if (transferPricingFixed) {
+            transferPricingFixed.addEventListener('change', handleTransferPricingMethodChange);
+        }
+        if (transferPricingRegional) {
+            transferPricingRegional.addEventListener('change', handleTransferPricingMethodChange);
+        }
+        if (transferPricingGroup) {
+            transferPricingGroup.addEventListener('change', handleTransferPricingMethodChange);
+        }
+        
+        // Fixed price type change listener
+        const transferFixedPerPerson = document.getElementById('transfer_fixed_per_person');
+        const transferFixedGroup = document.getElementById('transfer_fixed_group');
+        
+        if (transferFixedPerPerson) {
+            transferFixedPerPerson.addEventListener('change', handleTransferFixedPriceTypeChange);
+        }
+        if (transferFixedGroup) {
+            transferFixedGroup.addEventListener('change', handleTransferFixedPriceTypeChange);
+        }
+        
+        // Add fixed group range button
+        const addTransferFixedGroupRangeBtn = document.getElementById('addTransferFixedGroupRange');
+        if (addTransferFixedGroupRangeBtn) {
+            addTransferFixedGroupRangeBtn.addEventListener('click', addTransferFixedGroupRange);
+        }
+        
+        // Regional price type change listener
+        const transferRegionalPerPerson = document.getElementById('transfer_regional_per_person');
+        const transferRegionalGroup = document.getElementById('transfer_regional_group');
+        
+        if (transferRegionalPerPerson) {
+            transferRegionalPerPerson.addEventListener('change', handleTransferRegionalPriceTypeChange);
+        }
+        if (transferRegionalGroup) {
+            transferRegionalGroup.addEventListener('change', handleTransferRegionalPriceTypeChange);
+        }
+        
+        // Tour departure days checkbox change
+        document.querySelectorAll('.departure-day').forEach(checkbox => {
+            checkbox.addEventListener('change', updateTourDepartureDays);
+        });
+        
+        // Price period departure days checkbox change
+        document.querySelectorAll('.period-departure-day').forEach(checkbox => {
+            checkbox.addEventListener('change', updatePricePeriodDepartureDays);
+        });
+        
+        // Price period price type change (regional/fixed)
+        document.addEventListener('change', function(e) {
+            if (e.target && (e.target.id === 'period_price_type_regional' || e.target.id === 'period_price_type_fixed')) {
+                const periodRegionalPricesSection = document.getElementById('period_regional_prices_section');
+                const periodFixedPriceSection = document.getElementById('period_fixed_price_section');
+                
+                if (e.target.value === 'regional' || e.target.id === 'period_price_type_regional') {
+                    if (periodRegionalPricesSection) periodRegionalPricesSection.style.display = 'block';
+                    if (periodFixedPriceSection) periodFixedPriceSection.style.display = 'none';
+                    // Render regional prices if tour regions are loaded
+                    if (tourRegions && tourRegions.length > 0) {
+                        renderRegionalPricesForPeriod();
+                    }
+                } else {
+                    if (periodRegionalPricesSection) periodRegionalPricesSection.style.display = 'none';
+                    if (periodFixedPriceSection) periodFixedPriceSection.style.display = 'block';
+                }
+            }
+        });
+    }
+    
+    function updateTourDepartureDays() {
+        const selectedDays = [];
+        document.querySelectorAll('.departure-day:checked').forEach(checkbox => {
+            selectedDays.push(checkbox.value);
+        });
+        document.getElementById('tour_departure_days').value = selectedDays.join(',');
+    }
+    
+    function updatePricePeriodDepartureDays() {
+        const selectedDays = [];
+        document.querySelectorAll('.period-departure-day:checked').forEach(checkbox => {
+            selectedDays.push(checkbox.value);
+        });
+        document.getElementById('period_days_of_week').value = selectedDays.join(',');
+    }
+    
+    // Transfer period helper functions
+    function handleTransferOwnerChange() {
+        const supplierChecked = document.getElementById('transfer_period_owner_supplier')?.checked;
+        const pricingMethodGroup = document.getElementById('transfer_pricing_method_group');
+        
+        if (supplierChecked) {
+            // Supplier selected: Show pricing method
+            if (pricingMethodGroup) pricingMethodGroup.style.display = 'block';
+        } else {
+            // Supplier not selected: Hide pricing method
+            if (pricingMethodGroup) pricingMethodGroup.style.display = 'none';
+            
+            // Hide all pricing containers
+            hideAllTransferPricingContainers();
+        }
+    }
+    
+    function handleTransferPricingMethodChange() {
+        const pricingMethod = document.querySelector('input[name="pricing_method"]:checked')?.value;
+        
+        const fixedPriceContainer = document.getElementById('transfer_fixed_price_container');
+        const regionalPriceContainer = document.getElementById('transfer_regional_price_container');
+        
+        // Hide all containers first
+        if (fixedPriceContainer) fixedPriceContainer.style.display = 'none';
+        if (regionalPriceContainer) regionalPriceContainer.style.display = 'none';
+        
+        // Show selected container
+        if (pricingMethod === 'fixed_price' && fixedPriceContainer) {
+            fixedPriceContainer.style.display = 'block';
+        } else if (pricingMethod === 'regional_price' && regionalPriceContainer) {
+            regionalPriceContainer.style.display = 'block';
+        }
+    }
+    
+    function handleTransferRegionalPriceTypeChange() {
+        const regionalPriceType = document.querySelector('input[name="regional_price_type"]:checked')?.value;
+        
+        const perPersonContainer = document.getElementById('transfer_regional_per_person_container');
+        const groupContainer = document.getElementById('transfer_regional_group_container');
+        
+        if (regionalPriceType === 'per_person') {
+            if (perPersonContainer) perPersonContainer.style.display = 'block';
+            if (groupContainer) groupContainer.style.display = 'none';
+            // Render regional prices if tour regions are loaded
+            if (tourRegions && tourRegions.length > 0) {
+                renderTransferRegionalPrices();
+            }
+        } else if (regionalPriceType === 'group') {
+            if (perPersonContainer) perPersonContainer.style.display = 'none';
+            if (groupContainer) groupContainer.style.display = 'block';
+            // Render regional group ranges
+            if (tourRegions && tourRegions.length > 0) {
+                renderTransferRegionalGroupRanges();
+            }
+        }
+    }
+    
+    function handleTransferFixedPriceTypeChange() {
+        const fixedPriceType = document.querySelector('input[name="fixed_price_type"]:checked')?.value;
+        
+        const perPersonContainer = document.getElementById('transfer_fixed_per_person_container');
+        const groupContainer = document.getElementById('transfer_fixed_group_container');
+        
+        if (fixedPriceType === 'per_person') {
+            if (perPersonContainer) perPersonContainer.style.display = 'block';
+            if (groupContainer) groupContainer.style.display = 'none';
+        } else if (fixedPriceType === 'group') {
+            if (perPersonContainer) perPersonContainer.style.display = 'none';
+            if (groupContainer) groupContainer.style.display = 'block';
+        }
+    }
+    
+    function hideAllTransferPricingContainers() {
+        const containers = [
+            'transfer_fixed_price_container',
+            'transfer_regional_price_container',
+            'transfer_fixed_per_person_container',
+            'transfer_fixed_group_container',
+            'transfer_regional_per_person_container',
+            'transfer_regional_group_container'
+        ];
+        containers.forEach(id => {
+            const el = document.getElementById(id);
+            if (el) el.style.display = 'none';
+        });
+    }
+    
+    let transferFixedGroupRanges = [];
+    
+    function addTransferFixedGroupRange() {
+        const rangeId = Date.now();
+        transferFixedGroupRanges.push({
+            id: rangeId,
+            min_persons: '',
+            max_persons: '',
+            price: '',
+            currency: 'USD'
+        });
+        renderTransferFixedGroupRanges();
+    }
+    
+    function removeTransferFixedGroupRange(rangeId) {
+        transferFixedGroupRanges = transferFixedGroupRanges.filter(r => r.id !== rangeId);
+        renderTransferFixedGroupRanges();
+    }
+    
+    function renderTransferFixedGroupRanges() {
+        const container = document.getElementById('transfer_fixed_group_ranges_list');
+        if (!container) return;
+        
+        container.innerHTML = '';
+        
+        if (transferFixedGroupRanges.length === 0) {
+            container.innerHTML = `<p style="color: #6b7280; padding: 12px; font-size: 14px;">${tContracts.no_group_ranges || 'Click "Add Range" to add group price ranges'}</p>`;
+            return;
+        }
+        
+        transferFixedGroupRanges.forEach((range, index) => {
+            const rangeItem = document.createElement('div');
+            rangeItem.className = 'group-range-item';
+            rangeItem.style.cssText = 'padding: 12px; border: 1px solid #e5e7eb; border-radius: 8px; margin-bottom: 8px; background: #f9fafb;';
+            rangeItem.innerHTML = `
+                <div class="form-row" style="align-items: flex-end;">
+                    <div class="form-group">
+                        <label>${tContracts.min_persons || 'Min Persons'}</label>
+                        <input type="number" class="transfer-fixed-group-min" data-range-id="${range.id}" value="${range.min_persons}" min="1" placeholder="1">
+                    </div>
+                    <div class="form-group">
+                        <label>${tContracts.max_persons || 'Max Persons'}</label>
+                        <input type="number" class="transfer-fixed-group-max" data-range-id="${range.id}" value="${range.max_persons}" min="1" placeholder="10">
+                    </div>
+                    <div class="form-group">
+                        <label>${tContracts.price || 'Price'}</label>
+                        <input type="number" class="transfer-fixed-group-price" data-range-id="${range.id}" value="${range.price}" step="0.01" min="0" placeholder="0.00">
+                    </div>
+                    <div class="form-group">
+                        <label>${tContracts.currency || 'Currency'}</label>
+                        <select class="transfer-fixed-group-currency" data-range-id="${range.id}">
+                            <option value="USD" ${range.currency === 'USD' ? 'selected' : ''}>USD</option>
+                            <option value="EUR" ${range.currency === 'EUR' ? 'selected' : ''}>EUR</option>
+                            <option value="TL" ${range.currency === 'TL' ? 'selected' : ''}>TL</option>
+                            <option value="GBP" ${range.currency === 'GBP' ? 'selected' : ''}>GBP</option>
+                        </select>
+                    </div>
+                    <div class="form-group" style="width: auto;">
+                        <button type="button" class="btn-icon btn-danger" onclick="removeTransferFixedGroupRange(${range.id})" title="${tContracts.delete || 'Delete'}">
+                            <span class="material-symbols-rounded">delete</span>
+                        </button>
+                    </div>
+                </div>
+            `;
+            container.appendChild(rangeItem);
+        });
+    }
+    
+    function renderTransferRegionalGroupRanges() {
+        const container = document.getElementById('transfer_regional_group_container_list');
+        if (!container || !tourRegions || tourRegions.length === 0) return;
+        
+        container.innerHTML = '';
+        
+        tourRegions.forEach(region => {
+            const regionSection = document.createElement('div');
+            regionSection.style.cssText = 'margin-bottom: 20px; padding: 16px; background: #f9fafb; border-radius: 8px; border: 1px solid #e5e7eb;';
+            
+            regionSection.innerHTML = `
+                <div class="regional-price-header" style="margin-bottom: 12px;">
+                    <h4 style="margin: 0 0 4px 0;">${region.sub_region_name || 'Region'}</h4>
+                    <small style="color: #6b7280;">${region.city_name || ''} ${region.city_name ? '-' : ''} ${region.region_name || ''}</small>
+                    <button type="button" class="btn btn-sm btn-secondary" onclick="addRegionalGroupRange(${region.sub_region_id})" style="margin-top: 8px;">
+                        <span class="material-symbols-rounded" style="font-size: 16px;">add</span>
+                        ${tContracts.add_range || 'Add Range'}
+                    </button>
+                </div>
+                <div class="regional-group-ranges-list" data-sub-region-id="${region.sub_region_id}">
+                    <!-- Group ranges for this region will appear here -->
+                </div>
+            `;
+            
+            container.appendChild(regionSection);
+        });
+    }
+    
+    window.removeTransferFixedGroupRange = function(rangeId) {
+        removeTransferFixedGroupRange(rangeId);
+    };
+    
+    let regionalGroupRanges = {}; // Object to store ranges per region: {regionId: [ranges]}
+    
+    window.addRegionalGroupRange = function(subRegionId) {
+        if (!regionalGroupRanges[subRegionId]) {
+            regionalGroupRanges[subRegionId] = [];
+        }
+        
+        const rangeId = Date.now() + Math.random();
+        regionalGroupRanges[subRegionId].push({
+            id: rangeId,
+            sub_region_id: subRegionId,
+            min_persons: '',
+            max_persons: '',
+            price: '',
+            currency: 'USD'
+        });
+        
+        renderRegionalGroupRangesForRegion(subRegionId);
+    };
+    
+    window.removeRegionalGroupRange = function(subRegionId, rangeId) {
+        if (regionalGroupRanges[subRegionId]) {
+            regionalGroupRanges[subRegionId] = regionalGroupRanges[subRegionId].filter(r => r.id !== rangeId);
+            renderRegionalGroupRangesForRegion(subRegionId);
+        }
+    };
+    
+    function renderRegionalGroupRangesForRegion(subRegionId) {
+        const container = document.querySelector(`.regional-group-ranges-list[data-sub-region-id="${subRegionId}"]`);
+        if (!container) return;
+        
+        container.innerHTML = '';
+        
+        const ranges = regionalGroupRanges[subRegionId] || [];
+        
+        if (ranges.length === 0) {
+            container.innerHTML = `<p style="color: #6b7280; padding: 8px; font-size: 13px;">${tContracts.no_group_ranges || 'No ranges added yet'}</p>`;
+            return;
+        }
+        
+        ranges.forEach(range => {
+            const rangeItem = document.createElement('div');
+            rangeItem.className = 'group-range-item';
+            rangeItem.style.cssText = 'padding: 10px; border: 1px solid #d1d5db; border-radius: 6px; margin-bottom: 6px; background: white;';
+            rangeItem.innerHTML = `
+                <div class="form-row" style="align-items: flex-end;">
+                    <div class="form-group">
+                        <label style="font-size: 13px;">${tContracts.min_persons || 'Min'}</label>
+                        <input type="number" class="transfer-regional-group-min" data-sub-region-id="${subRegionId}" data-range-id="${range.id}" value="${range.min_persons}" min="1" placeholder="1" style="font-size: 14px;">
+                    </div>
+                    <div class="form-group">
+                        <label style="font-size: 13px;">${tContracts.max_persons || 'Max'}</label>
+                        <input type="number" class="transfer-regional-group-max" data-sub-region-id="${subRegionId}" data-range-id="${range.id}" value="${range.max_persons}" min="1" placeholder="10" style="font-size: 14px;">
+                    </div>
+                    <div class="form-group">
+                        <label style="font-size: 13px;">${tContracts.price || 'Price'}</label>
+                        <input type="number" class="transfer-regional-group-price" data-sub-region-id="${subRegionId}" data-range-id="${range.id}" value="${range.price}" step="0.01" min="0" placeholder="0.00" style="font-size: 14px;">
+                    </div>
+                    <div class="form-group">
+                        <label style="font-size: 13px;">${tContracts.currency || 'Currency'}</label>
+                        <select class="transfer-regional-group-currency" data-sub-region-id="${subRegionId}" data-range-id="${range.id}" style="font-size: 14px;">
+                            <option value="USD" ${range.currency === 'USD' ? 'selected' : ''}>USD</option>
+                            <option value="EUR" ${range.currency === 'EUR' ? 'selected' : ''}>EUR</option>
+                            <option value="TL" ${range.currency === 'TL' ? 'selected' : ''}>TL</option>
+                            <option value="GBP" ${range.currency === 'GBP' ? 'selected' : ''}>GBP</option>
+                        </select>
+                    </div>
+                    <div class="form-group" style="width: auto;">
+                        <button type="button" class="btn-icon btn-danger" onclick="removeRegionalGroupRange(${subRegionId}, ${range.id})" title="${tContracts.delete || 'Delete'}" style="padding: 6px;">
+                            <span class="material-symbols-rounded" style="font-size: 18px;">delete</span>
+                        </button>
+                    </div>
+                </div>
+            `;
+            container.appendChild(rangeItem);
+        });
+    }
+    
+    function renderTransferRegionalPrices() {
+        const container = document.getElementById('transfer_regional_prices_container');
+        if (!container || !tourRegions || tourRegions.length === 0) return;
+        
+        container.innerHTML = '';
+        
+        tourRegions.forEach(region => {
+            const priceItem = document.createElement('div');
+            priceItem.className = 'regional-price-item';
+            priceItem.dataset.subRegionId = region.sub_region_id;
+            
+            priceItem.innerHTML = `
+                <div class="regional-price-header">
+                    <h4>${region.sub_region_name || 'Region'}</h4>
+                    <small>${region.city_name || ''} ${region.city_name ? '-' : ''} ${region.region_name || ''} ${region.region_name ? '-' : ''} ${region.country_name || ''}</small>
+                </div>
+                <div class="regional-price-row">
+                    <div class="regional-price-field">
+                        <label>${tContracts.adult_price || 'Adult'}</label>
+                        <input type="number" class="transfer-regional-adult-price" data-sub-region-id="${region.sub_region_id}" step="0.01" min="0" placeholder="0.00">
+                    </div>
+                    <div class="regional-price-field">
+                        <label>${tContracts.child_price || 'Child'}</label>
+                        <input type="number" class="transfer-regional-child-price" data-sub-region-id="${region.sub_region_id}" step="0.01" min="0" placeholder="0.00">
+                    </div>
+                    <div class="regional-price-field">
+                        <label>${tContracts.infant_price || 'Infant'}</label>
+                        <input type="number" class="transfer-regional-infant-price" data-sub-region-id="${region.sub_region_id}" step="0.01" min="0" placeholder="0.00">
+                    </div>
+                </div>
+            `;
+            
+            container.appendChild(priceItem);
+        });
+    }
+    
     
     function loadSubRegions() {
         // Cancel previous request if still pending
@@ -510,13 +1128,14 @@
                 activeRequests.delete(requestKey);
                 if (data.success && data.data && data.data.length > 0) {
                     tourRegions = data.data;
-                    // Check price type and show appropriate section
+                    // Check price type and show appropriate section (only for period modal)
                     const priceTypeRadio = document.querySelector('input[name="price_type"]:checked');
-                    if (priceTypeRadio && priceTypeRadio.value === 'regional') {
-                        renderRegionalPrices();
-                        document.getElementById('regional_prices_section').style.display = 'block';
-                    } else {
-                        document.getElementById('regional_prices_section').style.display = 'none';
+                    const periodRegionalPricesSection = document.getElementById('period_regional_prices_section');
+                    if (priceTypeRadio && priceTypeRadio.value === 'regional' && periodRegionalPricesSection) {
+                        renderRegionalPricesForPeriod();
+                        periodRegionalPricesSection.style.display = 'block';
+                    } else if (periodRegionalPricesSection) {
+                        periodRegionalPricesSection.style.display = 'none';
                     }
                 } else {
                     hideRegionalPrices();
@@ -577,7 +1196,64 @@
         if (section) {
             section.style.display = 'none';
         }
+        const periodSection = document.getElementById('period_regional_prices_section');
+        if (periodSection) {
+            periodSection.style.display = 'none';
+        }
         tourRegions = [];
+    }
+    
+    function renderRegionalPricesForPeriod() {
+        const container = document.getElementById('period_regional_prices_container');
+        if (!container || !tourRegions || tourRegions.length === 0) return;
+        
+        container.innerHTML = '';
+        
+        tourRegions.forEach(region => {
+            const priceItem = document.createElement('div');
+            priceItem.className = 'regional-price-item';
+            priceItem.dataset.subRegionId = region.sub_region_id;
+            
+            priceItem.innerHTML = `
+                <div class="regional-price-header">
+                    <h4>${region.sub_region_name || region.name || 'Region'}</h4>
+                    <small>${region.city_name || ''} ${region.city_name ? '-' : ''} ${region.region_name || ''} ${region.region_name ? '-' : ''} ${region.country_name || ''}</small>
+                </div>
+                <div class="regional-price-row">
+                    <div class="regional-price-field">
+                        <label>${tContracts.adult_price || 'Adult Price'}</label>
+                        <input type="number" class="period-regional-adult-price" data-sub-region-id="${region.sub_region_id}" step="0.01" min="0" placeholder="0.00">
+                    </div>
+                    <div class="regional-price-field">
+                        <label>${tContracts.child_price || 'Child Price'}</label>
+                        <input type="number" class="period-regional-child-price" data-sub-region-id="${region.sub_region_id}" step="0.01" min="0" placeholder="0.00">
+                    </div>
+                    <div class="regional-price-field">
+                        <label>${tContracts.infant_price || 'Infant Price'}</label>
+                        <input type="number" class="period-regional-infant-price" data-sub-region-id="${region.sub_region_id}" step="0.01" min="0" placeholder="0.00">
+                    </div>
+                </div>
+            `;
+            
+            container.appendChild(priceItem);
+        });
+    }
+    
+    function loadPeriodRegionalPrices(regionalPrices) {
+        if (!regionalPrices || regionalPrices.length === 0) return;
+        
+        regionalPrices.forEach(priceData => {
+            const item = document.querySelector(`.regional-price-item[data-sub-region-id="${priceData.sub_region_id}"]`);
+            if (item) {
+                const adultInput = item.querySelector('.period-regional-adult-price');
+                const childInput = item.querySelector('.period-regional-child-price');
+                const infantInput = item.querySelector('.period-regional-infant-price');
+                
+                if (adultInput && priceData.adult_price) adultInput.value = priceData.adult_price;
+                if (childInput && priceData.child_price) childInput.value = priceData.child_price;
+                if (infantInput && priceData.infant_price) infantInput.value = priceData.infant_price;
+            }
+        });
     }
     
     function fillMerchantData(merchantId) {
@@ -814,12 +1490,19 @@
         hideRegionalPrices();
         
         // Reset transfer checkboxes
-        document.getElementById('transfer_owner_agency').checked = false;
-        document.getElementById('transfer_owner_supplier').checked = false;
-        document.getElementById('transfer_owner').value = '';
-        document.getElementById('transfer_price_type_group').style.display = 'none';
-        document.getElementById('transfer_per_person_price_group').style.display = 'none';
-        document.getElementById('transfer_fixed_prices_group').style.display = 'none';
+        const transferOwnerAgencyReset = document.getElementById('transfer_owner_agency');
+        const transferOwnerSupplierReset = document.getElementById('transfer_owner_supplier');
+        const transferOwnerHiddenReset = document.getElementById('transfer_owner');
+        const transferPriceTypeGroup = document.getElementById('transfer_price_type_group');
+        const transferPerPersonGroup = document.getElementById('transfer_per_person_price_group');
+        const transferFixedPricesGroup = document.getElementById('transfer_fixed_prices_group');
+        
+        if (transferOwnerAgencyReset) transferOwnerAgencyReset.checked = false;
+        if (transferOwnerSupplierReset) transferOwnerSupplierReset.checked = false;
+        if (transferOwnerHiddenReset) transferOwnerHiddenReset.value = '';
+        if (transferPriceTypeGroup) transferPriceTypeGroup.style.display = 'none';
+        if (transferPerPersonGroup) transferPerPersonGroup.style.display = 'none';
+        if (transferFixedPricesGroup) transferFixedPricesGroup.style.display = 'none';
         
         // Set title
         if (contractId) {
@@ -829,73 +1512,55 @@
             title.textContent = (tCommon.add || 'Add') + ' ' + (tSidebar.contract || 'Contract');
         }
         
-        // Show modal using common.js function or fallback
-        if (typeof window.openModal === 'function') {
-            window.openModal('contractModal');
-        } else {
-            modal.classList.add('active');
-            document.body.style.overflow = 'hidden';
-        }
+        // Show modal directly (avoid conflict with local function name)
+        modal.classList.add('active');
+        document.body.style.overflow = 'hidden';
     }
     
-    function closeModal() {
+    function closeContractModal() {
         const modal = document.getElementById('contractModal');
         if (modal) {
-            if (typeof window.closeModal === 'function') {
-                window.closeModal('contractModal');
-            } else {
-                modal.classList.remove('active');
-                document.body.style.overflow = '';
-            }
+            modal.classList.remove('active');
+            document.body.style.overflow = '';
         }
         currentContractId = null;
     }
     
     function loadContractData(contractId) {
         const contract = contracts.find(c => c.id == contractId);
-        if (!contract) return;
+        if (!contract) {
+            console.error('Contract not found:', contractId);
+            return;
+        }
         
-        document.getElementById('contractId').value = contract.id;
-        document.getElementById('sub_region_id').value = contract.sub_region_id;
+        const contractIdField = document.getElementById('contractId');
+        if (contractIdField) contractIdField.value = contract.id;
+        const subRegionIdField = document.getElementById('sub_region_id');
+        if (subRegionIdField) subRegionIdField.value = contract.sub_region_id;
         
         // Load merchants for this sub region
         loadMerchants(contract.sub_region_id).then(() => {
-            document.getElementById('merchant_id').value = contract.merchant_id;
+            const merchantIdField = document.getElementById('merchant_id');
+            if (merchantIdField) merchantIdField.value = contract.merchant_id;
             loadTours(contract.merchant_id).then(() => {
-                document.getElementById('tour_id').value = contract.tour_id;
+                const tourIdField = document.getElementById('tour_id');
+                if (tourIdField) tourIdField.value = contract.tour_id;
                 // Load tour regions and prices
                 if (contract.tour_id) {
-                    // Show price sections
-                    document.getElementById('pricing_section').style.display = 'block';
-                    document.getElementById('price_type_section').style.display = 'block';
-                    document.getElementById('age_currency_section').style.display = 'block';
+                    // Show price periods section
+                    const pricePeriodsSection = document.getElementById('price_periods_section');
+                    if (pricePeriodsSection) pricePeriodsSection.style.display = 'block';
                     
-                    loadTourRegions(contract.tour_id).then(() => {
-                        // Set price type
-                        const priceType = contract.price_type || 'regional';
-                        if (priceType === 'fixed') {
-                            document.getElementById('price_type_fixed').checked = true;
-                            document.getElementById('fixed_price_section').style.display = 'block';
-                            document.getElementById('regional_prices_section').style.display = 'none';
-                            document.getElementById('fixed_adult_price').value = contract.fixed_adult_price || '';
-                            document.getElementById('fixed_child_price').value = contract.fixed_child_price || '';
-                            document.getElementById('fixed_infant_price').value = contract.fixed_infant_price || '';
-                        } else {
-                            document.getElementById('price_type_regional').checked = true;
-                            document.getElementById('fixed_price_section').style.display = 'none';
-                            document.getElementById('regional_prices_section').style.display = 'block';
-                            // Load saved regional prices
-                            if (contract.regional_prices && contract.regional_prices.length > 0) {
-                                loadRegionalPrices(contract.regional_prices);
-                            }
-                        }
-                    });
+                    loadTourRegions(contract.tour_id);
                 }
             });
             fillMerchantData(contract.merchant_id);
         });
         
-        document.getElementById('vat_included').value = contract.vat_included ? 'included' : 'excluded';
+        const vatIncludedField = document.getElementById('vat_included');
+        if (vatIncludedField) {
+            vatIncludedField.value = contract.vat_included ? 'included' : 'excluded';
+        }
         const vatRateInput = document.getElementById('vat_rate');
         const vatRateLabel = document.getElementById('vat_rate_label');
         if (!contract.vat_included && contract.vat_rate) {
@@ -917,64 +1582,148 @@
                 vatRateLabel.style.opacity = '0.5';
             }
         }
-        document.getElementById('kickback_type').value = contract.kickback_type || '';
-        document.getElementById('kickback_value').value = contract.kickback_value || '';
+        const kickbackTypeField = document.getElementById('kickback_type');
+        if (kickbackTypeField) kickbackTypeField.value = contract.kickback_type || '';
+        const kickbackValue = document.getElementById('kickback_value');
+        if (kickbackValue) kickbackValue.value = contract.kickback_value || '';
         const currencySelect = document.getElementById('kickback_currency');
         const currencyLabel = document.getElementById('kickback_currency_label');
         if (contract.kickback_type === 'fixed') {
-            currencySelect.disabled = false;
-            currencySelect.style.opacity = '1';
-            currencyLabel.style.opacity = '1';
-            currencySelect.value = contract.kickback_currency || 'USD';
+            if (currencySelect) {
+                currencySelect.disabled = false;
+                currencySelect.style.opacity = '1';
+                currencySelect.value = contract.kickback_currency || 'USD';
+            }
+            if (currencyLabel) currencyLabel.style.opacity = '1';
         } else {
-            currencySelect.disabled = true;
-            currencySelect.style.opacity = '0.5';
-            currencyLabel.style.opacity = '0.5';
-            currencySelect.value = '';
+            if (currencySelect) {
+                currencySelect.disabled = true;
+                currencySelect.style.opacity = '0.5';
+                currencySelect.value = '';
+            }
+            if (currencyLabel) currencyLabel.style.opacity = '0.5';
         }
         // Set radio button for kickback calculation
         if (contract.kickback_per_person) {
-            document.getElementById('kickback_per_person_1').checked = true;
+            const kickbackPerPerson1 = document.getElementById('kickback_per_person_1');
+            if (kickbackPerPerson1) kickbackPerPerson1.checked = true;
         } else {
-            document.getElementById('kickback_per_person_0').checked = true;
+            const kickbackPerPerson0 = document.getElementById('kickback_per_person_0');
+            if (kickbackPerPerson0) kickbackPerPerson0.checked = true;
         }
-        document.getElementById('kickback_min_persons').value = contract.kickback_min_persons || '';
-        document.getElementById('adult_age').value = contract.adult_age || '';
-        document.getElementById('child_age_range').value = contract.child_age_range || '';
-        document.getElementById('infant_age_range').value = contract.infant_age_range || '';
-        document.getElementById('contract_currency').value = contract.contract_currency || contract.adult_currency || 'USD';
-        document.getElementById('included_content').value = contract.included_content || '';
-        document.getElementById('start_date').value = contract.start_date || '';
-        document.getElementById('end_date').value = contract.end_date || '';
+        const kickbackMinPersons = document.getElementById('kickback_min_persons');
+        if (kickbackMinPersons) kickbackMinPersons.value = contract.kickback_min_persons || '';
+        const adultAge = document.getElementById('adult_age');
+        if (adultAge) adultAge.value = contract.adult_age || '';
+        const childAgeRange = document.getElementById('child_age_range');
+        if (childAgeRange) childAgeRange.value = contract.child_age_range || '';
+        const infantAgeRange = document.getElementById('infant_age_range');
+        if (infantAgeRange) infantAgeRange.value = contract.infant_age_range || '';
+        const contractCurrency = document.getElementById('contract_currency');
+        if (contractCurrency) contractCurrency.value = contract.contract_currency || contract.adult_currency || 'USD';
+        const includedContent = document.getElementById('included_content');
+        if (includedContent) includedContent.value = contract.included_content || '';
+        const startDate = document.getElementById('start_date');
+        if (startDate) startDate.value = contract.start_date || '';
+        const endDate = document.getElementById('end_date');
+        if (endDate) endDate.value = contract.end_date || '';
+        
+        // Period fields
+        const periodTypeSelect = document.getElementById('period_type');
+        const periodTypeAdvSelect = document.getElementById('period_type_adv');
+        
+        if (periodTypeSelect) periodTypeSelect.value = contract.period_type || '';
+        if (periodTypeAdvSelect) periodTypeAdvSelect.value = contract.period_type || '';
+        
+        if (contract.period_type === 'custom') {
+            if (document.getElementById('period_value_group')) {
+                document.getElementById('period_value_group').style.display = 'flex';
+                document.getElementById('period_value').value = contract.period_value || '';
+            }
+            if (document.getElementById('period_unit_group')) {
+                document.getElementById('period_unit_group').style.display = 'flex';
+                document.getElementById('period_unit').value = contract.period_unit || '';
+            }
+            if (document.getElementById('period_value_group_adv')) {
+                document.getElementById('period_value_group_adv').style.display = 'flex';
+                document.getElementById('period_value_adv').value = contract.period_value || '';
+            }
+            if (document.getElementById('period_unit_group_adv')) {
+                document.getElementById('period_unit_group_adv').style.display = 'flex';
+                document.getElementById('period_unit_adv').value = contract.period_unit || '';
+            }
+        }
+        
+        // Show actions and price periods sections if contract has ID
+        if (contract.id) {
+            const actionsSection = document.getElementById('actions_section');
+            const pricePeriodsSection = document.getElementById('price_periods_section');
+            const kickbackPeriodsSection = document.getElementById('kickback_periods_section');
+            const transferPeriodsSection = document.getElementById('transfer_periods_section');
+            
+            if (actionsSection) actionsSection.style.display = 'block';
+            if (pricePeriodsSection) pricePeriodsSection.style.display = 'block';
+            if (kickbackPeriodsSection) kickbackPeriodsSection.style.display = 'block';
+            if (transferPeriodsSection) transferPeriodsSection.style.display = 'block';
+            
+            loadContractActions(contract.id);
+            loadContractPricePeriods(contract.id);
+            loadContractKickbackPeriods(contract.id);
+            loadContractTransferPeriods(contract.id);
+        }
+        
+        // Set tour departure days
+        if (contract.tour_departure_days) {
+            const days = contract.tour_departure_days.split(',');
+            document.querySelectorAll('.departure-day').forEach(checkbox => {
+                checkbox.checked = days.includes(checkbox.value);
+            });
+            updateTourDepartureDays();
+        }
         
         // Transfer fields - set checkboxes
         const transferOwner = contract.transfer_owner || '';
         const transferOwners = transferOwner.split(',');
         if (transferOwners.includes('agency')) {
-            document.getElementById('transfer_owner_agency').checked = true;
+            const transferOwnerAgencySet = document.getElementById('transfer_owner_agency');
+            if (transferOwnerAgencySet) transferOwnerAgencySet.checked = true;
         }
         if (transferOwners.includes('supplier')) {
-            document.getElementById('transfer_owner_supplier').checked = true;
-            document.getElementById('transfer_price_type_group').style.display = 'flex';
+            const transferOwnerSupplierSet = document.getElementById('transfer_owner_supplier');
+            if (transferOwnerSupplierSet) transferOwnerSupplierSet.checked = true;
+            const transferPriceTypeGroupSet = document.getElementById('transfer_price_type_group');
+            if (transferPriceTypeGroupSet) transferPriceTypeGroupSet.style.display = 'flex';
             const priceType = contract.transfer_price_type || '';
-            document.getElementById('transfer_price_type').value = priceType;
+            const transferPriceType = document.getElementById('transfer_price_type');
+            if (transferPriceType) transferPriceType.value = priceType;
             
             if (priceType === 'per_person') {
-                document.getElementById('transfer_per_person_price_group').style.display = 'flex';
-                document.getElementById('transfer_fixed_prices_group').style.display = 'none';
-                document.getElementById('transfer_price').value = contract.transfer_price || '';
-                document.getElementById('transfer_currency').value = contract.transfer_currency || '';
+                const transferPerPersonGroupSet = document.getElementById('transfer_per_person_price_group');
+                const transferFixedPricesGroupSet = document.getElementById('transfer_fixed_prices_group');
+                if (transferPerPersonGroupSet) transferPerPersonGroupSet.style.display = 'flex';
+                if (transferFixedPricesGroupSet) transferFixedPricesGroupSet.style.display = 'none';
+                const transferPrice = document.getElementById('transfer_price');
+                const transferCurrency = document.getElementById('transfer_currency');
+                if (transferPrice) transferPrice.value = contract.transfer_price || '';
+                if (transferCurrency) transferCurrency.value = contract.transfer_currency || '';
             } else if (priceType === 'fixed') {
-                document.getElementById('transfer_per_person_price_group').style.display = 'none';
-                document.getElementById('transfer_fixed_prices_group').style.display = 'block';
-                document.getElementById('transfer_price_mini').value = contract.transfer_price_mini || '';
-                document.getElementById('transfer_price_midi').value = contract.transfer_price_midi || '';
-                document.getElementById('transfer_price_bus').value = contract.transfer_price_bus || '';
-                document.getElementById('transfer_currency_fixed').value = contract.transfer_currency_fixed || contract.transfer_currency || '';
+                const transferPerPersonGroupSet2 = document.getElementById('transfer_per_person_price_group');
+                const transferFixedPricesGroupSet2 = document.getElementById('transfer_fixed_prices_group');
+                if (transferPerPersonGroupSet2) transferPerPersonGroupSet2.style.display = 'none';
+                if (transferFixedPricesGroupSet2) transferFixedPricesGroupSet2.style.display = 'block';
+                const transferPriceMini = document.getElementById('transfer_price_mini');
+                const transferPriceMidi = document.getElementById('transfer_price_midi');
+                const transferPriceBus = document.getElementById('transfer_price_bus');
+                const transferCurrencyFixed = document.getElementById('transfer_currency_fixed');
+                if (transferPriceMini) transferPriceMini.value = contract.transfer_price_mini || '';
+                if (transferPriceMidi) transferPriceMidi.value = contract.transfer_price_midi || '';
+                if (transferPriceBus) transferPriceBus.value = contract.transfer_price_bus || '';
+                if (transferCurrencyFixed) transferCurrencyFixed.value = contract.transfer_currency_fixed || contract.transfer_currency || '';
             }
         }
         // Update hidden field
-        document.getElementById('transfer_owner').value = transferOwner;
+        const transferOwnerField = document.getElementById('transfer_owner');
+        if (transferOwnerField) transferOwnerField.value = transferOwner;
     }
     
     function loadRegionalPrices(regionalPrices) {
@@ -1006,32 +1755,18 @@
             return;
         }
         
-        // Check if tour is selected and price type section is visible
-        const tourId = document.getElementById('tour_id').value;
-        const priceTypeSection = document.getElementById('price_type_section');
+        // Check if tour is selected
+        const tourId = document.getElementById('tour_id')?.value;
+        if (!tourId) {
+            showToast('error', 'Please select a tour');
+            return;
+        }
         
-        if (tourId && priceTypeSection.style.display !== 'none') {
-            const priceTypeRadio = document.querySelector('input[name="price_type"]:checked');
-            const priceType = priceTypeRadio ? priceTypeRadio.value : 'regional';
-            
-            if (priceType === 'regional') {
-                // Check if at least one regional price is filled
-                const hasRegionalPrices = document.querySelectorAll('.regional-price-item').length > 0;
-                if (!hasRegionalPrices) {
-                    showToast('error', 'Please enter prices for at least one region');
-                    return;
-                }
-            } else if (priceType === 'fixed') {
-                // Check if at least one fixed price is filled
-                const fixedAdultPrice = document.getElementById('fixed_adult_price').value;
-                const fixedChildPrice = document.getElementById('fixed_child_price').value;
-                const fixedInfantPrice = document.getElementById('fixed_infant_price').value;
-                
-                if (!fixedAdultPrice && !fixedChildPrice && !fixedInfantPrice) {
-                    showToast('error', 'Please enter at least one fixed price');
-                    return;
-                }
-            }
+        // Price validation is now done at period level
+        // Just check if at least one price period exists
+        const pricePeriodsSection = document.getElementById('price_periods_section');
+        if (pricePeriodsSection && pricePeriodsSection.style.display !== 'none') {
+            // Period validation will be done when saving periods
         }
         
         const formData = new FormData(e.target);
@@ -1041,13 +1776,10 @@
         const kickbackPerPersonRadio = document.querySelector('input[name="kickback_per_person"]:checked');
         data.kickback_per_person = kickbackPerPersonRadio ? kickbackPerPersonRadio.value === '1' : false;
         
-        // Get price type
-        const priceTypeRadio = document.querySelector('input[name="price_type"]:checked');
-        data.price_type = priceTypeRadio ? priceTypeRadio.value : 'regional';
-        
-        // Get contract currency (common for all prices)
-        const contractCurrency = document.getElementById('contract_currency')?.value || 'USD';
-        data.contract_currency = contractCurrency;
+        // Price type and currency are now handled at period level
+        // Just set defaults
+        data.price_type = 'regional';
+        data.contract_currency = 'USD';
         
         // Transfer fields - get from checkbox
         const transferOwnerAgency = document.getElementById('transfer_owner_agency')?.checked;
@@ -1088,31 +1820,18 @@
         data.child_age_range = document.getElementById('child_age_range')?.value || '';
         data.infant_age_range = document.getElementById('infant_age_range')?.value || '';
         
-        // Collect prices based on type
-        if (data.price_type === 'regional') {
-            // Regional prices
-            const regionalPrices = [];
-            document.querySelectorAll('.regional-price-item').forEach(item => {
-                const subRegionId = item.dataset.subRegionId;
-                const priceData = {
-                    sub_region_id: subRegionId,
-                    adult_price: item.querySelector('.adult-price-input')?.value || '',
-                    adult_currency: contractCurrency,
-                    child_price: item.querySelector('.child-price-input')?.value || '',
-                    child_currency: contractCurrency,
-                    infant_price: item.querySelector('.infant-price-input')?.value || '',
-                    infant_currency: contractCurrency
-                };
-                regionalPrices.push(priceData);
-            });
-            data.regional_prices = regionalPrices;
-        } else {
-            // Fixed prices for all regions
-            data.fixed_adult_price = document.getElementById('fixed_adult_price')?.value || '';
-            data.fixed_child_price = document.getElementById('fixed_child_price')?.value || '';
-            data.fixed_infant_price = document.getElementById('fixed_infant_price')?.value || '';
-            data.fixed_currency = contractCurrency;
+        // Period fields
+        data.period_type = document.getElementById('period_type')?.value || '';
+        if (data.period_type === 'custom') {
+            data.period_value = document.getElementById('period_value')?.value || '';
+            data.period_unit = document.getElementById('period_unit')?.value || '';
         }
+        
+        // Tour departure days
+        data.tour_departure_days = document.getElementById('tour_departure_days')?.value || '';
+        
+        // Prices are now handled at period level, not contract level
+        // No need to collect prices here
         
         // Add contract ID if editing
         if (currentContractId) {
@@ -1133,7 +1852,7 @@
         .then(result => {
             if (result.success) {
                 showToast('success', result.message || 'Contract saved successfully');
-                closeModal();
+                closeContractModal();
                 loadContracts();
             } else {
                 showToast('error', result.message || 'Error saving contract');
@@ -1522,6 +2241,1138 @@
             .catch(error => {
                 console.error('Error deleting contract:', error);
                 showToast('error', tCommon.delete_failed || 'Error deleting contract');
+            });
+        });
+    };
+    
+    // Action management functions
+    let currentActions = [];
+    let currentActionId = null;
+    
+    function openActionModal(actionId = null, contractId = null) {
+        currentActionId = actionId;
+        const modal = document.getElementById('actionModal');
+        const form = document.getElementById('actionForm');
+        const title = document.getElementById('actionModalTitle');
+        
+        if (!modal || !form || !title) return;
+        
+        form.reset();
+        document.getElementById('actionId').value = '';
+        document.getElementById('actionContractId').value = contractId || currentContractId || '';
+        
+        if (actionId) {
+            title.textContent = tContracts.edit_action || 'Edit Action';
+            const action = currentActions.find(a => a.id == actionId);
+            if (action) {
+                document.getElementById('actionId').value = action.id;
+                document.getElementById('actionContractId').value = action.contract_id;
+                document.getElementById('action_name').value = action.action_name || '';
+                document.getElementById('action_description').value = action.action_description || '';
+                document.getElementById('action_start_date').value = action.action_start_date || '';
+                document.getElementById('action_end_date').value = action.action_end_date || '';
+                document.getElementById('action_duration_type').value = action.action_duration_type || 'day';
+                
+                if (action.action_duration_type === 'custom') {
+                    document.getElementById('action_duration_days_group').style.display = 'flex';
+                    document.getElementById('action_duration_days').value = action.action_duration_days || '';
+                }
+            }
+        } else {
+            title.textContent = tContracts.add_action || 'Add Action';
+        }
+        
+        modal.classList.add('active');
+        document.body.style.overflow = 'hidden';
+    }
+    
+    function closeActionModal() {
+        const modal = document.getElementById('actionModal');
+        if (modal) {
+            modal.classList.remove('active');
+            document.body.style.overflow = '';
+        }
+        currentActionId = null;
+    }
+    
+    function loadContractActions(contractId) {
+        if (!contractId) return;
+        
+        fetch(`${API_BASE}?action=actions&contract_id=${contractId}`)
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    currentActions = data.data || [];
+                    renderActions();
+                }
+            })
+            .catch(error => {
+                console.error('Error loading actions:', error);
+            });
+    }
+    
+    function renderActions() {
+        const container = document.getElementById('actions_list');
+        if (!container) return;
+        
+        container.innerHTML = '';
+        
+        if (currentActions.length === 0) {
+            container.innerHTML = `<p style="color: #6b7280; padding: 16px;">${tContracts.no_actions || 'No actions found'}</p>`;
+            return;
+        }
+        
+        currentActions.forEach(action => {
+            const actionItem = document.createElement('div');
+            actionItem.className = 'action-item';
+            actionItem.style.cssText = 'padding: 16px; border: 1px solid #e5e7eb; border-radius: 8px; margin-bottom: 12px; background: #f9fafb;';
+            
+            const durationText = action.action_duration_type === 'custom' && action.action_duration_days 
+                ? `${action.action_duration_days} ${tContracts.day || 'Days'}`
+                : tContracts[action.action_duration_type] || action.action_duration_type;
+            
+            actionItem.innerHTML = `
+                <div style="display: flex; justify-content: space-between; align-items: start;">
+                    <div style="flex: 1;">
+                        <h4 style="margin: 0 0 8px 0; font-size: 16px; color: #1f2937;">${action.action_name || '-'}</h4>
+                        ${action.action_description ? `<p style="margin: 0 0 8px 0; color: #6b7280; font-size: 14px;">${action.action_description}</p>` : ''}
+                        <div style="display: flex; gap: 16px; font-size: 13px; color: #6b7280;">
+                            <span>${tContracts.action_start_date || 'Start'}: ${action.action_start_date || '-'}</span>
+                            <span>${tContracts.action_end_date || 'End'}: ${action.action_end_date || '-'}</span>
+                            <span>${tContracts.action_duration_type || 'Duration'}: ${durationText}</span>
+                        </div>
+                    </div>
+                    <div style="display: flex; gap: 8px;">
+                        <button class="btn-icon" onclick="editAction(${action.id}, event)" title="${tContracts.edit_action || 'Edit'}">
+                            <span class="material-symbols-rounded">edit</span>
+                        </button>
+                        <button class="btn-icon btn-danger" onclick="deleteAction(${action.id}, event)" title="${tContracts.delete_action || 'Delete'}">
+                            <span class="material-symbols-rounded">delete</span>
+                        </button>
+                    </div>
+                </div>
+            `;
+            
+            container.appendChild(actionItem);
+        });
+    }
+    
+    function handleActionSubmit(e) {
+        e.preventDefault();
+        
+        const formData = new FormData(e.target);
+        const data = Object.fromEntries(formData);
+        
+        data.contract_id = document.getElementById('actionContractId').value;
+        data.action_duration_type = document.getElementById('action_duration_type').value;
+        
+        if (data.action_duration_type === 'custom') {
+            data.action_duration_days = document.getElementById('action_duration_days').value || null;
+        }
+        
+        const url = `${API_BASE}?action=action`;
+        const method = currentActionId ? 'PUT' : 'POST';
+        
+        if (currentActionId) {
+            data.id = currentActionId;
+        }
+        
+        fetch(url, {
+            method: method,
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(data)
+        })
+        .then(response => response.json())
+        .then(result => {
+            if (result.success) {
+                showToast('success', result.message || (currentActionId ? tContracts.action_updated : tContracts.action_added));
+                closeActionModal();
+                loadContractActions(data.contract_id);
+            } else {
+                showToast('error', result.message || 'Error saving action');
+            }
+        })
+        .catch(error => {
+            console.error('Error saving action:', error);
+            showToast('error', 'Error saving action');
+        });
+    }
+    
+    window.editAction = function(id, event) {
+        if (event) {
+            event.stopPropagation();
+            event.preventDefault();
+        }
+        const action = currentActions.find(a => a.id == id);
+        if (action) {
+            openActionModal(id, action.contract_id);
+        }
+    };
+    
+    window.deleteAction = function(id, event) {
+        if (event) {
+            event.stopPropagation();
+            event.preventDefault();
+        }
+        const tCommon = window.Translations?.common || {};
+        const tContracts = window.Translations?.contracts || {};
+        const message = tContracts.delete_action_confirm || 'Are you sure you want to delete this action?';
+        
+        showConfirmDialog(message, function() {
+            fetch(`${API_BASE}?action=action&id=${id}`, {
+                method: 'DELETE'
+            })
+            .then(response => response.json())
+            .then(result => {
+                if (result.success) {
+                    showToast('success', tContracts.action_deleted || 'Action deleted successfully');
+                    const contractId = document.getElementById('actionContractId').value || currentContractId;
+                    loadContractActions(contractId);
+                } else {
+                    showToast('error', result.message || 'Error deleting action');
+                }
+            })
+            .catch(error => {
+                console.error('Error deleting action:', error);
+                showToast('error', 'Error deleting action');
+            });
+        });
+    };
+    
+    // Price Period management functions
+    let currentPricePeriods = [];
+    let currentPricePeriodId = null;
+    
+    function openPricePeriodModal(periodId = null, contractId = null) {
+        currentPricePeriodId = periodId;
+        const modal = document.getElementById('pricePeriodModal');
+        const form = document.getElementById('pricePeriodForm');
+        const title = document.getElementById('pricePeriodModalTitle');
+        
+        if (!modal || !form || !title) return;
+        
+        form.reset();
+        document.getElementById('pricePeriodId').value = '';
+        document.getElementById('pricePeriodContractId').value = contractId || currentContractId || '';
+        document.querySelectorAll('.period-departure-day').forEach(cb => cb.checked = false);
+        document.getElementById('period_days_of_week').value = '';
+        
+        // Reset price type to regional
+        const periodPriceTypeRegional = document.getElementById('period_price_type_regional');
+        const periodPriceTypeFixed = document.getElementById('period_price_type_fixed');
+        if (periodPriceTypeRegional) periodPriceTypeRegional.checked = true;
+        if (periodPriceTypeFixed) periodPriceTypeFixed.checked = false;
+        
+        // Show regional prices section, hide fixed prices
+        const periodRegionalPricesSection = document.getElementById('period_regional_prices_section');
+        const periodFixedPriceSection = document.getElementById('period_fixed_price_section');
+        if (periodRegionalPricesSection) periodRegionalPricesSection.style.display = 'block';
+        if (periodFixedPriceSection) periodFixedPriceSection.style.display = 'none';
+        
+        // Render regional prices if tour regions are loaded
+        if (tourRegions && tourRegions.length > 0) {
+            renderRegionalPricesForPeriod();
+        }
+        
+        if (periodId) {
+            title.textContent = tContracts.edit_price_period || 'Edit Price Period';
+            const period = currentPricePeriods.find(p => p.id == periodId);
+            if (period) {
+                document.getElementById('pricePeriodId').value = period.id;
+                document.getElementById('pricePeriodContractId').value = period.contract_id;
+                document.getElementById('period_name').value = period.period_name || '';
+                document.getElementById('period_start_date').value = period.start_date || '';
+                document.getElementById('period_end_date').value = period.end_date || '';
+                document.getElementById('price_period_notes').value = period.notes || '';
+                
+                // Age fields
+                const periodAdultAge = document.getElementById('period_adult_age');
+                const periodChildAgeRange = document.getElementById('period_child_age_range');
+                const periodInfantAgeRange = document.getElementById('period_infant_age_range');
+                if (periodAdultAge) periodAdultAge.value = period.adult_age || '';
+                if (periodChildAgeRange) periodChildAgeRange.value = period.child_age_range || '';
+                if (periodInfantAgeRange) periodInfantAgeRange.value = period.infant_age_range || '';
+                
+                // Currency
+                document.getElementById('period_currency').value = period.currency || 'USD';
+                
+                // Set price type
+                const priceType = period.price_type || 'regional';
+                
+                if (priceType === 'fixed') {
+                    if (periodPriceTypeFixed) periodPriceTypeFixed.checked = true;
+                    if (periodPriceTypeRegional) periodPriceTypeRegional.checked = false;
+                    if (periodFixedPriceSection) periodFixedPriceSection.style.display = 'block';
+                    if (periodRegionalPricesSection) periodRegionalPricesSection.style.display = 'none';
+                    
+                    // Set fixed prices
+                    document.getElementById('period_adult_price').value = period.adult_price || '';
+                    document.getElementById('period_child_price').value = period.child_price || '';
+                    document.getElementById('period_infant_price').value = period.infant_price || '';
+                } else {
+                    if (periodPriceTypeRegional) periodPriceTypeRegional.checked = true;
+                    if (periodPriceTypeFixed) periodPriceTypeFixed.checked = false;
+                    if (periodRegionalPricesSection) periodRegionalPricesSection.style.display = 'block';
+                    if (periodFixedPriceSection) periodFixedPriceSection.style.display = 'none';
+                    
+                    // Render regional prices first, then load values
+                    if (tourRegions && tourRegions.length > 0) {
+                        renderRegionalPricesForPeriod();
+                        // Load regional prices if available
+                        if (period.regional_prices && period.regional_prices.length > 0) {
+                            setTimeout(() => loadPeriodRegionalPrices(period.regional_prices), 100);
+                        }
+                    }
+                }
+                
+                if (period.days_of_week) {
+                    const days = period.days_of_week.split(',');
+                    document.querySelectorAll('.period-departure-day').forEach(checkbox => {
+                        checkbox.checked = days.includes(checkbox.value);
+                    });
+                    updatePricePeriodDepartureDays();
+                }
+            }
+        } else {
+            title.textContent = tContracts.add_price_period || 'Add Price Period';
+        }
+        
+        modal.classList.add('active');
+        document.body.style.overflow = 'hidden';
+    }
+    
+    function closePricePeriodModal() {
+        const modal = document.getElementById('pricePeriodModal');
+        if (modal) {
+            modal.classList.remove('active');
+            document.body.style.overflow = '';
+        }
+        currentPricePeriodId = null;
+    }
+    
+    function loadContractPricePeriods(contractId) {
+        if (!contractId) return;
+        
+        fetch(`${API_BASE}?action=price_periods&contract_id=${contractId}`)
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    currentPricePeriods = data.data || [];
+                    renderPricePeriods();
+                }
+            })
+            .catch(error => {
+                console.error('Error loading price periods:', error);
+            });
+    }
+    
+    function renderPricePeriods() {
+        const container = document.getElementById('price_periods_list');
+        if (!container) return;
+        
+        container.innerHTML = '';
+        
+        if (currentPricePeriods.length === 0) {
+            container.innerHTML = `<p style="color: #6b7280; padding: 16px;">${tContracts.no_price_periods || 'No price periods found'}</p>`;
+            return;
+        }
+        
+        // Create table similar to locations.php style
+        let html = '<div class="price-periods-table-container" style="background: white; border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); overflow: hidden;">';
+        html += '<div class="price-periods-table-header" style="padding: 16px 20px; background: #f9fafb; border-bottom: 1px solid #e5e7eb; display: flex; justify-content: space-between; align-items: center;">';
+        html += `<div style="font-weight: 600; color: #1f2937;">${tContracts.price_periods || 'Price Periods'}</div>`;
+        html += '</div>';
+        html += '<div class="table-wrapper" style="overflow-x: auto;">';
+        html += '<table class="table" style="width: 100%; border-collapse: collapse;">';
+        html += '<thead style="background: #f9fafb;">';
+        html += '<tr>';
+        html += `<th style="padding: 12px 16px; text-align: left; font-weight: 600; font-size: 14px; color: #374151; border-bottom: 2px solid #e5e7eb;">${tContracts.price_period_name || 'Period Name'}</th>`;
+        html += `<th style="padding: 12px 16px; text-align: left; font-weight: 600; font-size: 14px; color: #374151; border-bottom: 2px solid #e5e7eb;">${tContracts.action_start_date || 'Start Date'}</th>`;
+        html += `<th style="padding: 12px 16px; text-align: left; font-weight: 600; font-size: 14px; color: #374151; border-bottom: 2px solid #e5e7eb;">${tContracts.action_end_date || 'End Date'}</th>`;
+        html += `<th style="padding: 12px 16px; text-align: left; font-weight: 600; font-size: 14px; color: #374151; border-bottom: 2px solid #e5e7eb;">${tContracts.tour_departure_days || 'Departure Days'}</th>`;
+        html += `<th style="padding: 12px 16px; text-align: left; font-weight: 600; font-size: 14px; color: #374151; border-bottom: 2px solid #e5e7eb;">${tContracts.adult_price || 'Adult'}</th>`;
+        html += `<th style="padding: 12px 16px; text-align: left; font-weight: 600; font-size: 14px; color: #374151; border-bottom: 2px solid #e5e7eb;">${tContracts.actions || 'Actions'}</th>`;
+        html += '</tr></thead><tbody>';
+        
+        currentPricePeriods.forEach(period => {
+            const days = period.days_of_week ? period.days_of_week.split(',').map(d => tContracts[d] || d).join(', ') : '-';
+            html += '<tr style="border-bottom: 1px solid #e5e7eb; transition: background-color 0.2s;">';
+            html += `<td style="padding: 12px 16px; color: #1f2937;">${period.period_name || '-'}</td>`;
+            html += `<td style="padding: 12px 16px; color: #1f2937;">${period.start_date || '-'}</td>`;
+            html += `<td style="padding: 12px 16px; color: #1f2937;">${period.end_date || '-'}</td>`;
+            html += `<td style="padding: 12px 16px; color: #1f2937; font-size: 13px;">${days}</td>`;
+            html += `<td style="padding: 12px 16px; color: #1f2937;">${period.adult_price ? parseFloat(period.adult_price).toFixed(2) + ' ' + (period.currency || 'USD') : '-'}</td>`;
+            html += '<td style="padding: 12px 16px;">';
+            html += '<div style="display: flex; gap: 8px;">';
+            html += `<button class="btn-icon" onclick="editPricePeriod(${period.id}, event)" title="${tContracts.edit_price_period || 'Edit'}">`;
+            html += '<span class="material-symbols-rounded">edit</span></button>';
+            html += `<button class="btn-icon btn-danger" onclick="deletePricePeriod(${period.id}, event)" title="${tContracts.delete_price_period || 'Delete'}">`;
+            html += '<span class="material-symbols-rounded">delete</span></button>';
+            html += '</div></td></tr>';
+        });
+        
+        html += '</tbody></table></div></div>';
+        container.innerHTML = html;
+    }
+    
+    function handlePricePeriodSubmit(e) {
+        e.preventDefault();
+        
+        const formData = new FormData(e.target);
+        const data = Object.fromEntries(formData);
+        
+        data.contract_id = document.getElementById('pricePeriodContractId').value;
+        data.days_of_week = document.getElementById('period_days_of_week').value;
+        
+        // Get price type
+        const priceTypeRadio = document.querySelector('input[name="price_type"]:checked');
+        data.price_type = priceTypeRadio ? priceTypeRadio.value : 'regional';
+        
+        // Collect regional prices if price type is regional
+        if (data.price_type === 'regional') {
+            const regionalPrices = [];
+            document.querySelectorAll('.regional-price-item').forEach(item => {
+                const subRegionId = item.dataset.subRegionId;
+                const adultPrice = item.querySelector('.period-regional-adult-price')?.value;
+                const childPrice = item.querySelector('.period-regional-child-price')?.value;
+                const infantPrice = item.querySelector('.period-regional-infant-price')?.value;
+                
+                // Only add if at least one price is filled
+                if (adultPrice || childPrice || infantPrice) {
+                    regionalPrices.push({
+                        sub_region_id: subRegionId,
+                        adult_price: adultPrice || null,
+                        child_price: childPrice || null,
+                        infant_price: infantPrice || null,
+                        currency: data.currency || 'USD'
+                    });
+                }
+            });
+            data.regional_prices = regionalPrices;
+        }
+        
+        const url = `${API_BASE}?action=price_period`;
+        const method = currentPricePeriodId ? 'PUT' : 'POST';
+        
+        if (currentPricePeriodId) {
+            data.id = currentPricePeriodId;
+        }
+        
+        fetch(url, {
+            method: method,
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(data)
+        })
+        .then(response => response.json())
+        .then(result => {
+            if (result.success) {
+                showToast('success', result.message || (currentPricePeriodId ? tContracts.price_period_updated : tContracts.price_period_added));
+                closePricePeriodModal();
+                loadContractPricePeriods(data.contract_id);
+            } else {
+                showToast('error', result.message || 'Error saving price period');
+            }
+        })
+        .catch(error => {
+            console.error('Error saving price period:', error);
+            showToast('error', 'Error saving price period');
+        });
+    }
+    
+    window.editPricePeriod = function(id, event) {
+        if (event) {
+            event.stopPropagation();
+            event.preventDefault();
+        }
+        const period = currentPricePeriods.find(p => p.id == id);
+        if (period) {
+            openPricePeriodModal(id, period.contract_id);
+        }
+    };
+    
+    window.deletePricePeriod = function(id, event) {
+        if (event) {
+            event.stopPropagation();
+            event.preventDefault();
+        }
+        const tCommon = window.Translations?.common || {};
+        const tContracts = window.Translations?.contracts || {};
+        const message = tContracts.delete_price_period_confirm || 'Are you sure you want to delete this price period?';
+        
+        showConfirmDialog(message, function() {
+            fetch(`${API_BASE}?action=price_period&id=${id}`, {
+                method: 'DELETE'
+            })
+            .then(response => response.json())
+            .then(result => {
+                if (result.success) {
+                    showToast('success', tContracts.price_period_deleted || 'Price period deleted successfully');
+                    const contractId = currentContractId;
+                    loadContractPricePeriods(contractId);
+                } else {
+                    showToast('error', result.message || 'Error deleting price period');
+                }
+            })
+            .catch(error => {
+                console.error('Error deleting price period:', error);
+                showToast('error', 'Error deleting price period');
+            });
+        });
+    };
+    
+    // Kickback Period management
+    let currentKickbackPeriods = [];
+    let currentKickbackPeriodId = null;
+    
+    function openKickbackPeriodModal(periodId = null, contractId = null) {
+        currentKickbackPeriodId = periodId;
+        const modal = document.getElementById('kickbackPeriodModal');
+        const form = document.getElementById('kickbackPeriodForm');
+        const title = document.getElementById('kickbackPeriodModalTitle');
+        
+        if (!modal || !form || !title) return;
+        
+        form.reset();
+        document.getElementById('kickbackPeriodId').value = '';
+        document.getElementById('kickbackPeriodContractId').value = contractId || currentContractId || '';
+        
+        // Reset form fields
+        const kickbackPerPerson0 = document.getElementById('kickback_per_person_0');
+        const kickbackPerPerson1 = document.getElementById('kickback_per_person_1');
+        if (kickbackPerPerson1) kickbackPerPerson1.checked = true;
+        if (kickbackPerPerson0) kickbackPerPerson0.checked = false;
+        
+        if (periodId) {
+            title.textContent = tContracts.edit_kickback_period || 'Edit Kickback Period';
+            const period = currentKickbackPeriods.find(p => p.id == periodId);
+            if (period) {
+                document.getElementById('kickbackPeriodId').value = period.id;
+                document.getElementById('kickbackPeriodContractId').value = period.contract_id;
+                document.getElementById('kickback_period_name').value = period.period_name || '';
+                document.getElementById('kickback_period_start_date').value = period.start_date || '';
+                document.getElementById('kickback_period_end_date').value = period.end_date || '';
+                document.getElementById('kickback_period_type').value = period.kickback_type || '';
+                document.getElementById('kickback_period_value').value = period.kickback_value || '';
+                document.getElementById('kickback_period_currency').value = period.kickback_currency || 'USD';
+                if (period.kickback_per_person == 0) {
+                    if (kickbackPerPerson0) kickbackPerPerson0.checked = true;
+                    if (kickbackPerPerson1) kickbackPerPerson1.checked = false;
+                } else {
+                    if (kickbackPerPerson0) kickbackPerPerson0.checked = false;
+                    if (kickbackPerPerson1) kickbackPerPerson1.checked = true;
+                }
+                document.getElementById('kickback_period_min_persons').value = period.kickback_min_persons || '';
+            }
+        } else {
+            title.textContent = tContracts.add_kickback_period || 'Add Kickback Period';
+        }
+        
+        modal.classList.add('active');
+        document.body.style.overflow = 'hidden';
+    }
+    
+    function closeKickbackPeriodModal() {
+        const modal = document.getElementById('kickbackPeriodModal');
+        if (modal) {
+            modal.classList.remove('active');
+            document.body.style.overflow = '';
+        }
+        currentKickbackPeriodId = null;
+    }
+    
+    function loadContractKickbackPeriods(contractId) {
+        if (!contractId) return;
+        
+        fetch(`${API_BASE}?action=kickback_periods&contract_id=${contractId}`)
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    currentKickbackPeriods = data.data || [];
+                    renderKickbackPeriods();
+                }
+            })
+            .catch(error => {
+                console.error('Error loading kickback periods:', error);
+            });
+    }
+    
+    function renderKickbackPeriods() {
+        const container = document.getElementById('kickback_periods_list');
+        if (!container) return;
+        
+        container.innerHTML = '';
+        
+        if (currentKickbackPeriods.length === 0) {
+            container.innerHTML = `<p style="color: #6b7280; padding: 16px;">${tContracts.no_kickback_periods || 'No kickback periods found'}</p>`;
+            return;
+        }
+        
+        currentKickbackPeriods.forEach(period => {
+            const item = document.createElement('div');
+            item.className = 'period-item';
+            item.style.cssText = 'padding: 16px; border: 1px solid #e5e7eb; border-radius: 8px; margin-bottom: 12px; background: #f9fafb;';
+            
+            item.innerHTML = `
+                <div style="display: flex; justify-content: space-between; align-items: start;">
+                    <div style="flex: 1;">
+                        <h4 style="margin: 0 0 8px 0; font-size: 16px; color: #1f2937;">${period.period_name || '-'}</h4>
+                        <div style="display: flex; gap: 16px; font-size: 13px; color: #6b7280;">
+                            <span>${tContracts.start_date || 'Start'}: ${period.start_date || '-'}</span>
+                            <span>${tContracts.end_date || 'End'}: ${period.end_date || '-'}</span>
+                            ${period.kickback_type ? `<span>Type: ${period.kickback_type}</span>` : ''}
+                            ${period.kickback_value ? `<span>Value: ${period.kickback_value} ${period.kickback_currency || 'USD'}</span>` : ''}
+                        </div>
+                    </div>
+                    <div style="display: flex; gap: 8px;">
+                        <button class="btn-icon" onclick="editKickbackPeriod(${period.id}, event)" title="${tContracts.edit || 'Edit'}">
+                            <span class="material-symbols-rounded">edit</span>
+                        </button>
+                        <button class="btn-icon" onclick="deleteKickbackPeriod(${period.id}, event)" title="${tContracts.delete || 'Delete'}">
+                            <span class="material-symbols-rounded">delete</span>
+                        </button>
+                    </div>
+                </div>
+            `;
+            container.appendChild(item);
+        });
+    }
+    
+    function handleKickbackPeriodSubmit(e) {
+        e.preventDefault();
+        const formData = new FormData(e.target);
+        const data = Object.fromEntries(formData);
+        
+        data.contract_id = document.getElementById('kickbackPeriodContractId').value;
+        data.kickback_per_person = formData.get('kickback_per_person') === '1';
+        
+        const periodId = document.getElementById('kickbackPeriodId').value;
+        const url = `${API_BASE}?action=kickback_period`;
+        const method = periodId ? 'PUT' : 'POST';
+        
+        fetch(url, {
+            method: method,
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify(data)
+        })
+        .then(response => response.json())
+        .then(result => {
+            if (result.success) {
+                showToast('success', periodId ? 'Kickback period updated' : 'Kickback period created');
+                closeKickbackPeriodModal();
+                loadContractKickbackPeriods(data.contract_id);
+            } else {
+                showToast('error', result.message || 'Error saving kickback period');
+            }
+        })
+        .catch(error => {
+            console.error('Error saving kickback period:', error);
+            showToast('error', 'Error saving kickback period');
+        });
+    }
+    
+    window.editKickbackPeriod = function(id, event) {
+        if (event) {
+            event.stopPropagation();
+            event.preventDefault();
+        }
+        const period = currentKickbackPeriods.find(p => p.id == id);
+        if (period) {
+            openKickbackPeriodModal(id, period.contract_id);
+        }
+    };
+    
+    window.deleteKickbackPeriod = function(id, event) {
+        if (event) {
+            event.stopPropagation();
+            event.preventDefault();
+        }
+        showConfirmDialog('Are you sure you want to delete this kickback period?', function() {
+            fetch(`${API_BASE}?action=kickback_period&id=${id}`, {method: 'DELETE'})
+            .then(response => response.json())
+            .then(result => {
+                if (result.success) {
+                    showToast('success', 'Kickback period deleted successfully');
+                    loadContractKickbackPeriods(currentContractId);
+                } else {
+                    showToast('error', result.message || 'Error deleting kickback period');
+                }
+            })
+            .catch(error => {
+                console.error('Error deleting kickback period:', error);
+                showToast('error', 'Error deleting kickback period');
+            });
+        });
+    };
+    
+    // Transfer Period management
+    let currentTransferPeriods = [];
+    let currentTransferPeriodId = null;
+    
+    function openTransferPeriodModal(periodId = null, contractId = null) {
+        currentTransferPeriodId = periodId;
+        const modal = document.getElementById('transferPeriodModal');
+        const form = document.getElementById('transferPeriodForm');
+        const title = document.getElementById('transferPeriodModalTitle');
+        
+        if (!modal || !form || !title) return;
+        
+        form.reset();
+        document.getElementById('transferPeriodId').value = '';
+        document.getElementById('transferPeriodContractId').value = contractId || currentContractId || '';
+        
+        // Reset group ranges
+        transferFixedGroupRanges = [];
+        regionalGroupRanges = {};
+        
+        // Reset transfer owner checkboxes
+        const transferOwnerAgency = document.getElementById('transfer_period_owner_agency');
+        const transferOwnerSupplier = document.getElementById('transfer_period_owner_supplier');
+        if (transferOwnerAgency) transferOwnerAgency.checked = false;
+        if (transferOwnerSupplier) transferOwnerSupplier.checked = false;
+        
+        // Hide all sections initially
+        const dateRangeGroup = document.getElementById('transfer_period_date_range');
+        const pricingMethodGroup = document.getElementById('transfer_pricing_method_group');
+        if (dateRangeGroup) dateRangeGroup.style.display = 'none';
+        if (pricingMethodGroup) pricingMethodGroup.style.display = 'none';
+        hideAllTransferPricingContainers();
+        
+        if (periodId) {
+            title.textContent = tContracts.edit_transfer_period || 'Edit Transfer Period';
+            const period = currentTransferPeriods.find(p => p.id == periodId);
+            if (period) {
+                document.getElementById('transferPeriodId').value = period.id;
+                document.getElementById('transferPeriodContractId').value = period.contract_id;
+                document.getElementById('transfer_period_name').value = period.period_name || '';
+                
+                // Set transfer owner (can be comma-separated: agency,supplier)
+                const transferOwners = (period.transfer_owner || '').split(',');
+                if (transferOwnerAgency) transferOwnerAgency.checked = transferOwners.includes('agency');
+                if (transferOwnerSupplier) transferOwnerSupplier.checked = transferOwners.includes('supplier');
+                
+                // Show pricing if supplier is selected
+                if (transferOwners.includes('supplier')) {
+                    if (pricingMethodGroup) pricingMethodGroup.style.display = 'block';
+                    
+                    // Set dates
+                    document.getElementById('transfer_period_start_date').value = period.start_date || '';
+                    document.getElementById('transfer_period_end_date').value = period.end_date || '';
+                    
+                    // Set pricing method
+                    const pricingMethod = period.pricing_method || 'fixed_price';
+                    const pricingRadio = document.getElementById('transfer_pricing_' + pricingMethod.replace('_price', ''));
+                    if (pricingRadio) {
+                        pricingRadio.checked = true;
+                        handleTransferPricingMethodChange();
+                    }
+                    
+                    // Load pricing data based on method
+                    if (pricingMethod === 'fixed_price') {
+                        const fixedPriceType = period.fixed_price_type || 'per_person';
+                        const fixedTypeRadio = document.getElementById('transfer_fixed_' + fixedPriceType.replace('_', ''));
+                        if (fixedTypeRadio) {
+                            fixedTypeRadio.checked = true;
+                            handleTransferFixedPriceTypeChange();
+                        }
+                        
+                        if (fixedPriceType === 'per_person') {
+                            // Load age-based prices
+                            const adultAge = document.getElementById('transfer_adult_age');
+                            const childAge = document.getElementById('transfer_child_age_range');
+                            const infantAge = document.getElementById('transfer_infant_age_range');
+                            const adultPrice = document.getElementById('transfer_adult_price');
+                            const childPrice = document.getElementById('transfer_child_price');
+                            const infantPrice = document.getElementById('transfer_infant_price');
+                            const currency = document.getElementById('transfer_fixed_currency');
+                            
+                            if (adultAge) adultAge.value = period.adult_age || '';
+                            if (childAge) childAge.value = period.child_age_range || '';
+                            if (infantAge) infantAge.value = period.infant_age_range || '';
+                            if (adultPrice) adultPrice.value = period.adult_price || '';
+                            if (childPrice) childPrice.value = period.child_price || '';
+                            if (infantPrice) infantPrice.value = period.infant_price || '';
+                            if (currency) currency.value = period.fixed_currency || 'USD';
+                        } else if (fixedPriceType === 'group') {
+                            // Load fixed group ranges
+                            if (period.fixed_group_ranges && period.fixed_group_ranges.length > 0) {
+                                transferFixedGroupRanges = period.fixed_group_ranges.map(r => ({
+                                    id: Date.now() + Math.random(),
+                                    min_persons: r.min_persons,
+                                    max_persons: r.max_persons,
+                                    price: r.price,
+                                    currency: r.currency
+                                }));
+                                renderTransferFixedGroupRanges();
+                            }
+                        }
+                    } else if (pricingMethod === 'regional_price') {
+                        // Load regional price data
+                        const regionalPriceType = period.regional_price_type || 'per_person';
+                        const regionalPerPersonRadio = document.getElementById('transfer_regional_per_person');
+                        const regionalGroupRadio = document.getElementById('transfer_regional_group');
+                        
+                        if (regionalPriceType === 'per_person' && regionalPerPersonRadio) {
+                            regionalPerPersonRadio.checked = true;
+                            handleTransferRegionalPriceTypeChange();
+                            
+                            const regionalAdultAge = document.getElementById('transfer_regional_adult_age');
+                            const regionalChildAge = document.getElementById('transfer_regional_child_age');
+                            const regionalInfantAge = document.getElementById('transfer_regional_infant_age');
+                            
+                            if (regionalAdultAge) regionalAdultAge.value = period.regional_adult_age || '';
+                            if (regionalChildAge) regionalChildAge.value = period.regional_child_age || '';
+                            if (regionalInfantAge) regionalInfantAge.value = period.regional_infant_age || '';
+                            
+                            if (tourRegions && tourRegions.length > 0) {
+                                renderTransferRegionalPrices();
+                                if (period.regional_prices && period.regional_prices.length > 0) {
+                                    setTimeout(() => loadTransferRegionalPrices(period.regional_prices), 100);
+                                }
+                            }
+                        } else if (regionalPriceType === 'group' && regionalGroupRadio) {
+                            regionalGroupRadio.checked = true;
+                            handleTransferRegionalPriceTypeChange();
+                            
+                            // Load regional group ranges
+                            if (period.regional_group_ranges && period.regional_group_ranges.length > 0) {
+                                regionalGroupRanges = {};
+                                period.regional_group_ranges.forEach(range => {
+                                    const subRegionId = range.sub_region_id;
+                                    if (!regionalGroupRanges[subRegionId]) {
+                                        regionalGroupRanges[subRegionId] = [];
+                                    }
+                                    regionalGroupRanges[subRegionId].push({
+                                        id: Date.now() + Math.random(),
+                                        sub_region_id: subRegionId,
+                                        min_persons: range.min_persons,
+                                        max_persons: range.max_persons,
+                                        price: range.price,
+                                        currency: range.currency
+                                    });
+                                });
+                                
+                                // Render ranges for each region
+                                Object.keys(regionalGroupRanges).forEach(subRegionId => {
+                                    renderRegionalGroupRangesForRegion(subRegionId);
+                                });
+                            }
+                        }
+                    }
+                }
+            }
+        } else {
+            title.textContent = tContracts.add_transfer_period || 'Add Transfer Period';
+        }
+        
+        modal.classList.add('active');
+        document.body.style.overflow = 'hidden';
+    }
+    
+    function loadTransferRegionalPrices(regionalPrices) {
+        if (!regionalPrices || regionalPrices.length === 0) return;
+        
+        regionalPrices.forEach(priceData => {
+            const item = document.querySelector(`.regional-price-item[data-sub-region-id="${priceData.sub_region_id}"]`);
+            if (item) {
+                const adultInput = item.querySelector('.transfer-regional-adult-price');
+                const childInput = item.querySelector('.transfer-regional-child-price');
+                const infantInput = item.querySelector('.transfer-regional-infant-price');
+                
+                if (adultInput && priceData.adult_price) adultInput.value = priceData.adult_price;
+                if (childInput && priceData.child_price) childInput.value = priceData.child_price;
+                if (infantInput && priceData.infant_price) infantInput.value = priceData.infant_price;
+            }
+        });
+    }
+    
+    function closeTransferPeriodModal() {
+        const modal = document.getElementById('transferPeriodModal');
+        if (modal) {
+            modal.classList.remove('active');
+            document.body.style.overflow = '';
+        }
+        currentTransferPeriodId = null;
+    }
+    
+    function loadContractTransferPeriods(contractId) {
+        if (!contractId) return;
+        
+        fetch(`${API_BASE}?action=transfer_periods&contract_id=${contractId}`)
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    currentTransferPeriods = data.data || [];
+                    renderTransferPeriods();
+                }
+            })
+            .catch(error => {
+                console.error('Error loading transfer periods:', error);
+            });
+    }
+    
+    function renderTransferPeriods() {
+        const container = document.getElementById('transfer_periods_list');
+        if (!container) return;
+        
+        container.innerHTML = '';
+        
+        if (currentTransferPeriods.length === 0) {
+            container.innerHTML = `<p style="color: #6b7280; padding: 16px;">${tContracts.no_transfer_periods || 'No transfer periods found'}</p>`;
+            return;
+        }
+        
+        currentTransferPeriods.forEach(period => {
+            const item = document.createElement('div');
+            item.className = 'period-item';
+            item.style.cssText = 'padding: 16px; border: 1px solid #e5e7eb; border-radius: 8px; margin-bottom: 12px; background: #f9fafb;';
+            
+            // Format transfer owners
+            const owners = (period.transfer_owner || '').split(',').filter(o => o);
+            const ownersText = owners.map(o => o === 'agency' ? (tContracts.agency || 'Acente') : (tContracts.supplier || 'Tedarikçi')).join(' + ');
+            
+            // Format pricing method
+            let pricingText = '';
+            if (owners.includes('supplier')) {
+                const method = period.pricing_method || 'fixed_price';
+                pricingText = method === 'fixed_price' ? (tContracts.fixed_price || 'Sabit Fiyat') : (tContracts.regional_price || 'Bölge Bazlı');
+            }
+            
+            item.innerHTML = `
+                <div style="display: flex; justify-content: space-between; align-items: start;">
+                    <div style="flex: 1;">
+                        <h4 style="margin: 0 0 8px 0; font-size: 16px; color: #1f2937;">${period.period_name || '-'}</h4>
+                        <div style="display: flex; gap: 16px; font-size: 13px; color: #6b7280;">
+                            ${period.start_date ? `<span><strong>${tContracts.start_date || 'Start'}:</strong> ${period.start_date}</span>` : ''}
+                            ${period.end_date ? `<span><strong>${tContracts.end_date || 'End'}:</strong> ${period.end_date}</span>` : ''}
+                            <span><strong>${tContracts.transfer_owner || 'Transfer Kimde'}:</strong> ${ownersText || '-'}</span>
+                            ${pricingText ? `<span><strong>${tContracts.pricing_method || 'Yöntem'}:</strong> ${pricingText}</span>` : ''}
+                        </div>
+                    </div>
+                    <div style="display: flex; gap: 8px;">
+                        <button class="btn-icon" onclick="editTransferPeriod(${period.id}, event)" title="${tContracts.edit || 'Edit'}">
+                            <span class="material-symbols-rounded">edit</span>
+                        </button>
+                        <button class="btn-icon" onclick="deleteTransferPeriod(${period.id}, event)" title="${tContracts.delete || 'Delete'}">
+                            <span class="material-symbols-rounded">delete</span>
+                        </button>
+                    </div>
+                </div>
+            `;
+            container.appendChild(item);
+        });
+    }
+    
+    function handleTransferPeriodSubmit(e) {
+        e.preventDefault();
+        
+        console.log('=== Transfer Period Submit Start ===');
+        
+        const formData = new FormData(e.target);
+        const data = Object.fromEntries(formData);
+        
+        console.log('FormData entries:', data);
+        
+        data.contract_id = document.getElementById('transferPeriodContractId').value;
+        console.log('Contract ID:', data.contract_id);
+        
+        // Validate dates
+        const startDate = document.getElementById('transfer_period_start_date').value;
+        const endDate = document.getElementById('transfer_period_end_date').value;
+        
+        if (!startDate || !endDate) {
+            showToast('error', tContracts.date_required || 'Start date and end date are required');
+            return;
+        }
+        
+        if (endDate < startDate) {
+            showToast('error', tContracts.end_date_after_start || 'End date must be after start date');
+            return;
+        }
+        
+        // Get transfer owner (can be both)
+        const transferOwners = [];
+        const agencyChecked = document.getElementById('transfer_period_owner_agency')?.checked;
+        const supplierChecked = document.getElementById('transfer_period_owner_supplier')?.checked;
+        
+        if (!agencyChecked && !supplierChecked) {
+            showToast('error', tContracts.transfer_owner_required || 'Please select at least one transfer owner');
+            return;
+        }
+        
+        if (agencyChecked) transferOwners.push('agency');
+        if (supplierChecked) transferOwners.push('supplier');
+        
+        data.transfer_owner = transferOwners.join(',');
+        console.log('Transfer owner:', data.transfer_owner);
+        
+        if (supplierChecked) {
+            console.log('Supplier is checked, collecting pricing data...');
+            // Get pricing method
+            const pricingMethod = document.querySelector('input[name="pricing_method"]:checked')?.value;
+            data.pricing_method = pricingMethod;
+            
+            if (pricingMethod === 'fixed_price') {
+                // Fixed price
+                const fixedPriceType = document.querySelector('input[name="fixed_price_type"]:checked')?.value;
+                data.fixed_price_type = fixedPriceType;
+                
+                if (fixedPriceType === 'per_person') {
+                    // Per person with age groups
+                    data.adult_age = document.getElementById('transfer_adult_age')?.value || '';
+                    data.child_age_range = document.getElementById('transfer_child_age_range')?.value || '';
+                    data.infant_age_range = document.getElementById('transfer_infant_age_range')?.value || '';
+                    data.adult_price = document.getElementById('transfer_adult_price')?.value || '';
+                    data.child_price = document.getElementById('transfer_child_price')?.value || '';
+                    data.infant_price = document.getElementById('transfer_infant_price')?.value || '';
+                    data.fixed_currency = document.getElementById('transfer_fixed_currency')?.value || 'USD';
+                } else if (fixedPriceType === 'group') {
+                    // Group ranges for fixed price
+                    const groupRanges = [];
+                    document.querySelectorAll('.group-range-item').forEach(item => {
+                        const minPersons = item.querySelector('.transfer-fixed-group-min')?.value;
+                        const maxPersons = item.querySelector('.transfer-fixed-group-max')?.value;
+                        const price = item.querySelector('.transfer-fixed-group-price')?.value;
+                        const currency = item.querySelector('.transfer-fixed-group-currency')?.value;
+                        
+                        if (minPersons && maxPersons && price) {
+                            groupRanges.push({
+                                min_persons: minPersons,
+                                max_persons: maxPersons,
+                                price: price,
+                                currency: currency
+                            });
+                        }
+                    });
+                    data.fixed_group_ranges = groupRanges;
+                }
+            } else if (pricingMethod === 'regional_price') {
+                // Regional prices - check type
+                const regionalPriceType = document.querySelector('input[name="regional_price_type"]:checked')?.value;
+                data.regional_price_type = regionalPriceType;
+                
+                if (regionalPriceType === 'per_person') {
+                    // Regional per person
+                    data.regional_adult_age = document.getElementById('transfer_regional_adult_age')?.value || '';
+                    data.regional_child_age = document.getElementById('transfer_regional_child_age')?.value || '';
+                    data.regional_infant_age = document.getElementById('transfer_regional_infant_age')?.value || '';
+                    
+                    const regionalPrices = [];
+                    document.querySelectorAll('.regional-price-item').forEach(item => {
+                        const subRegionId = item.dataset.subRegionId;
+                        const adultPrice = item.querySelector('.transfer-regional-adult-price')?.value;
+                        const childPrice = item.querySelector('.transfer-regional-child-price')?.value;
+                        const infantPrice = item.querySelector('.transfer-regional-infant-price')?.value;
+                        
+                        if (adultPrice || childPrice || infantPrice) {
+                            regionalPrices.push({
+                                sub_region_id: subRegionId,
+                                adult_price: adultPrice || null,
+                                child_price: childPrice || null,
+                                infant_price: infantPrice || null
+                            });
+                        }
+                    });
+                    data.regional_prices = regionalPrices;
+                } else if (regionalPriceType === 'group') {
+                    // Regional group ranges - collect all ranges from all regions
+                    const allRegionalGroupRanges = [];
+                    document.querySelectorAll('.regional-group-ranges-list').forEach(regionContainer => {
+                        const subRegionId = regionContainer.dataset.subRegionId;
+                        regionContainer.querySelectorAll('.group-range-item').forEach(item => {
+                            const minPersons = item.querySelector('.transfer-regional-group-min')?.value;
+                            const maxPersons = item.querySelector('.transfer-regional-group-max')?.value;
+                            const price = item.querySelector('.transfer-regional-group-price')?.value;
+                            const currency = item.querySelector('.transfer-regional-group-currency')?.value;
+                            
+                            if (minPersons && maxPersons && price) {
+                                allRegionalGroupRanges.push({
+                                    sub_region_id: subRegionId,
+                                    min_persons: minPersons,
+                                    max_persons: maxPersons,
+                                    price: price,
+                                    currency: currency
+                                });
+                            }
+                        });
+                    });
+                    data.regional_group_ranges = allRegionalGroupRanges;
+                }
+            }
+        }
+        
+        const periodId = document.getElementById('transferPeriodId').value;
+        if (periodId) {
+            data.id = periodId;
+        }
+        
+        console.log('Final data to send:', data);
+        console.log('=== Transfer Period Submit End ===');
+        
+        const url = `${API_BASE}?action=transfer_period`;
+        const method = periodId ? 'PUT' : 'POST';
+        
+        console.log('Sending to:', url, 'Method:', method);
+        
+        fetch(url, {
+            method: method,
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify(data)
+        })
+        .then(response => {
+            console.log('Response status:', response.status);
+            return response.json();
+        })
+        .then(result => {
+            console.log('API Response:', result);
+            if (result.success) {
+                showToast('success', periodId ? 'Transfer period updated' : 'Transfer period created');
+                closeTransferPeriodModal();
+                loadContractTransferPeriods(data.contract_id);
+            } else {
+                console.error('API Error:', result.message);
+                showToast('error', result.message || 'Error saving transfer period');
+            }
+        })
+        .catch(error => {
+            console.error('Error saving transfer period:', error);
+            showToast('error', 'Error saving transfer period: ' + error.message);
+        });
+    }
+    
+    window.editTransferPeriod = function(id, event) {
+        if (event) {
+            event.stopPropagation();
+            event.preventDefault();
+        }
+        const period = currentTransferPeriods.find(p => p.id == id);
+        if (period) {
+            openTransferPeriodModal(id, period.contract_id);
+        }
+    };
+    
+    window.deleteTransferPeriod = function(id, event) {
+        if (event) {
+            event.stopPropagation();
+            event.preventDefault();
+        }
+        showConfirmDialog('Are you sure you want to delete this transfer period?', function() {
+            fetch(`${API_BASE}?action=transfer_period&id=${id}`, {method: 'DELETE'})
+            .then(response => response.json())
+            .then(result => {
+                if (result.success) {
+                    showToast('success', 'Transfer period deleted successfully');
+                    loadContractTransferPeriods(currentContractId);
+                } else {
+                    showToast('error', result.message || 'Error deleting transfer period');
+                }
+            })
+            .catch(error => {
+                console.error('Error deleting transfer period:', error);
+                showToast('error', 'Error deleting transfer period');
             });
         });
     };

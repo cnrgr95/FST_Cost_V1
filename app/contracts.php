@@ -102,7 +102,7 @@ $t_contracts = $all_translations['contracts'] ?? [];
     
     <!-- Contract Modal -->
     <div id="contractModal" class="modal">
-        <div class="modal-content">
+        <div class="modal-content" style="max-width: 1000px;">
             <div class="modal-header">
                 <h2 id="modalTitle"><?php echo $t_common['add'] ?? 'Add'; ?> <?php echo $t_sidebar['contract'] ?? 'Contract'; ?></h2>
                 <button class="modal-close" id="closeModal">
@@ -113,6 +113,20 @@ $t_contracts = $all_translations['contracts'] ?? [];
             <form id="contractForm">
                 <input type="hidden" id="contractId">
                 
+                <!-- Contract Form Tabs -->
+                <div class="contract-form-tabs">
+                    <button type="button" class="contract-form-tab active" data-tab="basic">
+                        <span class="material-symbols-rounded">info</span>
+                        <?php echo $t_contracts['basic_info'] ?? 'Basic Info'; ?>
+                    </button>
+                    <button type="button" class="contract-form-tab" data-tab="pricing">
+                        <span class="material-symbols-rounded">attach_money</span>
+                        <?php echo $t_contracts['pricing'] ?? 'Pricing'; ?>
+                    </button>
+                </div>
+                
+                <!-- Tab Content: Basic Info -->
+                <div class="contract-form-content active" id="basic-tab">
                 <!-- Basic Information Section -->
                 <div class="form-section">
                     <h3 class="section-title"><?php echo $t_contracts['basic_info'] ?? 'Basic Information'; ?></h3>
@@ -190,13 +204,178 @@ $t_contracts = $all_translations['contracts'] ?? [];
                     </div>
                 </div>
                 
-                <!-- Kickback Section -->
+                     <!-- Included Content Section -->
                 <div class="form-section">
-                    <h3 class="section-title"><?php echo $t_contracts['kickback'] ?? 'Kickback Information'; ?></h3>
+                         <h3 class="section-title"><?php echo $t_contracts['included_content'] ?? 'Included Content'; ?></h3>
+                         <div class="form-group full-width">
+                             <textarea id="included_content" name="included_content" rows="4" placeholder="<?php echo $t_contracts['included_content_placeholder'] ?? 'Enter included content here...'; ?>"></textarea>
+                         </div>
+                     </div>
+                 </div>
+                 
+                <!-- Tab Content: Pricing -->
+                <div class="contract-form-content" id="pricing-tab">
+                    <!-- Price Periods Section -->
+                    <div class="form-section" id="price_periods_section" style="display: none;">
+                        <h3 class="section-title"><?php echo $t_contracts['price_periods'] ?? 'Price Periods'; ?></h3>
+                        <div class="form-group full-width">
+                            <button type="button" class="btn btn-secondary" id="addPricePeriodBtn" style="margin-bottom: 16px;">
+                                <span class="material-symbols-rounded">add</span>
+                                <?php echo $t_contracts['add_price_period'] ?? 'Add Price Period'; ?>
+                            </button>
+                            <div id="price_periods_list" class="price-periods-list">
+                                <!-- Price periods will be loaded here -->
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Kickback Periods Section -->
+                    <div class="form-section" id="kickback_periods_section" style="display: none;">
+                        <h3 class="section-title"><?php echo $t_contracts['kickback_periods'] ?? 'Kickback Periods'; ?></h3>
+                        <div class="form-group full-width">
+                            <button type="button" class="btn btn-secondary" id="addKickbackPeriodBtn" style="margin-bottom: 16px;">
+                                <span class="material-symbols-rounded">add</span>
+                                <?php echo $t_contracts['add_kickback_period'] ?? 'Add Kickback Period'; ?>
+                            </button>
+                            <div id="kickback_periods_list" class="kickback-periods-list">
+                                <!-- Kickback periods will be loaded here -->
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Transfer Periods Section -->
+                    <div class="form-section" id="transfer_periods_section" style="display: none;">
+                        <h3 class="section-title"><?php echo $t_contracts['transfer_periods'] ?? 'Transfer Periods'; ?></h3>
+                        <div class="form-group full-width">
+                            <button type="button" class="btn btn-secondary" id="addTransferPeriodBtn" style="margin-bottom: 16px;">
+                                <span class="material-symbols-rounded">add</span>
+                                <?php echo $t_contracts['add_transfer_period'] ?? 'Add Transfer Period'; ?>
+                            </button>
+                            <div id="transfer_periods_list" class="transfer-periods-list">
+                                <!-- Transfer periods will be loaded here -->
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Actions Section -->
+                    <div class="form-section" id="actions_section" style="display: none;">
+                        <h3 class="section-title"><?php echo $t_contracts['actions'] ?? 'Actions'; ?></h3>
+                        <div class="form-group full-width">
+                            <button type="button" class="btn btn-secondary" id="addActionBtn" style="margin-bottom: 16px;">
+                                <span class="material-symbols-rounded">add</span>
+                                <?php echo $t_contracts['add_action'] ?? 'Add Action'; ?>
+                            </button>
+                            <div id="actions_list" class="actions-list">
+                                <!-- Actions will be loaded here -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" id="cancelBtn"><?php echo $t_common['cancel'] ?? 'Cancel'; ?></button>
+                    <button type="submit" class="btn btn-primary"><?php echo $t_common['save'] ?? 'Save'; ?></button>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <!-- Action Modal -->
+    <div id="actionModal" class="modal">
+        <div class="modal-content" style="max-width: 600px;">
+            <div class="modal-header">
+                <h2 id="actionModalTitle"><?php echo $t_contracts['add_action'] ?? 'Add Action'; ?></h2>
+                <button class="modal-close" id="closeActionModal">
+                    <span class="material-symbols-rounded">close</span>
+                </button>
+            </div>
+            
+            <form id="actionForm">
+                <input type="hidden" id="actionId">
+                <input type="hidden" id="actionContractId">
+                
+                <div class="form-group">
+                    <label for="action_name"><?php echo $t_contracts['action_name'] ?? 'Action Name'; ?> *</label>
+                    <input type="text" id="action_name" name="action_name" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="action_description"><?php echo $t_contracts['action_description'] ?? 'Action Description'; ?></label>
+                    <textarea id="action_description" name="action_description" rows="3"></textarea>
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="action_start_date"><?php echo $t_contracts['action_start_date'] ?? 'Start Date'; ?> *</label>
+                        <input type="date" id="action_start_date" name="action_start_date" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="action_end_date"><?php echo $t_contracts['action_end_date'] ?? 'End Date'; ?> *</label>
+                        <input type="date" id="action_end_date" name="action_end_date" required>
+                    </div>
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="action_duration_type"><?php echo $t_contracts['action_duration_type'] ?? 'Duration Type'; ?></label>
+                        <select id="action_duration_type" name="action_duration_type">
+                            <option value="day"><?php echo $t_contracts['day'] ?? 'Day'; ?></option>
+                            <option value="week"><?php echo $t_contracts['week'] ?? 'Week'; ?></option>
+                            <option value="month"><?php echo $t_contracts['month'] ?? 'Month'; ?></option>
+                            <option value="custom"><?php echo $t_contracts['custom'] ?? 'Custom'; ?></option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group" id="action_duration_days_group" style="display: none;">
+                        <label for="action_duration_days"><?php echo $t_contracts['action_duration_days'] ?? 'Duration (Days)'; ?></label>
+                        <input type="number" id="action_duration_days" name="action_duration_days" min="1">
+                    </div>
+                </div>
+                
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" id="cancelActionBtn"><?php echo $t_common['cancel'] ?? 'Cancel'; ?></button>
+                    <button type="submit" class="btn btn-primary"><?php echo $t_common['save'] ?? 'Save'; ?></button>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <!-- Kickback Period Modal -->
+    <div id="kickbackPeriodModal" class="modal">
+        <div class="modal-content" style="max-width: 700px;">
+            <div class="modal-header">
+                <h2 id="kickbackPeriodModalTitle"><?php echo $t_contracts['add_kickback_period'] ?? 'Add Kickback Period'; ?></h2>
+                <button class="modal-close" id="closeKickbackPeriodModal">
+                    <span class="material-symbols-rounded">close</span>
+                </button>
+            </div>
+            
+            <form id="kickbackPeriodForm">
+                <input type="hidden" id="kickbackPeriodId">
+                <input type="hidden" id="kickbackPeriodContractId">
+                
+                <div class="form-group">
+                    <label for="kickback_period_name"><?php echo $t_contracts['period_name'] ?? 'Period Name'; ?> *</label>
+                    <input type="text" id="kickback_period_name" name="period_name" placeholder="örn: Yüksek Sezon, Düşük Sezon" required>
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="kickback_period_start_date"><?php echo $t_contracts['start_date'] ?? 'Start Date'; ?> *</label>
+                        <input type="date" id="kickback_period_start_date" name="start_date" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="kickback_period_end_date"><?php echo $t_contracts['end_date'] ?? 'End Date'; ?> *</label>
+                        <input type="date" id="kickback_period_end_date" name="end_date" required>
+                    </div>
+                </div>
+                
                     <div class="form-row three-columns">
                         <div class="form-group">
-                            <label for="kickback_type"><?php echo $t_contracts['kickback_type'] ?? 'Kickback Type'; ?></label>
-                            <select id="kickback_type" name="kickback_type">
+                        <label for="kickback_period_type"><?php echo $t_contracts['kickback_type'] ?? 'Kickback Type'; ?></label>
+                        <select id="kickback_period_type" name="kickback_type">
                                 <option value=""><?php echo $t_common['select'] ?? 'Select...'; ?></option>
                                 <option value="fixed"><?php echo $t_contracts['fixed_amount'] ?? 'Fixed Amount'; ?></option>
                                 <option value="percentage"><?php echo $t_contracts['percentage'] ?? 'Percentage'; ?></option>
@@ -204,14 +383,17 @@ $t_contracts = $all_translations['contracts'] ?? [];
                         </div>
                         
                         <div class="form-group">
-                            <label for="kickback_value"><?php echo $t_contracts['kickback_value'] ?? 'Kickback Value'; ?></label>
-                            <input type="number" id="kickback_value" name="kickback_value" step="0.01" min="0" placeholder="0.00">
+                        <label for="kickback_period_value"><?php echo $t_contracts['kickback_value'] ?? 'Kickback Value'; ?></label>
+                        <input type="number" id="kickback_period_value" name="kickback_value" step="0.01" min="0" placeholder="0.00">
                         </div>
                         
                         <div class="form-group">
-                            <label for="kickback_currency" id="kickback_currency_label" style="opacity: 0.5;"><?php echo $t_contracts['currency'] ?? 'Currency'; ?></label>
-                            <select id="kickback_currency" name="kickback_currency" disabled style="opacity: 0.5;">
-                                <option value=""><?php echo $t_common['loading'] ?? 'Loading...'; ?></option>
+                        <label for="kickback_period_currency"><?php echo $t_contracts['currency'] ?? 'Currency'; ?></label>
+                        <select id="kickback_period_currency" name="kickback_currency">
+                            <option value="USD">USD</option>
+                            <option value="EUR">EUR</option>
+                            <option value="TL">TL</option>
+                            <option value="GBP">GBP</option>
                             </select>
                         </div>
                     </div>
@@ -221,189 +403,392 @@ $t_contracts = $all_translations['contracts'] ?? [];
                             <label><?php echo $t_contracts['kickback_calculation'] ?? 'Kickback Calculation'; ?></label>
                             <div class="radio-group">
                                 <label class="radio-label">
-                                    <input type="radio" name="kickback_per_person" value="0" id="kickback_per_person_0" checked>
+                                <input type="radio" name="kickback_per_person" value="0" id="kickback_per_person_0">
                                     <span><?php echo $t_contracts['over_revenue'] ?? 'Over Revenue'; ?></span>
                                 </label>
                                 <label class="radio-label">
-                                    <input type="radio" name="kickback_per_person" value="1" id="kickback_per_person_1">
+                                <input type="radio" name="kickback_per_person" value="1" id="kickback_per_person_1" checked>
                                     <span><?php echo $t_contracts['per_person'] ?? 'Per Person'; ?></span>
                                 </label>
                             </div>
                         </div>
                         
                         <div class="form-group">
-                            <label for="kickback_min_persons"><?php echo $t_contracts['min_persons'] ?? 'Minimum Persons'; ?></label>
-                            <input type="number" id="kickback_min_persons" name="kickback_min_persons" min="1" placeholder="0">
-                        </div>
+                        <label for="kickback_period_min_persons"><?php echo $t_contracts['min_persons'] ?? 'Minimum Persons'; ?></label>
+                        <input type="number" id="kickback_period_min_persons" name="kickback_min_persons" min="1" placeholder="0">
                     </div>
                 </div>
                 
-                <!-- Transfer Section -->
-                <div class="form-section">
-                    <h3 class="section-title"><?php echo $t_contracts['transfer'] ?? 'Transfer Information'; ?></h3>
-                    <div class="form-row">
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" id="cancelKickbackPeriodBtn"><?php echo $t_common['cancel'] ?? 'Cancel'; ?></button>
+                    <button type="submit" class="btn btn-primary"><?php echo $t_common['save'] ?? 'Save'; ?></button>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <!-- Transfer Period Modal -->
+    <div id="transferPeriodModal" class="modal">
+        <div class="modal-content" style="max-width: 800px;">
+            <div class="modal-header">
+                <h2 id="transferPeriodModalTitle"><?php echo $t_contracts['add_transfer_period'] ?? 'Add Transfer Period'; ?></h2>
+                <button class="modal-close" id="closeTransferPeriodModal">
+                    <span class="material-symbols-rounded">close</span>
+                </button>
+            </div>
+            
+            <form id="transferPeriodForm">
+                <input type="hidden" id="transferPeriodId">
+                <input type="hidden" id="transferPeriodContractId">
+                
+                <!-- Date Range -->
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="transfer_period_start_date"><?php echo $t_contracts['start_date'] ?? 'Start Date'; ?> *</label>
+                        <input type="date" id="transfer_period_start_date" name="start_date" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="transfer_period_end_date"><?php echo $t_contracts['end_date'] ?? 'End Date'; ?> *</label>
+                        <input type="date" id="transfer_period_end_date" name="end_date" required>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="transfer_period_name"><?php echo $t_contracts['period_name'] ?? 'Period Name'; ?> *</label>
+                    <input type="text" id="transfer_period_name" name="period_name" placeholder="örn: Yüksek Sezon, Düşük Sezon" required>
+                </div>
+                
+                <!-- Transfer Owner Selection -->
                         <div class="form-group full-width">
-                            <label><?php echo $t_contracts['transfer_owner'] ?? 'Transfer Owner'; ?> *</label>
+                    <label><?php echo $t_contracts['transfer_owner'] ?? 'Transfer Kimde'; ?> *</label>
                             <div class="checkbox-group">
                                 <label class="checkbox-label">
-                                    <input type="checkbox" id="transfer_owner_agency" name="transfer_owner[]" value="agency">
-                                    <span><?php echo $t_contracts['agency'] ?? 'Agency'; ?></span>
+                            <input type="checkbox" id="transfer_period_owner_agency" value="agency">
+                            <span><?php echo $t_contracts['agency'] ?? 'Acente'; ?></span>
                                 </label>
                                 <label class="checkbox-label">
-                                    <input type="checkbox" id="transfer_owner_supplier" name="transfer_owner[]" value="supplier">
-                                    <span><?php echo $t_contracts['supplier'] ?? 'Supplier'; ?></span>
+                            <input type="checkbox" id="transfer_period_owner_supplier" value="supplier">
+                            <span><?php echo $t_contracts['supplier'] ?? 'Tedarikçi'; ?></span>
                                 </label>
                             </div>
-                            <input type="hidden" id="transfer_owner" name="transfer_owner" value="">
+                </div>
+                
+                <!-- Pricing Method Selection -->
+                <div class="form-group full-width" id="transfer_pricing_method_group" style="display: none;">
+                    <label><?php echo $t_contracts['pricing_method'] ?? 'Pricing Method'; ?> *</label>
+                    <div class="radio-group">
+                        <label class="radio-label">
+                            <input type="radio" name="pricing_method" value="fixed_price" id="transfer_pricing_fixed">
+                            <span><?php echo $t_contracts['fixed_price'] ?? 'Fixed Price'; ?></span>
+                        </label>
+                        <label class="radio-label">
+                            <input type="radio" name="pricing_method" value="regional_price" id="transfer_pricing_regional">
+                            <span><?php echo $t_contracts['regional_price'] ?? 'Regional Price'; ?></span>
+                        </label>
                         </div>
                     </div>
                     
-                    <div class="form-row" id="transfer_price_type_group" style="display: none;">
-                        <div class="form-group">
-                            <label for="transfer_price_type"><?php echo $t_contracts['transfer_price_type'] ?? 'Transfer Price Type'; ?></label>
-                            <select id="transfer_price_type" name="transfer_price_type" class="form-select">
-                                <option value=""><?php echo $t_common['select'] ?? 'Select...'; ?></option>
-                                <option value="per_person"><?php echo $t_contracts['per_person'] ?? 'Per Person'; ?></option>
-                                <option value="fixed"><?php echo $t_contracts['fixed_amount'] ?? 'Fixed Price'; ?></option>
-                            </select>
+                <!-- Fixed Price Options (Tüm Bölgelerde Sabit Fiyat) -->
+                <div id="transfer_fixed_price_container" style="display: none;">
+                    <!-- Fixed Price Type Selection -->
+                    <div class="form-group full-width">
+                        <label><?php echo $t_contracts['fixed_price_type'] ?? 'Fixed Price Type'; ?></label>
+                        <div class="radio-group">
+                            <label class="radio-label">
+                                <input type="radio" name="fixed_price_type" value="per_person" id="transfer_fixed_per_person">
+                                <span><?php echo $t_contracts['per_person'] ?? 'Per Person'; ?></span>
+                            </label>
+                            <label class="radio-label">
+                                <input type="radio" name="fixed_price_type" value="group" id="transfer_fixed_group">
+                                <span><?php echo $t_contracts['group_total'] ?? 'Group Total'; ?></span>
+                            </label>
                         </div>
                     </div>
                     
-                    <!-- Per Person Price -->
-                    <div class="form-row" id="transfer_per_person_price_group" style="display: none;">
+                    <!-- Per Person with Age Groups -->
+                    <div id="transfer_fixed_per_person_container" style="display: none;">
+                        <div class="form-group full-width">
+                            <label class="subsection-label"><?php echo $t_contracts['age_ranges'] ?? 'Age Ranges'; ?></label>
+                            <div class="form-row three-columns">
+                                <div class="form-group">
+                                    <label for="transfer_adult_age"><?php echo $t_contracts['adult_age'] ?? 'Adult Age'; ?></label>
+                                    <input type="text" id="transfer_adult_age" name="adult_age" placeholder="13+">
+                                </div>
                         <div class="form-group">
-                            <label for="transfer_price"><?php echo $t_contracts['transfer_price'] ?? 'Transfer Price'; ?></label>
-                            <input type="number" id="transfer_price" name="transfer_price" step="0.01" min="0" placeholder="0.00">
+                                    <label for="transfer_child_age_range"><?php echo $t_contracts['child_age'] ?? 'Child Age'; ?></label>
+                                    <input type="text" id="transfer_child_age_range" name="child_age_range" placeholder="3-12">
                         </div>
-                        
                         <div class="form-group">
-                            <label for="transfer_currency"><?php echo $t_contracts['transfer_currency'] ?? 'Transfer Currency'; ?></label>
-                            <select id="transfer_currency" name="transfer_currency">
-                                <option value=""><?php echo $t_common['loading'] ?? 'Loading...'; ?></option>
-                            </select>
+                                    <label for="transfer_infant_age_range"><?php echo $t_contracts['infant_age'] ?? 'Infant Age'; ?></label>
+                                    <input type="text" id="transfer_infant_age_range" name="infant_age_range" placeholder="0-2">
+                                </div>
                         </div>
                     </div>
                     
-                    <!-- Fixed Price by Vehicle Type -->
-                    <div class="form-group full-width" id="transfer_fixed_prices_group" style="display: none;">
-                        <label class="subsection-label"><?php echo $t_contracts['transfer_by_vehicle'] ?? 'Transfer Prices by Vehicle Type'; ?></label>
+                        <div class="form-group full-width">
+                            <label class="subsection-label"><?php echo $t_contracts['age_prices'] ?? 'Prices by Age'; ?></label>
                         <div class="form-row three-columns">
                             <div class="form-group">
-                                <label for="transfer_price_mini"><?php echo $t_contracts['mini'] ?? 'Mini'; ?></label>
-                                <input type="number" id="transfer_price_mini" name="transfer_price_mini" step="0.01" min="0" placeholder="0.00">
+                                    <label><?php echo $t_contracts['adult_price'] ?? 'Adult'; ?></label>
+                                    <input type="number" id="transfer_adult_price" name="adult_price" step="0.01" min="0" placeholder="0.00">
                             </div>
-                            
                             <div class="form-group">
-                                <label for="transfer_price_midi"><?php echo $t_contracts['midi'] ?? 'Midi'; ?></label>
-                                <input type="number" id="transfer_price_midi" name="transfer_price_midi" step="0.01" min="0" placeholder="0.00">
+                                    <label><?php echo $t_contracts['child_price'] ?? 'Child'; ?></label>
+                                    <input type="number" id="transfer_child_price" name="child_price" step="0.01" min="0" placeholder="0.00">
                             </div>
-                            
                             <div class="form-group">
-                                <label for="transfer_price_bus"><?php echo $t_contracts['bus'] ?? 'Bus'; ?></label>
-                                <input type="number" id="transfer_price_bus" name="transfer_price_bus" step="0.01" min="0" placeholder="0.00">
+                                    <label><?php echo $t_contracts['infant_price'] ?? 'Infant'; ?></label>
+                                    <input type="number" id="transfer_infant_price" name="infant_price" step="0.01" min="0" placeholder="0.00">
                             </div>
                         </div>
-                        
                         <div class="form-row">
                             <div class="form-group">
-                                <label for="transfer_currency_fixed"><?php echo $t_contracts['transfer_currency'] ?? 'Transfer Currency'; ?></label>
-                                <select id="transfer_currency_fixed" name="transfer_currency_fixed">
-                                    <option value=""><?php echo $t_common['loading'] ?? 'Loading...'; ?></option>
+                                    <label for="transfer_fixed_currency"><?php echo $t_contracts['currency'] ?? 'Currency'; ?></label>
+                                    <select id="transfer_fixed_currency" name="fixed_currency">
+                                        <option value="USD">USD</option>
+                                        <option value="EUR">EUR</option>
+                                        <option value="TL">TL</option>
+                                        <option value="GBP">GBP</option>
                                 </select>
                             </div>
                         </div>
                     </div>
                 </div>
                 
-                <!-- Pricing Section -->
-                <div class="form-section" id="pricing_section" style="display: none;">
-                    <h3 class="section-title"><?php echo $t_contracts['pricing'] ?? 'Pricing'; ?></h3>
-                    
-                    <!-- Price Type Selection -->
-                    <div class="form-group full-width" id="price_type_section" style="display: none;">
-                        <label class="price-type-label"><?php echo $t_contracts['price_type'] ?? 'Price Type'; ?></label>
+                    <!-- Group Total Price with Ranges -->
+                    <div id="transfer_fixed_group_container" style="display: none;">
+                        <div class="form-group full-width">
+                            <label class="subsection-label">
+                                <?php echo $t_contracts['group_ranges'] ?? 'Group Ranges'; ?>
+                                <button type="button" class="btn btn-sm btn-secondary" id="addTransferFixedGroupRange" style="margin-left: 12px;">
+                                    <span class="material-symbols-rounded" style="font-size: 18px;">add</span>
+                                    <?php echo $t_contracts['add_range'] ?? 'Add Range'; ?>
+                                </button>
+                            </label>
+                            <div id="transfer_fixed_group_ranges_list">
+                                <!-- Group ranges will be added here -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Regional Price Options (Bölge Bazlı Fiyat) -->
+                <div id="transfer_regional_price_container" style="display: none;">
+                    <!-- Regional Price Type Selection -->
+                    <div class="form-group full-width">
+                        <label><?php echo $t_contracts['regional_price_type'] ?? 'Regional Price Type'; ?></label>
                         <div class="radio-group">
                             <label class="radio-label">
-                                <input type="radio" name="price_type" value="regional" id="price_type_regional" checked>
-                                <span><?php echo $t_contracts['regional_price'] ?? 'Regional Price'; ?></span>
+                                <input type="radio" name="regional_price_type" value="per_person" id="transfer_regional_per_person">
+                                <span><?php echo $t_contracts['per_person'] ?? 'Per Person'; ?></span>
                             </label>
                             <label class="radio-label">
-                                <input type="radio" name="price_type" value="fixed" id="price_type_fixed">
-                                <span><?php echo $t_contracts['fixed_price'] ?? 'Fixed Price for All Regions'; ?></span>
+                                <input type="radio" name="regional_price_type" value="group" id="transfer_regional_group">
+                                <span><?php echo $t_contracts['group_ranges'] ?? 'Group Ranges'; ?></span>
                             </label>
                         </div>
                     </div>
                     
-                    <!-- Age Groups and Currency Section -->
-                    <div class="form-group full-width" id="age_currency_section" style="display: none;">
+                    <!-- Regional Per Person -->
+                    <div id="transfer_regional_per_person_container" style="display: none;">
+                        <div class="form-group full-width">
+                            <label class="subsection-label"><?php echo $t_contracts['age_ranges'] ?? 'Age Ranges'; ?></label>
+                            <div class="form-row three-columns">
+                                <div class="form-group">
+                                    <label for="transfer_regional_adult_age"><?php echo $t_contracts['adult_age'] ?? 'Adult Age'; ?></label>
+                                    <input type="text" id="transfer_regional_adult_age" name="regional_adult_age" placeholder="13+">
+                                </div>
+                                <div class="form-group">
+                                    <label for="transfer_regional_child_age"><?php echo $t_contracts['child_age'] ?? 'Child Age'; ?></label>
+                                    <input type="text" id="transfer_regional_child_age" name="regional_child_age" placeholder="3-12">
+                                </div>
+                                <div class="form-group">
+                                    <label for="transfer_regional_infant_age"><?php echo $t_contracts['infant_age'] ?? 'Infant Age'; ?></label>
+                                    <input type="text" id="transfer_regional_infant_age" name="regional_infant_age" placeholder="0-2">
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="form-group full-width">
+                            <label class="subsection-label"><?php echo $t_contracts['regional_prices'] ?? 'Regional Prices'; ?></label>
+                            <div id="transfer_regional_prices_container" class="regional-prices-container">
+                                <!-- Regional prices (per person) will be loaded here -->
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Regional Group-Based -->
+                    <div id="transfer_regional_group_container" style="display: none;">
+                        <div class="form-group full-width">
+                            <label class="subsection-label">
+                                <?php echo $t_contracts['regional_group_ranges'] ?? 'Regional Group Ranges'; ?>
+                            </label>
+                            <div id="transfer_regional_group_container_list">
+                                <!-- Regional group ranges will be loaded here -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" id="cancelTransferPeriodBtn"><?php echo $t_common['cancel'] ?? 'Cancel'; ?></button>
+                    <button type="submit" class="btn btn-primary"><?php echo $t_common['save'] ?? 'Save'; ?></button>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <!-- Price Period Modal -->
+    <div id="pricePeriodModal" class="modal">
+        <div class="modal-content" style="max-width: 700px;">
+            <div class="modal-header">
+                <h2 id="pricePeriodModalTitle"><?php echo $t_contracts['add_price_period'] ?? 'Add Price Period'; ?></h2>
+                <button class="modal-close" id="closePricePeriodModal">
+                    <span class="material-symbols-rounded">close</span>
+                </button>
+            </div>
+            
+            <form id="pricePeriodForm">
+                <input type="hidden" id="pricePeriodId">
+                <input type="hidden" id="pricePeriodContractId">
+                
+                <div class="form-group">
+                    <label for="period_name"><?php echo $t_contracts['price_period_name'] ?? 'Period Name'; ?> *</label>
+                    <input type="text" id="period_name" name="period_name" placeholder="örn: Yüksek Sezon, Düşük Sezon" required>
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="period_start_date"><?php echo $t_contracts['action_start_date'] ?? 'Start Date'; ?> *</label>
+                        <input type="date" id="period_start_date" name="start_date" required>
+                </div>
+                
+                    <div class="form-group">
+                        <label for="period_end_date"><?php echo $t_contracts['action_end_date'] ?? 'End Date'; ?> *</label>
+                        <input type="date" id="period_end_date" name="end_date" required>
+                    </div>
+                </div>
+                
+                <!-- Tour Departure Days -->
+                <div class="form-group">
+                    <label><?php echo $t_contracts['tour_departure_days'] ?? 'Tour Departure Days'; ?></label>
+                    <div class="checkbox-group" style="flex-wrap: wrap;">
+                        <label class="checkbox-label">
+                            <input type="checkbox" class="period-departure-day" value="monday">
+                            <span><?php echo $t_contracts['monday'] ?? 'Monday'; ?></span>
+                        </label>
+                        <label class="checkbox-label">
+                            <input type="checkbox" class="period-departure-day" value="tuesday">
+                            <span><?php echo $t_contracts['tuesday'] ?? 'Tuesday'; ?></span>
+                        </label>
+                        <label class="checkbox-label">
+                            <input type="checkbox" class="period-departure-day" value="wednesday">
+                            <span><?php echo $t_contracts['wednesday'] ?? 'Wednesday'; ?></span>
+                        </label>
+                        <label class="checkbox-label">
+                            <input type="checkbox" class="period-departure-day" value="thursday">
+                            <span><?php echo $t_contracts['thursday'] ?? 'Thursday'; ?></span>
+                        </label>
+                        <label class="checkbox-label">
+                            <input type="checkbox" class="period-departure-day" value="friday">
+                            <span><?php echo $t_contracts['friday'] ?? 'Friday'; ?></span>
+                        </label>
+                        <label class="checkbox-label">
+                            <input type="checkbox" class="period-departure-day" value="saturday">
+                            <span><?php echo $t_contracts['saturday'] ?? 'Saturday'; ?></span>
+                            </label>
+                        <label class="checkbox-label">
+                            <input type="checkbox" class="period-departure-day" value="sunday">
+                            <span><?php echo $t_contracts['sunday'] ?? 'Sunday'; ?></span>
+                            </label>
+                        </div>
+                    <input type="hidden" id="period_days_of_week" name="days_of_week" value="">
+                    </div>
+                    
+                <!-- Age Groups and Currency -->
+                <div class="form-group full-width">
                         <label class="subsection-label"><?php echo $t_contracts['age_currency'] ?? 'Age Information & Currency'; ?></label>
                         <div class="form-row three-columns">
                             <div class="form-group">
-                                <label for="adult_age"><?php echo $t_contracts['adult_age'] ?? 'Adult Age'; ?></label>
-                                <input type="text" id="adult_age" name="adult_age" placeholder="+12">
+                            <label for="period_adult_age"><?php echo $t_contracts['adult_age'] ?? 'Adult Age'; ?></label>
+                            <input type="text" id="period_adult_age" name="adult_age" placeholder="+12">
                             </div>
                             
                             <div class="form-group">
-                                <label for="child_age_range"><?php echo $t_contracts['child_age'] ?? 'Child Age Range'; ?></label>
-                                <input type="text" id="child_age_range" name="child_age_range" placeholder="6-11">
+                            <label for="period_child_age_range"><?php echo $t_contracts['child_age'] ?? 'Child Age Range'; ?></label>
+                            <input type="text" id="period_child_age_range" name="child_age_range" placeholder="6-11">
                             </div>
                             
                             <div class="form-group">
-                                <label for="infant_age_range"><?php echo $t_contracts['infant_age'] ?? 'Infant Age Range'; ?></label>
-                                <input type="text" id="infant_age_range" name="infant_age_range" placeholder="0-5">
+                            <label for="period_infant_age_range"><?php echo $t_contracts['infant_age'] ?? 'Infant Age Range'; ?></label>
+                            <input type="text" id="period_infant_age_range" name="infant_age_range" placeholder="0-5">
                             </div>
                         </div>
                         
                         <div class="form-row">
                             <div class="form-group">
-                                <label for="contract_currency"><?php echo $t_contracts['currency'] ?? 'Currency'; ?></label>
-                                <select id="contract_currency" name="contract_currency">
-                                    <option value=""><?php echo $t_common['loading'] ?? 'Loading...'; ?></option>
+                            <label for="period_currency"><?php echo $t_contracts['currency'] ?? 'Currency'; ?></label>
+                            <select id="period_currency" name="currency">
+                                <option value="USD">USD</option>
+                                <option value="EUR">EUR</option>
+                                <option value="TL">TL</option>
+                                <option value="GBP">GBP</option>
                                 </select>
                             </div>
                         </div>
                     </div>
                     
-                    <!-- Fixed Price Section (for all regions) -->
-                    <div class="form-group full-width" id="fixed_price_section" style="display: none;">
+                <!-- Price Type Selection -->
+                <div class="form-group full-width">
+                    <label class="price-type-label"><?php echo $t_contracts['price_type'] ?? 'Price Type'; ?></label>
+                    <div class="radio-group">
+                        <label class="radio-label">
+                            <input type="radio" name="price_type" value="regional" id="period_price_type_regional" checked>
+                            <span><?php echo $t_contracts['regional_price'] ?? 'Regional Price'; ?></span>
+                        </label>
+                        <label class="radio-label">
+                            <input type="radio" name="price_type" value="fixed" id="period_price_type_fixed">
+                            <span><?php echo $t_contracts['fixed_price'] ?? 'Fixed Price for All Regions'; ?></span>
+                        </label>
+                    </div>
+                </div>
+                
+                <!-- Fixed Price Section -->
+                <div class="form-group full-width" id="period_fixed_price_section" style="display: none;">
                         <label class="subsection-label"><?php echo $t_contracts['fixed_price'] ?? 'Fixed Price for All Regions'; ?></label>
                         <div class="form-row three-columns">
                             <div class="form-group">
-                                <label><?php echo $t_contracts['adult_price'] ?? 'Adult Price'; ?></label>
-                                <input type="number" id="fixed_adult_price" name="fixed_adult_price" step="0.01" min="0" placeholder="0.00">
+                            <label for="period_adult_price"><?php echo $t_contracts['adult_price'] ?? 'Adult Price'; ?></label>
+                            <input type="number" id="period_adult_price" name="adult_price" step="0.01" min="0" placeholder="0.00">
                             </div>
                             
                             <div class="form-group">
-                                <label><?php echo $t_contracts['child_price'] ?? 'Child Price'; ?></label>
-                                <input type="number" id="fixed_child_price" name="fixed_child_price" step="0.01" min="0" placeholder="0.00">
+                            <label for="period_child_price"><?php echo $t_contracts['child_price'] ?? 'Child Price'; ?></label>
+                            <input type="number" id="period_child_price" name="child_price" step="0.01" min="0" placeholder="0.00">
                             </div>
                             
                             <div class="form-group">
-                                <label><?php echo $t_contracts['infant_price'] ?? 'Infant Price'; ?></label>
-                                <input type="number" id="fixed_infant_price" name="fixed_infant_price" step="0.01" min="0" placeholder="0.00">
+                            <label for="period_infant_price"><?php echo $t_contracts['infant_price'] ?? 'Infant Price'; ?></label>
+                            <input type="number" id="period_infant_price" name="infant_price" step="0.01" min="0" placeholder="0.00">
                             </div>
                         </div>
                     </div>
                     
                     <!-- Regional Prices Section -->
-                    <div class="form-group full-width" id="regional_prices_section" style="display: none;">
+                <div class="form-group full-width" id="period_regional_prices_section">
                         <label class="subsection-label"><?php echo $t_contracts['regional_prices'] ?? 'Regional Prices'; ?></label>
-                        <div id="regional_prices_container" class="regional-prices-container">
+                    <div id="period_regional_prices_container" class="regional-prices-container">
                             <!-- Regional prices will be loaded here dynamically -->
-                        </div>
                     </div>
                 </div>
                 
-                <!-- Included Content Section -->
-                <div class="form-section">
-                    <h3 class="section-title"><?php echo $t_contracts['included_content'] ?? 'Included Content'; ?></h3>
-                    <div class="form-group full-width">
-                        <textarea id="included_content" name="included_content" rows="4" placeholder="<?php echo $t_contracts['included_content_placeholder'] ?? 'Enter included content here...'; ?>"></textarea>
-                    </div>
+                <div class="form-group">
+                    <label for="price_period_notes"><?php echo $t_contracts['price_period_notes'] ?? 'Notes'; ?></label>
+                    <textarea id="price_period_notes" name="notes" rows="2" placeholder="Notlar..."></textarea>
                 </div>
                 
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" id="cancelBtn"><?php echo $t_common['cancel'] ?? 'Cancel'; ?></button>
+                    <button type="button" class="btn btn-secondary" id="cancelPricePeriodBtn"><?php echo $t_common['cancel'] ?? 'Cancel'; ?></button>
                     <button type="submit" class="btn btn-primary"><?php echo $t_common['save'] ?? 'Save'; ?></button>
                 </div>
             </form>
@@ -444,6 +829,49 @@ $t_contracts = $all_translations['contracts'] ?? [];
         .content-wrapper {
             margin-top: 70px;
             padding: 30px;
+        }
+        
+        /* Contract Form Tabs - Similar to locations.php style */
+        .contract-form-tabs {
+            display: flex;
+            gap: 10px;
+            border-bottom: 2px solid #e5e7eb;
+            padding: 0 30px;
+            background: #f9fafb;
+            margin-bottom: 20px;
+        }
+        
+        .contract-form-tab {
+            padding: 12px 24px;
+            background: none;
+            border: none;
+            color: #6b7280;
+            font-size: 15px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border-bottom: 2px solid transparent;
+            margin-bottom: -2px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .contract-form-tab:hover {
+            color: #151A2D;
+        }
+        
+        .contract-form-tab.active {
+            color: #151A2D;
+            border-bottom-color: #151A2D;
+        }
+        
+        .contract-form-content {
+            display: none;
+        }
+        
+        .contract-form-content.active {
+            display: block;
         }
         
         /* Responsive */

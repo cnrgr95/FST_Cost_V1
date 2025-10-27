@@ -4,7 +4,7 @@
  * Creates a SQL dump of the database
  */
 
-require_once __DIR__ . '/config.php';
+require_once __DIR__ . '/../config.php';
 
 $timestamp = date('Ymd_His');
 $backupDir = __DIR__ . '/backups';

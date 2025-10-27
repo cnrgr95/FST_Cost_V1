@@ -1,5 +1,5 @@
 -- FST Cost Database Backup
--- Generated: 2025-10-27 22:58:28
+-- Generated: 2025-10-28 01:53:30
 -- Database: fst_cost_db
 
 BEGIN;
@@ -11,8 +11,23 @@ BEGIN;
 DROP SEQUENCE IF EXISTS "cities_id_seq" CASCADE;
 CREATE SEQUENCE "cities_id_seq" START 8;
 
+DROP SEQUENCE IF EXISTS "contract_actions_id_seq" CASCADE;
+CREATE SEQUENCE "contract_actions_id_seq" START 2;
+
+DROP SEQUENCE IF EXISTS "contract_kickback_periods_id_seq" CASCADE;
+CREATE SEQUENCE "contract_kickback_periods_id_seq" START 1;
+
+DROP SEQUENCE IF EXISTS "contract_price_period_regional_prices_id_seq" CASCADE;
+CREATE SEQUENCE "contract_price_period_regional_prices_id_seq" START 22;
+
+DROP SEQUENCE IF EXISTS "contract_price_periods_id_seq" CASCADE;
+CREATE SEQUENCE "contract_price_periods_id_seq" START 5;
+
 DROP SEQUENCE IF EXISTS "contract_regional_prices_id_seq" CASCADE;
 CREATE SEQUENCE "contract_regional_prices_id_seq" START 43;
+
+DROP SEQUENCE IF EXISTS "contract_transfer_periods_id_seq" CASCADE;
+CREATE SEQUENCE "contract_transfer_periods_id_seq" START 2;
 
 DROP SEQUENCE IF EXISTS "contracts_id_seq" CASCADE;
 CREATE SEQUENCE "contracts_id_seq" START 3;
@@ -46,6 +61,15 @@ CREATE SEQUENCE "tour_sub_regions_id_seq" START 15;
 
 DROP SEQUENCE IF EXISTS "tours_id_seq" CASCADE;
 CREATE SEQUENCE "tours_id_seq" START 5;
+
+DROP SEQUENCE IF EXISTS "transfer_period_group_ranges_id_seq" CASCADE;
+CREATE SEQUENCE "transfer_period_group_ranges_id_seq" START 1;
+
+DROP SEQUENCE IF EXISTS "transfer_period_regional_group_ranges_id_seq" CASCADE;
+CREATE SEQUENCE "transfer_period_regional_group_ranges_id_seq" START 1;
+
+DROP SEQUENCE IF EXISTS "transfer_period_regional_prices_id_seq" CASCADE;
+CREATE SEQUENCE "transfer_period_regional_prices_id_seq" START 1;
 
 DROP SEQUENCE IF EXISTS "users_id_seq" CASCADE;
 CREATE SEQUENCE "users_id_seq" START 3;
@@ -85,6 +109,142 @@ INSERT INTO "cities" ("id", "name", "region_id", "created_at", "updated_at") VAL
 
 
 -- ==================================================
+-- Table: contract_actions
+-- ==================================================
+
+DROP TABLE IF EXISTS "contract_actions" CASCADE;
+CREATE TABLE "contract_actions" (
+    "id" integer(32) NOT NULL DEFAULT nextval('contract_actions_id_seq'::regclass),
+    "contract_id" integer(32) NOT NULL,
+    "action_name" character varying(255) NOT NULL,
+    "action_description" text,
+    "action_start_date" date NOT NULL,
+    "action_end_date" date NOT NULL,
+    "action_duration_type" character varying(20) DEFAULT 'day'::character varying,
+    "action_duration_days" integer(32),
+    "is_active" boolean DEFAULT true,
+    "created_at" timestamp without time zone DEFAULT CURRENT_TIMESTAMP,
+    "updated_at" timestamp without time zone DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY ("id")
+);
+
+ALTER TABLE "contract_actions" ALTER COLUMN "id" SET DEFAULT nextval('"contract_actions_id_seq"');
+
+ALTER TABLE "contract_actions" ADD CONSTRAINT fk_contract_actions_contract FOREIGN KEY ("contract_id") REFERENCES "contracts"("id");
+
+-- Data for table: contract_actions (1 rows)
+INSERT INTO "contract_actions" ("id", "contract_id", "action_name", "action_description", "action_start_date", "action_end_date", "action_duration_type", "action_duration_days", "is_active", "created_at", "updated_at") VALUES ('1', '2', 'test', 'test', '2025-01-01', '2025-12-31', 'custom', '5', 't', '2025-10-28 00:14:16.485002', '2025-10-28 00:14:16.485002');
+
+
+-- ==================================================
+-- Table: contract_kickback_periods
+-- ==================================================
+
+DROP TABLE IF EXISTS "contract_kickback_periods" CASCADE;
+CREATE TABLE "contract_kickback_periods" (
+    "id" integer(32) NOT NULL DEFAULT nextval('contract_kickback_periods_id_seq'::regclass),
+    "contract_id" integer(32) NOT NULL,
+    "period_name" character varying(255) NOT NULL,
+    "start_date" date NOT NULL,
+    "end_date" date NOT NULL,
+    "kickback_type" character varying(50),
+    "kickback_value" numeric(10,2),
+    "kickback_currency" character varying(10),
+    "kickback_per_person" boolean DEFAULT false,
+    "kickback_min_persons" integer(32),
+    "is_active" boolean DEFAULT true,
+    "created_at" timestamp without time zone DEFAULT CURRENT_TIMESTAMP,
+    "updated_at" timestamp without time zone DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY ("id")
+);
+
+ALTER TABLE "contract_kickback_periods" ALTER COLUMN "id" SET DEFAULT nextval('"contract_kickback_periods_id_seq"');
+
+ALTER TABLE "contract_kickback_periods" ADD CONSTRAINT contract_kickback_periods_contract_id_fkey FOREIGN KEY ("contract_id") REFERENCES "contracts"("id");
+
+-- No data in table: contract_kickback_periods
+
+
+-- ==================================================
+-- Table: contract_price_period_regional_prices
+-- ==================================================
+
+DROP TABLE IF EXISTS "contract_price_period_regional_prices" CASCADE;
+CREATE TABLE "contract_price_period_regional_prices" (
+    "id" integer(32) NOT NULL DEFAULT nextval('contract_price_period_regional_prices_id_seq'::regclass),
+    "price_period_id" integer(32) NOT NULL,
+    "sub_region_id" integer(32) NOT NULL,
+    "adult_price" numeric(10,2),
+    "child_price" numeric(10,2),
+    "infant_price" numeric(10,2),
+    "currency" character varying(3) DEFAULT 'USD'::character varying,
+    "is_active" boolean DEFAULT true,
+    "created_at" timestamp without time zone DEFAULT CURRENT_TIMESTAMP,
+    "updated_at" timestamp without time zone DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY ("id")
+);
+
+ALTER TABLE "contract_price_period_regional_prices" ALTER COLUMN "id" SET DEFAULT nextval('"contract_price_period_regional_prices_id_seq"');
+
+ALTER TABLE "contract_price_period_regional_prices" ADD CONSTRAINT contract_price_period_regional_prices_price_period_id_fkey FOREIGN KEY ("price_period_id") REFERENCES "contract_price_periods"("id");
+ALTER TABLE "contract_price_period_regional_prices" ADD CONSTRAINT contract_price_period_regional_prices_sub_region_id_fkey FOREIGN KEY ("sub_region_id") REFERENCES "sub_regions"("id");
+
+-- Data for table: contract_price_period_regional_prices (14 rows)
+INSERT INTO "contract_price_period_regional_prices" ("id", "price_period_id", "sub_region_id", "adult_price", "child_price", "infant_price", "currency", "is_active", "created_at", "updated_at") VALUES ('8', '3', '3', '10.00', '10.00', '10.00', 'USD', 't', '2025-10-28 01:01:21.257227', '2025-10-28 01:01:21.257227');
+INSERT INTO "contract_price_period_regional_prices" ("id", "price_period_id", "sub_region_id", "adult_price", "child_price", "infant_price", "currency", "is_active", "created_at", "updated_at") VALUES ('9', '3', '5', '10.00', '10.00', '10.00', 'USD', 't', '2025-10-28 01:01:21.257227', '2025-10-28 01:01:21.257227');
+INSERT INTO "contract_price_period_regional_prices" ("id", "price_period_id", "sub_region_id", "adult_price", "child_price", "infant_price", "currency", "is_active", "created_at", "updated_at") VALUES ('10', '3', '1', '10.00', '10.00', '10.00', 'USD', 't', '2025-10-28 01:01:21.257227', '2025-10-28 01:01:21.257227');
+INSERT INTO "contract_price_period_regional_prices" ("id", "price_period_id", "sub_region_id", "adult_price", "child_price", "infant_price", "currency", "is_active", "created_at", "updated_at") VALUES ('11', '3', '7', '10.00', '10.00', '10.00', 'USD', 't', '2025-10-28 01:01:21.257227', '2025-10-28 01:01:21.257227');
+INSERT INTO "contract_price_period_regional_prices" ("id", "price_period_id", "sub_region_id", "adult_price", "child_price", "infant_price", "currency", "is_active", "created_at", "updated_at") VALUES ('12', '3', '6', '10.00', '10.00', '10.00', 'USD', 't', '2025-10-28 01:01:21.257227', '2025-10-28 01:01:21.257227');
+INSERT INTO "contract_price_period_regional_prices" ("id", "price_period_id", "sub_region_id", "adult_price", "child_price", "infant_price", "currency", "is_active", "created_at", "updated_at") VALUES ('13', '3', '4', '10.00', '10.00', '10.00', 'USD', 't', '2025-10-28 01:01:21.257227', '2025-10-28 01:01:21.257227');
+INSERT INTO "contract_price_period_regional_prices" ("id", "price_period_id", "sub_region_id", "adult_price", "child_price", "infant_price", "currency", "is_active", "created_at", "updated_at") VALUES ('14', '3', '2', '10.00', '10.00', '10.00', 'USD', 't', '2025-10-28 01:01:21.257227', '2025-10-28 01:01:21.257227');
+INSERT INTO "contract_price_period_regional_prices" ("id", "price_period_id", "sub_region_id", "adult_price", "child_price", "infant_price", "currency", "is_active", "created_at", "updated_at") VALUES ('15', '4', '3', '100.00', '10.00', '1.00', 'USD', 't', '2025-10-28 01:06:15.552359', '2025-10-28 01:06:15.552359');
+INSERT INTO "contract_price_period_regional_prices" ("id", "price_period_id", "sub_region_id", "adult_price", "child_price", "infant_price", "currency", "is_active", "created_at", "updated_at") VALUES ('16', '4', '5', '100.00', '10.00', '1.00', 'USD', 't', '2025-10-28 01:06:15.552359', '2025-10-28 01:06:15.552359');
+INSERT INTO "contract_price_period_regional_prices" ("id", "price_period_id", "sub_region_id", "adult_price", "child_price", "infant_price", "currency", "is_active", "created_at", "updated_at") VALUES ('17', '4', '1', '100.00', '10.00', '1.00', 'USD', 't', '2025-10-28 01:06:15.552359', '2025-10-28 01:06:15.552359');
+INSERT INTO "contract_price_period_regional_prices" ("id", "price_period_id", "sub_region_id", "adult_price", "child_price", "infant_price", "currency", "is_active", "created_at", "updated_at") VALUES ('18', '4', '7', '100.00', '10.00', '1.00', 'USD', 't', '2025-10-28 01:06:15.552359', '2025-10-28 01:06:15.552359');
+INSERT INTO "contract_price_period_regional_prices" ("id", "price_period_id", "sub_region_id", "adult_price", "child_price", "infant_price", "currency", "is_active", "created_at", "updated_at") VALUES ('19', '4', '6', '100.00', '10.00', '1.00', 'USD', 't', '2025-10-28 01:06:15.552359', '2025-10-28 01:06:15.552359');
+INSERT INTO "contract_price_period_regional_prices" ("id", "price_period_id", "sub_region_id", "adult_price", "child_price", "infant_price", "currency", "is_active", "created_at", "updated_at") VALUES ('20', '4', '4', '100.00', '10.00', '1.00', 'USD', 't', '2025-10-28 01:06:15.552359', '2025-10-28 01:06:15.552359');
+INSERT INTO "contract_price_period_regional_prices" ("id", "price_period_id", "sub_region_id", "adult_price", "child_price", "infant_price", "currency", "is_active", "created_at", "updated_at") VALUES ('21', '4', '2', '100.00', '10.00', '1.00', 'USD', 't', '2025-10-28 01:06:15.552359', '2025-10-28 01:06:15.552359');
+
+
+-- ==================================================
+-- Table: contract_price_periods
+-- ==================================================
+
+DROP TABLE IF EXISTS "contract_price_periods" CASCADE;
+CREATE TABLE "contract_price_periods" (
+    "id" integer(32) NOT NULL DEFAULT nextval('contract_price_periods_id_seq'::regclass),
+    "contract_id" integer(32) NOT NULL,
+    "period_name" character varying(255) NOT NULL,
+    "start_date" date NOT NULL,
+    "end_date" date NOT NULL,
+    "days_of_week" character varying(50) DEFAULT NULL::character varying,
+    "adult_price" numeric(10,2) DEFAULT NULL::numeric,
+    "child_price" numeric(10,2) DEFAULT NULL::numeric,
+    "infant_price" numeric(10,2) DEFAULT NULL::numeric,
+    "currency" character varying(3) DEFAULT 'USD'::character varying,
+    "is_active" boolean DEFAULT true,
+    "notes" text,
+    "created_at" timestamp without time zone DEFAULT CURRENT_TIMESTAMP,
+    "updated_at" timestamp without time zone DEFAULT CURRENT_TIMESTAMP,
+    "price_type" character varying(20) DEFAULT 'regional'::character varying,
+    "adult_age" character varying(50),
+    "child_age_range" character varying(50),
+    "infant_age_range" character varying(50),
+    PRIMARY KEY ("id")
+);
+
+ALTER TABLE "contract_price_periods" ALTER COLUMN "id" SET DEFAULT nextval('"contract_price_periods_id_seq"');
+
+ALTER TABLE "contract_price_periods" ADD CONSTRAINT fk_price_periods_contract FOREIGN KEY ("contract_id") REFERENCES "contracts"("id");
+
+-- Data for table: contract_price_periods (4 rows)
+INSERT INTO "contract_price_periods" ("id", "contract_id", "period_name", "start_date", "end_date", "days_of_week", "adult_price", "child_price", "infant_price", "currency", "is_active", "notes", "created_at", "updated_at", "price_type", "adult_age", "child_age_range", "infant_age_range") VALUES ('1', '2', 'test', '2025-10-29', '2025-11-03', 'tuesday,thursday,saturday', '100.00', '100.00', '100.00', 'USD', 't', 'test', '2025-10-28 00:49:37.273573', '2025-10-28 01:02:18.066423', 'fixed', '+12', '6-11', '0-5');
+INSERT INTO "contract_price_periods" ("id", "contract_id", "period_name", "start_date", "end_date", "days_of_week", "adult_price", "child_price", "infant_price", "currency", "is_active", "notes", "created_at", "updated_at", "price_type", "adult_age", "child_age_range", "infant_age_range") VALUES ('2', '2', 'test2', '2025-11-06', '2025-11-09', 'monday,thursday,sunday', '100.00', '10.00', '1.00', 'USD', 't', 'test2', '2025-10-28 00:50:13.71655', '2025-10-28 00:59:10.415896', 'fixed', '+12', '6-11', '0-5');
+INSERT INTO "contract_price_periods" ("id", "contract_id", "period_name", "start_date", "end_date", "days_of_week", "adult_price", "child_price", "infant_price", "currency", "is_active", "notes", "created_at", "updated_at", "price_type", "adult_age", "child_age_range", "infant_age_range") VALUES ('3', '2', 'test3', '2025-11-10', '2025-11-17', 'monday,wednesday,saturday', NULL, NULL, NULL, 'USD', 't', 'test3', '2025-10-28 00:51:22.114916', '2025-10-28 01:01:21.257227', 'regional', '+12', '6-11', '0-5');
+INSERT INTO "contract_price_periods" ("id", "contract_id", "period_name", "start_date", "end_date", "days_of_week", "adult_price", "child_price", "infant_price", "currency", "is_active", "notes", "created_at", "updated_at", "price_type", "adult_age", "child_age_range", "infant_age_range") VALUES ('4', '2', 'test4', '2025-01-01', '2025-01-10', 'monday,thursday,sunday', NULL, NULL, NULL, 'USD', 't', 'test4', '2025-10-28 01:06:15.552359', '2025-10-28 01:06:15.552359', 'regional', '+12', '6-11', '0-5');
+
+
+-- ==================================================
 -- Table: contract_regional_prices
 -- ==================================================
 
@@ -117,6 +277,54 @@ INSERT INTO "contract_regional_prices" ("id", "contract_id", "sub_region_id", "a
 INSERT INTO "contract_regional_prices" ("id", "contract_id", "sub_region_id", "adult_price", "adult_currency", "child_price", "child_currency", "infant_price", "infant_currency", "created_at", "updated_at") VALUES ('40', '2', '6', '10.00', 'EUR', '10.00', 'EUR', '10.00', 'EUR', '2025-10-27 18:24:43.519896', '2025-10-27 18:24:43.519896');
 INSERT INTO "contract_regional_prices" ("id", "contract_id", "sub_region_id", "adult_price", "adult_currency", "child_price", "child_currency", "infant_price", "infant_currency", "created_at", "updated_at") VALUES ('41', '2', '4', '10.00', 'EUR', '10.00', 'EUR', '10.00', 'EUR', '2025-10-27 18:24:43.520407', '2025-10-27 18:24:43.520407');
 INSERT INTO "contract_regional_prices" ("id", "contract_id", "sub_region_id", "adult_price", "adult_currency", "child_price", "child_currency", "infant_price", "infant_currency", "created_at", "updated_at") VALUES ('42', '2', '2', '10.00', 'EUR', '10.00', 'EUR', '10.00', 'EUR', '2025-10-27 18:24:43.520819', '2025-10-27 18:24:43.520819');
+
+
+-- ==================================================
+-- Table: contract_transfer_periods
+-- ==================================================
+
+DROP TABLE IF EXISTS "contract_transfer_periods" CASCADE;
+CREATE TABLE "contract_transfer_periods" (
+    "id" integer(32) NOT NULL DEFAULT nextval('contract_transfer_periods_id_seq'::regclass),
+    "contract_id" integer(32) NOT NULL,
+    "period_name" character varying(255) NOT NULL,
+    "start_date" date NOT NULL,
+    "end_date" date NOT NULL,
+    "transfer_owner" character varying(50) NOT NULL,
+    "transfer_price_type" character varying(50),
+    "transfer_price" numeric(10,2),
+    "transfer_currency" character varying(10),
+    "transfer_price_mini" numeric(10,2),
+    "transfer_price_midi" numeric(10,2),
+    "transfer_price_bus" numeric(10,2),
+    "transfer_currency_fixed" character varying(10),
+    "is_active" boolean DEFAULT true,
+    "created_at" timestamp without time zone DEFAULT CURRENT_TIMESTAMP,
+    "updated_at" timestamp without time zone DEFAULT CURRENT_TIMESTAMP,
+    "pricing_method" character varying(20) DEFAULT 'fixed_price'::character varying,
+    "fixed_price_type" character varying(20),
+    "adult_age" character varying(50),
+    "child_age_range" character varying(50),
+    "infant_age_range" character varying(50),
+    "adult_price" numeric(10,2),
+    "child_price" numeric(10,2),
+    "infant_price" numeric(10,2),
+    "fixed_currency" character varying(3),
+    "group_price" numeric(10,2),
+    "group_currency" character varying(3),
+    "regional_adult_age" character varying(50),
+    "regional_child_age" character varying(50),
+    "regional_infant_age" character varying(50),
+    "regional_price_type" character varying(20),
+    PRIMARY KEY ("id")
+);
+
+ALTER TABLE "contract_transfer_periods" ALTER COLUMN "id" SET DEFAULT nextval('"contract_transfer_periods_id_seq"');
+
+ALTER TABLE "contract_transfer_periods" ADD CONSTRAINT contract_transfer_periods_contract_id_fkey FOREIGN KEY ("contract_id") REFERENCES "contracts"("id");
+
+-- Data for table: contract_transfer_periods (1 rows)
+INSERT INTO "contract_transfer_periods" ("id", "contract_id", "period_name", "start_date", "end_date", "transfer_owner", "transfer_price_type", "transfer_price", "transfer_currency", "transfer_price_mini", "transfer_price_midi", "transfer_price_bus", "transfer_currency_fixed", "is_active", "created_at", "updated_at", "pricing_method", "fixed_price_type", "adult_age", "child_age_range", "infant_age_range", "adult_price", "child_price", "infant_price", "fixed_currency", "group_price", "group_currency", "regional_adult_age", "regional_child_age", "regional_infant_age", "regional_price_type") VALUES ('1', '2', 'test', '2025-01-01', '2025-12-31', 'supplier', '', NULL, 'USD', NULL, NULL, NULL, 'USD', 't', '2025-10-28 01:44:47.96256', '2025-10-28 01:44:47.96256', 'fixed_price', 'per_person', '+12', '6-11', '0-5', '100.00', '10.00', '1.00', 'USD', NULL, 'USD', '', '', '', '');
 
 
 -- ==================================================
@@ -158,6 +366,10 @@ CREATE TABLE "contracts" (
     "transfer_price_bus" numeric(10,2),
     "transfer_currency_fixed" character varying(10),
     "is_active" boolean DEFAULT true,
+    "period_type" character varying(20) DEFAULT NULL::character varying,
+    "period_value" integer(32),
+    "period_unit" character varying(20) DEFAULT NULL::character varying,
+    "tour_departure_days" character varying(50) DEFAULT NULL::character varying,
     PRIMARY KEY ("id")
 );
 
@@ -171,8 +383,8 @@ ALTER TABLE "contracts" ADD CONSTRAINT fk_contracts_merchant FOREIGN KEY ("merch
 ALTER TABLE "contracts" ADD CONSTRAINT fk_contracts_tour FOREIGN KEY ("tour_id") REFERENCES "tours"("id");
 
 -- Data for table: contracts (1 rows)
-INSERT INTO "contracts" ("id", "sub_region_id", "merchant_id", "tour_id", "vat_included", "vat_rate", "adult_age", "child_age_range", "infant_age_range", "kickback_type", "kickback_value", "kickback_per_person", "kickback_min_persons", "included_content", "start_date", "end_date", "created_at", "updated_at", "price_type", "contract_currency", "fixed_adult_price", "fixed_child_price", "fixed_infant_price", "kickback_currency", "transfer_owner", "transfer_price_type", "transfer_price", "transfer_currency", "transfer_price_mini", "transfer_price_midi", "transfer_price_bus", "transfer_currency_fixed", "is_active") VALUES ('2', '1', '1', '3', 't', NULL, '+12', '6-11', '0-5', 'fixed', '10.00', 't', '100', 'ALANYA KEMER VE SİDE’DEN; AKSU DOLPHİNARİUM TRANSFER+PAKET PROGRAM (YUNUS + FOK GÖSTERİSİ VE SÜRÜNGENPARK)+YUNUS İLE YÜZME ALAN MİSAFİRLERE PAKET PROGRAM(YUNUS + FOK GÖSTERİSİ VE SÜRÜNGENPARK) ÜCRETSİZDİR.
-', '2025-10-27', '2025-10-27', '2025-10-27 17:56:27.855996', '2025-10-27 18:24:43.51504', 'regional', 'EUR', NULL, NULL, NULL, 'EUR', 'agency,supplier', 'fixed', NULL, NULL, NULL, NULL, NULL, NULL, 't');
+INSERT INTO "contracts" ("id", "sub_region_id", "merchant_id", "tour_id", "vat_included", "vat_rate", "adult_age", "child_age_range", "infant_age_range", "kickback_type", "kickback_value", "kickback_per_person", "kickback_min_persons", "included_content", "start_date", "end_date", "created_at", "updated_at", "price_type", "contract_currency", "fixed_adult_price", "fixed_child_price", "fixed_infant_price", "kickback_currency", "transfer_owner", "transfer_price_type", "transfer_price", "transfer_currency", "transfer_price_mini", "transfer_price_midi", "transfer_price_bus", "transfer_currency_fixed", "is_active", "period_type", "period_value", "period_unit", "tour_departure_days") VALUES ('2', '1', '1', '3', 't', NULL, '', '', '', '', NULL, 't', NULL, 'ALANYA KEMER VE SİDE’DEN; AKSU DOLPHİNARİUM TRANSFER+PAKET PROGRAM (YUNUS + FOK GÖSTERİSİ VE SÜRÜNGENPARK)+YUNUS İLE YÜZME ALAN MİSAFİRLERE PAKET PROGRAM(YUNUS + FOK GÖSTERİSİ VE SÜRÜNGENPARK) ÜCRETSİZDİR.
+', '2025-10-27', '2025-10-27', '2025-10-27 17:56:27.855996', '2025-10-28 01:02:20.885524', 'regional', 'USD', NULL, NULL, NULL, NULL, '', '', NULL, NULL, NULL, NULL, NULL, NULL, 't', NULL, NULL, NULL, '');
 
 
 -- ==================================================
@@ -440,6 +652,84 @@ ALTER TABLE "tours" ADD CONSTRAINT tours_vehicle_contract_id_fkey FOREIGN KEY ("
 -- Data for table: tours (2 rows)
 INSERT INTO "tours" ("id", "name", "sub_region_id", "merchant_id", "start_date", "end_date", "created_at", "updated_at", "sejour_tour_code", "vehicle_contract_id") VALUES ('3', 'Land Of Legends Theme Park', '1', '1', NULL, NULL, '2025-10-26 22:33:54.254521', '2025-10-27 20:10:31.551916', 'LOLPAR', '1');
 INSERT INTO "tours" ("id", "name", "sub_region_id", "merchant_id", "start_date", "end_date", "created_at", "updated_at", "sejour_tour_code", "vehicle_contract_id") VALUES ('4', 'Caner', '1', '1', NULL, NULL, '2025-10-27 20:05:09.72663', '2025-10-27 20:05:18.867141', 'CANER', '1');
+
+
+-- ==================================================
+-- Table: transfer_period_group_ranges
+-- ==================================================
+
+DROP TABLE IF EXISTS "transfer_period_group_ranges" CASCADE;
+CREATE TABLE "transfer_period_group_ranges" (
+    "id" integer(32) NOT NULL DEFAULT nextval('transfer_period_group_ranges_id_seq'::regclass),
+    "transfer_period_id" integer(32) NOT NULL,
+    "min_persons" integer(32) NOT NULL,
+    "max_persons" integer(32) NOT NULL,
+    "price" numeric(10,2) NOT NULL,
+    "currency" character varying(3) DEFAULT 'USD'::character varying,
+    "is_active" boolean DEFAULT true,
+    "created_at" timestamp without time zone DEFAULT CURRENT_TIMESTAMP,
+    "updated_at" timestamp without time zone DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY ("id")
+);
+
+ALTER TABLE "transfer_period_group_ranges" ALTER COLUMN "id" SET DEFAULT nextval('"transfer_period_group_ranges_id_seq"');
+
+ALTER TABLE "transfer_period_group_ranges" ADD CONSTRAINT transfer_period_group_ranges_transfer_period_id_fkey FOREIGN KEY ("transfer_period_id") REFERENCES "contract_transfer_periods"("id");
+
+-- No data in table: transfer_period_group_ranges
+
+
+-- ==================================================
+-- Table: transfer_period_regional_group_ranges
+-- ==================================================
+
+DROP TABLE IF EXISTS "transfer_period_regional_group_ranges" CASCADE;
+CREATE TABLE "transfer_period_regional_group_ranges" (
+    "id" integer(32) NOT NULL DEFAULT nextval('transfer_period_regional_group_ranges_id_seq'::regclass),
+    "transfer_period_id" integer(32) NOT NULL,
+    "sub_region_id" integer(32) NOT NULL,
+    "min_persons" integer(32) NOT NULL,
+    "max_persons" integer(32) NOT NULL,
+    "price" numeric(10,2) NOT NULL,
+    "currency" character varying(3) DEFAULT 'USD'::character varying,
+    "is_active" boolean DEFAULT true,
+    "created_at" timestamp without time zone DEFAULT CURRENT_TIMESTAMP,
+    "updated_at" timestamp without time zone DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY ("id")
+);
+
+ALTER TABLE "transfer_period_regional_group_ranges" ALTER COLUMN "id" SET DEFAULT nextval('"transfer_period_regional_group_ranges_id_seq"');
+
+ALTER TABLE "transfer_period_regional_group_ranges" ADD CONSTRAINT transfer_period_regional_group_ranges_transfer_period_id_fkey FOREIGN KEY ("transfer_period_id") REFERENCES "contract_transfer_periods"("id");
+ALTER TABLE "transfer_period_regional_group_ranges" ADD CONSTRAINT transfer_period_regional_group_ranges_sub_region_id_fkey FOREIGN KEY ("sub_region_id") REFERENCES "sub_regions"("id");
+
+-- No data in table: transfer_period_regional_group_ranges
+
+
+-- ==================================================
+-- Table: transfer_period_regional_prices
+-- ==================================================
+
+DROP TABLE IF EXISTS "transfer_period_regional_prices" CASCADE;
+CREATE TABLE "transfer_period_regional_prices" (
+    "id" integer(32) NOT NULL DEFAULT nextval('transfer_period_regional_prices_id_seq'::regclass),
+    "transfer_period_id" integer(32) NOT NULL,
+    "sub_region_id" integer(32) NOT NULL,
+    "adult_price" numeric(10,2),
+    "child_price" numeric(10,2),
+    "infant_price" numeric(10,2),
+    "is_active" boolean DEFAULT true,
+    "created_at" timestamp without time zone DEFAULT CURRENT_TIMESTAMP,
+    "updated_at" timestamp without time zone DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY ("id")
+);
+
+ALTER TABLE "transfer_period_regional_prices" ALTER COLUMN "id" SET DEFAULT nextval('"transfer_period_regional_prices_id_seq"');
+
+ALTER TABLE "transfer_period_regional_prices" ADD CONSTRAINT transfer_period_regional_prices_transfer_period_id_fkey FOREIGN KEY ("transfer_period_id") REFERENCES "contract_transfer_periods"("id");
+ALTER TABLE "transfer_period_regional_prices" ADD CONSTRAINT transfer_period_regional_prices_sub_region_id_fkey FOREIGN KEY ("sub_region_id") REFERENCES "sub_regions"("id");
+
+-- No data in table: transfer_period_regional_prices
 
 
 -- ==================================================
