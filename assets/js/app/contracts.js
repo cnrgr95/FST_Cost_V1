@@ -17,6 +17,7 @@
     let currencies = [];
     let tourRegions = [];
     let currentContractId = null;
+    let activeRequests = new Map(); // Track active requests for cancellation
     
     // Initialize
     document.addEventListener('DOMContentLoaded', function() {
@@ -280,9 +281,25 @@
     }
     
     function loadSubRegions() {
-        fetch(`${API_BASE}?action=sub_regions`)
+        // Cancel previous request if still pending
+        if (activeRequests.has('sub_regions')) {
+            const controller = activeRequests.get('sub_regions');
+            controller.abort();
+        }
+        
+        const controller = new AbortController();
+        activeRequests.set('sub_regions', controller);
+        
+        fetch(`${API_BASE}?action=sub_regions`, {
+            signal: controller.signal,
+            headers: {
+                'Accept': 'application/json',
+                'Cache-Control': 'no-cache'
+            }
+        })
             .then(response => response.json())
             .then(data => {
+                activeRequests.delete('sub_regions');
                 if (data.success) {
                     subRegions = data.data;
                     const select = document.getElementById('sub_region_id');
@@ -296,21 +313,41 @@
                 }
             })
             .catch(error => {
+                activeRequests.delete('sub_regions');
+                if (error.name === 'AbortError') return;
                 console.error('Error loading sub regions:', error);
                 showToast('error', 'Error loading sub regions');
             });
     }
     
     function loadCurrencies() {
-        fetch(`${API_BASE}?action=currencies`)
+        // Cancel previous request if still pending
+        if (activeRequests.has('currencies')) {
+            const controller = activeRequests.get('currencies');
+            controller.abort();
+        }
+        
+        const controller = new AbortController();
+        activeRequests.set('currencies', controller);
+        
+        fetch(`${API_BASE}?action=currencies`, {
+            signal: controller.signal,
+            headers: {
+                'Accept': 'application/json',
+                'Cache-Control': 'no-cache'
+            }
+        })
             .then(response => response.json())
             .then(data => {
+                activeRequests.delete('currencies');
                 if (data.success) {
                     currencies = data.data;
                     populateCurrencyDropdowns();
                 }
             })
             .catch(error => {
+                activeRequests.delete('currencies');
+                if (error.name === 'AbortError') return;
                 console.error('Error loading currencies:', error);
                 // Use default currencies if API fails
                 currencies = [
@@ -365,9 +402,26 @@
     }
     
     function loadMerchants(subRegionId) {
-        return fetch(`${API_BASE}?action=merchants&sub_region_id=${subRegionId}`)
+        // Cancel previous request if still pending
+        const requestKey = `merchants_${subRegionId}`;
+        if (activeRequests.has(requestKey)) {
+            const controller = activeRequests.get(requestKey);
+            controller.abort();
+        }
+        
+        const controller = new AbortController();
+        activeRequests.set(requestKey, controller);
+        
+        return fetch(`${API_BASE}?action=merchants&sub_region_id=${subRegionId}`, {
+            signal: controller.signal,
+            headers: {
+                'Accept': 'application/json',
+                'Cache-Control': 'no-cache'
+            }
+        })
             .then(response => response.json())
             .then(data => {
+                activeRequests.delete(requestKey);
                 if (data.success) {
                     merchants = data.data;
                     const select = document.getElementById('merchant_id');
@@ -382,6 +436,8 @@
                 return data;
             })
             .catch(error => {
+                activeRequests.delete(requestKey);
+                if (error.name === 'AbortError') return Promise.reject(error);
                 console.error('Error loading merchants:', error);
                 showToast('error', 'Error loading merchants');
                 throw error;
@@ -389,9 +445,26 @@
     }
     
     function loadTours(merchantId) {
-        return fetch(`${API_BASE}?action=tours&merchant_id=${merchantId}`)
+        // Cancel previous request if still pending
+        const requestKey = `tours_${merchantId}`;
+        if (activeRequests.has(requestKey)) {
+            const controller = activeRequests.get(requestKey);
+            controller.abort();
+        }
+        
+        const controller = new AbortController();
+        activeRequests.set(requestKey, controller);
+        
+        return fetch(`${API_BASE}?action=tours&merchant_id=${merchantId}`, {
+            signal: controller.signal,
+            headers: {
+                'Accept': 'application/json',
+                'Cache-Control': 'no-cache'
+            }
+        })
             .then(response => response.json())
             .then(data => {
+                activeRequests.delete(requestKey);
                 if (data.success) {
                     tours = data.data;
                     const select = document.getElementById('tour_id');
@@ -406,6 +479,8 @@
                 return data;
             })
             .catch(error => {
+                activeRequests.delete(requestKey);
+                if (error.name === 'AbortError') return Promise.reject(error);
                 console.error('Error loading tours:', error);
                 showToast('error', 'Error loading tours');
                 throw error;
@@ -413,9 +488,26 @@
     }
     
     function loadTourRegions(tourId) {
-        return fetch(`${API_BASE}?action=tour_regions&tour_id=${tourId}`)
+        // Cancel previous request if still pending
+        const requestKey = `tour_regions_${tourId}`;
+        if (activeRequests.has(requestKey)) {
+            const controller = activeRequests.get(requestKey);
+            controller.abort();
+        }
+        
+        const controller = new AbortController();
+        activeRequests.set(requestKey, controller);
+        
+        return fetch(`${API_BASE}?action=tour_regions&tour_id=${tourId}`, {
+            signal: controller.signal,
+            headers: {
+                'Accept': 'application/json',
+                'Cache-Control': 'no-cache'
+            }
+        })
             .then(response => response.json())
             .then(data => {
+                activeRequests.delete(requestKey);
                 if (data.success && data.data && data.data.length > 0) {
                     tourRegions = data.data;
                     // Check price type and show appropriate section
@@ -432,6 +524,8 @@
                 return data;
             })
             .catch(error => {
+                activeRequests.delete(requestKey);
+                if (error.name === 'AbortError') return Promise.reject(error);
                 console.error('Error loading tour regions:', error);
                 hideRegionalPrices();
                 throw error;
@@ -502,20 +596,95 @@
     }
     
     function loadContracts() {
-        fetch(`${API_BASE}?action=contracts`)
-            .then(response => response.json())
+        // Cancel previous request if still pending
+        if (activeRequests.has('contracts')) {
+            const controller = activeRequests.get('contracts');
+            controller.abort();
+        }
+        
+        // Show loading state
+        showLoading();
+        
+        // Create new AbortController for this request
+        const controller = new AbortController();
+        activeRequests.set('contracts', controller);
+        
+        const startTime = performance.now();
+        
+        fetch(`${API_BASE}?action=contracts`, {
+            signal: controller.signal,
+            headers: {
+                'Accept': 'application/json',
+                'Cache-Control': 'no-cache'
+            }
+        })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                return response.json();
+            })
             .then(data => {
+                const loadTime = performance.now() - startTime;
+                activeRequests.delete('contracts');
+                
+                if (loadTime > 500) {
+                    console.log(`⚠️ Slow load detected for contracts: ${loadTime.toFixed(2)}ms`);
+                }
+                
                 if (data.success) {
-                    contracts = data.data;
+                    contracts = Array.isArray(data.data) ? data.data : [];
                     renderTable();
                 } else {
                     showToast('error', data.message || 'Error loading contracts');
+                    showEmptyState();
                 }
             })
             .catch(error => {
+                activeRequests.delete('contracts');
+                
+                // Don't show error if request was cancelled
+                if (error.name === 'AbortError') {
+                    return;
+                }
+                
                 console.error('Error loading contracts:', error);
                 showToast('error', 'Error loading contracts');
+                showEmptyState();
             });
+    }
+    
+    function showLoading() {
+        const tbody = document.getElementById('contractsTableBody');
+        if (!tbody) return;
+        
+        tbody.innerHTML = `
+            <tr>
+                <td colspan="7" style="text-align: center; padding: 60px 20px;">
+                    <div class="loading" role="status" aria-live="polite">
+                        <span class="material-symbols-rounded loading-spinner">sync</span>
+                        <p>${tContracts.loading_contracts || tCommon.loading || 'Loading contracts...'}</p>
+                    </div>
+                </td>
+            </tr>
+        `;
+    }
+    
+    function showEmptyState() {
+        const tbody = document.getElementById('contractsTableBody');
+        if (!tbody) return;
+        
+        tbody.innerHTML = `
+            <tr>
+                <td colspan="7" style="text-align: center; padding: 60px 20px;">
+                    <div class="empty-state">
+                        <span class="material-symbols-rounded">description</span>
+                        <h3>${tContracts.no_contracts || 'No contracts found'}</h3>
+                        <p>${tContracts.add_contract || 'Add a new contract to get started'}</p>
+                    </div>
+                </td>
+            </tr>
+        `;
     }
     
     function renderTable() {
@@ -525,9 +694,7 @@
         tbody.innerHTML = '';
         
         if (contracts.length === 0) {
-            const emptyRow = document.createElement('tr');
-            emptyRow.innerHTML = `<td colspan="7" style="text-align: center; padding: 20px;">${tContracts.no_contracts || 'No contracts found'}</td>`;
-            tbody.appendChild(emptyRow);
+            showEmptyState();
             return;
         }
         

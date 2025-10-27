@@ -17,6 +17,7 @@
         types: [],
         contracts: []
     };
+    let activeRequests = new Map(); // Track active requests for cancellation
     
     // Initialize
     document.addEventListener('DOMContentLoaded', function() {
@@ -166,6 +167,16 @@
     
     // Fetch data from API
     async function fetchData(type) {
+        // Cancel previous request for this type if still pending
+        if (activeRequests.has(type)) {
+            const controller = activeRequests.get(type);
+            controller.abort();
+        }
+        
+        // Create new AbortController for this request
+        const controller = new AbortController();
+        activeRequests.set(type, controller);
+        
         try {
             let url;
             if (type === 'cities') {
@@ -174,18 +185,42 @@
                 url = `${API_BASE}?action=${type}`;
             }
             
-            const response = await fetch(url);
+            const startTime = performance.now();
+            const response = await fetch(url, {
+                signal: controller.signal,
+                headers: {
+                    'Accept': 'application/json',
+                    'Cache-Control': 'no-cache'
+                }
+            });
+            
             const result = await response.json();
+            const loadTime = performance.now() - startTime;
+            
+            // Remove from active requests
+            activeRequests.delete(type);
             
             if (result.success) {
                 currentData[type] = result.data || [];
                 renderTable(type);
+                // Log performance (can be removed in production)
+                if (loadTime > 500) {
+                    console.log(`⚠️ Slow load detected for ${type}: ${loadTime.toFixed(2)}ms`);
+                }
             } else {
                 currentData[type] = [];
                 renderTable(type);
                 showToast('error', result.message);
             }
         } catch (error) {
+            // Remove from active requests
+            activeRequests.delete(type);
+            
+            // Don't show error if request was cancelled
+            if (error.name === 'AbortError') {
+                return;
+            }
+            
             console.error('Error fetching data:', error);
             currentData[type] = [];
             renderTable(type);
@@ -348,10 +383,17 @@
     // Show loading state
     function showLoading(type) {
         const container = document.getElementById(`${type}-content`);
+        const loadingText = (() => {
+            if (type === 'companies') return tVehicles.loading_companies || tCommon.loading;
+            if (type === 'types') return tVehicles.loading_types || tCommon.loading;
+            if (type === 'contracts') return tVehicles.loading_contracts || tCommon.loading;
+            return tCommon.loading || 'Loading...';
+        })();
+        
         container.innerHTML = `
-            <div class="loading">
-                <span class="material-symbols-rounded">sync</span>
-                <p>${tCommon.loading || 'Loading...'}</p>
+            <div class="loading" role="status" aria-live="polite">
+                <span class="material-symbols-rounded loading-spinner">sync</span>
+                <p>${loadingText}</p>
             </div>
         `;
     }

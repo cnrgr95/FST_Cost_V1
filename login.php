@@ -73,31 +73,32 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $_SESSION['username'] = $username;
                 $_SESSION['last_activity'] = time();
                 $_SESSION['created'] = time();
-            
-            // Handle remember me with secure cookie
-            if (isset($_POST['remember_me']) && $_POST['remember_me'] === 'on') {
-                // Secure cookie: HttpOnly + SameSite
-                setcookie('remembered_username', $username, [
-                    'expires' => time() + (30 * 24 * 60 * 60),
-                    'path' => '/',
-                    'httponly' => true,
-                    'samesite' => 'Lax'
-                ]);
+                
+                // Handle remember me with secure cookie
+                if (isset($_POST['remember_me']) && $_POST['remember_me'] === 'on') {
+                    // Secure cookie: HttpOnly + SameSite
+                    setcookie('remembered_username', $username, [
+                        'expires' => time() + (30 * 24 * 60 * 60),
+                        'path' => '/',
+                        'httponly' => true,
+                        'samesite' => 'Lax'
+                    ]);
+                } else {
+                    setcookie('remembered_username', '', [
+                        'expires' => time() - 3600,
+                        'path' => '/',
+                        'httponly' => true,
+                        'samesite' => 'Lax'
+                    ]);
+                }
+                
+                header('Location: dashboard.php');
+                exit;
             } else {
-                setcookie('remembered_username', '', [
-                    'expires' => time() - 3600,
-                    'path' => '/',
-                    'httponly' => true,
-                    'samesite' => 'Lax'
-                ]);
+                $error = $t['invalid_credentials'];
+                // Log failed login attempt
+                logError("Failed login attempt for username: $username", __FILE__, __LINE__);
             }
-            
-            header('Location: dashboard.php');
-            exit;
-        } else {
-            $error = $t['invalid_credentials'];
-            // Log failed login attempt
-            logError("Failed login attempt for username: $username", __FILE__, __LINE__);
         }
     }
 }

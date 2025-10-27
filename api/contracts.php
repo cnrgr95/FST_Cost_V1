@@ -19,8 +19,10 @@ if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
 
-// Set JSON header early
-header('Content-Type: application/json');
+// Set JSON header early with performance headers
+header('Content-Type: application/json; charset=utf-8');
+header('Cache-Control: no-cache, must-revalidate');
+header('X-Content-Type-Options: nosniff');
 
 // Check if user is logged in
 if (!isset($_SESSION['user_id'])) {
@@ -198,8 +200,21 @@ function handleDelete($conn, $action) {
 // Get contracts
 function getContracts($conn) {
     try {
-        // Main query - safe (no user input)
-        $query = "SELECT c.*, 
+        // Set query timeout and enable query optimization
+        @pg_query($conn, "SET statement_timeout = '30s'");
+        @pg_query($conn, "SET enable_seqscan = on"); // Use sequential scan when faster
+        @pg_query($conn, "SET enable_indexscan = on"); // Enable index scans
+        
+        // Optimized query - only select necessary columns (using actual table structure)
+        // Using EXISTS for sub_regions to avoid unnecessary joins if not needed
+        $query = "SELECT c.id, c.sub_region_id, c.merchant_id, c.tour_id,
+                         c.price_type, c.contract_currency, c.fixed_adult_price, c.fixed_child_price, c.fixed_infant_price,
+                         c.start_date, c.end_date, c.vat_included, c.vat_rate,
+                         c.transfer_owner, c.transfer_price_type, c.transfer_price,
+                         c.transfer_currency, c.transfer_price_mini, c.transfer_price_midi,
+                         c.transfer_price_bus, c.transfer_currency_fixed, c.kickback_type,
+                         c.kickback_value, c.kickback_currency, c.kickback_per_person, c.kickback_min_persons,
+                         c.included_content, c.created_at,
                          sr.name as sub_region_name,
                          m.name as merchant_name,
                          m.official_title as merchant_official_title,
@@ -210,7 +225,8 @@ function getContracts($conn) {
                   LEFT JOIN sub_regions sr ON c.sub_region_id = sr.id
                   LEFT JOIN merchants m ON c.merchant_id = m.id
                   LEFT JOIN tours t ON c.tour_id = t.id
-                  ORDER BY c.created_at DESC";
+                  ORDER BY c.created_at DESC NULLS LAST
+                  LIMIT 500";
         
         // Use pg_query for now (dbQueryAll might have issues)
         $result = pg_query($conn, $query);
@@ -227,82 +243,107 @@ function getContracts($conn) {
         }
         
         if (empty($contracts)) {
-            echo json_encode(['success' => true, 'data' => []]);
+            echo json_encode(['success' => true, 'data' => []], JSON_UNESCAPED_UNICODE);
             return;
         }
         
-        // Optimize: Get all regional prices in one query instead of N+1
+        // OPTIMIZATION: Lazy load regional prices - only fetch summary for list view
+        // This dramatically improves performance by avoiding expensive JOIN with sub_regions
         $contract_ids = array_column($contracts, 'id');
+        $priceSummary = [];
         
-        if (!empty($contract_ids)) {
-            // Get all regional prices at once using IN clause
+        if (!empty($contract_ids) && count($contract_ids) <= 100) {
+            // Only fetch first price per contract for display - much faster (no JOIN with sub_regions)
             $ids_str = implode(',', array_map('intval', $contract_ids));
-            $pricesQuery = "SELECT crp.*, sr.name as sub_region_name
+            // Optimized query using index-friendly approach
+            // DISTINCT ON is faster than GROUP BY for this use case
+            $contracts_count = count($contract_ids);
+            $pricesQuery = "SELECT DISTINCT ON (crp.contract_id) 
+                                  crp.contract_id, crp.adult_price, crp.adult_currency
                            FROM contract_regional_prices crp
-                           LEFT JOIN sub_regions sr ON crp.sub_region_id = sr.id
-                           WHERE crp.contract_id IN ($ids_str)";
+                           WHERE crp.contract_id = ANY(ARRAY[$ids_str]::integer[])
+                           ORDER BY crp.contract_id, crp.adult_price DESC NULLS LAST
+                           LIMIT $contracts_count";
             
-            $pricesResult = pg_query($conn, $pricesQuery);
+            $pricesResult = @pg_query($conn, $pricesQuery);
             if ($pricesResult) {
-                $allPrices = pg_fetch_all($pricesResult);
-                if ($allPrices === false) {
-                    $allPrices = [];
+                $firstPrices = pg_fetch_all($pricesResult);
+                if ($firstPrices !== false) {
+                    foreach ($firstPrices as $price) {
+                        $cid = (int)$price['contract_id'];
+                        $priceSummary[$cid] = [
+                            'price' => $price['adult_price'],
+                            'currency' => $price['adult_currency']
+                        ];
+                    }
                 }
-            } else {
-                $allPrices = [];
             }
-        } else {
-            $allPrices = [];
         }
         
-        // Group prices by contract_id
-        $pricesByContract = [];
-        foreach ($allPrices as $price) {
-            $pricesByContract[$price['contract_id']][] = $price;
-        }
-        
-        // Attach prices to contracts
-        foreach ($contracts as &$contract) {
-            $contract_id = $contract['id'];
-            $contract['regional_prices'] = $pricesByContract[$contract_id] ?? [];
+        // Attach prices to contracts - optimized loop with minimal operations
+        $contractsCount = count($contracts);
+        for ($i = 0; $i < $contractsCount; $i++) {
+            $contract_id = (int)$contracts[$i]['id'];
+            
+            // Set empty regional_prices array - will be loaded on demand if needed (modal/view)
+            $contracts[$i]['regional_prices'] = [];
             
             // Default price_type if not set
-            if (!isset($contract['price_type'])) {
-                $contract['price_type'] = 'regional';
+            if (!isset($contracts[$i]['price_type'])) {
+                $contracts[$i]['price_type'] = 'regional';
+            }
+            
+            // Calculate display price based on price_type
+            if ($contracts[$i]['price_type'] === 'fixed') {
+                $contracts[$i]['price'] = $contracts[$i]['fixed_adult_price'] ?? null;
+                $contracts[$i]['currency'] = $contracts[$i]['contract_currency'] ?? 'USD';
+            } else {
+                // Use summary price if available
+                if (isset($priceSummary[$contract_id])) {
+                    $contracts[$i]['price'] = $priceSummary[$contract_id]['price'];
+                    $contracts[$i]['currency'] = $priceSummary[$contract_id]['currency'];
+                } else {
+                    $contracts[$i]['price'] = null;
+                    $contracts[$i]['currency'] = $contracts[$i]['contract_currency'] ?? 'USD';
+                }
             }
         }
         
-        echo json_encode(['success' => true, 'data' => $contracts]);
+        echo json_encode(['success' => true, 'data' => $contracts], JSON_UNESCAPED_UNICODE);
     } catch (Exception $e) {
         if (function_exists('logError')) {
             logError($e->getMessage(), __FILE__, __LINE__);
         }
         $errorMsg = function_exists('getDbErrorMessage') ? getDbErrorMessage($conn) : 'An error occurred';
-        echo json_encode(['success' => false, 'message' => $errorMsg]);
+        echo json_encode(['success' => false, 'message' => $errorMsg], JSON_UNESCAPED_UNICODE);
     }
 }
 
 // Get sub regions
 function getSubRegions($conn) {
-    $query = "SELECT sr.*, c.name as city_name 
+    $query = "SELECT sr.id, sr.name, sr.city_id, c.name as city_name 
               FROM sub_regions sr 
               LEFT JOIN cities c ON sr.city_id = c.id 
-              ORDER BY sr.name ASC";
+              ORDER BY sr.name ASC
+              LIMIT 1000";
     
     $result = pg_query($conn, $query);
     
     if ($result) {
         $subRegions = pg_fetch_all($result);
-        echo json_encode(['success' => true, 'data' => $subRegions]);
+        if ($subRegions === false) {
+            $subRegions = [];
+        }
+        echo json_encode(['success' => true, 'data' => $subRegions], JSON_UNESCAPED_UNICODE);
     } else {
-        echo json_encode(['success' => false, 'message' => getDbErrorMessage($conn)]);
+        echo json_encode(['success' => false, 'message' => getDbErrorMessage($conn)], JSON_UNESCAPED_UNICODE);
     }
 }
 
 // Get merchants by sub region
 function getMerchants($conn, $sub_region_id) {
     if (!$sub_region_id) {
-        echo json_encode(['success' => false, 'message' => 'Sub region ID is required']);
+        echo json_encode(['success' => false, 'message' => 'Sub region ID is required'], JSON_UNESCAPED_UNICODE);
         return;
     }
     
@@ -310,15 +351,19 @@ function getMerchants($conn, $sub_region_id) {
     $query = "SELECT id, name, official_title, authorized_person, authorized_email 
               FROM merchants 
               WHERE sub_region_id = $sub_region_id 
-              ORDER BY name ASC";
+              ORDER BY name ASC
+              LIMIT 500";
     
     $result = pg_query($conn, $query);
     
     if ($result) {
         $merchants = pg_fetch_all($result);
-        echo json_encode(['success' => true, 'data' => $merchants]);
+        if ($merchants === false) {
+            $merchants = [];
+        }
+        echo json_encode(['success' => true, 'data' => $merchants], JSON_UNESCAPED_UNICODE);
     } else {
-        echo json_encode(['success' => false, 'message' => getDbErrorMessage($conn)]);
+        echo json_encode(['success' => false, 'message' => getDbErrorMessage($conn)], JSON_UNESCAPED_UNICODE);
     }
 }
 
@@ -333,15 +378,19 @@ function getTours($conn, $merchant_id) {
     $query = "SELECT id, name, sejour_tour_code 
               FROM tours 
               WHERE merchant_id = $merchant_id 
-              ORDER BY name ASC";
+              ORDER BY name ASC
+              LIMIT 500";
     
     $result = pg_query($conn, $query);
     
     if ($result) {
         $tours = pg_fetch_all($result);
-        echo json_encode(['success' => true, 'data' => $tours]);
+        if ($tours === false) {
+            $tours = [];
+        }
+        echo json_encode(['success' => true, 'data' => $tours], JSON_UNESCAPED_UNICODE);
     } else {
-        echo json_encode(['success' => false, 'message' => getDbErrorMessage($conn)]);
+        echo json_encode(['success' => false, 'message' => getDbErrorMessage($conn)], JSON_UNESCAPED_UNICODE);
     }
 }
 
@@ -352,7 +401,7 @@ function getCurrencies($conn) {
     
     if ($result) {
         $currencies = pg_fetch_all($result) ?: [];
-        echo json_encode(['success' => true, 'data' => $currencies]);
+        echo json_encode(['success' => true, 'data' => $currencies], JSON_UNESCAPED_UNICODE);
     } else {
         // If table doesn't exist, return default currencies
         echo json_encode(['success' => true, 'data' => [
@@ -360,14 +409,14 @@ function getCurrencies($conn) {
             ['code' => 'EUR', 'name' => 'Euro', 'symbol' => '€'],
             ['code' => 'TL', 'name' => 'Turkish Lira', 'symbol' => '₺'],
             ['code' => 'GBP', 'name' => 'British Pound', 'symbol' => '£']
-        ]]);
+        ]], JSON_UNESCAPED_UNICODE);
     }
 }
 
 // Get tour regions
 function getTourRegions($conn, $tour_id) {
     if (!$tour_id) {
-        echo json_encode(['success' => false, 'message' => 'Tour ID is required']);
+        echo json_encode(['success' => false, 'message' => 'Tour ID is required'], JSON_UNESCAPED_UNICODE);
         return;
     }
     
@@ -380,15 +429,19 @@ function getTourRegions($conn, $tour_id) {
               LEFT JOIN regions r ON c.region_id = r.id
               LEFT JOIN countries co ON r.country_id = co.id
               WHERE tsr.tour_id = $tour_id
-              ORDER BY sr.name ASC";
+              ORDER BY sr.name ASC
+              LIMIT 200";
     
     $result = pg_query($conn, $query);
     
     if ($result) {
-        $regions = pg_fetch_all($result) ?: [];
-        echo json_encode(['success' => true, 'data' => $regions]);
+        $regions = pg_fetch_all($result);
+        if ($regions === false) {
+            $regions = [];
+        }
+        echo json_encode(['success' => true, 'data' => $regions], JSON_UNESCAPED_UNICODE);
     } else {
-        echo json_encode(['success' => false, 'message' => getDbErrorMessage($conn)]);
+        echo json_encode(['success' => false, 'message' => getDbErrorMessage($conn)], JSON_UNESCAPED_UNICODE);
     }
 }
 

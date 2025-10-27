@@ -263,6 +263,9 @@
         "search_placeholder": "Araç firması, araç tipi, şehir...",
         "no_cities_found": "Şehir bulunamadı",
         "error_cities_load": "Hata - Şehirler yüklenemedi",
+        "loading_companies": "Araç firmaları yükleniyor...",
+        "loading_types": "Araç tipleri yükleniyor...",
+        "loading_contracts": "Kontratlar yükleniyor...",
         "cost_name_required": "Maliyet adı gereklidir",
         "add_new_dept": "Araç Firması Ekle",
         "add_new_pos": "Araç Tipi Ekle",
@@ -525,7 +528,12 @@
         "fixed_price": "Tüm Bölgelerde Sabit Fiyat",
         "age_currency": "Yaş Bilgileri ve Döviz",
         "regional_prices": "Bölge Bazlı Fiyatlar",
-        "age_type": "Yaş Tipi"
+        "age_type": "Yaş Tipi",
+        "loading_contracts": "Kontratlar yükleniyor...",
+        "loading_sub_regions": "Alt bölgeler yükleniyor...",
+        "loading_merchants": "Esnaflar yükleniyor...",
+        "loading_tours": "Turlar yükleniyor...",
+        "loading_currencies": "Dövizler yükleniyor..."
     },
     "currencies": {
         "title": "Döviz Yönetimi",

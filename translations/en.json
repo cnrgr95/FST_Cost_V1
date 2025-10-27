@@ -262,6 +262,9 @@
         "search_placeholder": "Vehicle company, vehicle type, city...",
         "no_cities_found": "No cities found",
         "error_cities_load": "Error - Could not load cities",
+        "loading_companies": "Loading vehicle companies...",
+        "loading_types": "Loading vehicle types...",
+        "loading_contracts": "Loading contracts...",
         "cost_name_required": "Cost name is required",
         "add_new_dept": "Add Vehicle Company",
         "add_new_pos": "Add Vehicle Type",
@@ -524,7 +527,12 @@
         "fixed_price": "Fixed Price for All Regions",
         "age_currency": "Age Information & Currency",
         "regional_prices": "Regional Prices",
-        "age_type": "Age Type"
+        "age_type": "Age Type",
+        "loading_contracts": "Loading contracts...",
+        "loading_sub_regions": "Loading sub regions...",
+        "loading_merchants": "Loading merchants...",
+        "loading_tours": "Loading tours...",
+        "loading_currencies": "Loading currencies..."
     },
     "currencies": {
         "title": "Currency Management",

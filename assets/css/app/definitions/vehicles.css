@@ -417,13 +417,28 @@ select.error:focus {
 /* Loading State */
 .loading {
     text-align: center;
-    padding: 40px 20px;
+    padding: 60px 20px;
     color: #6b7280;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 200px;
 }
 
 .loading .material-symbols-rounded {
     font-size: 48px;
+    margin-bottom: 16px;
+}
+
+.loading .loading-spinner {
     animation: spin 1s linear infinite;
+}
+
+.loading p {
+    font-size: 14px;
+    color: #6b7280;
+    margin: 0;
 }
 
 @keyframes spin {

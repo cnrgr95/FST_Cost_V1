@@ -16,7 +16,11 @@ ini_set('display_errors', 0);
 error_reporting(E_ALL); // Still log errors but don't display
 
 session_start();
-header('Content-Type: application/json');
+
+// Performance headers
+header('Content-Type: application/json; charset=utf-8');
+header('Cache-Control: no-cache, must-revalidate');
+header('X-Content-Type-Options: nosniff');
 
 // Check if user is logged in
 if (!isset($_SESSION['user_id'])) {
@@ -163,7 +167,7 @@ function handleDelete($conn, $action) {
 
 // Get cities from locations
 function getCities($conn) {
-    $query = "SELECT c.*, r.name as region_name, co.name as country_name 
+    $query = "SELECT c.id, c.name, c.region_id, r.name as region_name, co.name as country_name 
               FROM cities c 
               LEFT JOIN regions r ON c.region_id = r.id 
               LEFT JOIN countries co ON r.country_id = co.id 
@@ -172,9 +176,9 @@ function getCities($conn) {
     
     if ($result) {
         $cities = pg_fetch_all($result);
-        echo json_encode(['success' => true, 'data' => $cities]);
+        echo json_encode(['success' => true, 'data' => $cities], JSON_UNESCAPED_UNICODE);
     } else {
-        echo json_encode(['success' => false, 'message' => getDbErrorMessage($conn)]);
+        echo json_encode(['success' => false, 'message' => getDbErrorMessage($conn)], JSON_UNESCAPED_UNICODE);
     }
 }
 
@@ -182,7 +186,8 @@ function getCities($conn) {
 function getCompanies($conn, $city_id = null) {
     if ($city_id) {
         $city_id = (int)$city_id;
-        $query = "SELECT vc.*, c.name as city_name, r.name as region_name, co.name as country_name 
+        $query = "SELECT vc.id, vc.name, vc.city_id, vc.contact_person, vc.contact_email, vc.contact_phone,
+                         c.name as city_name, r.name as region_name, co.name as country_name 
                   FROM vehicle_companies vc 
                   LEFT JOIN cities c ON vc.city_id = c.id 
                   LEFT JOIN regions r ON c.region_id = r.id 
@@ -190,7 +195,8 @@ function getCompanies($conn, $city_id = null) {
                   WHERE vc.city_id = $city_id 
                   ORDER BY vc.name ASC";
     } else {
-        $query = "SELECT vc.*, c.name as city_name, r.name as region_name, co.name as country_name 
+        $query = "SELECT vc.id, vc.name, vc.city_id, vc.contact_person, vc.contact_email, vc.contact_phone,
+                         c.name as city_name, r.name as region_name, co.name as country_name 
                   FROM vehicle_companies vc 
                   LEFT JOIN cities c ON vc.city_id = c.id 
                   LEFT JOIN regions r ON c.region_id = r.id 
@@ -202,9 +208,9 @@ function getCompanies($conn, $city_id = null) {
     
     if ($result) {
         $companies = pg_fetch_all($result);
-        echo json_encode(['success' => true, 'data' => $companies]);
+        echo json_encode(['success' => true, 'data' => $companies], JSON_UNESCAPED_UNICODE);
     } else {
-        echo json_encode(['success' => false, 'message' => getDbErrorMessage($conn)]);
+        echo json_encode(['success' => false, 'message' => getDbErrorMessage($conn)], JSON_UNESCAPED_UNICODE);
     }
 }
 
@@ -310,7 +316,8 @@ function deleteCompany($conn, $id) {
 function getTypes($conn, $company_id = null) {
     if ($company_id) {
         $company_id = (int)$company_id;
-        $query = "SELECT vt.*, vc.name as company_name, c.name as city_name, r.name as region_name, co.name as country_name
+        $query = "SELECT vt.id, vt.name, vt.vehicle_company_id,
+                         vc.name as company_name, c.name as city_name, r.name as region_name, co.name as country_name
                   FROM vehicle_types vt 
                   LEFT JOIN vehicle_companies vc ON vt.vehicle_company_id = vc.id 
                   LEFT JOIN cities c ON vc.city_id = c.id 
@@ -319,7 +326,8 @@ function getTypes($conn, $company_id = null) {
                   WHERE vt.vehicle_company_id = $company_id 
                   ORDER BY vt.name ASC";
     } else {
-        $query = "SELECT vt.*, vc.name as company_name, c.name as city_name, r.name as region_name, co.name as country_name
+        $query = "SELECT vt.id, vt.name, vt.vehicle_company_id,
+                         vc.name as company_name, c.name as city_name, r.name as region_name, co.name as country_name
                   FROM vehicle_types vt 
                   LEFT JOIN vehicle_companies vc ON vt.vehicle_company_id = vc.id 
                   LEFT JOIN cities c ON vc.city_id = c.id 
@@ -332,9 +340,9 @@ function getTypes($conn, $company_id = null) {
     
     if ($result) {
         $types = pg_fetch_all($result);
-        echo json_encode(['success' => true, 'data' => $types]);
+        echo json_encode(['success' => true, 'data' => $types], JSON_UNESCAPED_UNICODE);
     } else {
-        echo json_encode(['success' => false, 'message' => getDbErrorMessage($conn)]);
+        echo json_encode(['success' => false, 'message' => getDbErrorMessage($conn)], JSON_UNESCAPED_UNICODE);
     }
 }
 
@@ -415,7 +423,8 @@ function getContracts($conn, $company_id = null) {
     
     if ($contract_id) {
         // Get single contract by ID
-        $query = "SELECT vc.*, vc2.name as company_name, c.name as city_name, r.name as region_name, co.name as country_name
+        $query = "SELECT vc.id, vc.vehicle_company_id, vc.contract_code, vc.start_date, vc.end_date,
+                         vc2.name as company_name, c.name as city_name, r.name as region_name, co.name as country_name
                   FROM vehicle_contracts vc
                   LEFT JOIN vehicle_companies vc2 ON vc.vehicle_company_id = vc2.id
                   LEFT JOIN cities c ON vc2.city_id = c.id
@@ -428,16 +437,17 @@ function getContracts($conn, $company_id = null) {
         if ($result) {
             $contract = pg_fetch_assoc($result);
             if ($contract) {
-                echo json_encode(['success' => true, 'data' => [$contract]]);
+                echo json_encode(['success' => true, 'data' => [$contract]], JSON_UNESCAPED_UNICODE);
             } else {
-                echo json_encode(['success' => false, 'message' => 'Contract not found']);
+                echo json_encode(['success' => false, 'message' => 'Contract not found'], JSON_UNESCAPED_UNICODE);
             }
         } else {
-            echo json_encode(['success' => false, 'message' => getDbErrorMessage($conn)]);
+            echo json_encode(['success' => false, 'message' => getDbErrorMessage($conn)], JSON_UNESCAPED_UNICODE);
         }
     } else if ($company_id) {
         $company_id = (int)$company_id;
-        $query = "SELECT vc.*, vc2.name as company_name, c.name as city_name, r.name as region_name, co.name as country_name
+        $query = "SELECT vc.id, vc.vehicle_company_id, vc.contract_code, vc.start_date, vc.end_date,
+                         vc2.name as company_name, c.name as city_name, r.name as region_name, co.name as country_name
                   FROM vehicle_contracts vc
                   LEFT JOIN vehicle_companies vc2 ON vc.vehicle_company_id = vc2.id
                   LEFT JOIN cities c ON vc2.city_id = c.id
@@ -450,12 +460,13 @@ function getContracts($conn, $company_id = null) {
         
         if ($result) {
             $contracts = pg_fetch_all($result);
-            echo json_encode(['success' => true, 'data' => $contracts]);
+            echo json_encode(['success' => true, 'data' => $contracts], JSON_UNESCAPED_UNICODE);
         } else {
-            echo json_encode(['success' => false, 'message' => getDbErrorMessage($conn)]);
+            echo json_encode(['success' => false, 'message' => getDbErrorMessage($conn)], JSON_UNESCAPED_UNICODE);
         }
     } else {
-        $query = "SELECT vc.*, vc2.name as company_name, c.name as city_name, r.name as region_name, co.name as country_name
+        $query = "SELECT vc.id, vc.vehicle_company_id, vc.contract_code, vc.start_date, vc.end_date,
+                         vc2.name as company_name, c.name as city_name, r.name as region_name, co.name as country_name
                   FROM vehicle_contracts vc
                   LEFT JOIN vehicle_companies vc2 ON vc.vehicle_company_id = vc2.id
                   LEFT JOIN cities c ON vc2.city_id = c.id
@@ -467,9 +478,9 @@ function getContracts($conn, $company_id = null) {
         
         if ($result) {
             $contracts = pg_fetch_all($result);
-            echo json_encode(['success' => true, 'data' => $contracts]);
+            echo json_encode(['success' => true, 'data' => $contracts], JSON_UNESCAPED_UNICODE);
         } else {
-            echo json_encode(['success' => false, 'message' => getDbErrorMessage($conn)]);
+            echo json_encode(['success' => false, 'message' => getDbErrorMessage($conn)], JSON_UNESCAPED_UNICODE);
         }
     }
 }

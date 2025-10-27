@@ -184,13 +184,12 @@
 }
 
 .btn-icon.btn-info {
-    background: #dbeafe;
-    color: #2563eb;
+    color: #6b7280;
 }
 
 .btn-icon.btn-info:hover {
-    background: #bfdbfe;
-    color: #1d4ed8;
+    background: #f3f4f6;
+    color: #151A2D;
 }
 
 /* Contract Summary Styles */
@@ -451,6 +450,68 @@
 
 .modal-content form::-webkit-scrollbar-thumb:hover {
     background: #94a3b8;
+}
+
+/* Loading State */
+.loading {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 40px 20px;
+    color: #6b7280;
+}
+
+.loading .material-symbols-rounded {
+    font-size: 48px;
+    margin-bottom: 16px;
+}
+
+.loading .loading-spinner {
+    animation: spin 1s linear infinite;
+}
+
+.loading p {
+    font-size: 14px;
+    color: #6b7280;
+    margin: 0;
+}
+
+@keyframes spin {
+    from {
+        transform: rotate(0deg);
+    }
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+/* Empty State */
+.empty-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 40px 20px;
+    color: #9ca3af;
+}
+
+.empty-state .material-symbols-rounded {
+    font-size: 64px;
+    margin-bottom: 16px;
+    opacity: 0.5;
+}
+
+.empty-state h3 {
+    font-size: 18px;
+    font-weight: 500;
+    margin-bottom: 8px;
+    color: #374151;
+}
+
+.empty-state p {
+    font-size: 14px;
+    color: #6b7280;
 }
 
 /* Form Sections */
