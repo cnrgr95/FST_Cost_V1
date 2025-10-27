@@ -31,6 +31,16 @@
             if (e.target.name === 'sub_region_id') {
                 loadMerchantsBySubRegion(e.target.value);
             }
+            // Cascading dropdowns for tour regions filter
+            if (e.target.id === 'filter_country_id') {
+                loadRegions(e.target.value);
+            }
+            if (e.target.id === 'filter_region_id') {
+                loadCities(e.target.value);
+            }
+            if (e.target.id === 'filter_city_id') {
+                loadTourSubRegions(e.target.value);
+            }
         });
         
         // Close modal when clicking outside
@@ -169,24 +179,25 @@
         html += `<th>${tTours.sejour_tour_code || 'Sejour Tour Code'}</th>`;
         html += `<th>${tTours.tour_name || 'Tour Name'}</th>`;
         html += `<th>${tSidebar.merchant || 'Merchant'}</th>`;
-        html += `<th>${tSidebar.country || 'Country'}</th>`;
-        html += `<th>${tSidebar.region || 'Region'}</th>`;
-        html += `<th>${tSidebar.city || 'City'}</th>`;
-        html += `<th>${tSidebar['sub_region'] || 'Sub Region'}</th>`;
+        html += `<th>${tTours.tour_regions || 'Bu Turun Gerçekleştiği Bölgeler'}</th>`;
         html += `<th>${tCommon.actions || 'Actions'}</th>`;
         html += '</tr></thead>';
         
         html += '<tbody>';
         data.forEach(item => {
+            // Build tour regions display
+            let tourRegionsHtml = '-';
+            if (item.sub_regions && item.sub_regions.length > 0) {
+                const regionNames = item.sub_regions.map(sr => escapeHtml(sr.sub_region_name || '')).filter(name => name);
+                tourRegionsHtml = regionNames.length > 0 ? regionNames.join(', ') : '-';
+            }
+            
             html += `
                 <tr>
                     <td><strong>${escapeHtml(item.sejour_tour_code || '-')}</strong></td>
                     <td><strong>${escapeHtml(item.name)}</strong></td>
                     <td>${escapeHtml(item.merchant_name || '-')}</td>
-                    <td>${escapeHtml(item.country_name || '-')}</td>
-                    <td>${escapeHtml(item.region_name || '-')}</td>
-                    <td>${escapeHtml(item.city_name || '-')}</td>
-                    <td>${escapeHtml(item.sub_region_name || '-')}</td>
+                    <td>${tourRegionsHtml}</td>
                     <td>
                         <div class="table-actions">
                             <button class="btn-action btn-edit" data-item-id="${item.id}">
@@ -266,6 +277,7 @@
         
         // Load sub regions
         await loadSubRegionsForSelect();
+        await loadCountries();
     };
     
     // Close modal
@@ -317,6 +329,52 @@
         await loadMerchantsBySubRegion(item.sub_region_id);
         form.querySelector('select[name="merchant_id"]').value = item.merchant_id;
         
+        // Load and select tour sub regions - need to find city_id from first sub_region
+        if (item.sub_regions && item.sub_regions.length > 0) {
+            // Get city_id from first sub_region (we need to fetch sub_regions with city info)
+            const firstSubRegion = item.sub_regions[0];
+            // We need to load sub_regions to get city_id, but for now use the stored sub_region_id
+            // Find the city_id from sub_regions data
+            const subRegionId = firstSubRegion.sub_region_id;
+            // Load all sub_regions to find the city_id
+            try {
+                const subRegionsResponse = await fetch(`${API_BASE}?action=sub_regions`);
+                const subRegionsResult = await subRegionsResponse.json();
+                if (subRegionsResult.success) {
+                    const foundSubRegion = subRegionsResult.data.find(sr => sr.id == subRegionId);
+                    if (foundSubRegion && foundSubRegion.city_id) {
+                        // Set cascading dropdowns
+                        // First find country and region from city
+                        const citiesResponse = await fetch(`${API_BASE}?action=cities&region_id=${foundSubRegion.region_id || ''}`);
+                        const citiesResult = await citiesResponse.json();
+                        if (citiesResult.success) {
+                            const foundCity = citiesResult.data.find(c => c.id == foundSubRegion.city_id);
+                            if (foundCity) {
+                                await loadCountries();
+                                document.getElementById('filter_country_id').value = foundCity.country_id || '';
+                                await loadRegions(foundCity.country_id);
+                                document.getElementById('filter_region_id').value = foundCity.region_id || '';
+                                await loadCities(foundCity.region_id);
+                                document.getElementById('filter_city_id').value = foundSubRegion.city_id || '';
+                                await loadTourSubRegions(foundSubRegion.city_id);
+                                
+                                // Select tour sub regions checkboxes
+                                const subRegionIds = item.sub_regions.map(sr => sr.sub_region_id.toString());
+                                subRegionIds.forEach(id => {
+                                    const checkbox = document.getElementById(`sub_region_${id}`);
+                                    if (checkbox) checkbox.checked = true;
+                                });
+                            }
+                        }
+                    }
+                }
+            } catch (error) {
+                console.error('Error loading sub regions for edit:', error);
+            }
+        } else {
+            await loadCountries();
+        }
+        
         modal.classList.add('active');
     };
     
@@ -358,6 +416,10 @@
             sub_region_id: formData.get('sub_region_id'),
             merchant_id: formData.get('merchant_id')
         };
+        
+        // Get selected sub region IDs for tour regions from checkboxes
+        const checkboxes = document.querySelectorAll('#sub_regions_checkbox_container input[type="checkbox"]:checked');
+        data.sub_region_ids = Array.from(checkboxes).map(cb => cb.value).filter(id => id);
         
         if (form.dataset.id) {
             data.id = form.dataset.id;
@@ -437,6 +499,222 @@
             });
         }
     }
+    
+    // Load countries
+    async function loadCountries() {
+        const select = document.getElementById('filter_country_id');
+        if (!select) return;
+        
+        try {
+            const response = await fetch(`${API_BASE}?action=countries`);
+            const result = await response.json();
+            if (result.success) {
+                select.innerHTML = '<option value="">Select...</option>';
+                (result.data || []).forEach(country => {
+                    const option = document.createElement('option');
+                    option.value = country.id;
+                    option.textContent = country.name;
+                    select.appendChild(option);
+                });
+            }
+        } catch (error) {
+            console.error('Error loading countries:', error);
+        }
+    }
+    
+    // Load regions by country
+    async function loadRegions(country_id) {
+        const select = document.getElementById('filter_region_id');
+        const citySelect = document.getElementById('filter_city_id');
+        const subRegionSelect = document.getElementById('sub_region_ids');
+        
+        if (!select) return;
+        
+        if (!country_id) {
+            select.innerHTML = '<option value="">Select...</option>';
+            if (citySelect) citySelect.innerHTML = '<option value="">Select...</option>';
+            if (subRegionSelect) subRegionSelect.innerHTML = '<option value="">Önce ülke, bölge ve şehir seçin</option>';
+            return;
+        }
+        
+        try {
+            const response = await fetch(`${API_BASE}?action=regions&country_id=${country_id}`);
+            const result = await response.json();
+            if (result.success) {
+                select.innerHTML = '<option value="">Select...</option>';
+                (result.data || []).forEach(region => {
+                    const option = document.createElement('option');
+                    option.value = region.id;
+                    option.textContent = region.name;
+                    select.appendChild(option);
+                });
+            }
+            
+            // Reset dependent dropdowns
+            if (citySelect) citySelect.innerHTML = '<option value="">Select...</option>';
+            const checkboxContainer = document.getElementById('sub_regions_checkbox_container');
+            if (checkboxContainer) checkboxContainer.innerHTML = '<div class="checkbox-message">Önce ülke, bölge ve şehir seçin</div>';
+        } catch (error) {
+            console.error('Error loading regions:', error);
+        }
+    }
+    
+    // Load cities by region
+    async function loadCities(region_id) {
+        const select = document.getElementById('filter_city_id');
+        const subRegionSelect = document.getElementById('sub_region_ids');
+        
+        if (!select) return;
+        
+        if (!region_id) {
+            select.innerHTML = '<option value="">Select...</option>';
+            if (subRegionSelect) subRegionSelect.innerHTML = '<option value="">Önce ülke, bölge ve şehir seçin</option>';
+            return;
+        }
+        
+        try {
+            const response = await fetch(`${API_BASE}?action=cities&region_id=${region_id}`);
+            const result = await response.json();
+            if (result.success) {
+                select.innerHTML = '<option value="">Select...</option>';
+                (result.data || []).forEach(city => {
+                    const option = document.createElement('option');
+                    option.value = city.id;
+                    option.textContent = city.name;
+                    select.appendChild(option);
+                });
+            }
+            
+            // Reset dependent dropdown
+            const checkboxContainer = document.getElementById('sub_regions_checkbox_container');
+            if (checkboxContainer) checkboxContainer.innerHTML = '<div class="checkbox-message">Önce ülke, bölge ve şehir seçin</div>';
+        } catch (error) {
+            console.error('Error loading cities:', error);
+        }
+    }
+    
+    // Load tour sub regions as checkboxes by city
+    async function loadTourSubRegions(city_id) {
+        const container = document.getElementById('sub_regions_checkbox_container');
+        const searchBox = document.querySelector('.checkbox-search');
+        const selectAllBtn = document.querySelector('.btn-select-all');
+        const deselectAllBtn = document.querySelector('.btn-deselect-all');
+        const selectedCount = document.getElementById('selected_count');
+        
+        if (!container) return;
+        
+        if (!city_id) {
+            container.innerHTML = '<div class="checkbox-message">Önce ülke, bölge ve şehir seçin</div>';
+            if (searchBox) searchBox.style.display = 'none';
+            if (selectAllBtn) selectAllBtn.style.display = 'none';
+            if (deselectAllBtn) deselectAllBtn.style.display = 'none';
+            if (selectedCount) selectedCount.style.display = 'none';
+            return;
+        }
+        
+        try {
+            const response = await fetch(`${API_BASE}?action=sub_regions&city_id=${city_id}`);
+            const result = await response.json();
+            if (result.success && result.data && result.data.length > 0) {
+                container.innerHTML = '';
+                result.data.forEach(sr => {
+                    const checkboxItem = document.createElement('div');
+                    checkboxItem.className = 'checkbox-item';
+                    checkboxItem.dataset.regionName = sr.name.toLowerCase();
+                    
+                    const checkbox = document.createElement('input');
+                    checkbox.type = 'checkbox';
+                    checkbox.id = `sub_region_${sr.id}`;
+                    checkbox.name = 'sub_region_ids[]';
+                    checkbox.value = sr.id;
+                    checkbox.addEventListener('change', updateSelectedCount);
+                    
+                    const label = document.createElement('label');
+                    label.htmlFor = `sub_region_${sr.id}`;
+                    label.textContent = sr.name;
+                    
+                    checkboxItem.appendChild(checkbox);
+                    checkboxItem.appendChild(label);
+                    container.appendChild(checkboxItem);
+                });
+                
+                // Show controls
+                if (searchBox) searchBox.style.display = 'block';
+                if (selectAllBtn) selectAllBtn.style.display = 'flex';
+                if (deselectAllBtn) deselectAllBtn.style.display = 'flex';
+                updateSelectedCount();
+            } else {
+                container.innerHTML = '<div class="checkbox-message">Bu şehir için alt bölge bulunamadı</div>';
+                if (searchBox) searchBox.style.display = 'none';
+                if (selectAllBtn) selectAllBtn.style.display = 'none';
+                if (deselectAllBtn) deselectAllBtn.style.display = 'none';
+                if (selectedCount) selectedCount.style.display = 'none';
+            }
+        } catch (error) {
+            console.error('Error loading sub regions:', error);
+            container.innerHTML = '<div class="checkbox-message">Bölgeler yüklenirken hata oluştu</div>';
+            if (searchBox) searchBox.style.display = 'none';
+            if (selectAllBtn) selectAllBtn.style.display = 'none';
+            if (deselectAllBtn) deselectAllBtn.style.display = 'none';
+            if (selectedCount) selectedCount.style.display = 'none';
+        }
+    }
+    
+    // Update selected count
+    function updateSelectedCount() {
+        const checkboxes = document.querySelectorAll('#sub_regions_checkbox_container input[type="checkbox"]:checked');
+        const selectedCount = document.getElementById('selected_count');
+        const total = document.querySelectorAll('#sub_regions_checkbox_container input[type="checkbox"]').length;
+        
+        if (selectedCount && total > 0) {
+            const count = checkboxes.length;
+            selectedCount.textContent = `${count} / ${total} seçili`;
+            selectedCount.style.display = 'block';
+        }
+        
+        // Update item styling
+        document.querySelectorAll('.checkbox-item').forEach(item => {
+            const checkbox = item.querySelector('input[type="checkbox"]');
+            if (checkbox && checkbox.checked) {
+                item.classList.add('selected');
+            } else {
+                item.classList.remove('selected');
+            }
+        });
+    }
+    
+    // Select all regions
+    window.selectAllRegions = function() {
+        const checkboxes = document.querySelectorAll('#sub_regions_checkbox_container input[type="checkbox"]:not(.hidden)');
+        checkboxes.forEach(cb => {
+            cb.checked = true;
+        });
+        updateSelectedCount();
+    };
+    
+    // Deselect all regions
+    window.deselectAllRegions = function() {
+        const checkboxes = document.querySelectorAll('#sub_regions_checkbox_container input[type="checkbox"]');
+        checkboxes.forEach(cb => {
+            cb.checked = false;
+        });
+        updateSelectedCount();
+    };
+    
+    // Filter regions
+    window.filterRegions = function(searchTerm) {
+        const items = document.querySelectorAll('.checkbox-item');
+        const term = searchTerm.toLowerCase();
+        
+        items.forEach(item => {
+            const regionName = item.dataset.regionName || '';
+            if (regionName.includes(term)) {
+                item.classList.remove('hidden');
+            } else {
+                item.classList.add('hidden');
+            }
+        });
+    };
     
     // Load merchants by sub region
     async function loadMerchantsBySubRegion(sub_region_id) {

@@ -83,7 +83,7 @@ $t_sidebar = $all_translations['sidebar'] ?? [];
 
       <!-- Contract -->
       <li class="nav-item">
-        <a href="#" class="nav-link" data-tooltip="<?php echo $t_sidebar['contract'] ?? 'Contract'; ?>">
+        <a href="<?php echo $basePath; ?>app/contracts.php" class="nav-link" data-tooltip="<?php echo $t_sidebar['contract'] ?? 'Contract'; ?>">
           <span class="material-symbols-rounded">description</span>
           <span class="nav-label"><?php echo $t_sidebar['contract'] ?? 'Contract'; ?></span>
         </a>
@@ -127,6 +127,7 @@ $t_sidebar = $all_translations['sidebar'] ?? [];
           <li class="nav-item"><a href="<?php echo $basePath; ?>app/definitions/languages.php" class="nav-link dropdown-link"><?php echo $t_sidebar['language'] ?? 'Languages'; ?></a></li>
           <li class="nav-item"><a href="<?php echo $basePath; ?>app/definitions/tours.php" class="nav-link dropdown-link"><?php echo $t_sidebar['tours'] ?? 'Tours'; ?></a></li>
           <li class="nav-item"><a href="<?php echo $basePath; ?>app/definitions/costs.php" class="nav-link dropdown-link"><?php echo $t_sidebar['cost_mgmt'] ?? 'Cost'; ?></a></li>
+          <li class="nav-item"><a href="<?php echo $basePath; ?>app/definitions/currencies.php" class="nav-link dropdown-link"><?php echo $t_sidebar['currencies'] ?? 'Currencies'; ?></a></li>
           <li class="nav-item"><a href="<?php echo $basePath; ?>app/definitions/locations.php" class="nav-link dropdown-link"><?php echo $t_sidebar['locations'] ?? 'Locations'; ?></a></li>
           <li class="nav-item"><a href="<?php echo $basePath; ?>app/definitions/positions.php" class="nav-link dropdown-link"><?php echo $t_sidebar['positions'] ?? 'Positions'; ?></a></li>
           <li class="nav-item"><a href="<?php echo $basePath; ?>app/definitions/merchants.php" class="nav-link dropdown-link"><?php echo $t_sidebar['merchants'] ?? 'Merchants'; ?></a></li>

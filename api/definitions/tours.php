@@ -72,8 +72,20 @@ try {
 // GET request handler
 function handleGet($conn, $action) {
     switch ($action) {
+        case 'countries':
+            getCountries($conn);
+            break;
+        case 'regions':
+            $country_id = isset($_GET['country_id']) ? (int)$_GET['country_id'] : null;
+            getRegions($conn, $country_id);
+            break;
+        case 'cities':
+            $region_id = isset($_GET['region_id']) ? (int)$_GET['region_id'] : null;
+            getCities($conn, $region_id);
+            break;
         case 'sub_regions':
-            getSubRegions($conn);
+            $city_id = isset($_GET['city_id']) ? (int)$_GET['city_id'] : null;
+            getSubRegions($conn, $city_id);
             break;
         case 'merchants':
             $sub_region_id = isset($_GET['sub_region_id']) ? (int)$_GET['sub_region_id'] : null;
@@ -131,14 +143,86 @@ function handleDelete($conn, $action) {
     }
 }
 
+// Get countries
+function getCountries($conn) {
+    $query = "SELECT * FROM countries ORDER BY name ASC";
+    $result = pg_query($conn, $query);
+    
+    if ($result) {
+        $countries = pg_fetch_all($result);
+        echo json_encode(['success' => true, 'data' => $countries]);
+    } else {
+        echo json_encode(['success' => false, 'message' => getDbErrorMessage($conn)]);
+    }
+}
+
+// Get regions
+function getRegions($conn, $country_id = null) {
+    if ($country_id) {
+        $country_id = (int)$country_id;
+        $query = "SELECT * FROM regions WHERE country_id = $country_id ORDER BY name ASC";
+    } else {
+        $query = "SELECT r.*, c.name as country_name FROM regions r LEFT JOIN countries c ON r.country_id = c.id ORDER BY r.name ASC";
+    }
+    
+    $result = pg_query($conn, $query);
+    
+    if ($result) {
+        $regions = pg_fetch_all($result);
+        echo json_encode(['success' => true, 'data' => $regions]);
+    } else {
+        echo json_encode(['success' => false, 'message' => getDbErrorMessage($conn)]);
+    }
+}
+
+// Get cities
+function getCities($conn, $region_id = null) {
+    if ($region_id) {
+        $region_id = (int)$region_id;
+        $query = "SELECT c.*, r.name as region_name, r.country_id, co.name as country_name 
+                  FROM cities c 
+                  LEFT JOIN regions r ON c.region_id = r.id 
+                  LEFT JOIN countries co ON r.country_id = co.id 
+                  WHERE c.region_id = $region_id
+                  ORDER BY c.name ASC";
+    } else {
+        $query = "SELECT c.*, r.name as region_name, r.country_id, co.name as country_name 
+                  FROM cities c 
+                  LEFT JOIN regions r ON c.region_id = r.id 
+                  LEFT JOIN countries co ON r.country_id = co.id 
+                  ORDER BY c.name ASC";
+    }
+    
+    $result = pg_query($conn, $query);
+    
+    if ($result) {
+        $cities = pg_fetch_all($result);
+        echo json_encode(['success' => true, 'data' => $cities]);
+    } else {
+        echo json_encode(['success' => false, 'message' => getDbErrorMessage($conn)]);
+    }
+}
+
 // Get sub regions
-function getSubRegions($conn) {
-    $query = "SELECT sr.*, c.name as city_name, r.name as region_name, co.name as country_name 
-              FROM sub_regions sr 
-              LEFT JOIN cities c ON sr.city_id = c.id 
-              LEFT JOIN regions r ON c.region_id = r.id 
-              LEFT JOIN countries co ON r.country_id = co.id 
-              ORDER BY sr.name ASC";
+function getSubRegions($conn, $city_id = null) {
+    if ($city_id) {
+        $city_id = (int)$city_id;
+        $query = "SELECT sr.*, c.name as city_name, r.name as region_name, co.name as country_name 
+                  FROM sub_regions sr 
+                  LEFT JOIN cities c ON sr.city_id = c.id 
+                  LEFT JOIN regions r ON c.region_id = r.id 
+                  LEFT JOIN countries co ON r.country_id = co.id 
+                  WHERE sr.city_id = $city_id 
+                  ORDER BY sr.name ASC";
+    } else {
+        $query = "SELECT sr.*, c.name as city_name, r.name as region_name, co.name as country_name 
+                  FROM sub_regions sr 
+                  LEFT JOIN cities c ON sr.city_id = c.id 
+                  LEFT JOIN regions r ON c.region_id = r.id 
+                  LEFT JOIN countries co ON r.country_id = co.id 
+                  ORDER BY sr.name ASC";
+    }
+    
     $result = pg_query($conn, $query);
     
     if ($result) {
@@ -190,7 +274,23 @@ function getTours($conn) {
     $result = pg_query($conn, $query);
     
     if ($result) {
-        $tours = pg_fetch_all($result);
+        $tours = pg_fetch_all($result) ?: [];
+        
+        // Get sub regions for each tour
+        foreach ($tours as &$tour) {
+            $tour_id = $tour['id'];
+            $subRegionsQuery = "SELECT tsr.sub_region_id, sr.name as sub_region_name
+                              FROM tour_sub_regions tsr
+                              LEFT JOIN sub_regions sr ON tsr.sub_region_id = sr.id
+                              WHERE tsr.tour_id = $tour_id";
+            $subRegionsResult = pg_query($conn, $subRegionsQuery);
+            if ($subRegionsResult) {
+                $tour['sub_regions'] = pg_fetch_all($subRegionsResult) ?: [];
+            } else {
+                $tour['sub_regions'] = [];
+            }
+        }
+        
         echo json_encode(['success' => true, 'data' => $tours]);
     } else {
         echo json_encode(['success' => false, 'message' => getDbErrorMessage($conn)]);
@@ -224,7 +324,14 @@ function createTour($conn, $data) {
     
     if ($result) {
         $row = pg_fetch_assoc($result);
-        echo json_encode(['success' => true, 'id' => $row['id']]);
+        $tour_id = $row['id'];
+        
+        // Save tour sub regions
+        if (isset($data['sub_region_ids']) && is_array($data['sub_region_ids'])) {
+            saveTourSubRegions($conn, $tour_id, $data['sub_region_ids']);
+        }
+        
+        echo json_encode(['success' => true, 'id' => $tour_id]);
     } else {
         echo json_encode(['success' => false, 'message' => getDbErrorMessage($conn)]);
     }
@@ -260,9 +367,32 @@ function updateTour($conn, $data) {
     $result = pg_query($conn, $query);
     
     if ($result) {
+        // Update tour sub regions
+        if (isset($data['sub_region_ids']) && is_array($data['sub_region_ids'])) {
+            saveTourSubRegions($conn, $id, $data['sub_region_ids']);
+        }
+        
         echo json_encode(['success' => true]);
     } else {
         echo json_encode(['success' => false, 'message' => getDbErrorMessage($conn)]);
+    }
+}
+
+// Save tour sub regions
+function saveTourSubRegions($conn, $tour_id, $sub_region_ids) {
+    // Delete existing associations
+    $deleteQuery = "DELETE FROM tour_sub_regions WHERE tour_id = $tour_id";
+    pg_query($conn, $deleteQuery);
+    
+    // Insert new associations
+    if (!empty($sub_region_ids)) {
+        foreach ($sub_region_ids as $sub_region_id) {
+            $sub_region_id = (int)$sub_region_id;
+            if ($sub_region_id > 0) {
+                $insertQuery = "INSERT INTO tour_sub_regions (tour_id, sub_region_id) VALUES ($tour_id, $sub_region_id) ON CONFLICT (tour_id, sub_region_id) DO NOTHING";
+                pg_query($conn, $insertQuery);
+            }
+        }
     }
 }
 

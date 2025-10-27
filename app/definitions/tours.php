@@ -112,6 +112,51 @@ $t_tours = $all_translations['tours'] ?? [];
                     </select>
                 </div>
                 
+                <div class="form-group">
+                    <label><?php echo $t_sidebar['country'] ?? 'Country'; ?></label>
+                    <select id="filter_country_id" name="filter_country_id">
+                        <option value=""><?php echo $t_common['select'] ?? 'Select...'; ?></option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label><?php echo $t_sidebar['region'] ?? 'Region'; ?></label>
+                    <select id="filter_region_id" name="filter_region_id">
+                        <option value=""><?php echo $t_common['select'] ?? 'Select...'; ?></option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label><?php echo $t_sidebar['city'] ?? 'City'; ?></label>
+                    <select id="filter_city_id" name="filter_city_id">
+                        <option value=""><?php echo $t_common['select'] ?? 'Select...'; ?></option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <div class="checkbox-group-header">
+                        <label><?php echo $t_tours['tour_regions'] ?? 'Bu Turun Gerçekleştiği Bölgeler'; ?></label>
+                        <div class="checkbox-actions">
+                            <button type="button" class="btn-select-all" onclick="selectAllRegions()" style="display: none;">
+                                <span class="material-symbols-rounded">check_box</span>
+                                <?php echo $t_tours['select_all'] ?? 'Tümünü Seç'; ?>
+                            </button>
+                            <button type="button" class="btn-deselect-all" onclick="deselectAllRegions()" style="display: none;">
+                                <span class="material-symbols-rounded">check_box_outline_blank</span>
+                                <?php echo $t_tours['deselect_all'] ?? 'Tümünü Temizle'; ?>
+                            </button>
+                            <span class="selected-count" id="selected_count" style="display: none;"></span>
+                        </div>
+                    </div>
+                    <div class="checkbox-search" style="display: none;">
+                        <input type="text" id="region_search" placeholder="<?php echo $t_tours['search_regions'] ?? 'Bölge ara...'; ?>" onkeyup="filterRegions(this.value)">
+                        <span class="material-symbols-rounded">search</span>
+                    </div>
+                    <div id="sub_regions_checkbox_container" class="checkbox-container">
+                        <div class="checkbox-message"><?php echo $t_tours['select_regions_first'] ?? 'Önce ülke, bölge ve şehir seçin'; ?></div>
+                    </div>
+                </div>
+                
                 <div class="modal-footer">
                     <button type="button" class="btn-secondary" onclick="closeModal()">
                         <?php echo $t_common['cancel'] ?? 'Cancel'; ?>
