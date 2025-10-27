@@ -107,10 +107,6 @@ $t_dashboard = $all_translations['dashboard'] ?? [];
     </div>
     
     <style>
-        .dashboard-content {
-            max-width: 1400px;
-        }
-        
         .welcome-card {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             border-radius: 16px;

@@ -7,8 +7,7 @@
 /* Main Content Layout */
 .main-content {
   margin-left: var(--sidebar-width);
-  min-height: 100vh;
-  transition: margin-left 0.4s ease;
+  transition: margin-left 0.4s ease, width 0.4s ease;
   width: calc(100% - var(--sidebar-width));
 }
 
@@ -20,7 +19,17 @@
 .content-wrapper {
   margin-top: 70px;
   padding: 30px;
-  min-height: calc(100vh - 70px);
+  transition: padding 0.4s ease;
+}
+
+/* Ensure all page content respects sidebar width */
+.content-wrapper > * {
+  max-width: 100%;
+}
+
+/* Dashboard specific content - maintains centered layout but adapts to available space */
+.dashboard-content {
+  width: 100%;
 }
 
 /* Page Header */

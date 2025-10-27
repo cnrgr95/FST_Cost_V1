@@ -163,7 +163,6 @@ $t_users = $all_translations['users'] ?? [];
         /* Main Content Styles */
         .main-content {
             margin-left: var(--sidebar-width);
-            min-height: 100vh;
             transition: margin-left 0.4s ease;
         }
         
