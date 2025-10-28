@@ -25,8 +25,8 @@ $dbUser = DB_USER;
 $dbPass = DB_PASS;
 
 // Backup Configuration
-$backupDir = __DIR__ . DIRECTORY_SEPARATOR . 'DB' . DIRECTORY_SEPARATOR;
-$keepBackups = 10; // Keep last 10 backups
+$backupDir = __DIR__ . DIRECTORY_SEPARATOR;
+$keepBackups = 5; // Keep last 5 backups
 
 // Create backup directory if it doesn't exist
 if (!file_exists($backupDir)) {
@@ -67,7 +67,13 @@ function createBackup($dbHost, $dbPort, $dbName, $dbUser, $dbPass, $backupDir) {
     if (!$pgDump) {
         // Try to find pg_dump in PATH
         $output = [];
-        exec('where pg_dump 2>nul', $output);
+        // Sanitize command execution - only use 'where' command which is safe
+        $command = escapeshellcmd('where pg_dump');
+        // On Windows, redirect stderr to nul safely
+        if (strtoupper(substr(PHP_OS, 0, 3)) === 'WIN') {
+            $command .= ' 2>nul';
+        }
+        exec($command, $output);
         if (!empty($output)) {
             $pgDump = 'pg_dump';
         } else {
@@ -76,24 +82,33 @@ function createBackup($dbHost, $dbPort, $dbName, $dbUser, $dbPass, $backupDir) {
     }
     
     // Build pg_dump command with maximum options
+    // Use escapeshellarg to prevent command injection
+    $escapedDump = escapeshellarg($pgDump);
+    $escapedHost = escapeshellarg($dbHost);
+    $escapedPort = escapeshellarg($dbPort);
+    $escapedUser = escapeshellarg($dbUser);
+    $escapedDbName = escapeshellarg($dbName);
+    $escapedFilepath = escapeshellarg($filepath);
+    
     $command = sprintf(
-        '"%s" --host=%s --port=%s --username=%s --dbname=%s --format=plain --encoding=UTF-8 --no-owner --no-privileges --clean --if-exists --file="%s"',
-        $pgDump,
-        $dbHost,
-        $dbPort,
-        $dbUser,
-        $dbName,
-        $filepath
+        '%s --host=%s --port=%s --username=%s --dbname=%s --format=plain --encoding=UTF-8 --no-owner --no-privileges --clean --if-exists --file=%s',
+        $escapedDump,
+        $escapedHost,
+        $escapedPort,
+        $escapedUser,
+        $escapedDbName,
+        $escapedFilepath
     );
     
     // Set PGPASSWORD environment variable for password
-    putenv("PGPASSWORD={$dbPass}");
+    // Don't escape the password for putenv, only for command
+    putenv("PGPASSWORD=" . $dbPass);
     
     // Execute pg_dump
     $output = [];
     $returnCode = 0;
     
-    // Execute command
+    // Execute command with proper escaping
     exec($command . " 2>&1", $output, $returnCode);
     
     // Unset password from environment
@@ -116,17 +131,38 @@ function createBackup($dbHost, $dbPort, $dbName, $dbUser, $dbPass, $backupDir) {
         throw new Exception("pg_dump produced empty output. Check database connection.");
     }
     
-    // Compress backup
-    $zipFilename = $filename . '.gz';
-    $zipFilepath = $backupDir . $zipFilename;
+    // Compress backup to TAR.GZ format
+    $tarFilename = str_replace('.sql', '.tar.gz', $filename);
+    $tarFilepath = $backupDir . $tarFilename;
     
-    if (function_exists('gzencode')) {
-        $compressed = gzencode($content, 9); // Maximum compression
-        file_put_contents($zipFilepath, $compressed);
-        unlink($filepath); // Remove uncompressed file
-        $finalFilename = $zipFilename;
-        $finalFilepath = $zipFilepath;
+    // Create TAR.GZ using system tar
+    $tarCreated = false;
+    
+    // Try to use system tar command (more efficient)
+    if (strtoupper(substr(PHP_OS, 0, 3)) === 'WIN') {
+        // On Windows, use tar.exe (built-in to Windows 10+)
+        $tarCmd = 'tar.exe';
+        $command = escapeshellcmd($tarCmd) . ' czf ' . escapeshellarg($tarFilepath) . ' -C ' . escapeshellarg($backupDir) . ' ' . escapeshellarg($filename) . ' 2>&1';
+        exec($command, $output, $returnCode);
+        if ($returnCode === 0 && file_exists($tarFilepath)) {
+            $tarCreated = true;
+            unlink($filepath); // Remove uncompressed file
+        }
     } else {
+        // On Linux/Unix, use standard tar
+        $command = 'tar czf ' . escapeshellarg($tarFilepath) . ' -C ' . escapeshellarg($backupDir) . ' ' . escapeshellarg($filename) . ' 2>&1';
+        exec($command, $output, $returnCode);
+        if ($returnCode === 0 && file_exists($tarFilepath)) {
+            $tarCreated = true;
+            unlink($filepath); // Remove uncompressed file
+        }
+    }
+    
+    if ($tarCreated) {
+        $finalFilename = $tarFilename;
+        $finalFilepath = $tarFilepath;
+    } else {
+        // If tar failed, keep as plain SQL
         $finalFilename = $filename;
         $finalFilepath = $filepath;
     }
@@ -149,7 +185,12 @@ function createBackup($dbHost, $dbPort, $dbName, $dbUser, $dbPass, $backupDir) {
  * Clean old backups, keep only last N
  */
 function cleanOldBackups($backupDir, $keepBackups) {
-    $files = glob($backupDir . 'fst_cost_db_backup_*.sql*');
+    // Look for all backup file formats
+    $files = array_merge(
+        glob($backupDir . 'fst_cost_db_backup_*.sql'),
+        glob($backupDir . 'fst_cost_db_backup_*.gz'),
+        glob($backupDir . 'fst_cost_db_backup_*.tar.gz')
+    );
     
     if (count($files) <= $keepBackups) {
         return;

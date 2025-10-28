@@ -127,6 +127,18 @@ $t_contracts = $all_translations['contracts'] ?? [];
                 
                 <!-- Tab Content: Basic Info -->
                 <div class="contract-form-content active" id="basic-tab">
+                <!-- Contract Code Section -->
+                <div class="form-section">
+                    <h3 class="section-title"><?php echo $t_contracts['contract_info'] ?? 'Contract Information'; ?></h3>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="contract_code"><?php echo $t_contracts['contract_code'] ?? 'Contract Code'; ?></label>
+                            <input type="text" id="contract_code" name="contract_code" readonly style="background-color: #f3f4f6; cursor: not-allowed;">
+                            <small style="color: #6b7280; font-size: 12px;"><?php echo $t_contracts['auto_generated'] ?? 'This code is automatically generated'; ?></small>
+                        </div>
+                    </div>
+                </div>
+                
                 <!-- Basic Information Section -->
                 <div class="form-section">
                     <h3 class="section-title"><?php echo $t_contracts['basic_info'] ?? 'Basic Information'; ?></h3>
@@ -172,14 +184,6 @@ $t_contracts = $all_translations['contracts'] ?? [];
                         </div>
                     </div>
                     
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label for="vehicle_company_id"><?php echo $t_vehicles['vehicle_company'] ?? 'Vehicle Company'; ?> *</label>
-                            <select id="vehicle_company_id" name="vehicle_company_id" required>
-                                <option value=""><?php echo $t_common['loading'] ?? 'Loading...'; ?></option>
-                            </select>
-                        </div>
-                    </div>
                 </div>
                 
                 <!-- Contract Dates & VAT Section -->
@@ -895,7 +899,7 @@ $t_contracts = $all_translations['contracts'] ?? [];
     
     <!-- Contract Summary Modal -->
     <div id="contractSummaryModal" class="modal">
-        <div class="modal-content" style="max-width: 800px; max-height: 90vh; display: flex; flex-direction: column;">
+        <div class="modal-content" style="max-width: 1200px; max-height: 90vh; display: flex; flex-direction: column;">
             <div class="modal-header" style="flex-shrink: 0; display: flex; justify-content: space-between; align-items: center;">
                 <h2><?php echo $t_contracts['contract_summary'] ?? 'Contract Summary'; ?></h2>
                 <div style="display: flex; gap: 8px;">
@@ -907,7 +911,7 @@ $t_contracts = $all_translations['contracts'] ?? [];
                     </button>
                 </div>
             </div>
-            <div class="modal-body" id="contractSummaryContent" style="padding: 24px 30px; overflow-y: auto; flex: 1; max-height: calc(90vh - 100px);">
+            <div class="modal-body" id="contractSummaryContent" style="padding: 24px 30px; overflow-y: auto; flex: 1; max-height: calc(90vh - 100px); text-align: center;">
                 <!-- Summary content will be loaded here -->
             </div>
         </div>

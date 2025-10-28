@@ -20,35 +20,10 @@
     let activeRequests = new Map(); // Track active requests for cancellation
     
     // Initialize
-    // Load vehicle companies
-    function loadVehicleCompanies() {
-        const select = document.getElementById('vehicle_company_id');
-        if (!select) return;
-        
-        fetch('../api/definitions/vehicles.php?action=companies')
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    select.innerHTML = '<option value="">Seçin...</option>';
-                    data.data.forEach(company => {
-                        const option = document.createElement('option');
-                        option.value = company.id;
-                        option.textContent = company.company_name;
-                        select.appendChild(option);
-                    });
-                }
-            })
-            .catch(error => {
-                console.error('Error loading vehicle companies:', error);
-                select.innerHTML = '<option value="">Yüklenemedi</option>';
-            });
-    }
-    
     document.addEventListener('DOMContentLoaded', function() {
         setupEventListeners();
         setupSearch();
         loadSubRegions();
-        loadVehicleCompanies();
         loadCurrencies();
         loadContracts();
     });
@@ -1631,6 +1606,13 @@
         const contractIdInput = document.getElementById('contractId');
         if (contractIdInput) contractIdInput.value = '';
         
+        // Generate and set contract code (only for new contracts)
+        const contractCodeInput = document.getElementById('contract_code');
+        if (contractCodeInput && !contractId) {
+            // Code will be generated on server side
+            contractCodeInput.value = '';
+        }
+        
         // Reset VAT rate
         const vatRateInput = document.getElementById('vat_rate');
         const vatRateLabel = document.getElementById('vat_rate_label');
@@ -1719,6 +1701,10 @@
         
         const contractIdField = document.getElementById('contractId');
         if (contractIdField) contractIdField.value = contract.id;
+        
+        const contractCodeInput = document.getElementById('contract_code');
+        if (contractCodeInput) contractCodeInput.value = contract.contract_code || '';
+        
         const subRegionIdField = document.getElementById('sub_region_id');
         if (subRegionIdField) subRegionIdField.value = contract.sub_region_id;
         
@@ -2049,7 +2035,7 @@
     }
     
     // Global functions for onclick handlers
-    window.showContractSummary = function(id) {
+    window.showContractSummary = async function(id) {
         const contract = contracts.find(c => c.id == id);
         if (!contract) {
                 showToast('error', tContracts.no_contracts || 'Contract not found');
@@ -2058,6 +2044,31 @@
         
         const t = window.Translations || {};
         const tContracts = t.contracts || {};
+        
+        // Load periods data
+        try {
+            // Load price periods
+            const pricePeriodsResponse = await fetch(`${API_BASE}?action=price_periods&contract_id=${id}`);
+            const pricePeriodsData = await pricePeriodsResponse.json();
+            contract.price_periods = pricePeriodsData.success ? pricePeriodsData.data || [] : [];
+            
+            // Load kickback periods
+            const kickbackPeriodsResponse = await fetch(`${API_BASE}?action=kickback_periods&contract_id=${id}`);
+            const kickbackPeriodsData = await kickbackPeriodsResponse.json();
+            contract.kickback_periods = kickbackPeriodsData.success ? kickbackPeriodsData.data || [] : [];
+            
+            // Load transfer periods
+            const transferPeriodsResponse = await fetch(`${API_BASE}?action=transfer_periods&contract_id=${id}`);
+            const transferPeriodsData = await transferPeriodsResponse.json();
+            contract.transfer_periods = transferPeriodsData.success ? transferPeriodsData.data || [] : [];
+            
+            // Load action periods
+            const actionPeriodsResponse = await fetch(`${API_BASE}?action=actions&contract_id=${id}`);
+            const actionPeriodsData = await actionPeriodsResponse.json();
+            contract.action_periods = actionPeriodsData.success ? actionPeriodsData.data || [] : [];
+        } catch (error) {
+            console.error('Error loading periods:', error);
+        }
         
         // Format transfer owner
         let transferOwnerText = '-';
@@ -2295,6 +2306,252 @@
                         <span class="summary-value" style="text-align: left; max-width: 100%; white-space: pre-wrap;">${escapeHtml(contract.included_content || '-')}</span>
                     </div>
                 </div>
+                
+                ${contract.price_periods && contract.price_periods.length > 0 ? `
+                <div class="summary-section">
+                    <h3>${escapeHtml(tContracts.price_periods || 'Price Periods')}</h3>
+                    ${contract.price_periods.map(period => `
+                        <div style="margin-bottom: 16px; padding: 12px; background: #f0fdf4; border-left: 4px solid #22c55e; border-radius: 6px;">
+                            <div style="font-weight: 600; margin-bottom: 8px; color: #151A2D;">
+                                ${escapeHtml(period.period_name || '-')}
+                                <span style="font-size: 12px; color: #6b7280; margin-left: 8px;">
+                                    (${escapeHtml(period.start_date || '-')} - ${escapeHtml(period.end_date || '-')})
+                                </span>
+                            </div>
+                            ${period.price_type === 'regional' && period.regional_prices && period.regional_prices.length > 0 ? `
+                                <table class="pricing-table" style="margin-top: 8px;">
+                                    <thead>
+                                        <tr>
+                                            <th>${tContracts.sub_region_label}</th>
+                                            <th>${tContracts.adult}</th>
+                                            <th>${tContracts.child}</th>
+                                            <th>${tContracts.infant}</th>
+                                            <th>${tContracts.currency}</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        ${period.regional_prices.map(rp => `
+                                            <tr>
+                                                <td><strong>${escapeHtml(rp.sub_region_name || '-')}</strong></td>
+                                                <td>${rp.adult_price || '-'}</td>
+                                                <td>${rp.child_price || '-'}</td>
+                                                <td>${rp.infant_price || '-'}</td>
+                                                <td>${rp.currency || period.currency || '-'}</td>
+                                            </tr>
+                                        `).join('')}
+                                    </tbody>
+                                </table>
+                            ` : period.adult_price || period.child_price || period.infant_price ? `
+                            <table class="pricing-table" style="margin-top: 8px;">
+                                <thead>
+                                    <tr>
+                                        <th>${tContracts.age_type_label}</th>
+                                        <th>${tContracts.price}</th>
+                                        <th>${tContracts.currency}</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    ${period.adult_price ? `<tr><td>Adult (${period.adult_age || '-'})</td><td>${period.adult_price}</td><td>${period.currency || '-'}</td></tr>` : ''}
+                                    ${period.child_price ? `<tr><td>Child (${period.child_age_range || '-'})</td><td>${period.child_price}</td><td>${period.currency || '-'}</td></tr>` : ''}
+                                    ${period.infant_price ? `<tr><td>Infant (${period.infant_age_range || '-'})</td><td>${period.infant_price}</td><td>${period.currency || '-'}</td></tr>` : ''}
+                                </tbody>
+                            </table>
+                            ` : `<div style="color: #6b7280;">${tContracts.no_pricing_defined}</div>`}
+                        </div>
+                    `).join('')}
+                </div>
+                ` : ''}
+                
+                ${contract.kickback_periods && contract.kickback_periods.length > 0 ? `
+                <div class="summary-section">
+                    <h3>${escapeHtml(tContracts.kickback_periods || 'Kickback Periods')}</h3>
+                    ${contract.kickback_periods.map(period => `
+                        <div style="margin-bottom: 16px; padding: 12px; background: #fef3c7; border-left: 4px solid #f59e0b; border-radius: 6px;">
+                            <div style="font-weight: 600; margin-bottom: 8px; color: #151A2D;">
+                                ${escapeHtml(period.period_name || '-')}
+                                <span style="font-size: 12px; color: #6b7280; margin-left: 8px;">
+                                    (${escapeHtml(period.start_date || '-')} - ${escapeHtml(period.end_date || '-')})
+                                </span>
+                            </div>
+                            <div style="font-size: 13px; color: #374151;">
+                                <div style="margin-bottom: 4px;"><strong>${tContracts.type_label}:</strong> ${tContracts['kickback_type_' + period.kickback_type] || (period.kickback_type || '-')}</div>
+                                ${period.kickback_value ? `<div style="margin-bottom: 4px;"><strong>${tContracts.value_label}:</strong> ${period.kickback_value} ${period.kickback_currency || '-'}</div>` : ''}
+                                ${period.kickback_per_person ? `<div style="margin-bottom: 4px;"><strong>${tContracts.per_person_label}:</strong> ${tContracts.yes}</div>` : ''}
+                                ${period.kickback_min_persons ? `<div><strong>${tContracts.min_persons_label2}:</strong> ${period.kickback_min_persons}</div>` : ''}
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>
+                ` : ''}
+                
+                ${contract.transfer_periods && contract.transfer_periods.length > 0 ? `
+                <div class="summary-section">
+                    <h3>${escapeHtml(tContracts.transfer_periods || 'Transfer Periods')}</h3>
+                    ${contract.transfer_periods.map(period => `
+                        <div style="margin-bottom: 16px; padding: 12px; background: #dbeafe; border-left: 4px solid #3b82f6; border-radius: 6px;">
+                            <div style="font-weight: 600; margin-bottom: 8px; color: #151A2D;">
+                                ${escapeHtml(period.period_name || '-')}
+                                <span style="font-size: 12px; color: #6b7280; margin-left: 8px;">
+                                    (${escapeHtml(period.start_date || '-')} - ${escapeHtml(period.end_date || '-')})
+                                </span>
+                            </div>
+                            <div style="font-size: 13px; color: #374151;">
+                                ${period.transfer_owner ? `<div style="margin-bottom: 4px;"><strong>${tContracts.owner_label}:</strong> ${tContracts[period.transfer_owner] || escapeHtml(period.transfer_owner)}</div>` : ''}
+                                ${period.pricing_method ? `<div style="margin-bottom: 8px;"><strong>${tContracts.pricing_method}:</strong> ${tContracts['pricing_method_' + period.pricing_method] || period.pricing_method}</div>` : ''}
+                                
+                                ${period.pricing_method === 'fixed_price' ? `
+                                    ${period.fixed_price_type === 'group' && period.fixed_group_ranges && period.fixed_group_ranges.length > 0 ? `
+                                        <table class="pricing-table" style="margin-top: 8px;">
+                                            <thead>
+                                                <tr>
+                                                    <th>${tContracts.min_persons_label}</th>
+                                                    <th>${tContracts.max_persons_label}</th>
+                                                    <th>${tContracts.price}</th>
+                                                    <th>${tContracts.currency}</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                ${period.fixed_group_ranges.map(gr => `
+                                                    <tr>
+                                                        <td>${gr.min_persons || '-'}</td>
+                                                        <td>${gr.max_persons || '-'}</td>
+                                                        <td>${gr.price || '-'}</td>
+                                                        <td>${gr.currency || '-'}</td>
+                                                    </tr>
+                                                `).join('')}
+                                            </tbody>
+                                        </table>
+                                    ` : `
+                                        <table class="pricing-table" style="margin-top: 8px;">
+                                            <thead>
+                                                <tr>
+                                                    <th>${tContracts.age_type_label}</th>
+                                                    <th>${tContracts.price}</th>
+                                                    <th>${tContracts.currency}</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                ${period.adult_price ? `<tr><td>Adult</td><td>${period.adult_price}</td><td>${period.fixed_currency || period.currency || '-'}</td></tr>` : ''}
+                                                ${period.child_price ? `<tr><td>Child</td><td>${period.child_price}</td><td>${period.fixed_currency || period.currency || '-'}</td></tr>` : ''}
+                                                ${period.infant_price ? `<tr><td>Infant</td><td>${period.infant_price}</td><td>${period.fixed_currency || period.currency || '-'}</td></tr>` : ''}
+                                                ${!period.adult_price && !period.child_price && !period.infant_price ? `
+                                                <tr>
+                                                    <td colspan="3" style="text-align: center;">-</td>
+                                                </tr>
+                                                ` : ''}
+                                            </tbody>
+                                        </table>
+                                    `}
+                                ` : period.pricing_method === 'regional_price' ? `
+                                    ${period.regional_price_type === 'per_person' && period.regional_prices && period.regional_prices.length > 0 ? `
+                                        <table class="pricing-table" style="margin-top: 8px;">
+                                            <thead>
+                                                <tr>
+                                                    <th>${tContracts.sub_region_label}</th>
+                                                    <th>${tContracts.adult}</th>
+                                                    <th>${tContracts.child}</th>
+                                                    <th>${tContracts.infant}</th>
+                                                    <th>${tContracts.currency}</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                ${period.regional_prices.map(rp => `
+                                                    <tr>
+                                                        <td><strong>${escapeHtml(rp.sub_region_name || '-')}</strong></td>
+                                                        <td>${rp.adult_price || '-'}</td>
+                                                        <td>${rp.child_price || '-'}</td>
+                                                        <td>${rp.infant_price || '-'}</td>
+                                                        <td>${period.fixed_currency || period.currency || '-'}</td>
+                                                    </tr>
+                                                `).join('')}
+                                            </tbody>
+                                        </table>
+                                    ` : period.regional_price_type === 'group' && period.regional_group_ranges && period.regional_group_ranges.length > 0 ? `
+                                        <table class="pricing-table" style="margin-top: 8px;">
+                                            <thead>
+                                                <tr>
+                                                    <th>${tContracts.sub_region_label}</th>
+                                                    <th>${tContracts.min_persons_label}</th>
+                                                    <th>${tContracts.max_persons_label}</th>
+                                                    <th>${tContracts.price}</th>
+                                                    <th>${tContracts.currency}</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                ${period.regional_group_ranges.map(rgr => `
+                                                    <tr>
+                                                        <td><strong>${escapeHtml(rgr.sub_region_name || '-')}</strong></td>
+                                                        <td>${rgr.min_persons || '-'}</td>
+                                                        <td>${rgr.max_persons || '-'}</td>
+                                                        <td>${rgr.price || '-'}</td>
+                                                        <td>${rgr.currency || '-'}</td>
+                                                    </tr>
+                                                `).join('')}
+                                            </tbody>
+                                        </table>
+                                    ` : `<div style="color: #6b7280;">${tContracts.no_regional_pricing_defined}</div>`}
+                                ` : `<div style="color: #6b7280;">${tContracts.no_pricing_defined}</div>`}
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>
+                ` : ''}
+                
+                ${contract.action_periods && contract.action_periods.length > 0 ? `
+                <div class="summary-section">
+                    <h3>${escapeHtml(tContracts.action_periods || 'Action Periods')}</h3>
+                    ${contract.action_periods.map(period => `
+                        <div style="margin-bottom: 16px; padding: 12px; background: #fce7f3; border-left: 4px solid #ec4899; border-radius: 6px;">
+                            <div style="font-weight: 600; margin-bottom: 8px; color: #151A2D;">
+                                ${escapeHtml(period.action_name || '-')}
+                                <span style="font-size: 12px; color: #6b7280; margin-left: 8px;">
+                                    (${escapeHtml(period.action_start_date || '-')} - ${escapeHtml(period.action_end_date || '-')})
+                                </span>
+                            </div>
+                            ${period.action_description ? `<div style="font-size: 13px; color: #6b7280; margin-bottom: 8px;">${escapeHtml(period.action_description)}</div>` : ''}
+                            ${period.price_type === 'regional' && period.regional_prices && period.regional_prices.length > 0 ? `
+                                <table class="pricing-table" style="margin-top: 8px;">
+                                    <thead>
+                                        <tr>
+                                            <th>${tContracts.sub_region_label}</th>
+                                            <th>${tContracts.adult}</th>
+                                            <th>${tContracts.child}</th>
+                                            <th>${tContracts.infant}</th>
+                                            <th>${tContracts.currency}</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        ${period.regional_prices.map(rp => `
+                                            <tr>
+                                                <td><strong>${escapeHtml(rp.sub_region_name || '-')}</strong></td>
+                                                <td>${rp.adult_price || '-'}</td>
+                                                <td>${rp.child_price || '-'}</td>
+                                                <td>${rp.infant_price || '-'}</td>
+                                                <td>${rp.currency || period.action_currency || '-'}</td>
+                                            </tr>
+                                        `).join('')}
+                                    </tbody>
+                                </table>
+                            ` : period.adult_price || period.child_price || period.infant_price ? `
+                                <table class="pricing-table" style="margin-top: 8px;">
+                                    <thead>
+                                        <tr>
+                                            <th>Age</th>
+                                            <th>Price</th>
+                                            <th>Currency</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        ${period.adult_price ? `<tr><td>Adult (${period.adult_age || '-'})</td><td>${period.adult_price}</td><td>${period.action_currency || '-'}</td></tr>` : ''}
+                                        ${period.child_price ? `<tr><td>Child (${period.child_age_range || '-'})</td><td>${period.child_price}</td><td>${period.action_currency || '-'}</td></tr>` : ''}
+                                        ${period.infant_price ? `<tr><td>Infant (${period.infant_age_range || '-'})</td><td>${period.infant_price}</td><td>${period.action_currency || '-'}</td></tr>` : ''}
+                                    </tbody>
+                                </table>
+                            ` : `<div style="color: #6b7280;">${tContracts.no_pricing_defined}</div>`}
+                        </div>
+                    `).join('')}
+                </div>
+                ` : ''}
             </div>
         `;
         

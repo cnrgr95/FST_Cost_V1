@@ -262,6 +262,30 @@ function handleDelete($conn, $action) {
     }
 }
 
+// Generate unique contract code
+function generateContractCode($conn) {
+    // Format: FST-YYYYMMDD-####
+    $prefix = 'FST';
+    $date = date('Ymd');
+    $sequence = 1;
+    
+    // Get today's contracts to determine next sequence number
+    $query = "SELECT contract_code FROM contracts 
+              WHERE contract_code LIKE '$prefix-$date-%' 
+              ORDER BY contract_code DESC 
+              LIMIT 1";
+    
+    $result = pg_query($conn, $query);
+    if ($result && pg_num_rows($result) > 0) {
+        $row = pg_fetch_assoc($result);
+        if (preg_match('/FST-' . $date . '-(\d+)/', $row['contract_code'], $matches)) {
+            $sequence = (int)$matches[1] + 1;
+        }
+    }
+    
+    return sprintf('%s-%s-%04d', $prefix, $date, $sequence);
+}
+
 // Get contracts
 function getContracts($conn) {
     try {
@@ -272,7 +296,8 @@ function getContracts($conn) {
         
         // Optimized query - only select necessary columns (using actual table structure)
         // Using EXISTS for sub_regions to avoid unnecessary joins if not needed
-        $query = "SELECT c.id, c.sub_region_id, c.merchant_id, c.tour_id, c.vehicle_company_id,
+        $query = "SELECT c.id, c.sub_region_id, c.merchant_id, c.tour_id,
+                         COALESCE(c.contract_code, 'FST-' || TO_CHAR(c.created_at, 'YYYYMMDD') || '-' || LPAD(CAST((EXTRACT(EPOCH FROM c.created_at) % 10000) AS INTEGER)::text, 4, '0')) as contract_code,
                          c.price_type, c.contract_currency, c.fixed_adult_price, c.fixed_child_price, c.fixed_infant_price,
                          c.start_date, c.end_date, c.vat_included, c.vat_rate,
                          c.transfer_owner, c.transfer_price_type, c.transfer_price,
@@ -286,8 +311,7 @@ function getContracts($conn) {
                          m.official_title as merchant_official_title,
                          m.authorized_person as merchant_authorized_person,
                          m.authorized_email as merchant_authorized_email,
-                         t.name as tour_name,
-                         vc.company_name as vehicle_company_name
+                         t.name as tour_name
                   FROM contracts c
                   LEFT JOIN sub_regions sr ON c.sub_region_id = sr.id
                   LEFT JOIN merchants m ON c.merchant_id = m.id
@@ -617,30 +641,60 @@ function createContract($conn, $data) {
     $transfer_currency_fixed_val = !empty($transfer_currency_fixed) ? "'$transfer_currency_fixed'" : 'NULL';
     
     // Start transaction for data consistency
-    pg_query($conn, 'BEGIN');
+        pg_query($conn, 'BEGIN');
     
     try {
+        // Check if contract_code column exists
+        $hasContractCode = columnExists($conn, 'contracts', 'contract_code');
+        
+        // Generate contract code automatically if column exists
+        $contract_code = '';
+        if ($hasContractCode) {
+            $contract_code = generateContractCode($conn);
+        }
+        
         $period_type_val = !empty($period_type) ? "'$period_type'" : 'NULL';
         $period_value_val = $period_value !== null ? $period_value : 'NULL';
         $period_unit_val = !empty($period_unit) ? "'$period_unit'" : 'NULL';
         
-        $query = "INSERT INTO contracts (
-                    sub_region_id, merchant_id, tour_id, vat_included, vat_rate,
-                    adult_age, child_age_range, infant_age_range,
-                    kickback_type, kickback_value, kickback_currency, kickback_per_person, kickback_min_persons, 
-                    price_type, contract_currency, fixed_adult_price, fixed_child_price, fixed_infant_price,
-                    transfer_owner, transfer_price_type, transfer_price, transfer_currency,
-                    transfer_price_mini, transfer_price_midi, transfer_price_bus, transfer_currency_fixed,
-                    included_content, start_date, end_date, period_type, period_value, period_unit, tour_departure_days, created_at
-                  ) VALUES (
-                    $sub_region_id, $merchant_id, $tour_id, " . ($vat_included ? 'true' : 'false') . ", 
-                    $vat_rate_val, '$adult_age', '$child_age_range', '$infant_age_range',
-                    '$kickback_type', $kickback_value_val, $kickback_currency_val, " . ($kickback_per_person ? 'true' : 'false') . ",
-                    $kickback_min_persons_val, '$price_type', '$contract_currency', $fixed_adult_price_val, $fixed_child_price_val, $fixed_infant_price_val,
-                    '$transfer_owner', '$transfer_price_type', $transfer_price_val, $transfer_currency_val,
-                    $transfer_price_mini_val, $transfer_price_midi_val, $transfer_price_bus_val, $transfer_currency_fixed_val,
-                    '$included_content', '$start_date', '$end_date', $period_type_val, $period_value_val, $period_unit_val, '$tour_departure_days', NOW()
-                  ) RETURNING id";
+        // Build query dynamically based on whether contract_code column exists
+        if ($hasContractCode) {
+            $query = "INSERT INTO contracts (
+                        contract_code, sub_region_id, merchant_id, tour_id, vat_included, vat_rate,
+                        adult_age, child_age_range, infant_age_range,
+                        kickback_type, kickback_value, kickback_currency, kickback_per_person, kickback_min_persons, 
+                        price_type, contract_currency, fixed_adult_price, fixed_child_price, fixed_infant_price,
+                        transfer_owner, transfer_price_type, transfer_price, transfer_currency,
+                        transfer_price_mini, transfer_price_midi, transfer_price_bus, transfer_currency_fixed,
+                        included_content, start_date, end_date, period_type, period_value, period_unit, tour_departure_days, created_at
+                      ) VALUES (
+                        '$contract_code', $sub_region_id, $merchant_id, $tour_id, " . ($vat_included ? 'true' : 'false') . ", 
+                        $vat_rate_val, '$adult_age', '$child_age_range', '$infant_age_range',
+                        '$kickback_type', $kickback_value_val, $kickback_currency_val, " . ($kickback_per_person ? 'true' : 'false') . ",
+                        $kickback_min_persons_val, '$price_type', '$contract_currency', $fixed_adult_price_val, $fixed_child_price_val, $fixed_infant_price_val,
+                        '$transfer_owner', '$transfer_price_type', $transfer_price_val, $transfer_currency_val,
+                        $transfer_price_mini_val, $transfer_price_midi_val, $transfer_price_bus_val, $transfer_currency_fixed_val,
+                        '$included_content', '$start_date', '$end_date', $period_type_val, $period_value_val, $period_unit_val, '$tour_departure_days', NOW()
+                      ) RETURNING id" . ($hasContractCode ? ", contract_code" : "");
+        } else {
+            $query = "INSERT INTO contracts (
+                        sub_region_id, merchant_id, tour_id, vat_included, vat_rate,
+                        adult_age, child_age_range, infant_age_range,
+                        kickback_type, kickback_value, kickback_currency, kickback_per_person, kickback_min_persons, 
+                        price_type, contract_currency, fixed_adult_price, fixed_child_price, fixed_infant_price,
+                        transfer_owner, transfer_price_type, transfer_price, transfer_currency,
+                        transfer_price_mini, transfer_price_midi, transfer_price_bus, transfer_currency_fixed,
+                        included_content, start_date, end_date, period_type, period_value, period_unit, tour_departure_days, created_at
+                      ) VALUES (
+                        $sub_region_id, $merchant_id, $tour_id, " . ($vat_included ? 'true' : 'false') . ", 
+                        $vat_rate_val, '$adult_age', '$child_age_range', '$infant_age_range',
+                        '$kickback_type', $kickback_value_val, $kickback_currency_val, " . ($kickback_per_person ? 'true' : 'false') . ",
+                        $kickback_min_persons_val, '$price_type', '$contract_currency', $fixed_adult_price_val, $fixed_child_price_val, $fixed_infant_price_val,
+                        '$transfer_owner', '$transfer_price_type', $transfer_price_val, $transfer_currency_val,
+                        $transfer_price_mini_val, $transfer_price_midi_val, $transfer_price_bus_val, $transfer_currency_fixed_val,
+                        '$included_content', '$start_date', '$end_date', $period_type_val, $period_value_val, $period_unit_val, '$tour_departure_days', NOW()
+                      ) RETURNING id";
+        }
         
         $result = pg_query($conn, $query);
         
@@ -979,9 +1033,7 @@ function getContractActions($conn, $contract_id) {
         $contract_id = (int)$contract_id;
         
         // Check if new columns exist
-        $columnsCheck = pg_query($conn, "SELECT column_name FROM information_schema.columns 
-                                         WHERE table_name = 'contract_actions' AND column_name = 'price_type'");
-        $hasNewColumns = pg_num_rows($columnsCheck) > 0;
+        $hasNewColumns = columnExists($conn, 'contract_actions', 'price_type');
         
         if ($hasNewColumns) {
             $query = "SELECT id, contract_id, action_name, action_description, 
@@ -1015,12 +1067,20 @@ function getContractActions($conn, $contract_id) {
                 foreach ($actions as &$action) {
                     if ($action['price_type'] === 'regional') {
                         $action_id = (int)$action['id'];
-                        $regionalQuery = "SELECT sub_region_id, adult_price, child_price, infant_price
-                                         FROM contract_action_regional_prices
-                                         WHERE action_id = $action_id";
+                        $regionalQuery = "SELECT carp.sub_region_id, sr.name as sub_region_name, 
+                                         carp.adult_price, carp.child_price, carp.infant_price
+                                         FROM contract_action_regional_prices carp
+                                         LEFT JOIN sub_regions sr ON carp.sub_region_id = sr.id
+                                         WHERE carp.action_id = $action_id";
                         $regionalResult = @pg_query($conn, $regionalQuery);
                         if ($regionalResult) {
                             $regionalPrices = pg_fetch_all($regionalResult);
+                            // Add currency from action to each regional price
+                            if ($regionalPrices !== false) {
+                                foreach ($regionalPrices as &$rp) {
+                                    $rp['currency'] = $action['action_currency'] ?? 'USD';
+                                }
+                            }
                             $action['regional_prices'] = $regionalPrices !== false ? $regionalPrices : [];
                         } else {
                             $action['regional_prices'] = [];
@@ -1290,9 +1350,7 @@ function getContractPricePeriods($conn, $contract_id) {
         $contract_id = (int)$contract_id;
         
         // Check if new columns exist
-        $columnsCheck = pg_query($conn, "SELECT column_name FROM information_schema.columns 
-                                         WHERE table_name = 'contract_price_periods' AND column_name = 'price_type'");
-        $hasNewColumns = pg_num_rows($columnsCheck) > 0;
+        $hasNewColumns = columnExists($conn, 'contract_price_periods', 'price_type');
         
         if ($hasNewColumns) {
             $query = "SELECT id, contract_id, period_name, start_date, end_date, days_of_week,
@@ -1325,9 +1383,12 @@ function getContractPricePeriods($conn, $contract_id) {
                     $period['price_type'] = $period['price_type'] ?? 'regional';
                     if ($period['price_type'] === 'regional') {
                         $period_id = (int)$period['id'];
-                        $regionalQuery = "SELECT sub_region_id, adult_price, child_price, infant_price, currency
-                                         FROM contract_price_period_regional_prices
-                                         WHERE price_period_id = $period_id";
+                        $regionalQuery = "SELECT cpprp.sub_region_id, sr.name as sub_region_name,
+                                         cpprp.adult_price, cpprp.child_price, cpprp.infant_price, 
+                                         cpprp.currency
+                                         FROM contract_price_period_regional_prices cpprp
+                                         LEFT JOIN sub_regions sr ON cpprp.sub_region_id = sr.id
+                                         WHERE cpprp.price_period_id = $period_id";
                         $regionalResult = @pg_query($conn, $regionalQuery);
                         if ($regionalResult) {
                             $regionalPrices = pg_fetch_all($regionalResult);
@@ -1401,9 +1462,7 @@ function createContractPricePeriod($conn, $data) {
         $notes_val = !empty($notes) ? "'$notes'" : 'NULL';
         
         // Check if new columns exist
-        $columnsCheck = pg_query($conn, "SELECT column_name FROM information_schema.columns 
-                                         WHERE table_name = 'contract_price_periods' AND column_name = 'price_type'");
-        $hasNewColumns = pg_num_rows($columnsCheck) > 0;
+        $hasNewColumns = columnExists($conn, 'contract_price_periods', 'price_type');
         
         pg_query($conn, 'BEGIN');
         
@@ -1500,9 +1559,7 @@ function updateContractPricePeriod($conn, $data) {
         $notes_val = !empty($notes) ? "'$notes'" : 'NULL';
         
         // Check if new columns exist
-        $columnsCheck = pg_query($conn, "SELECT column_name FROM information_schema.columns 
-                                         WHERE table_name = 'contract_price_periods' AND column_name = 'price_type'");
-        $hasNewColumns = pg_num_rows($columnsCheck) > 0;
+        $hasNewColumns = columnExists($conn, 'contract_price_periods', 'price_type');
         
         pg_query($conn, 'BEGIN');
         
@@ -1744,20 +1801,25 @@ function getContractTransferPeriods($conn, $contract_id) {
             $hasNewColumns = pg_num_rows($columnsCheck) > 0;
             
             // Load additional data for each period
-            if ($hasNewColumns) {
-                foreach ($periods as &$period) {
-                    $period_id = (int)$period['id'];
+            foreach ($periods as &$period) {
+                $period_id = (int)$period['id'];
+                
+                // Always set default arrays
+                $period['regional_prices'] = [];
+                $period['fixed_group_ranges'] = [];
+                $period['regional_group_ranges'] = [];
+                
+                if ($hasNewColumns) {
                     $pricing_method = $period['pricing_method'] ?? 'fixed_price';
-                    
                     $regional_price_type = $period['regional_price_type'] ?? 'per_person';
                     $fixed_price_type = $period['fixed_price_type'] ?? 'per_person';
                     
                     if ($pricing_method === 'fixed_price' && $fixed_price_type === 'group') {
                         // Load fixed group ranges
-                        $groupQuery = "SELECT min_persons, max_persons, price, currency
-                                      FROM transfer_period_group_ranges
-                                      WHERE transfer_period_id = $period_id
-                                      ORDER BY min_persons ASC";
+                        $groupQuery = "SELECT tpg.min_persons, tpg.max_persons, tpg.price, tpg.currency
+                                      FROM transfer_period_group_ranges tpg
+                                      WHERE tpg.transfer_period_id = $period_id
+                                      ORDER BY tpg.min_persons ASC";
                         $groupResult = @pg_query($conn, $groupQuery);
                         if ($groupResult) {
                             $groupRanges = pg_fetch_all($groupResult);
@@ -1768,10 +1830,12 @@ function getContractTransferPeriods($conn, $contract_id) {
                     } else if ($pricing_method === 'regional_price') {
                         if ($regional_price_type === 'per_person') {
                             // Load regional prices (per person)
-                            $regionalQuery = "SELECT sub_region_id, adult_price, child_price, infant_price
-                                             FROM transfer_period_regional_prices
-                                             WHERE transfer_period_id = $period_id";
-                            $regionalResult = @pg_query($conn, $regionalQuery);
+                            $regionalQuery = "SELECT tprp.sub_region_id, sr.name as sub_region_name,
+                                             tprp.adult_price, tprp.child_price, tprp.infant_price
+                                             FROM transfer_period_regional_prices tprp
+                                             LEFT JOIN sub_regions sr ON tprp.sub_region_id = sr.id
+                                             WHERE tprp.transfer_period_id = $period_id";
+                            $regionalResult = pg_query($conn, $regionalQuery);
                             if ($regionalResult) {
                                 $regionalPrices = pg_fetch_all($regionalResult);
                                 $period['regional_prices'] = $regionalPrices !== false ? $regionalPrices : [];
@@ -1780,11 +1844,13 @@ function getContractTransferPeriods($conn, $contract_id) {
                             }
                         } else if ($regional_price_type === 'group') {
                             // Load regional group ranges
-                            $regionalGroupQuery = "SELECT sub_region_id, min_persons, max_persons, price, currency
-                                                  FROM transfer_period_regional_group_ranges
-                                                  WHERE transfer_period_id = $period_id
-                                                  ORDER BY sub_region_id, min_persons ASC";
-                            $regionalGroupResult = @pg_query($conn, $regionalGroupQuery);
+                            $regionalGroupQuery = "SELECT tpgrg.sub_region_id, sr.name as sub_region_name, 
+                                                  tpgrg.min_persons, tpgrg.max_persons, tpgrg.price, tpgrg.currency
+                                                  FROM transfer_period_regional_group_ranges tpgrg
+                                                  LEFT JOIN sub_regions sr ON tpgrg.sub_region_id = sr.id
+                                                  WHERE tpgrg.transfer_period_id = $period_id
+                                                  ORDER BY tpgrg.sub_region_id, tpgrg.min_persons ASC";
+                            $regionalGroupResult = pg_query($conn, $regionalGroupQuery);
                             if ($regionalGroupResult) {
                                 $regionalGroupRanges = pg_fetch_all($regionalGroupResult);
                                 $period['regional_group_ranges'] = $regionalGroupRanges !== false ? $regionalGroupRanges : [];
@@ -1793,11 +1859,6 @@ function getContractTransferPeriods($conn, $contract_id) {
                             }
                         }
                     }
-                    
-                    // Set empty arrays for unused fields
-                    if (!isset($period['regional_prices'])) $period['regional_prices'] = [];
-                    if (!isset($period['fixed_group_ranges'])) $period['fixed_group_ranges'] = [];
-                    if (!isset($period['regional_group_ranges'])) $period['regional_group_ranges'] = [];
                 }
             }
             
@@ -1866,9 +1927,7 @@ function createContractTransferPeriod($conn, $data) {
         $transfer_currency_fixed = pg_escape_string($conn, $data['transfer_currency_fixed'] ?? 'USD');
         
         // Check if new columns exist
-        $columnsCheck = pg_query($conn, "SELECT column_name FROM information_schema.columns 
-                                         WHERE table_name = 'contract_transfer_periods' AND column_name = 'pricing_method'");
-        $hasNewColumns = pg_num_rows($columnsCheck) > 0;
+        $hasNewColumns = columnExists($conn, 'contract_transfer_periods', 'pricing_method');
         
         error_log('Has new columns: ' . ($hasNewColumns ? 'YES' : 'NO'));
         
@@ -2006,9 +2065,7 @@ function updateContractTransferPeriod($conn, $data) {
         $transfer_currency_fixed = pg_escape_string($conn, $data['transfer_currency_fixed'] ?? 'USD');
         
         // Check if new columns exist
-        $columnsCheck = pg_query($conn, "SELECT column_name FROM information_schema.columns 
-                                         WHERE table_name = 'contract_transfer_periods' AND column_name = 'pricing_method'");
-        $hasNewColumns = pg_num_rows($columnsCheck) > 0;
+        $hasNewColumns = columnExists($conn, 'contract_transfer_periods', 'pricing_method');
         
         pg_query($conn, 'BEGIN');
         

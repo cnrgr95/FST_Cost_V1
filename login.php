@@ -40,41 +40,98 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         } elseif (empty($username) || empty($password)) {
             $error = $t_common['required_field'] ?? 'Please fill in all fields';
         } else {
-            // Simple authentication (for testing)
-            // TODO: Replace with database-based authentication
-            if ($username === 'admin' && $password === 'admin') {
-                // Regenerate session ID to prevent session fixation
-                session_regenerate_id(true);
+            // Database-based authentication with password hashing
+            $conn = getDbConnection();
+            
+            if ($conn) {
+                // Use prepared statements to prevent SQL injection
+                $query = "SELECT id, username, password_hash, status FROM users WHERE username = $1";
+                $result = pg_query_params($conn, $query, [trim($username)]);
                 
-                $_SESSION['user_id'] = 1;
-                $_SESSION['username'] = $username;
-                $_SESSION['last_activity'] = time();
-                $_SESSION['created'] = time();
-                
-                // Handle remember me with secure cookie
-                if (isset($_POST['remember_me']) && $_POST['remember_me'] === 'on') {
-                    // Secure cookie: HttpOnly + SameSite
-                    setcookie('remembered_username', $username, [
-                        'expires' => time() + (30 * 24 * 60 * 60),
-                        'path' => '/',
-                        'httponly' => true,
-                        'samesite' => 'Lax'
-                    ]);
+                if ($result && pg_num_rows($result) > 0) {
+                    $user = pg_fetch_assoc($result);
+                    
+                    // Check if user is active
+                    if ($user['status'] !== 'active') {
+                        $error = $t_login['account_disabled'] ?? 'Your account is disabled. Please contact administrator.';
+                        logError("Login attempt for disabled account: $username", __FILE__, __LINE__);
+                    } else {
+                        // Check password
+                        // Support both new hashed passwords and legacy plain text for migration
+                        $passwordValid = false;
+                        if (isset($user['password_hash']) && !empty($user['password_hash'])) {
+                            // New hashed passwords
+                            if (password_verify($password, $user['password_hash'])) {
+                                $passwordValid = true;
+                            }
+                        } else {
+                            // Fallback for legacy admin/admin account during migration
+                            // This will only work for the initial admin account
+                            if ($username === 'admin' && $password === 'admin') {
+                                // Hash the password and update it in the database
+                                $newHash = password_hash($password, PASSWORD_DEFAULT);
+                                $updateQuery = "UPDATE users SET password_hash = $1 WHERE id = $2";
+                                pg_query_params($conn, $updateQuery, [$newHash, $user['id']]);
+                                $passwordValid = true;
+                                
+                                // Also set it for this session
+                                $_SESSION['password_updated'] = true;
+                            }
+                        }
+                        
+                        if ($passwordValid) {
+                            // Regenerate session ID to prevent session fixation
+                            session_regenerate_id(true);
+                            
+                            $_SESSION['user_id'] = $user['id'];
+                            $_SESSION['username'] = $username;
+                            $_SESSION['last_activity'] = time();
+                            $_SESSION['created'] = time();
+                            
+                            // Handle remember me with secure cookie
+                            if (isset($_POST['remember_me']) && $_POST['remember_me'] === 'on') {
+                                // Secure cookie: HttpOnly + SameSite
+                                setcookie('remembered_username', $username, [
+                                    'expires' => time() + (30 * 24 * 60 * 60),
+                                    'path' => '/',
+                                    'httponly' => true,
+                                    'samesite' => 'Lax'
+                                ]);
+                            } else {
+                                setcookie('remembered_username', '', [
+                                    'expires' => time() - 3600,
+                                    'path' => '/',
+                                    'httponly' => true,
+                                    'samesite' => 'Lax'
+                                ]);
+                            }
+                            
+                            // Close database connection
+                            closeDbConnection($conn);
+                            
+                            // Show message if password was just updated
+                            if (isset($_SESSION['password_updated'])) {
+                                header('Location: dashboard.php?password_updated=1');
+                            } else {
+                                header('Location: dashboard.php');
+                            }
+                            exit;
+                        } else {
+                            $error = $t_login['invalid_credentials'] ?? 'Invalid username or password';
+                            // Log failed login attempt
+                            logError("Failed login attempt for username: $username", __FILE__, __LINE__);
+                        }
+                    }
                 } else {
-                    setcookie('remembered_username', '', [
-                        'expires' => time() - 3600,
-                        'path' => '/',
-                        'httponly' => true,
-                        'samesite' => 'Lax'
-                    ]);
+                    $error = $t_login['invalid_credentials'] ?? 'Invalid username or password';
+                    // Log failed login attempt
+                    logError("Failed login attempt for username: $username", __FILE__, __LINE__);
                 }
                 
-                header('Location: dashboard.php');
-                exit;
+                closeDbConnection($conn);
             } else {
-                $error = $t_login['invalid_credentials'] ?? 'Invalid username or password';
-                // Log failed login attempt
-                logError("Failed login attempt for username: $username", __FILE__, __LINE__);
+                $error = $t_login['database_error'] ?? 'Database connection failed. Please contact administrator.';
+                logError("Database connection failed during login for username: $username", __FILE__, __LINE__);
             }
         }
     }

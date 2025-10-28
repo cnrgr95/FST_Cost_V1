@@ -60,7 +60,12 @@ ini_set('session.cookie_secure', isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] =
 date_default_timezone_set('Europe/Istanbul'); // Change as needed
 
 // Error Reporting
-if (APP_DEBUG) {
+// In production, always disable error reporting regardless of APP_DEBUG
+if (APP_ENV === 'production') {
+    error_reporting(0);
+    ini_set('display_errors', 0);
+    ini_set('log_errors', 1);
+} elseif (APP_DEBUG) {
     error_reporting(E_ALL);
     // Don't display errors for API requests (they need clean JSON output)
     if (!defined('API_REQUEST')) {
@@ -69,8 +74,9 @@ if (APP_DEBUG) {
         ini_set('display_errors', 0);
     }
 } else {
-    error_reporting(0);
+    error_reporting(E_ALL & ~E_DEPRECATED & ~E_STRICT);
     ini_set('display_errors', 0);
+    ini_set('log_errors', 1);
 }
 
 // Logging
@@ -239,6 +245,42 @@ function validatePhone($phone) {
  */
 function validateUrl($url) {
     return filter_var($url, FILTER_VALIDATE_URL) !== false;
+}
+
+/**
+ * Check if a column exists in a table
+ * Reduces code duplication by providing a reusable helper function
+ * 
+ * @param resource $conn Database connection
+ * @param string $tableName Table name to check
+ * @param string $columnName Column name to check
+ * @return bool Returns true if column exists, false otherwise
+ */
+function columnExists($conn, $tableName, $columnName) {
+    $query = "SELECT 1 FROM information_schema.columns 
+              WHERE table_schema = 'public' 
+              AND table_name = $1 
+              AND column_name = $2";
+    $result = pg_query_params($conn, $query, [$tableName, $columnName]);
+    if (!$result) {
+        return false;
+    }
+    return pg_num_rows($result) > 0;
+}
+
+/**
+ * Safely get boolean value for SQL queries
+ * Ensures proper boolean handling for PostgreSQL
+ * 
+ * @param mixed $value Value to convert to boolean
+ * @return string Returns 'true' or 'false' as string
+ */
+function getBooleanValue($value) {
+    $boolValue = filter_var($value, FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE);
+    if ($boolValue === null) {
+        return 'false'; // Default to false if value cannot be determined
+    }
+    return $boolValue ? 'true' : 'false';
 }
 
 ?>

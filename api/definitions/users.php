@@ -166,7 +166,7 @@ function getUsers($conn) {
 
 // Check username exists
 function checkUsername($conn) {
-    $username = pg_escape_string($conn, $_GET['username'] ?? '');
+    $username = trim($_GET['username'] ?? '');
     $id = isset($_GET['id']) ? (int)$_GET['id'] : null;
     
     if (empty($username)) {
@@ -174,13 +174,16 @@ function checkUsername($conn) {
         return;
     }
     
+    // Use prepared statement to prevent SQL injection
     if ($id) {
-        $query = "SELECT id FROM users WHERE username = '$username' AND id != $id";
+        $query = "SELECT id FROM users WHERE username = $1 AND id != $2";
+        $params = [$username, $id];
     } else {
-        $query = "SELECT id FROM users WHERE username = '$username'";
+        $query = "SELECT id FROM users WHERE username = $1";
+        $params = [$username];
     }
     
-    $result = pg_query($conn, $query);
+    $result = pg_query_params($conn, $query, $params);
     
     if ($result) {
         $exists = pg_num_rows($result) > 0;
@@ -271,13 +274,13 @@ function getCountries($conn) {
 
 // Create user
 function createUser($conn, $data) {
-    $username = pg_escape_string($conn, $data['username']);
-    $full_name = pg_escape_string($conn, $data['full_name'] ?? '');
+    $username = trim($data['username']);
+    $full_name = trim($data['full_name'] ?? '');
     $department_id = isset($data['department_id']) ? (int)$data['department_id'] : null;
     $city_id = isset($data['city_id']) ? (int)$data['city_id'] : null;
-    $email = pg_escape_string($conn, $data['email'] ?? '');
-    $phone = pg_escape_string($conn, $data['phone'] ?? '');
-    $status = pg_escape_string($conn, $data['status'] ?? 'active');
+    $email = trim($data['email'] ?? '');
+    $phone = trim($data['phone'] ?? '');
+    $status = trim($data['status'] ?? 'active');
     
     // Validate email if provided
     if (!empty($email) && !validateEmail($email)) {
@@ -291,24 +294,22 @@ function createUser($conn, $data) {
         return;
     }
     
-    // Check if username already exists
-    $checkQuery = "SELECT id FROM users WHERE username = '$username'";
-    $checkResult = pg_query($conn, $checkQuery);
+    // Check if username already exists using prepared statement
+    $checkQuery = "SELECT id FROM users WHERE username = $1";
+    $checkResult = pg_query_params($conn, $checkQuery, [$username]);
     if ($checkResult && pg_num_rows($checkResult) > 0) {
         echo json_encode(['success' => false, 'message' => 'This username already exists']);
         return;
     }
     
-    $department_id_val = $department_id ? $department_id : 'NULL';
-    $city_id_val = $city_id ? $city_id : 'NULL';
-    $email_val = $email ? "'$email'" : 'NULL';
-    $phone_val = $phone ? "'$phone'" : 'NULL';
-    
+    // Use prepared statement to prevent SQL injection
     $query = "INSERT INTO users (username, full_name, department_id, city_id, email, phone, status, created_at) 
-              VALUES ('$username', '$full_name', $department_id_val, $city_id_val, $email_val, $phone_val, '$status', NOW()) 
+              VALUES ($1, $2, $3, $4, $5, $6, $7, NOW()) 
               RETURNING id";
     
-    $result = pg_query($conn, $query);
+    $params = [$username, $full_name, $department_id, $city_id, $email, $phone, $status];
+    
+    $result = pg_query_params($conn, $query, $params);
     
     if ($result) {
         $row = pg_fetch_assoc($result);

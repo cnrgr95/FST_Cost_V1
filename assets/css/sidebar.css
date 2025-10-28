@@ -314,6 +314,49 @@ html {
   position: relative;
 }
 
+/* Active navigation item styling */
+.sidebar-nav .nav-item.active > .nav-link {
+  color: var(--hover-text);
+  background: var(--hover-color);
+  border: 1px solid rgba(238, 242, 255, 0.3);
+  font-weight: 500;
+}
+
+.sidebar-nav .nav-item.active > .nav-link .material-symbols-rounded {
+  color: var(--hover-text);
+}
+
+/* Active item in collapsed sidebar */
+.sidebar.collapsed .nav-item.active > .nav-link {
+  background: var(--hover-color);
+  color: var(--hover-text);
+}
+
+.sidebar.collapsed .nav-item.active > .nav-link .material-symbols-rounded {
+  color: var(--hover-text);
+}
+
+/* Collapsed sidebar dropdown active item */
+.sidebar.collapsed .dropdown-menu .nav-item.active .dropdown-link {
+  background: var(--hover-color);
+  color: var(--hover-text);
+  font-weight: 500;
+}
+
+/* Collapsed sidebar - when dropdown is hovered or active item inside, parent should be highlighted */
+.sidebar.collapsed .nav-item.dropdown-container:has(.dropdown-menu:hover) > .nav-link,
+.sidebar.collapsed .nav-item.dropdown-container:has(.nav-item.active) > .nav-link,
+.sidebar.collapsed .nav-item.dropdown-container.open > .nav-link {
+  background: var(--hover-color);
+  color: var(--hover-text);
+}
+
+.sidebar.collapsed .nav-item.dropdown-container:has(.dropdown-menu:hover) > .nav-link .material-symbols-rounded,
+.sidebar.collapsed .nav-item.dropdown-container:has(.nav-item.active) > .nav-link .material-symbols-rounded,
+.sidebar.collapsed .nav-item.dropdown-container.open > .nav-link .material-symbols-rounded {
+  color: var(--hover-text);
+}
+
 /* FST Branding Styles */
 .nav-link-branding {
   display: flex;
@@ -399,6 +442,13 @@ html {
   padding-left: 15px;
   transition: height 0.4s ease;
   width: 100%;
+}
+
+/* Show dropdown menu */
+.sidebar-nav .dropdown-container.open .dropdown-menu {
+  height: auto;
+  padding-top: 8px;
+  padding-bottom: 8px;
 }
 
 .sidebar.collapsed .dropdown-menu {

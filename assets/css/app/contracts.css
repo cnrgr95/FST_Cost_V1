@@ -253,26 +253,40 @@
     background: #94a3b8;
 }
 
+.contract-summary {
+    max-width: 1000px;
+    margin: 0 auto;
+}
+
 .summary-section {
     border-bottom: 1px solid #e5e7eb;
-    padding-bottom: 16px;
+    padding: 20px 0;
+    background: #ffffff;
+    border-radius: 8px;
+    margin-bottom: 20px;
+    padding-left: 24px;
+    padding-right: 24px;
 }
 
 .summary-section:last-child {
     border-bottom: none;
+    margin-bottom: 0;
 }
 
 .summary-section h3 {
-    margin: 0 0 12px 0;
-    font-size: 16px;
+    margin: 0 0 16px 0;
+    font-size: 18px;
     font-weight: 600;
     color: #151A2D;
+    border-bottom: 2px solid #151A2D;
+    padding-bottom: 8px;
 }
 
 .summary-row {
     display: flex;
     justify-content: space-between;
-    padding: 8px 0;
+    align-items: flex-start;
+    padding: 10px 0;
     border-bottom: 1px solid #f3f4f6;
 }
 
@@ -284,13 +298,16 @@
     font-weight: 500;
     color: #6b7280;
     font-size: 14px;
+    flex: 0 0 40%;
+    text-align: left;
 }
 
 .summary-value {
     color: #1f2937;
     font-size: 14px;
     text-align: right;
-    max-width: 60%;
+    flex: 0 0 55%;
+    word-wrap: break-word;
 }
 
 .summary-row strong {
@@ -302,39 +319,70 @@
     margin-bottom: 4px;
 }
 
+/* Summary content styling */
+#contractSummaryContent {
+    text-align: center;
+}
+
+#contractSummaryContent .contract-summary {
+    display: inline-block;
+    width: 100%;
+    max-width: 1000px;
+    text-align: left;
+}
+
+/* Center price tables */
+#contractSummaryContent .pricing-table {
+    margin: 12px auto;
+    display: table;
+}
+
 /* Pricing Table */
 .pricing-table {
     width: 100%;
     border-collapse: collapse;
-    margin-top: 8px;
+    margin-top: 12px;
     font-size: 14px;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    overflow: hidden;
 }
 
 .pricing-table thead {
-    background: #f9fafb;
+    background: #151A2D;
 }
 
 .pricing-table th {
-    padding: 10px 12px;
-    text-align: left;
+    padding: 12px 16px;
+    text-align: center;
     font-weight: 600;
-    color: #151A2D;
-    border-bottom: 2px solid #e5e7eb;
+    color: #ffffff;
+    border-bottom: 2px solid #0f1322;
     font-size: 13px;
 }
 
 .pricing-table td {
-    padding: 10px 12px;
+    padding: 12px 16px;
     border-bottom: 1px solid #f3f4f6;
     color: #374151;
+    text-align: center;
+}
+
+.pricing-table tbody tr:nth-child(even) {
+    background: #f9fafb;
 }
 
 .pricing-table tbody tr:hover {
-    background: #f9fafb;
+    background: #f3f4f6;
 }
 
 .pricing-table tbody tr:last-child td {
     border-bottom: none;
+}
+
+.pricing-table td strong {
+    color: #151A2D;
+    font-weight: 600;
 }
 
 @media print {
