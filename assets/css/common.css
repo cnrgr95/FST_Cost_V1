@@ -191,6 +191,8 @@ table tbody tr:last-child td {
   background: rgba(0, 0, 0, 0.5);
   z-index: 1000;
   overflow-y: auto;
+  /* Prevent any click events on modal background */
+  pointer-events: none;
 }
 
 .modal.active {
@@ -198,6 +200,14 @@ table tbody tr:last-child td {
   align-items: center;
   justify-content: center;
   padding: 20px;
+  /* Modal background doesn't respond to clicks */
+  pointer-events: none;
+}
+
+/* Nested modals have higher z-index */
+.modal.active ~ .modal.active {
+  z-index: 1100;
+  background: rgba(0, 0, 0, 0.6);
 }
 
 .modal-content {
@@ -210,6 +220,8 @@ table tbody tr:last-child td {
   overflow-y: auto;
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
   position: relative;
+  /* Modal content responds to clicks, background doesn't */
+  pointer-events: auto;
 }
 
 .modal-header {

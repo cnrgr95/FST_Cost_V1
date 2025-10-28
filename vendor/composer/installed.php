@@ -3,11 +3,11 @@
         'name' => 'fst/cost-management',
         'pretty_version' => 'dev-main',
         'version' => 'dev-main',
-        'reference' => 'fb560c3e788f81db5ad32e07815c9dc719e4b794',
+        'reference' => '933aff1c8f4d887c47bb2ff1728406442c4df2cc',
         'type' => 'project',
         'install_path' => __DIR__ . '/../../',
         'aliases' => array(),
-        'dev' => true,
+        'dev' => false,
     ),
     'versions' => array(
         'composer/pcre' => array(
@@ -31,7 +31,7 @@
         'fst/cost-management' => array(
             'pretty_version' => 'dev-main',
             'version' => 'dev-main',
-            'reference' => 'fb560c3e788f81db5ad32e07815c9dc719e4b794',
+            'reference' => '933aff1c8f4d887c47bb2ff1728406442c4df2cc',
             'type' => 'project',
             'install_path' => __DIR__ . '/../../',
             'aliases' => array(),

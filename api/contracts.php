@@ -149,6 +149,19 @@ function handleGet($conn, $action) {
             $contract_id = isset($_GET['contract_id']) ? (int)$_GET['contract_id'] : null;
             getContractTransferPeriods($conn, $contract_id);
             break;
+        case 'check_action_name':
+            $contract_id = isset($_GET['contract_id']) ? (int)$_GET['contract_id'] : null;
+            $action_name = $_GET['action_name'] ?? '';
+            $action_id = isset($_GET['action_id']) ? (int)$_GET['action_id'] : null;
+            checkActionNameExists($conn, $contract_id, $action_name, $action_id);
+            break;
+        case 'check_period_name':
+            $contract_id = isset($_GET['contract_id']) ? (int)$_GET['contract_id'] : null;
+            $period_name = $_GET['period_name'] ?? '';
+            $period_id = isset($_GET['period_id']) ? (int)$_GET['period_id'] : null;
+            $period_type = $_GET['period_type'] ?? 'price'; // price, kickback, transfer
+            checkPeriodNameExists($conn, $contract_id, $period_name, $period_id, $period_type);
+            break;
         default:
             echo json_encode(['success' => false, 'message' => 'Invalid action']);
     }
@@ -259,7 +272,7 @@ function getContracts($conn) {
         
         // Optimized query - only select necessary columns (using actual table structure)
         // Using EXISTS for sub_regions to avoid unnecessary joins if not needed
-        $query = "SELECT c.id, c.sub_region_id, c.merchant_id, c.tour_id,
+        $query = "SELECT c.id, c.sub_region_id, c.merchant_id, c.tour_id, c.vehicle_company_id,
                          c.price_type, c.contract_currency, c.fixed_adult_price, c.fixed_child_price, c.fixed_infant_price,
                          c.start_date, c.end_date, c.vat_included, c.vat_rate,
                          c.transfer_owner, c.transfer_price_type, c.transfer_price,
@@ -273,11 +286,13 @@ function getContracts($conn) {
                          m.official_title as merchant_official_title,
                          m.authorized_person as merchant_authorized_person,
                          m.authorized_email as merchant_authorized_email,
-                         t.name as tour_name
+                         t.name as tour_name,
+                         vc.company_name as vehicle_company_name
                   FROM contracts c
                   LEFT JOIN sub_regions sr ON c.sub_region_id = sr.id
                   LEFT JOIN merchants m ON c.merchant_id = m.id
                   LEFT JOIN tours t ON c.tour_id = t.id
+                  LEFT JOIN vehicle_companies vc ON c.vehicle_company_id = vc.id
                   ORDER BY c.created_at DESC NULLS LAST
                   LIMIT 500";
         
@@ -962,12 +977,30 @@ function getContractActions($conn, $contract_id) {
         }
         
         $contract_id = (int)$contract_id;
-        $query = "SELECT id, contract_id, action_name, action_description, 
-                         action_start_date, action_end_date, action_duration_type, 
-                         action_duration_days, is_active, created_at, updated_at
-                  FROM contract_actions 
-                  WHERE contract_id = $contract_id 
-                  ORDER BY action_start_date DESC";
+        
+        // Check if new columns exist
+        $columnsCheck = pg_query($conn, "SELECT column_name FROM information_schema.columns 
+                                         WHERE table_name = 'contract_actions' AND column_name = 'price_type'");
+        $hasNewColumns = pg_num_rows($columnsCheck) > 0;
+        
+        if ($hasNewColumns) {
+            $query = "SELECT id, contract_id, action_name, action_description, 
+                             action_start_date, action_end_date, 
+                             price_type, adult_age, child_age_range, infant_age_range,
+                             adult_price, child_price, infant_price, action_currency,
+                             regional_adult_age, regional_child_age, regional_infant_age,
+                             is_active, created_at, updated_at
+                      FROM contract_actions 
+                      WHERE contract_id = $contract_id 
+                      ORDER BY action_start_date DESC";
+        } else {
+            $query = "SELECT id, contract_id, action_name, action_description, 
+                             action_start_date, action_end_date, action_duration_type, 
+                             action_duration_days, is_active, created_at, updated_at
+                      FROM contract_actions 
+                      WHERE contract_id = $contract_id 
+                      ORDER BY action_start_date DESC";
+        }
         
         $result = pg_query($conn, $query);
         
@@ -976,6 +1009,28 @@ function getContractActions($conn, $contract_id) {
             if ($actions === false) {
                 $actions = [];
             }
+            
+            // Load regional prices for each action if applicable
+            if ($hasNewColumns) {
+                foreach ($actions as &$action) {
+                    if ($action['price_type'] === 'regional') {
+                        $action_id = (int)$action['id'];
+                        $regionalQuery = "SELECT sub_region_id, adult_price, child_price, infant_price
+                                         FROM contract_action_regional_prices
+                                         WHERE action_id = $action_id";
+                        $regionalResult = @pg_query($conn, $regionalQuery);
+                        if ($regionalResult) {
+                            $regionalPrices = pg_fetch_all($regionalResult);
+                            $action['regional_prices'] = $regionalPrices !== false ? $regionalPrices : [];
+                        } else {
+                            $action['regional_prices'] = [];
+                        }
+                    } else {
+                        $action['regional_prices'] = [];
+                    }
+                }
+            }
+            
             echo json_encode(['success' => true, 'data' => $actions], JSON_UNESCAPED_UNICODE);
         } else {
             echo json_encode(['success' => false, 'message' => getDbErrorMessage($conn)], JSON_UNESCAPED_UNICODE);
@@ -1006,9 +1061,20 @@ function createContractAction($conn, $data) {
         $action_description = pg_escape_string($conn, $data['action_description'] ?? '');
         $action_start_date = pg_escape_string($conn, $data['action_start_date']);
         $action_end_date = pg_escape_string($conn, $data['action_end_date']);
-        $action_duration_type = pg_escape_string($conn, $data['action_duration_type'] ?? 'day');
-        $action_duration_days = isset($data['action_duration_days']) && $data['action_duration_days'] !== '' ? (int)$data['action_duration_days'] : null;
         $is_active = isset($data['is_active']) ? (bool)$data['is_active'] : true;
+        
+        // Pricing fields
+        $price_type = pg_escape_string($conn, $data['price_type'] ?? '');
+        $adult_age = pg_escape_string($conn, $data['adult_age'] ?? '');
+        $child_age_range = pg_escape_string($conn, $data['child_age_range'] ?? '');
+        $infant_age_range = pg_escape_string($conn, $data['infant_age_range'] ?? '');
+        $adult_price = isset($data['adult_price']) && $data['adult_price'] !== '' ? (float)$data['adult_price'] : null;
+        $child_price = isset($data['child_price']) && $data['child_price'] !== '' ? (float)$data['child_price'] : null;
+        $infant_price = isset($data['infant_price']) && $data['infant_price'] !== '' ? (float)$data['infant_price'] : null;
+        $action_currency = pg_escape_string($conn, $data['action_currency'] ?? 'USD');
+        $regional_adult_age = pg_escape_string($conn, $data['regional_adult_age'] ?? '');
+        $regional_child_age = pg_escape_string($conn, $data['regional_child_age'] ?? '');
+        $regional_infant_age = pg_escape_string($conn, $data['regional_infant_age'] ?? '');
         
         // Validate dates
         if ($action_start_date && $action_end_date && $action_end_date < $action_start_date) {
@@ -1016,24 +1082,58 @@ function createContractAction($conn, $data) {
             return;
         }
         
-        $action_duration_days_val = $action_duration_days !== null ? $action_duration_days : 'NULL';
+        // Check if new columns exist
+        $columnsCheck = pg_query($conn, "SELECT column_name FROM information_schema.columns 
+                                         WHERE table_name = 'contract_actions' AND column_name = 'price_type'");
+        $hasNewColumns = pg_num_rows($columnsCheck) > 0;
         
-        $query = "INSERT INTO contract_actions (
-                    contract_id, action_name, action_description, action_start_date, action_end_date,
-                    action_duration_type, action_duration_days, is_active, created_at
-                  ) VALUES (
-                    $contract_id, '$action_name', '$action_description', '$action_start_date', '$action_end_date',
-                    '$action_duration_type', $action_duration_days_val, " . ($is_active ? 'true' : 'false') . ", NOW()
-                  ) RETURNING id";
+        pg_query($conn, 'BEGIN');
         
-        $result = pg_query($conn, $query);
-        
-        if ($result) {
+        try {
+            if ($hasNewColumns) {
+                $query = "INSERT INTO contract_actions (
+                            contract_id, action_name, action_description, action_start_date, action_end_date,
+                            price_type, adult_age, child_age_range, infant_age_range,
+                            adult_price, child_price, infant_price, action_currency,
+                            regional_adult_age, regional_child_age, regional_infant_age,
+                            is_active, created_at
+                          ) VALUES (
+                            $contract_id, '$action_name', '$action_description', '$action_start_date', '$action_end_date',
+                            '$price_type', '$adult_age', '$child_age_range', '$infant_age_range',
+                            " . ($adult_price !== null ? $adult_price : "NULL") . ", " . ($child_price !== null ? $child_price : "NULL") . ", " . ($infant_price !== null ? $infant_price : "NULL") . ", '$action_currency',
+                            '$regional_adult_age', '$regional_child_age', '$regional_infant_age',
+                            " . ($is_active ? 'true' : 'false') . ", NOW()
+                          ) RETURNING id";
+            } else {
+                // Old schema fallback
+                $query = "INSERT INTO contract_actions (
+                            contract_id, action_name, action_description, action_start_date, action_end_date,
+                            action_duration_type, action_duration_days, is_active, created_at
+                          ) VALUES (
+                            $contract_id, '$action_name', '$action_description', '$action_start_date', '$action_end_date',
+                            'day', NULL, " . ($is_active ? 'true' : 'false') . ", NOW()
+                          ) RETURNING id";
+            }
+            
+            $result = pg_query($conn, $query);
+            
+            if (!$result) {
+                throw new Exception(getDbErrorMessage($conn));
+            }
+            
             $row = pg_fetch_assoc($result);
-            echo json_encode(['success' => true, 'id' => $row['id'], 'message' => 'Action created successfully']);
-        } else {
-            $errorMsg = function_exists('getDbErrorMessage') ? getDbErrorMessage($conn) : 'Failed to create action';
-            echo json_encode(['success' => false, 'message' => $errorMsg]);
+            $action_id = $row['id'];
+            
+            // Save regional prices if applicable
+            if ($hasNewColumns && $price_type === 'regional' && isset($data['regional_prices']) && is_array($data['regional_prices'])) {
+                saveActionRegionalPrices($conn, $action_id, $data['regional_prices']);
+            }
+            
+            pg_query($conn, 'COMMIT');
+            echo json_encode(['success' => true, 'id' => $action_id, 'message' => 'Action created successfully']);
+        } catch (Exception $e) {
+            pg_query($conn, 'ROLLBACK');
+            throw $e;
         }
     } catch (Exception $e) {
         if (function_exists('logError')) {
@@ -1062,9 +1162,20 @@ function updateContractAction($conn, $data) {
         $action_description = pg_escape_string($conn, $data['action_description'] ?? '');
         $action_start_date = pg_escape_string($conn, $data['action_start_date']);
         $action_end_date = pg_escape_string($conn, $data['action_end_date']);
-        $action_duration_type = pg_escape_string($conn, $data['action_duration_type'] ?? 'day');
-        $action_duration_days = isset($data['action_duration_days']) && $data['action_duration_days'] !== '' ? (int)$data['action_duration_days'] : null;
         $is_active = isset($data['is_active']) ? (bool)$data['is_active'] : true;
+        
+        // Pricing fields
+        $price_type = pg_escape_string($conn, $data['price_type'] ?? '');
+        $adult_age = pg_escape_string($conn, $data['adult_age'] ?? '');
+        $child_age_range = pg_escape_string($conn, $data['child_age_range'] ?? '');
+        $infant_age_range = pg_escape_string($conn, $data['infant_age_range'] ?? '');
+        $adult_price = isset($data['adult_price']) && $data['adult_price'] !== '' ? (float)$data['adult_price'] : null;
+        $child_price = isset($data['child_price']) && $data['child_price'] !== '' ? (float)$data['child_price'] : null;
+        $infant_price = isset($data['infant_price']) && $data['infant_price'] !== '' ? (float)$data['infant_price'] : null;
+        $action_currency = pg_escape_string($conn, $data['action_currency'] ?? 'USD');
+        $regional_adult_age = pg_escape_string($conn, $data['regional_adult_age'] ?? '');
+        $regional_child_age = pg_escape_string($conn, $data['regional_child_age'] ?? '');
+        $regional_infant_age = pg_escape_string($conn, $data['regional_infant_age'] ?? '');
         
         // Validate dates
         if ($action_start_date && $action_end_date && $action_end_date < $action_start_date) {
@@ -1072,27 +1183,66 @@ function updateContractAction($conn, $data) {
             return;
         }
         
-        $action_duration_days_val = $action_duration_days !== null ? $action_duration_days : 'NULL';
+        // Check if new columns exist
+        $columnsCheck = pg_query($conn, "SELECT column_name FROM information_schema.columns 
+                                         WHERE table_name = 'contract_actions' AND column_name = 'price_type'");
+        $hasNewColumns = pg_num_rows($columnsCheck) > 0;
         
-        $query = "UPDATE contract_actions SET 
-                    contract_id = $contract_id,
-                    action_name = '$action_name',
-                    action_description = '$action_description',
-                    action_start_date = '$action_start_date',
-                    action_end_date = '$action_end_date',
-                    action_duration_type = '$action_duration_type',
-                    action_duration_days = $action_duration_days_val,
-                    is_active = " . ($is_active ? 'true' : 'false') . ",
-                    updated_at = NOW()
-                  WHERE id = $id";
+        pg_query($conn, 'BEGIN');
         
-        $result = pg_query($conn, $query);
-        
-        if ($result) {
+        try {
+            if ($hasNewColumns) {
+                $query = "UPDATE contract_actions SET 
+                            contract_id = $contract_id,
+                            action_name = '$action_name',
+                            action_description = '$action_description',
+                            action_start_date = '$action_start_date',
+                            action_end_date = '$action_end_date',
+                            price_type = '$price_type',
+                            adult_age = '$adult_age',
+                            child_age_range = '$child_age_range',
+                            infant_age_range = '$infant_age_range',
+                            adult_price = " . ($adult_price !== null ? $adult_price : "NULL") . ",
+                            child_price = " . ($child_price !== null ? $child_price : "NULL") . ",
+                            infant_price = " . ($infant_price !== null ? $infant_price : "NULL") . ",
+                            action_currency = '$action_currency',
+                            regional_adult_age = '$regional_adult_age',
+                            regional_child_age = '$regional_child_age',
+                            regional_infant_age = '$regional_infant_age',
+                            is_active = " . ($is_active ? 'true' : 'false') . ",
+                            updated_at = NOW()
+                          WHERE id = $id";
+            } else {
+                // Old schema fallback
+                $query = "UPDATE contract_actions SET 
+                            contract_id = $contract_id,
+                            action_name = '$action_name',
+                            action_description = '$action_description',
+                            action_start_date = '$action_start_date',
+                            action_end_date = '$action_end_date',
+                            action_duration_type = 'day',
+                            action_duration_days = NULL,
+                            is_active = " . ($is_active ? 'true' : 'false') . ",
+                            updated_at = NOW()
+                          WHERE id = $id";
+            }
+            
+            $result = pg_query($conn, $query);
+            
+            if (!$result) {
+                throw new Exception(getDbErrorMessage($conn));
+            }
+            
+            // Update regional prices if applicable
+            if ($hasNewColumns && $price_type === 'regional' && isset($data['regional_prices']) && is_array($data['regional_prices'])) {
+                saveActionRegionalPrices($conn, $id, $data['regional_prices']);
+            }
+            
+            pg_query($conn, 'COMMIT');
             echo json_encode(['success' => true, 'message' => 'Action updated successfully']);
-        } else {
-            $errorMsg = function_exists('getDbErrorMessage') ? getDbErrorMessage($conn) : 'Failed to update action';
-            echo json_encode(['success' => false, 'message' => $errorMsg]);
+        } catch (Exception $e) {
+            pg_query($conn, 'ROLLBACK');
+            throw $e;
         }
     } catch (Exception $e) {
         if (function_exists('logError')) {
@@ -1486,7 +1636,7 @@ function createContractKickbackPeriod($conn, $data) {
         $kickback_type = pg_escape_string($conn, $data['kickback_type'] ?? '');
         $kickback_value = isset($data['kickback_value']) ? (float)$data['kickback_value'] : null;
         $kickback_currency = pg_escape_string($conn, $data['kickback_currency'] ?? 'USD');
-        $kickback_per_person = isset($data['kickback_per_person']) ? ($data['kickback_per_person'] ? 1 : 0) : 0;
+        $kickback_per_person = isset($data['kickback_per_person']) ? ($data['kickback_per_person'] ? 'true' : 'false') : 'false';
         $kickback_min_persons = isset($data['kickback_min_persons']) ? (int)$data['kickback_min_persons'] : null;
         
         $query = "INSERT INTO contract_kickback_periods 
@@ -1494,7 +1644,7 @@ function createContractKickbackPeriod($conn, $data) {
                    kickback_currency, kickback_per_person, kickback_min_persons, is_active, created_at) 
                   VALUES ($contract_id, '$period_name', '$start_date', '$end_date', '$kickback_type', 
                           '$kickback_value', '$kickback_currency', $kickback_per_person, 
-                          '$kickback_min_persons', 1, NOW())";
+                          '$kickback_min_persons', true, NOW())";
         
         $result = pg_query($conn, $query);
         
@@ -1524,7 +1674,7 @@ function updateContractKickbackPeriod($conn, $data) {
         $kickback_type = pg_escape_string($conn, $data['kickback_type'] ?? '');
         $kickback_value = isset($data['kickback_value']) ? (float)$data['kickback_value'] : null;
         $kickback_currency = pg_escape_string($conn, $data['kickback_currency'] ?? 'USD');
-        $kickback_per_person = isset($data['kickback_per_person']) ? ($data['kickback_per_person'] ? 1 : 0) : 0;
+        $kickback_per_person = isset($data['kickback_per_person']) ? ($data['kickback_per_person'] ? 'true' : 'false') : 'false';
         $kickback_min_persons = isset($data['kickback_min_persons']) ? (int)$data['kickback_min_persons'] : null;
         
         $query = "UPDATE contract_kickback_periods SET 
@@ -2069,6 +2219,133 @@ function saveTransferGroupRanges($conn, $transfer_period_id, $group_ranges) {
                 throw new Exception('Failed to insert group range: ' . getDbErrorMessage($conn));
             }
         }
+    }
+}
+
+// Save action regional prices
+function saveActionRegionalPrices($conn, $action_id, $regional_prices) {
+    // Delete existing regional prices
+    $deleteQuery = "DELETE FROM contract_action_regional_prices WHERE action_id = $action_id";
+    $deleteResult = @pg_query($conn, $deleteQuery);
+    if (!$deleteResult) {
+        throw new Exception('Failed to delete existing action regional prices: ' . getDbErrorMessage($conn));
+    }
+    
+    // Insert new regional prices
+    if (!empty($regional_prices)) {
+        foreach ($regional_prices as $priceData) {
+            $sub_region_id = (int)$priceData['sub_region_id'];
+            if ($sub_region_id <= 0) continue;
+            
+            $adult_price = isset($priceData['adult_price']) && $priceData['adult_price'] !== '' ? (float)$priceData['adult_price'] : null;
+            $child_price = isset($priceData['child_price']) && $priceData['child_price'] !== '' ? (float)$priceData['child_price'] : null;
+            $infant_price = isset($priceData['infant_price']) && $priceData['infant_price'] !== '' ? (float)$priceData['infant_price'] : null;
+            
+            $adult_price_val = $adult_price !== null ? $adult_price : 'NULL';
+            $child_price_val = $child_price !== null ? $child_price : 'NULL';
+            $infant_price_val = $infant_price !== null ? $infant_price : 'NULL';
+            
+            $insertQuery = "INSERT INTO contract_action_regional_prices 
+                           (action_id, sub_region_id, adult_price, child_price, infant_price, created_at)
+                           VALUES ($action_id, $sub_region_id, $adult_price_val, $child_price_val, $infant_price_val, NOW())";
+            $insertResult = pg_query($conn, $insertQuery);
+            if (!$insertResult) {
+                throw new Exception('Failed to insert action regional price: ' . getDbErrorMessage($conn));
+            }
+        }
+    }
+}
+
+// Check if action name exists
+function checkActionNameExists($conn, $contract_id, $action_name, $action_id = null) {
+    try {
+        if (empty($contract_id) || empty($action_name)) {
+            echo json_encode(['success' => true, 'exists' => false]);
+            return;
+        }
+        
+        $contract_id = (int)$contract_id;
+        $action_name = pg_escape_string($conn, $action_name);
+        
+        if ($action_id) {
+            // Editing: check if name exists for other actions
+            $action_id = (int)$action_id;
+            $query = "SELECT COUNT(*) as count FROM contract_actions 
+                     WHERE contract_id = $contract_id 
+                     AND action_name = '$action_name' 
+                     AND id != $action_id";
+        } else {
+            // Creating: check if name exists
+            $query = "SELECT COUNT(*) as count FROM contract_actions 
+                     WHERE contract_id = $contract_id 
+                     AND action_name = '$action_name'";
+        }
+        
+        $result = pg_query($conn, $query);
+        if ($result) {
+            $row = pg_fetch_assoc($result);
+            $exists = $row['count'] > 0;
+            echo json_encode(['success' => true, 'exists' => $exists]);
+        } else {
+            echo json_encode(['success' => false, 'message' => 'Database error']);
+        }
+    } catch (Exception $e) {
+        echo json_encode(['success' => false, 'message' => 'An error occurred']);
+    }
+}
+
+// Check if period name exists
+function checkPeriodNameExists($conn, $contract_id, $period_name, $period_id = null, $period_type = 'price') {
+    try {
+        if (empty($contract_id) || empty($period_name)) {
+            echo json_encode(['success' => true, 'exists' => false]);
+            return;
+        }
+        
+        $contract_id = (int)$contract_id;
+        $period_name = pg_escape_string($conn, $period_name);
+        
+        // Determine table name
+        $table = '';
+        switch ($period_type) {
+            case 'price':
+                $table = 'contract_price_periods';
+                break;
+            case 'kickback':
+                $table = 'contract_kickback_periods';
+                break;
+            case 'transfer':
+                $table = 'contract_transfer_periods';
+                break;
+            default:
+                echo json_encode(['success' => false, 'message' => 'Invalid period type']);
+                return;
+        }
+        
+        if ($period_id) {
+            // Editing: check if name exists for other periods
+            $period_id = (int)$period_id;
+            $query = "SELECT COUNT(*) as count FROM $table 
+                     WHERE contract_id = $contract_id 
+                     AND period_name = '$period_name' 
+                     AND id != $period_id";
+        } else {
+            // Creating: check if name exists
+            $query = "SELECT COUNT(*) as count FROM $table 
+                     WHERE contract_id = $contract_id 
+                     AND period_name = '$period_name'";
+        }
+        
+        $result = pg_query($conn, $query);
+        if ($result) {
+            $row = pg_fetch_assoc($result);
+            $exists = $row['count'] > 0;
+            echo json_encode(['success' => true, 'exists' => $exists]);
+        } else {
+            echo json_encode(['success' => false, 'message' => 'Database error']);
+        }
+    } catch (Exception $e) {
+        echo json_encode(['success' => false, 'message' => 'An error occurred']);
     }
 }
 

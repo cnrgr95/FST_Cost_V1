@@ -20,10 +20,35 @@
     let activeRequests = new Map(); // Track active requests for cancellation
     
     // Initialize
+    // Load vehicle companies
+    function loadVehicleCompanies() {
+        const select = document.getElementById('vehicle_company_id');
+        if (!select) return;
+        
+        fetch('../api/definitions/vehicles.php?action=companies')
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    select.innerHTML = '<option value="">Seçin...</option>';
+                    data.data.forEach(company => {
+                        const option = document.createElement('option');
+                        option.value = company.id;
+                        option.textContent = company.company_name;
+                        select.appendChild(option);
+                    });
+                }
+            })
+            .catch(error => {
+                console.error('Error loading vehicle companies:', error);
+                select.innerHTML = '<option value="">Yüklenemedi</option>';
+            });
+    }
+    
     document.addEventListener('DOMContentLoaded', function() {
         setupEventListeners();
         setupSearch();
         loadSubRegions();
+        loadVehicleCompanies();
         loadCurrencies();
         loadContracts();
     });
@@ -303,15 +328,7 @@
             });
         }
         
-        // Close modal when clicking outside
-        const contractModal = document.getElementById('contractModal');
-        if (contractModal) {
-            contractModal.addEventListener('click', function(e) {
-                if (e.target === this) {
-                    closeContractModal();
-                }
-            });
-        }
+        // Modal close only via X button or Cancel button (no click outside)
         
     // Tab switching
     document.querySelectorAll('.contract-form-tab').forEach(tab => {
@@ -368,18 +385,69 @@
         });
     }
         
-        // Action duration type change
-        const actionDurationType = document.getElementById('action_duration_type');
-        if (actionDurationType) {
-            actionDurationType.addEventListener('change', function() {
-                const durationType = this.value;
-                const durationDaysGroup = document.getElementById('action_duration_days_group');
+        // Action price type change
+        document.addEventListener('change', function(e) {
+            if (e.target && e.target.name === 'action_price_type') {
+                const fixedContainer = document.getElementById('action_fixed_price_container');
+                const regionalContainer = document.getElementById('action_regional_price_container');
                 
-                if (durationType === 'custom') {
-                    if (durationDaysGroup) durationDaysGroup.style.display = 'flex';
-                } else {
-                    if (durationDaysGroup) durationDaysGroup.style.display = 'none';
+                if (e.target.value === 'fixed') {
+                    if (fixedContainer) fixedContainer.style.display = 'block';
+                    if (regionalContainer) regionalContainer.style.display = 'none';
+                } else if (e.target.value === 'regional') {
+                    if (fixedContainer) fixedContainer.style.display = 'none';
+                    if (regionalContainer) regionalContainer.style.display = 'block';
+                    // Render regional prices if tour regions are loaded
+                    if (tourRegions && tourRegions.length > 0) {
+                        renderActionRegionalPrices();
+                    }
                 }
+            }
+        });
+        
+        // Action name uniqueness check
+        const actionNameInput = document.getElementById('action_name');
+        if (actionNameInput) {
+            let actionNameTimeout;
+            actionNameInput.addEventListener('blur', function() {
+                clearTimeout(actionNameTimeout);
+                actionNameTimeout = setTimeout(() => {
+                    checkActionName(this.value);
+                }, 500);
+            });
+        }
+        
+        // Period name uniqueness checks
+        const pricePeriodNameInput = document.getElementById('period_name');
+        if (pricePeriodNameInput) {
+            let periodNameTimeout;
+            pricePeriodNameInput.addEventListener('blur', function() {
+                clearTimeout(periodNameTimeout);
+                periodNameTimeout = setTimeout(() => {
+                    checkPeriodName(this.value, 'price');
+                }, 500);
+            });
+        }
+        
+        const kickbackPeriodNameInput = document.getElementById('kickback_period_name');
+        if (kickbackPeriodNameInput) {
+            let kickbackNameTimeout;
+            kickbackPeriodNameInput.addEventListener('blur', function() {
+                clearTimeout(kickbackNameTimeout);
+                kickbackNameTimeout = setTimeout(() => {
+                    checkPeriodName(this.value, 'kickback');
+                }, 500);
+            });
+        }
+        
+        const transferPeriodNameInput = document.getElementById('transfer_period_name');
+        if (transferPeriodNameInput) {
+            let transferNameTimeout;
+            transferPeriodNameInput.addEventListener('blur', function() {
+                clearTimeout(transferNameTimeout);
+                transferNameTimeout = setTimeout(() => {
+                    checkPeriodName(this.value, 'transfer');
+                }, 500);
             });
         }
         
@@ -407,14 +475,7 @@
             actionForm.addEventListener('submit', handleActionSubmit);
         }
         
-        const actionModal = document.getElementById('actionModal');
-        if (actionModal) {
-            actionModal.addEventListener('click', function(e) {
-                if (e.target === this) {
-                    closeActionModal();
-                }
-            });
-        }
+        // Action modal - close only via buttons
         
         // Price period modal controls
         const addPricePeriodBtn = document.getElementById('addPricePeriodBtn');
@@ -439,14 +500,7 @@
             pricePeriodForm.addEventListener('submit', handlePricePeriodSubmit);
         }
         
-        const pricePeriodModal = document.getElementById('pricePeriodModal');
-        if (pricePeriodModal) {
-            pricePeriodModal.addEventListener('click', function(e) {
-                if (e.target === this) {
-                    closePricePeriodModal();
-                }
-            });
-        }
+        // Price period modal - close only via buttons
         
         // Kickback period modal controls
         const addKickbackPeriodBtn = document.getElementById('addKickbackPeriodBtn');
@@ -469,6 +523,31 @@
         const kickbackPeriodForm = document.getElementById('kickbackPeriodForm');
         if (kickbackPeriodForm) {
             kickbackPeriodForm.addEventListener('submit', handleKickbackPeriodSubmit);
+        }
+        
+        // Kickback type change listener
+        const kickbackPeriodType = document.getElementById('kickback_period_type');
+        if (kickbackPeriodType) {
+            kickbackPeriodType.addEventListener('change', function() {
+                const kickbackType = this.value;
+                const fixedValueField = document.getElementById('kickback_fixed_value_field');
+                const fixedCurrencyField = document.getElementById('kickback_fixed_currency_field');
+                const percentageField = document.getElementById('kickback_percentage_field');
+                
+                if (kickbackType === 'fixed') {
+                    if (fixedValueField) fixedValueField.style.display = 'block';
+                    if (fixedCurrencyField) fixedCurrencyField.style.display = 'block';
+                    if (percentageField) percentageField.style.display = 'none';
+                } else if (kickbackType === 'percentage') {
+                    if (fixedValueField) fixedValueField.style.display = 'none';
+                    if (fixedCurrencyField) fixedCurrencyField.style.display = 'none';
+                    if (percentageField) percentageField.style.display = 'block';
+                } else {
+                    if (fixedValueField) fixedValueField.style.display = 'none';
+                    if (fixedCurrencyField) fixedCurrencyField.style.display = 'none';
+                    if (percentageField) percentageField.style.display = 'none';
+                }
+            });
         }
         
         // Transfer period modal controls
@@ -897,6 +976,111 @@
         });
     }
     
+    function renderActionRegionalPrices() {
+        const container = document.getElementById('action_regional_prices_container');
+        if (!container || !tourRegions || tourRegions.length === 0) return;
+        
+        container.innerHTML = '';
+        
+        tourRegions.forEach(region => {
+            const priceItem = document.createElement('div');
+            priceItem.className = 'regional-price-item';
+            priceItem.dataset.subRegionId = region.sub_region_id;
+            
+            priceItem.innerHTML = `
+                <div class="regional-price-header">
+                    <h4>${region.sub_region_name || 'Region'}</h4>
+                    <small>${region.city_name || ''} ${region.city_name ? '-' : ''} ${region.region_name || ''}</small>
+                </div>
+                <div class="regional-price-row">
+                    <div class="regional-price-field">
+                        <label>${tContracts.adult_price || 'Adult'}</label>
+                        <input type="number" class="action-regional-adult-price" data-sub-region-id="${region.sub_region_id}" step="0.01" min="0" placeholder="0.00">
+                    </div>
+                    <div class="regional-price-field">
+                        <label>${tContracts.child_price || 'Child'}</label>
+                        <input type="number" class="action-regional-child-price" data-sub-region-id="${region.sub_region_id}" step="0.01" min="0" placeholder="0.00">
+                    </div>
+                    <div class="regional-price-field">
+                        <label>${tContracts.infant_price || 'Infant'}</label>
+                        <input type="number" class="action-regional-infant-price" data-sub-region-id="${region.sub_region_id}" step="0.01" min="0" placeholder="0.00">
+                    </div>
+                </div>
+            `;
+            
+            container.appendChild(priceItem);
+        });
+    }
+    
+    
+    // Name uniqueness check functions
+    function checkActionName(actionName) {
+        if (!actionName || !currentContractId) return;
+        
+        const actionId = document.getElementById('actionId')?.value || '';
+        const url = `${API_BASE}?action=check_action_name&contract_id=${currentContractId}&action_name=${encodeURIComponent(actionName)}&action_id=${actionId}`;
+        
+        fetch(url)
+            .then(response => response.json())
+            .then(result => {
+                const actionNameInput = document.getElementById('action_name');
+                if (result.success && result.exists) {
+                    if (actionNameInput) {
+                        actionNameInput.style.borderColor = '#ef4444';
+                        actionNameInput.style.backgroundColor = '#fee2e2';
+                    }
+                    showToast('warning', tContracts.action_name_exists || 'This action name already exists for this contract');
+                } else {
+                    if (actionNameInput) {
+                        actionNameInput.style.borderColor = '';
+                        actionNameInput.style.backgroundColor = '';
+                    }
+                }
+            })
+            .catch(error => {
+                console.error('Error checking action name:', error);
+            });
+    }
+    
+    function checkPeriodName(periodName, periodType) {
+        if (!periodName || !currentContractId) return;
+        
+        let periodId = '';
+        let inputElement = null;
+        
+        if (periodType === 'price') {
+            periodId = document.getElementById('pricePeriodId')?.value || '';
+            inputElement = document.getElementById('period_name');
+        } else if (periodType === 'kickback') {
+            periodId = document.getElementById('kickbackPeriodId')?.value || '';
+            inputElement = document.getElementById('kickback_period_name');
+        } else if (periodType === 'transfer') {
+            periodId = document.getElementById('transferPeriodId')?.value || '';
+            inputElement = document.getElementById('transfer_period_name');
+        }
+        
+        const url = `${API_BASE}?action=check_period_name&contract_id=${currentContractId}&period_name=${encodeURIComponent(periodName)}&period_id=${periodId}&period_type=${periodType}`;
+        
+        fetch(url)
+            .then(response => response.json())
+            .then(result => {
+                if (result.success && result.exists) {
+                    if (inputElement) {
+                        inputElement.style.borderColor = '#ef4444';
+                        inputElement.style.backgroundColor = '#fee2e2';
+                    }
+                    showToast('warning', tContracts.period_name_exists || 'This period name already exists for this contract');
+                } else {
+                    if (inputElement) {
+                        inputElement.style.borderColor = '';
+                        inputElement.style.backgroundColor = '';
+                    }
+                }
+            })
+            .catch(error => {
+                console.error('Error checking period name:', error);
+            });
+    }
     
     function loadSubRegions() {
         // Cancel previous request if still pending
@@ -2261,29 +2445,110 @@
         document.getElementById('actionId').value = '';
         document.getElementById('actionContractId').value = contractId || currentContractId || '';
         
+        // Hide price containers initially
+        const fixedContainer = document.getElementById('action_fixed_price_container');
+        const regionalContainer = document.getElementById('action_regional_price_container');
+        if (fixedContainer) fixedContainer.style.display = 'none';
+        if (regionalContainer) regionalContainer.style.display = 'none';
+        
         if (actionId) {
             title.textContent = tContracts.edit_action || 'Edit Action';
             const action = currentActions.find(a => a.id == actionId);
             if (action) {
                 document.getElementById('actionId').value = action.id;
                 document.getElementById('actionContractId').value = action.contract_id;
-                document.getElementById('action_name').value = action.action_name || '';
+                
+                // Action name is read-only when editing
+                const actionNameField = document.getElementById('action_name');
+                if (actionNameField) {
+                    actionNameField.value = action.action_name || '';
+                    actionNameField.readOnly = true;
+                    actionNameField.style.backgroundColor = '#f3f4f6';
+                    actionNameField.style.cursor = 'not-allowed';
+                }
+                
                 document.getElementById('action_description').value = action.action_description || '';
                 document.getElementById('action_start_date').value = action.action_start_date || '';
                 document.getElementById('action_end_date').value = action.action_end_date || '';
-                document.getElementById('action_duration_type').value = action.action_duration_type || 'day';
                 
-                if (action.action_duration_type === 'custom') {
-                    document.getElementById('action_duration_days_group').style.display = 'flex';
-                    document.getElementById('action_duration_days').value = action.action_duration_days || '';
+                // Set price type if exists
+                const priceType = action.price_type || '';
+                if (priceType === 'fixed') {
+                    const fixedRadio = document.getElementById('action_price_type_fixed');
+                    if (fixedRadio) {
+                        fixedRadio.checked = true;
+                        if (fixedContainer) fixedContainer.style.display = 'block';
+                    }
+                    // Load age ranges
+                    const adultAge = document.getElementById('action_adult_age');
+                    const childAge = document.getElementById('action_child_age_range');
+                    const infantAge = document.getElementById('action_infant_age_range');
+                    if (adultAge) adultAge.value = action.adult_age || '';
+                    if (childAge) childAge.value = action.child_age_range || '';
+                    if (infantAge) infantAge.value = action.infant_age_range || '';
+                    
+                    // Load fixed prices
+                    const adultPrice = document.getElementById('action_adult_price');
+                    const childPrice = document.getElementById('action_child_price');
+                    const infantPrice = document.getElementById('action_infant_price');
+                    const currency = document.getElementById('action_currency');
+                    if (adultPrice) adultPrice.value = action.adult_price || '';
+                    if (childPrice) childPrice.value = action.child_price || '';
+                    if (infantPrice) infantPrice.value = action.infant_price || '';
+                    if (currency) currency.value = action.action_currency || 'USD';
+                } else if (priceType === 'regional') {
+                    const regionalRadio = document.getElementById('action_price_type_regional');
+                    if (regionalRadio) {
+                        regionalRadio.checked = true;
+                        if (regionalContainer) regionalContainer.style.display = 'block';
+                    }
+                    // Load age ranges
+                    const regionalAdultAge = document.getElementById('action_regional_adult_age');
+                    const regionalChildAge = document.getElementById('action_regional_child_age');
+                    const regionalInfantAge = document.getElementById('action_regional_infant_age');
+                    if (regionalAdultAge) regionalAdultAge.value = action.regional_adult_age || '';
+                    if (regionalChildAge) regionalChildAge.value = action.regional_child_age || '';
+                    if (regionalInfantAge) regionalInfantAge.value = action.regional_infant_age || '';
+                    
+                    // Render and load regional prices
+                    if (tourRegions && tourRegions.length > 0) {
+                        renderActionRegionalPrices();
+                        if (action.regional_prices && action.regional_prices.length > 0) {
+                            setTimeout(() => loadActionRegionalPrices(action.regional_prices), 100);
+                        }
+                    }
                 }
             }
         } else {
             title.textContent = tContracts.add_action || 'Add Action';
+            // Action name is editable when creating
+            const actionNameField = document.getElementById('action_name');
+            if (actionNameField) {
+                actionNameField.readOnly = false;
+                actionNameField.style.backgroundColor = '';
+                actionNameField.style.cursor = '';
+            }
         }
         
         modal.classList.add('active');
         document.body.style.overflow = 'hidden';
+    }
+    
+    function loadActionRegionalPrices(regionalPrices) {
+        if (!regionalPrices || regionalPrices.length === 0) return;
+        
+        regionalPrices.forEach(priceData => {
+            const item = document.querySelector(`.regional-price-item[data-sub-region-id="${priceData.sub_region_id}"]`);
+            if (item) {
+                const adultInput = item.querySelector('.action-regional-adult-price');
+                const childInput = item.querySelector('.action-regional-child-price');
+                const infantInput = item.querySelector('.action-regional-infant-price');
+                
+                if (adultInput && priceData.adult_price) adultInput.value = priceData.adult_price;
+                if (childInput && priceData.child_price) childInput.value = priceData.child_price;
+                if (infantInput && priceData.infant_price) infantInput.value = priceData.infant_price;
+            }
+        });
     }
     
     function closeActionModal() {
@@ -2327,9 +2592,19 @@
             actionItem.className = 'action-item';
             actionItem.style.cssText = 'padding: 16px; border: 1px solid #e5e7eb; border-radius: 8px; margin-bottom: 12px; background: #f9fafb;';
             
-            const durationText = action.action_duration_type === 'custom' && action.action_duration_days 
-                ? `${action.action_duration_days} ${tContracts.day || 'Days'}`
-                : tContracts[action.action_duration_type] || action.action_duration_type;
+            const startDate = action.action_start_date || '-';
+            const endDate = action.action_end_date || '-';
+            
+            // Format pricing info
+            let pricingText = '';
+            if (action.price_type === 'fixed') {
+                pricingText = `${tContracts.fixed_price || 'Sabit Fiyat'}`;
+                if (action.adult_price) {
+                    pricingText += `: ${action.adult_price} ${action.action_currency || 'USD'}`;
+                }
+            } else if (action.price_type === 'regional') {
+                pricingText = `${tContracts.regional_price || 'Bölge Bazlı'}`;
+            }
             
             actionItem.innerHTML = `
                 <div style="display: flex; justify-content: space-between; align-items: start;">
@@ -2337,9 +2612,9 @@
                         <h4 style="margin: 0 0 8px 0; font-size: 16px; color: #1f2937;">${action.action_name || '-'}</h4>
                         ${action.action_description ? `<p style="margin: 0 0 8px 0; color: #6b7280; font-size: 14px;">${action.action_description}</p>` : ''}
                         <div style="display: flex; gap: 16px; font-size: 13px; color: #6b7280;">
-                            <span>${tContracts.action_start_date || 'Start'}: ${action.action_start_date || '-'}</span>
-                            <span>${tContracts.action_end_date || 'End'}: ${action.action_end_date || '-'}</span>
-                            <span>${tContracts.action_duration_type || 'Duration'}: ${durationText}</span>
+                            <span><strong>${tContracts.start_date || 'Start'}:</strong> ${startDate}</span>
+                            <span><strong>${tContracts.end_date || 'End'}:</strong> ${endDate}</span>
+                            ${pricingText ? `<span><strong>${tContracts.pricing || 'Pricing'}:</strong> ${pricingText}</span>` : ''}
                         </div>
                     </div>
                     <div style="display: flex; gap: 8px;">
@@ -2364,10 +2639,30 @@
         const data = Object.fromEntries(formData);
         
         data.contract_id = document.getElementById('actionContractId').value;
-        data.action_duration_type = document.getElementById('action_duration_type').value;
         
-        if (data.action_duration_type === 'custom') {
-            data.action_duration_days = document.getElementById('action_duration_days').value || null;
+        // Get price type
+        const priceType = document.querySelector('input[name="action_price_type"]:checked')?.value;
+        data.price_type = priceType || '';
+        
+        // Collect prices based on type
+        if (priceType === 'regional') {
+            const regionalPrices = [];
+            document.querySelectorAll('.regional-price-item').forEach(item => {
+                const subRegionId = item.dataset.subRegionId;
+                const adultPrice = item.querySelector('.action-regional-adult-price')?.value;
+                const childPrice = item.querySelector('.action-regional-child-price')?.value;
+                const infantPrice = item.querySelector('.action-regional-infant-price')?.value;
+                
+                if (adultPrice || childPrice || infantPrice) {
+                    regionalPrices.push({
+                        sub_region_id: subRegionId,
+                        adult_price: adultPrice || null,
+                        child_price: childPrice || null,
+                        infant_price: infantPrice || null
+                    });
+                }
+            });
+            data.regional_prices = regionalPrices;
         }
         
         const url = `${API_BASE}?action=action`;
@@ -2482,7 +2777,15 @@
             if (period) {
                 document.getElementById('pricePeriodId').value = period.id;
                 document.getElementById('pricePeriodContractId').value = period.contract_id;
-                document.getElementById('period_name').value = period.period_name || '';
+                
+                // Period name is read-only when editing
+                const periodNameField = document.getElementById('period_name');
+                if (periodNameField) {
+                    periodNameField.value = period.period_name || '';
+                    periodNameField.readOnly = true;
+                    periodNameField.style.backgroundColor = '#f3f4f6';
+                    periodNameField.style.cursor = 'not-allowed';
+                }
                 document.getElementById('period_start_date').value = period.start_date || '';
                 document.getElementById('period_end_date').value = period.end_date || '';
                 document.getElementById('price_period_notes').value = period.notes || '';
@@ -2537,6 +2840,13 @@
             }
         } else {
             title.textContent = tContracts.add_price_period || 'Add Price Period';
+            // Period name is editable when creating
+            const periodNameField = document.getElementById('period_name');
+            if (periodNameField) {
+                periodNameField.readOnly = false;
+                periodNameField.style.backgroundColor = '';
+                periodNameField.style.cursor = '';
+            }
         }
         
         modal.classList.add('active');
@@ -2746,29 +3056,68 @@
         if (kickbackPerPerson1) kickbackPerPerson1.checked = true;
         if (kickbackPerPerson0) kickbackPerPerson0.checked = false;
         
+        // Hide all kickback fields initially
+        const fixedValueField = document.getElementById('kickback_fixed_value_field');
+        const fixedCurrencyField = document.getElementById('kickback_fixed_currency_field');
+        const percentageField = document.getElementById('kickback_percentage_field');
+        if (fixedValueField) fixedValueField.style.display = 'none';
+        if (fixedCurrencyField) fixedCurrencyField.style.display = 'none';
+        if (percentageField) percentageField.style.display = 'none';
+        
         if (periodId) {
             title.textContent = tContracts.edit_kickback_period || 'Edit Kickback Period';
             const period = currentKickbackPeriods.find(p => p.id == periodId);
             if (period) {
                 document.getElementById('kickbackPeriodId').value = period.id;
                 document.getElementById('kickbackPeriodContractId').value = period.contract_id;
-                document.getElementById('kickback_period_name').value = period.period_name || '';
+                
+                // Period name is read-only when editing
+                const periodNameField = document.getElementById('kickback_period_name');
+                if (periodNameField) {
+                    periodNameField.value = period.period_name || '';
+                    periodNameField.readOnly = true;
+                    periodNameField.style.backgroundColor = '#f3f4f6';
+                    periodNameField.style.cursor = 'not-allowed';
+                }
                 document.getElementById('kickback_period_start_date').value = period.start_date || '';
                 document.getElementById('kickback_period_end_date').value = period.end_date || '';
-                document.getElementById('kickback_period_type').value = period.kickback_type || '';
-                document.getElementById('kickback_period_value').value = period.kickback_value || '';
-                document.getElementById('kickback_period_currency').value = period.kickback_currency || 'USD';
-                if (period.kickback_per_person == 0) {
+                
+                // Set kickback calculation FIRST (before type)
+                // PostgreSQL returns boolean as 't' or 'f' string, or true/false
+                const perPerson = period.kickback_per_person;
+                if (perPerson === 't' || perPerson === true || perPerson === 'true' || perPerson == 1 || perPerson === '1') {
+                    if (kickbackPerPerson1) kickbackPerPerson1.checked = true;
+                    if (kickbackPerPerson0) kickbackPerPerson0.checked = false;
+                } else {
                     if (kickbackPerPerson0) kickbackPerPerson0.checked = true;
                     if (kickbackPerPerson1) kickbackPerPerson1.checked = false;
-                } else {
-                    if (kickbackPerPerson0) kickbackPerPerson0.checked = false;
-                    if (kickbackPerPerson1) kickbackPerPerson1.checked = true;
                 }
                 document.getElementById('kickback_period_min_persons').value = period.kickback_min_persons || '';
+                
+                // Set kickback type and show appropriate fields
+                const kickbackType = period.kickback_type || '';
+                document.getElementById('kickback_period_type').value = kickbackType;
+                
+                if (kickbackType === 'fixed') {
+                    if (fixedValueField) fixedValueField.style.display = 'block';
+                    if (fixedCurrencyField) fixedCurrencyField.style.display = 'block';
+                    document.getElementById('kickback_period_value').value = period.kickback_value || '';
+                    document.getElementById('kickback_period_currency').value = period.kickback_currency || 'USD';
+                } else if (kickbackType === 'percentage') {
+                    if (percentageField) percentageField.style.display = 'block';
+                    const percentageInput = document.getElementById('kickback_period_percentage');
+                    if (percentageInput) percentageInput.value = period.kickback_value || '';
+                }
             }
         } else {
             title.textContent = tContracts.add_kickback_period || 'Add Kickback Period';
+            // Period name is editable when creating
+            const periodNameField = document.getElementById('kickback_period_name');
+            if (periodNameField) {
+                periodNameField.readOnly = false;
+                periodNameField.style.backgroundColor = '';
+                periodNameField.style.cursor = '';
+            }
         }
         
         modal.classList.add('active');
@@ -2849,9 +3198,25 @@
         data.contract_id = document.getElementById('kickbackPeriodContractId').value;
         data.kickback_per_person = formData.get('kickback_per_person') === '1';
         
+        // Get kickback value based on type
+        const kickbackType = document.getElementById('kickback_period_type').value;
+        if (kickbackType === 'percentage') {
+            // For percentage, get value from percentage field
+            const percentageValue = document.getElementById('kickback_period_percentage')?.value;
+            data.kickback_value = percentageValue || '';
+            delete data.kickback_currency; // No currency for percentage
+        } else if (kickbackType === 'fixed') {
+            // For fixed, value and currency already in formData
+            // kickback_value and kickback_currency
+        }
+        
         const periodId = document.getElementById('kickbackPeriodId').value;
         const url = `${API_BASE}?action=kickback_period`;
         const method = periodId ? 'PUT' : 'POST';
+        
+        if (periodId) {
+            data.id = periodId;
+        }
         
         fetch(url, {
             method: method,
@@ -2861,16 +3226,15 @@
         .then(response => response.json())
         .then(result => {
             if (result.success) {
-                showToast('success', periodId ? 'Kickback period updated' : 'Kickback period created');
+                showToast('success', periodId ? (tContracts.kickback_period_updated || 'Kickback period updated') : (tContracts.kickback_period_added || 'Kickback period created'));
                 closeKickbackPeriodModal();
                 loadContractKickbackPeriods(data.contract_id);
             } else {
-                showToast('error', result.message || 'Error saving kickback period');
+                showToast('error', result.message || (tCommon.save_failed || 'Error saving kickback period'));
             }
         })
         .catch(error => {
-            console.error('Error saving kickback period:', error);
-            showToast('error', 'Error saving kickback period');
+            showToast('error', tCommon.an_error_occurred || 'An error occurred');
         });
     }
     
@@ -2947,7 +3311,15 @@
             if (period) {
                 document.getElementById('transferPeriodId').value = period.id;
                 document.getElementById('transferPeriodContractId').value = period.contract_id;
-                document.getElementById('transfer_period_name').value = period.period_name || '';
+                
+                // Period name is read-only when editing
+                const periodNameField = document.getElementById('transfer_period_name');
+                if (periodNameField) {
+                    periodNameField.value = period.period_name || '';
+                    periodNameField.readOnly = true;
+                    periodNameField.style.backgroundColor = '#f3f4f6';
+                    periodNameField.style.cursor = 'not-allowed';
+                }
                 
                 // Set transfer owner (can be comma-separated: agency,supplier)
                 const transferOwners = (period.transfer_owner || '').split(',');
@@ -2967,48 +3339,56 @@
                     const pricingRadio = document.getElementById('transfer_pricing_' + pricingMethod.replace('_price', ''));
                     if (pricingRadio) {
                         pricingRadio.checked = true;
-                        handleTransferPricingMethodChange();
+                        // Trigger change to show appropriate container
+                        setTimeout(() => handleTransferPricingMethodChange(), 50);
                     }
                     
                     // Load pricing data based on method
                     if (pricingMethod === 'fixed_price') {
                         const fixedPriceType = period.fixed_price_type || 'per_person';
-                        const fixedTypeRadio = document.getElementById('transfer_fixed_' + fixedPriceType.replace('_', ''));
-                        if (fixedTypeRadio) {
-                            fixedTypeRadio.checked = true;
-                            handleTransferFixedPriceTypeChange();
-                        }
                         
-                        if (fixedPriceType === 'per_person') {
-                            // Load age-based prices
-                            const adultAge = document.getElementById('transfer_adult_age');
-                            const childAge = document.getElementById('transfer_child_age_range');
-                            const infantAge = document.getElementById('transfer_infant_age_range');
-                            const adultPrice = document.getElementById('transfer_adult_price');
-                            const childPrice = document.getElementById('transfer_child_price');
-                            const infantPrice = document.getElementById('transfer_infant_price');
-                            const currency = document.getElementById('transfer_fixed_currency');
-                            
-                            if (adultAge) adultAge.value = period.adult_age || '';
-                            if (childAge) childAge.value = period.child_age_range || '';
-                            if (infantAge) infantAge.value = period.infant_age_range || '';
-                            if (adultPrice) adultPrice.value = period.adult_price || '';
-                            if (childPrice) childPrice.value = period.child_price || '';
-                            if (infantPrice) infantPrice.value = period.infant_price || '';
-                            if (currency) currency.value = period.fixed_currency || 'USD';
-                        } else if (fixedPriceType === 'group') {
-                            // Load fixed group ranges
-                            if (period.fixed_group_ranges && period.fixed_group_ranges.length > 0) {
-                                transferFixedGroupRanges = period.fixed_group_ranges.map(r => ({
-                                    id: Date.now() + Math.random(),
-                                    min_persons: r.min_persons,
-                                    max_persons: r.max_persons,
-                                    price: r.price,
-                                    currency: r.currency
-                                }));
-                                renderTransferFixedGroupRanges();
+                        // Wait for container to be visible, then set radio
+                        setTimeout(() => {
+                            const fixedTypeRadio = document.getElementById('transfer_fixed_' + (fixedPriceType === 'per_person' ? 'per_person' : 'group'));
+                            if (fixedTypeRadio) {
+                                fixedTypeRadio.checked = true;
+                                handleTransferFixedPriceTypeChange();
                             }
-                        }
+                        }, 100);
+                        
+                        // Load data after containers are ready
+                        setTimeout(() => {
+                            if (fixedPriceType === 'per_person') {
+                                // Load age-based prices
+                                const adultAge = document.getElementById('transfer_adult_age');
+                                const childAge = document.getElementById('transfer_child_age_range');
+                                const infantAge = document.getElementById('transfer_infant_age_range');
+                                const adultPrice = document.getElementById('transfer_adult_price');
+                                const childPrice = document.getElementById('transfer_child_price');
+                                const infantPrice = document.getElementById('transfer_infant_price');
+                                const currency = document.getElementById('transfer_fixed_currency');
+                                
+                                if (adultAge) adultAge.value = period.adult_age || '';
+                                if (childAge) childAge.value = period.child_age_range || '';
+                                if (infantAge) infantAge.value = period.infant_age_range || '';
+                                if (adultPrice) adultPrice.value = period.adult_price || '';
+                                if (childPrice) childPrice.value = period.child_price || '';
+                                if (infantPrice) infantPrice.value = period.infant_price || '';
+                                if (currency) currency.value = period.fixed_currency || 'USD';
+                            } else if (fixedPriceType === 'group') {
+                                // Load fixed group ranges
+                                if (period.fixed_group_ranges && period.fixed_group_ranges.length > 0) {
+                                    transferFixedGroupRanges = period.fixed_group_ranges.map(r => ({
+                                        id: Date.now() + Math.random(),
+                                        min_persons: r.min_persons,
+                                        max_persons: r.max_persons,
+                                        price: r.price,
+                                        currency: r.currency
+                                    }));
+                                    renderTransferFixedGroupRanges();
+                                }
+                            }
+                        }, 200);
                     } else if (pricingMethod === 'regional_price') {
                         // Load regional price data
                         const regionalPriceType = period.regional_price_type || 'per_person';
@@ -3066,6 +3446,13 @@
             }
         } else {
             title.textContent = tContracts.add_transfer_period || 'Add Transfer Period';
+            // Period name is editable when creating
+            const periodNameField = document.getElementById('transfer_period_name');
+            if (periodNameField) {
+                periodNameField.readOnly = false;
+                periodNameField.style.backgroundColor = '';
+                periodNameField.style.cursor = '';
+            }
         }
         
         modal.classList.add('active');
@@ -3169,15 +3556,10 @@
     function handleTransferPeriodSubmit(e) {
         e.preventDefault();
         
-        console.log('=== Transfer Period Submit Start ===');
-        
         const formData = new FormData(e.target);
         const data = Object.fromEntries(formData);
         
-        console.log('FormData entries:', data);
-        
         data.contract_id = document.getElementById('transferPeriodContractId').value;
-        console.log('Contract ID:', data.contract_id);
         
         // Validate dates
         const startDate = document.getElementById('transfer_period_start_date').value;
@@ -3207,10 +3589,8 @@
         if (supplierChecked) transferOwners.push('supplier');
         
         data.transfer_owner = transferOwners.join(',');
-        console.log('Transfer owner:', data.transfer_owner);
         
         if (supplierChecked) {
-            console.log('Supplier is checked, collecting pricing data...');
             // Get pricing method
             const pricingMethod = document.querySelector('input[name="pricing_method"]:checked')?.value;
             data.pricing_method = pricingMethod;
@@ -3309,37 +3689,26 @@
             data.id = periodId;
         }
         
-        console.log('Final data to send:', data);
-        console.log('=== Transfer Period Submit End ===');
-        
         const url = `${API_BASE}?action=transfer_period`;
         const method = periodId ? 'PUT' : 'POST';
-        
-        console.log('Sending to:', url, 'Method:', method);
         
         fetch(url, {
             method: method,
             headers: {'Content-Type': 'application/json'},
             body: JSON.stringify(data)
         })
-        .then(response => {
-            console.log('Response status:', response.status);
-            return response.json();
-        })
+        .then(response => response.json())
         .then(result => {
-            console.log('API Response:', result);
             if (result.success) {
-                showToast('success', periodId ? 'Transfer period updated' : 'Transfer period created');
+                showToast('success', periodId ? (tContracts.transfer_period_updated || 'Transfer period updated') : (tContracts.transfer_period_added || 'Transfer period created'));
                 closeTransferPeriodModal();
                 loadContractTransferPeriods(data.contract_id);
             } else {
-                console.error('API Error:', result.message);
-                showToast('error', result.message || 'Error saving transfer period');
+                showToast('error', result.message || (tContracts.save_failed || 'Error saving transfer period'));
             }
         })
         .catch(error => {
-            console.error('Error saving transfer period:', error);
-            showToast('error', 'Error saving transfer period: ' + error.message);
+            showToast('error', tContracts.an_error_occurred || 'An error occurred');
         });
     }
     
