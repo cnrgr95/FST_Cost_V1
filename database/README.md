@@ -69,6 +69,7 @@ This will insert:
 - Sample regions and cities
 - Sample sub regions
 - Sample departments and positions
+- Sample merchants (restaurants, hotels, shops, etc.)
 - 4 sample users (john.doe, jane.smith, ahmet.yilmaz, anna.mueller)
 
 ### Database Schema
@@ -81,6 +82,7 @@ The database includes the following tables:
 - **sub_regions** - Sub regions within cities
 - **departments** - Departments within cities
 - **positions** - Positions within departments
+- **merchants** - Merchants within sub regions
 - **users** - User accounts (LDAP authentication)
 
 ### Table Relationships
@@ -94,6 +96,7 @@ cities (1) ────> (N) users
 departments (1) ────> (N) positions
 departments (1) ────> (N) users
 positions (1) ────> (N) users
+sub_regions (1) ────> (N) merchants
 ```
 
 ### Verification

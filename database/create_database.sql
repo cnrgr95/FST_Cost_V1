@@ -71,6 +71,24 @@ CREATE TABLE IF NOT EXISTS positions (
     UNIQUE(name, department_id)
 );
 
+-- Merchants Table
+CREATE TABLE IF NOT EXISTS merchants (
+    id SERIAL PRIMARY KEY,
+    name VARCHAR(255) NOT NULL,
+    official_title VARCHAR(255),
+    sub_region_id INTEGER REFERENCES sub_regions(id) ON DELETE CASCADE,
+    authorized_person VARCHAR(255),
+    authorized_email VARCHAR(255),
+    authorized_phone VARCHAR(50),
+    operasyon_name VARCHAR(255),
+    operasyon_email VARCHAR(255),
+    operasyon_phone VARCHAR(50),
+    location_url TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE(name, sub_region_id)
+);
+
 -- Users Table
 CREATE TABLE IF NOT EXISTS users (
     id SERIAL PRIMARY KEY,
@@ -114,6 +132,10 @@ CREATE INDEX IF NOT EXISTS idx_departments_name ON departments(name);
 CREATE INDEX IF NOT EXISTS idx_positions_department_id ON positions(department_id);
 CREATE INDEX IF NOT EXISTS idx_positions_name ON positions(name);
 
+-- Merchants indexes
+CREATE INDEX IF NOT EXISTS idx_merchants_sub_region_id ON merchants(sub_region_id);
+CREATE INDEX IF NOT EXISTS idx_merchants_name ON merchants(name);
+
 -- Users indexes
 CREATE INDEX IF NOT EXISTS idx_users_username ON users(username);
 CREATE INDEX IF NOT EXISTS idx_users_department_id ON users(department_id);
@@ -152,6 +174,9 @@ CREATE TRIGGER update_departments_updated_at BEFORE UPDATE ON departments
     FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
 CREATE TRIGGER update_positions_updated_at BEFORE UPDATE ON positions
+    FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+
+CREATE TRIGGER update_merchants_updated_at BEFORE UPDATE ON merchants
     FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
 CREATE TRIGGER update_users_updated_at BEFORE UPDATE ON users
