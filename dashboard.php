@@ -31,8 +31,8 @@ $t_dashboard = $all_translations['dashboard'] ?? [];
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
     <!-- CSS Files -->
-    <link rel="stylesheet" href="assets/css/sidebar.css">
-    <link rel="stylesheet" href="assets/css/topbar.css">
+    <link rel="stylesheet" href="assets/css/includes/sidebar.css">
+    <link rel="stylesheet" href="assets/css/includes/topbar.css">
     <link rel="stylesheet" href="assets/css/common.css">
     
     <link rel="icon" type="image/svg+xml" href="assets/images/logo.svg">
@@ -214,6 +214,6 @@ $t_dashboard = $all_translations['dashboard'] ?? [];
         }
     </style>
     
-    <script src="assets/js/sidebar.js"></script>
+    <script src="assets/js/includes/sidebar.js"></script>
 </body>
 </html>

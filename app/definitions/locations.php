@@ -38,8 +38,8 @@ $t_dependencies = $all_translations['dependencies'] ?? [];
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
     <!-- CSS Files -->
-    <link rel="stylesheet" href="<?php echo $basePath; ?>assets/css/sidebar.css">
-    <link rel="stylesheet" href="<?php echo $basePath; ?>assets/css/topbar.css">
+    <link rel="stylesheet" href="<?php echo $basePath; ?>assets/css/includes/sidebar.css">
+    <link rel="stylesheet" href="<?php echo $basePath; ?>assets/css/includes/topbar.css">
     <link rel="stylesheet" href="<?php echo $basePath; ?>assets/css/common.css">
     <link rel="stylesheet" href="<?php echo $basePath; ?>assets/css/confirm-dialog.css">
     <link rel="stylesheet" href="<?php echo $basePath; ?>assets/css/app/definitions/locations.css">
@@ -58,17 +58,6 @@ $t_dependencies = $all_translations['dependencies'] ?? [];
                 <!-- Page Header -->
                 <div class="locations-header">
                     <h1><?php echo $t_sidebar['locations'] ?? 'Locations'; ?></h1>
-                </div>
-                
-                <!-- Search/Filter Section -->
-                <div class="locations-search-section">
-                    <div class="search-box">
-                        <span class="material-symbols-rounded search-icon">search</span>
-                        <input type="text" id="searchInput" placeholder="<?php echo $t_locations['search_placeholder'] ?? 'Search...'; ?>" autocomplete="off">
-                        <button id="clearSearch" class="clear-btn" style="display: none;">
-                            <span class="material-symbols-rounded">close</span>
-                        </button>
-                    </div>
                 </div>
                 
                 <!-- Tabs -->
@@ -300,7 +289,7 @@ $t_dependencies = $all_translations['dependencies'] ?? [];
     <!-- Toast Notification Container -->
     <div id="toastContainer" class="toast-container"></div>
     
-    <script src="<?php echo $basePath; ?>assets/js/sidebar.js"></script>
+    <script src="<?php echo $basePath; ?>assets/js/includes/sidebar.js"></script>
     <script src="<?php echo $basePath; ?>assets/js/toast.js"></script>
     <script src="<?php echo $basePath; ?>assets/js/common.js"></script>
     <script src="<?php echo $basePath; ?>assets/js/app/definitions/locations.js"></script>

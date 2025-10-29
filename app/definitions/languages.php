@@ -37,8 +37,8 @@ $t_lang_mgmt = $all_translations['language_mgmt'] ?? [];
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
     <!-- CSS Files -->
-    <link rel="stylesheet" href="<?php echo $basePath; ?>assets/css/sidebar.css">
-    <link rel="stylesheet" href="<?php echo $basePath; ?>assets/css/topbar.css">
+    <link rel="stylesheet" href="<?php echo $basePath; ?>assets/css/includes/sidebar.css">
+    <link rel="stylesheet" href="<?php echo $basePath; ?>assets/css/includes/topbar.css">
     <link rel="stylesheet" href="<?php echo $basePath; ?>assets/css/common.css">
     <link rel="stylesheet" href="<?php echo $basePath; ?>assets/css/confirm-dialog.css">
     <link rel="stylesheet" href="<?php echo $basePath; ?>assets/css/app/definitions/languages.css">
@@ -282,7 +282,7 @@ $t_lang_mgmt = $all_translations['language_mgmt'] ?? [];
     <!-- Toast Notification Container -->
     <div id="toastContainer" class="toast-container"></div>
     
-    <script src="<?php echo $basePath; ?>assets/js/sidebar.js"></script>
+    <script src="<?php echo $basePath; ?>assets/js/includes/sidebar.js"></script>
     <script src="<?php echo $basePath; ?>assets/js/toast.js"></script>
     <script src="<?php echo $basePath; ?>assets/js/common.js"></script>
     <script src="<?php echo $basePath; ?>assets/js/app/definitions/languages.js"></script>

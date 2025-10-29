@@ -33,10 +33,7 @@ $t_topbar = $all_translations['topbar'] ?? [];
 <div class="topbar">
   <!-- Left Side -->
   <div class="topbar-left">
-    <div class="topbar-search">
-      <span class="material-symbols-rounded search-icon">search</span>
-      <input type="text" placeholder="<?php echo $t_topbar['search'] ?? 'Search...'; ?>">
-    </div>
+    <!-- Search removed -->
   </div>
 
   <!-- Right Side -->
@@ -104,39 +101,5 @@ $t_topbar = $all_translations['topbar'] ?? [];
   </div>
 </div>
 
-<script>
-function toggleFullscreen() {
-  if (!document.fullscreenElement) {
-    document.documentElement.requestFullscreen().catch(err => {
-      console.log('Error attempting to enable fullscreen:', err);
-    });
-    document.querySelector('.topbar-fullscreen .material-symbols-rounded').textContent = 'fullscreen_exit';
-  } else {
-    document.exitFullscreen().catch(err => {
-      console.log('Error attempting to exit fullscreen:', err);
-    });
-    document.querySelector('.topbar-fullscreen .material-symbols-rounded').textContent = 'fullscreen';
-  }
-}
-
-// Listen for fullscreen changes
-document.addEventListener('fullscreenchange', function() {
-  const icon = document.querySelector('.topbar-fullscreen .material-symbols-rounded');
-  if (icon) {
-    if (document.fullscreenElement) {
-      icon.textContent = 'fullscreen_exit';
-    } else {
-      icon.textContent = 'fullscreen';
-    }
-  }
-});
-
-// Listen for F11 key
-document.addEventListener('keydown', function(e) {
-  if (e.key === 'F11') {
-    e.preventDefault();
-    toggleFullscreen();
-  }
-});
-</script>
+<script src="<?php echo $basePath; ?>assets/js/includes/topbar.js"></script>
 

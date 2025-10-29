@@ -37,8 +37,8 @@ $t_guide = $all_translations['guide'] ?? [];
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
     <!-- CSS Files -->
-    <link rel="stylesheet" href="<?php echo $basePath; ?>assets/css/sidebar.css">
-    <link rel="stylesheet" href="<?php echo $basePath; ?>assets/css/topbar.css">
+    <link rel="stylesheet" href="<?php echo $basePath; ?>assets/css/includes/sidebar.css">
+    <link rel="stylesheet" href="<?php echo $basePath; ?>assets/css/includes/topbar.css">
     <link rel="stylesheet" href="<?php echo $basePath; ?>assets/css/common.css">
     <link rel="stylesheet" href="<?php echo $basePath; ?>assets/css/app/guide.css">
     
@@ -56,17 +56,6 @@ $t_guide = $all_translations['guide'] ?? [];
                 <!-- Page Header -->
                 <div class="guide-header">
                     <h1><?php echo $t_guide['title'] ?? 'Guide'; ?></h1>
-                </div>
-                
-                <!-- Search/Filter Section -->
-                <div class="guide-search-section">
-                    <div class="search-box">
-                        <span class="material-symbols-rounded search-icon">search</span>
-                        <input type="text" id="searchInput" placeholder="<?php echo $t_guide['search_placeholder'] ?? 'İsim, telefon, e-posta ile ara...'; ?>" autocomplete="off">
-                        <button id="clearSearch" class="clear-btn" style="display: none;">
-                            <span class="material-symbols-rounded">close</span>
-                        </button>
-                    </div>
                 </div>
                 
                 <!-- Tabs -->
@@ -115,7 +104,7 @@ $t_guide = $all_translations['guide'] ?? [];
     <!-- Toast Notification Container -->
     <div id="toastContainer" class="toast-container"></div>
     
-    <script src="<?php echo $basePath; ?>assets/js/sidebar.js"></script>
+    <script src="<?php echo $basePath; ?>assets/js/includes/sidebar.js"></script>
     <script src="<?php echo $basePath; ?>assets/js/toast.js"></script>
     <script src="<?php echo $basePath; ?>assets/js/app/guide.js"></script>
 </body>

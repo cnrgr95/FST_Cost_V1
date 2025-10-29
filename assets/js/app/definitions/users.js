@@ -20,7 +20,6 @@
     // Initialize
     document.addEventListener('DOMContentLoaded', function() {
         loadData();
-        setupSearch();
         
         // Setup modal close buttons
         document.querySelectorAll('.btn-close').forEach(btn => {
@@ -83,51 +82,6 @@
                 }
             });
         }
-    }
-    
-    // Setup search
-    function setupSearch() {
-        const searchInput = document.getElementById('searchInput');
-        const clearBtn = document.getElementById('clearSearch');
-        let searchTimeout;
-        
-        if (!searchInput) return;
-        
-        searchInput.addEventListener('input', function(e) {
-            const query = e.target.value.trim();
-            clearBtn.style.display = query ? 'flex' : 'none';
-            
-            clearTimeout(searchTimeout);
-            searchTimeout = setTimeout(() => {
-                filterData(query);
-            }, 300);
-        });
-        
-        clearBtn.addEventListener('click', function() {
-            searchInput.value = '';
-            clearBtn.style.display = 'none';
-            renderTable();
-        });
-    }
-    
-    // Filter data
-    function filterData(searchText) {
-        if (!searchText) {
-            renderTable();
-            return;
-        }
-        
-        const searchLower = searchText.toLowerCase();
-        const filtered = currentData.users.filter(item => {
-            return (
-                (item.username && item.username.toLowerCase().includes(searchLower)) ||
-                (item.full_name && item.full_name.toLowerCase().includes(searchLower)) ||
-                (item.department_name && item.department_name.toLowerCase().includes(searchLower)) ||
-                (item.city_name && item.city_name.toLowerCase().includes(searchLower))
-            );
-        });
-        
-        renderTable(filtered);
     }
     
     // Fetch data from API

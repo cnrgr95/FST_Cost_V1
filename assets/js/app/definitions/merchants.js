@@ -34,76 +34,9 @@
             });
         });
         
-        // Setup search functionality
-        setupSearch();
-        
         // Load data
         loadData();
     });
-    
-    // Setup search
-    function setupSearch() {
-        const searchInput = document.getElementById('searchInput');
-        const clearBtn = document.getElementById('clearSearch');
-        let searchTimeout;
-        
-        // Search on input
-        searchInput.addEventListener('input', function(e) {
-            const query = e.target.value.trim();
-            
-            // Show/hide clear button
-            clearBtn.style.display = query ? 'flex' : 'none';
-            
-            // Debounce search
-            clearTimeout(searchTimeout);
-            searchTimeout = setTimeout(() => {
-                filterMerchants(query);
-            }, 300);
-        });
-        
-        // Clear search
-        clearBtn.addEventListener('click', function() {
-            searchInput.value = '';
-            clearBtn.style.display = 'none';
-            filterMerchants('');
-        });
-    }
-    
-    // Filter merchants
-    function filterMerchants(query) {
-        if (!query) {
-            // Show all
-            renderTable();
-            return;
-        }
-        
-        // Filter data
-        const filtered = currentData.merchants.filter(merchant => {
-            const searchText = query.toLowerCase();
-            return (
-                (merchant.name && merchant.name.toLowerCase().includes(searchText)) ||
-                (merchant.official_title && merchant.official_title.toLowerCase().includes(searchText)) ||
-                (merchant.authorized_person && merchant.authorized_person.toLowerCase().includes(searchText)) ||
-                (merchant.authorized_email && merchant.authorized_email.toLowerCase().includes(searchText)) ||
-                (merchant.authorized_phone && merchant.authorized_phone.toLowerCase().includes(searchText)) ||
-                (merchant.operasyon_name && merchant.operasyon_name.toLowerCase().includes(searchText)) ||
-                (merchant.operasyon_email && merchant.operasyon_email.toLowerCase().includes(searchText)) ||
-                (merchant.operasyon_phone && merchant.operasyon_phone.toLowerCase().includes(searchText)) ||
-                (merchant.country_name && merchant.country_name.toLowerCase().includes(searchText)) ||
-                (merchant.region_name && merchant.region_name.toLowerCase().includes(searchText)) ||
-                (merchant.city_name && merchant.city_name.toLowerCase().includes(searchText)) ||
-                (merchant.sub_region_name && merchant.sub_region_name.toLowerCase().includes(searchText))
-            );
-        });
-        
-        // Render filtered results
-        renderTableFiltered(filtered);
-    }
-    
-    // Render table with filtered data
-    function renderTableFiltered(data) {
-        renderTable(data);
-    }
     
     // Load data
     function loadData() {

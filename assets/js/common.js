@@ -133,52 +133,8 @@
     };
     
     // ============================================
-    // SEARCH FUNCTION HELPER
+    // SEARCH FUNCTION HELPER - REMOVED
     // ============================================
-    
-    /**
-     * Setup search with debounce
-     */
-    window.setupSearch = function(options) {
-        const {
-            searchInputId = 'searchInput',
-            clearBtnId = 'clearSearch',
-            onSearch,
-            debounceMs = 300
-        } = options;
-        
-        const searchInput = document.getElementById(searchInputId);
-        const clearBtn = document.getElementById(clearBtnId);
-        
-        if (!searchInput) return;
-        
-        let searchTimeout;
-        
-        searchInput.addEventListener('input', function(e) {
-            const query = e.target.value.trim();
-            
-            if (clearBtn) {
-                clearBtn.style.display = query ? 'flex' : 'none';
-            }
-            
-            clearTimeout(searchTimeout);
-            searchTimeout = setTimeout(() => {
-                if (onSearch) {
-                    onSearch(query);
-                }
-            }, debounceMs);
-        });
-        
-        if (clearBtn) {
-            clearBtn.addEventListener('click', function() {
-                searchInput.value = '';
-                clearBtn.style.display = 'none';
-                if (onSearch) {
-                    onSearch('');
-                }
-            });
-        }
-    };
     
     // ============================================
     // FORM SUBMISSION HELPER

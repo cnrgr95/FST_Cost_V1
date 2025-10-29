@@ -40,56 +40,7 @@
     background: #2563eb;
 }
 
-.currencies-search-section {
-    margin-bottom: 20px;
-}
-
-.search-box {
-    position: relative;
-    display: flex;
-    align-items: center;
-    max-width: 500px;
-}
-
-.search-icon {
-    position: absolute;
-    left: 12px;
-    color: #9ca3af;
-    font-size: 20px;
-    pointer-events: none;
-}
-
-.search-box input {
-    width: 100%;
-    padding: 10px 40px 10px 40px;
-    border: 1px solid #d1d5db;
-    border-radius: 6px;
-    font-size: 14px;
-    transition: border-color 0.2s;
-}
-
-.search-box input:focus {
-    outline: none;
-    border-color: #3b82f6;
-}
-
-.clear-btn {
-    position: absolute;
-    right: 8px;
-    background: transparent;
-    border: none;
-    cursor: pointer;
-    padding: 4px;
-    display: flex;
-    align-items: center;
-    color: #9ca3af;
-    border-radius: 4px;
-    transition: background 0.2s;
-}
-
-.clear-btn:hover {
-    background: #f3f4f6;
-}
+/* Search Section - REMOVED */
 
 .currencies-table-section {
     overflow-x: auto;

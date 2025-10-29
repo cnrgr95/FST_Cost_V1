@@ -33,51 +33,6 @@
                 closeModal();
             }
         });
-        
-        // Setup search
-        setupSearch();
-    }
-    
-    function setupSearch() {
-        const searchInput = document.getElementById('searchInput');
-        const clearBtn = document.getElementById('clearSearch');
-        let searchTimeout;
-        
-        if (!searchInput) return;
-        
-        searchInput.addEventListener('input', function(e) {
-            const query = e.target.value.trim();
-            clearBtn.style.display = query ? 'flex' : 'none';
-            
-            clearTimeout(searchTimeout);
-            searchTimeout = setTimeout(() => {
-                filterCurrencies(query);
-            }, 300);
-        });
-        
-        clearBtn.addEventListener('click', function() {
-            searchInput.value = '';
-            clearBtn.style.display = 'none';
-            filterCurrencies('');
-        });
-    }
-    
-    function filterCurrencies(query) {
-        if (!query) {
-            renderTable();
-            return;
-        }
-        
-        const filtered = currencies.filter(item => {
-            const searchText = query.toLowerCase();
-            return (
-                (item.code && item.code.toLowerCase().includes(searchText)) ||
-                (item.name && item.name.toLowerCase().includes(searchText)) ||
-                (item.symbol && item.symbol.toLowerCase().includes(searchText))
-            );
-        });
-        
-        renderTableFiltered(filtered);
     }
     
     function loadCurrencies() {
@@ -98,10 +53,7 @@
     }
     
     function renderTable() {
-        renderTableFiltered(currencies);
-    }
-    
-    function renderTableFiltered(filteredCurrencies) {
+        const filteredCurrencies = currencies;
         const tbody = document.getElementById('currenciesTableBody');
         
         if (!filteredCurrencies || filteredCurrencies.length === 0) {

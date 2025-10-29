@@ -28,67 +28,7 @@ select.error:focus {
     margin: 0;
 }
 
-/* Search Section */
-.merchants-search-section {
-    margin-bottom: 24px;
-}
-
-.search-box {
-    position: relative;
-    max-width: 500px;
-}
-
-.search-box input[type="text"] {
-    width: 100%;
-    padding: 12px 48px 12px 48px;
-    border: 1px solid #d1d5db;
-    border-radius: 8px;
-    font-size: 14px;
-    transition: all 0.3s ease;
-}
-
-.search-box input[type="text"]:focus {
-    outline: none;
-    border-color: #151A2D;
-    box-shadow: 0 0 0 3px rgba(21, 26, 45, 0.1);
-}
-
-.search-icon {
-    position: absolute;
-    left: 16px;
-    top: 50%;
-    transform: translateY(-50%);
-    color: #9ca3af;
-    font-size: 20px;
-    pointer-events: none;
-}
-
-.clear-btn {
-    position: absolute;
-    right: 8px;
-    top: 50%;
-    transform: translateY(-50%);
-    background: #f3f4f6;
-    border: none;
-    border-radius: 50%;
-    width: 28px;
-    height: 28px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    color: #6b7280;
-    transition: all 0.2s ease;
-}
-
-.clear-btn:hover {
-    background: #e5e7eb;
-    color: #374151;
-}
-
-.clear-btn .material-symbols-rounded {
-    font-size: 16px;
-}
+/* Search Section - REMOVED */
 
 .merchants-tabs {
     display: flex;
