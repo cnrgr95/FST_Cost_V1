@@ -82,9 +82,9 @@
                     loadRegions(countryId);
                     regionSelect.disabled = false;
                 } else {
-                    regionSelect.innerHTML = `<option value="">${tUsers.select_region || 'Select Region'}</option>`;
+                    regionSelect.innerHTML = `<option value="">${tUsers.select_region}</option>`;
                     regionSelect.disabled = true;
-                    citySelect.innerHTML = `<option value="">${tUsers.select_city || 'Select City'}</option>`;
+                    citySelect.innerHTML = `<option value="">${tUsers.select_city}</option>`;
                     citySelect.disabled = true;
                 }
             });
@@ -97,7 +97,7 @@
                     loadCities(regionId);
                     citySelect.disabled = false;
                 } else {
-                    citySelect.innerHTML = `<option value="">${tUsers.select_city || 'Select City'}</option>`;
+                    citySelect.innerHTML = `<option value="">${tUsers.select_city}</option>`;
                     citySelect.disabled = true;
                 }
             });
@@ -116,7 +116,7 @@
             
             const contentType = response.headers.get('content-type');
             if (!contentType || !contentType.includes('application/json')) {
-                throw new Error(tCommon.invalid_response_format || 'Invalid response format');
+                throw new Error(tCommon.invalid_response_format);
             }
             
             const result = await response.json();
@@ -125,11 +125,11 @@
                 currentData.users = result.data || [];
                 renderTable();
             } else {
-                showError(result.message || tCommon.failed_to_load_data || 'Failed to load data');
+                showError(result.message || tCommon.failed_to_load_data);
             }
         } catch (error) {
             console.error('Error loading users:', error);
-            showError(tCommon.failed_to_load_data || 'Failed to load data');
+            showError(tCommon.failed_to_load_data);
         }
     }
     
@@ -144,7 +144,7 @@
             
             const contentType = response.headers.get('content-type');
             if (!contentType || !contentType.includes('application/json')) {
-                throw new Error(tCommon.invalid_response_format || 'Invalid response format');
+                throw new Error(tCommon.invalid_response_format);
             }
             
             const result = await response.json();
@@ -153,7 +153,7 @@
                 currentData.departments = result.data || [];
                 const select = document.querySelector('[name="department_id"]');
                 if (select) {
-                    select.innerHTML = `<option value="">${tUsers.select_department || 'Select Department'}</option>`;
+                    select.innerHTML = `<option value="">${tUsers.select_department}</option>`;
                     result.data.forEach(dept => {
                         select.innerHTML += `<option value="${dept.id}">${dept.name}${dept.city_name ? ' (' + dept.city_name + ')' : ''}</option>`;
                     });
@@ -177,7 +177,7 @@
             
             const contentType = response.headers.get('content-type');
             if (!contentType || !contentType.includes('application/json')) {
-                throw new Error(tCommon.invalid_response_format || 'Invalid response format');
+                throw new Error(tCommon.invalid_response_format);
             }
             
             const result = await response.json();
@@ -186,7 +186,7 @@
                 currentData.countries = result.data || [];
                 const select = document.getElementById('countrySelect');
                 if (select) {
-                    select.innerHTML = `<option value="">${tUsers.select_country || 'Select Country'}</option>`;
+                    select.innerHTML = `<option value="">${tUsers.select_country}</option>`;
                     result.data.forEach(country => {
                         select.innerHTML += `<option value="${country.id}">${country.name}</option>`;
                     });
@@ -204,7 +204,7 @@
         if (!countryId) {
             const select = document.getElementById('regionSelect');
             if (select) {
-                select.innerHTML = `<option value="">${tUsers.select_region || 'Select Region'}</option>`;
+                select.innerHTML = `<option value="">${tUsers.select_region}</option>`;
                 select.disabled = true;
             }
             return;
@@ -219,7 +219,7 @@
             
             const contentType = response.headers.get('content-type');
             if (!contentType || !contentType.includes('application/json')) {
-                throw new Error(tCommon.invalid_response_format || 'Invalid response format');
+                throw new Error(tCommon.invalid_response_format);
             }
             
             const result = await response.json();
@@ -228,7 +228,7 @@
                 currentData.regions = result.data;
                 const select = document.getElementById('regionSelect');
                 if (select) {
-                    select.innerHTML = `<option value="">${tUsers.select_region || 'Select Region'}</option>`;
+                    select.innerHTML = `<option value="">${tUsers.select_region}</option>`;
                     result.data.forEach(region => {
                         select.innerHTML += `<option value="${region.id}">${region.name}</option>`;
                     });
@@ -247,7 +247,7 @@
         if (!regionId) {
             const select = document.getElementById('citySelect');
             if (select) {
-                select.innerHTML = `<option value="">${tUsers.select_city || 'Select City'}</option>`;
+                select.innerHTML = `<option value="">${tUsers.select_city}</option>`;
                 select.disabled = true;
             }
             return;
@@ -262,7 +262,7 @@
             
             const contentType = response.headers.get('content-type');
             if (!contentType || !contentType.includes('application/json')) {
-                throw new Error(tCommon.invalid_response_format || 'Invalid response format');
+                throw new Error(tCommon.invalid_response_format);
             }
             
             const result = await response.json();
@@ -271,7 +271,7 @@
                 currentData.cities = result.data;
                 const select = document.getElementById('citySelect');
                 if (select) {
-                    select.innerHTML = `<option value="">${tUsers.select_city || 'Select City'}</option>`;
+                    select.innerHTML = `<option value="">${tUsers.select_city}</option>`;
                     result.data.forEach(city => {
                         select.innerHTML += `<option value="${city.id}">${city.name}</option>`;
                     });
@@ -294,7 +294,7 @@
             container.innerHTML = `
                 <div class="empty-state">
                     <span class="material-symbols-rounded">person</span>
-                    <p>${tUsers.no_users || 'No users found'}</p>
+                    <p>${tUsers.no_users}</p>
                 </div>
             `;
             return;
@@ -302,18 +302,18 @@
         
         let html = '<div class="users-table-container">';
         html += '<div class="users-table-header">';
-        html += `<div class="users-table-title">${tUsers.title || 'Users'}</div>`;
+        html += `<div class="users-table-title">${tUsers.title}</div>`;
         html += '</div>';
         html += '<div class="table-wrapper">';
         html += '<table class="table">';
         html += '<thead><tr>';
-        html += `<th>${tUsers.username || 'Username'}</th>`;
-        html += `<th>${tUsers.full_name || 'Full Name'}</th>`;
-        html += `<th>${tUsers.department || 'Department'}</th>`;
-        html += `<th>${tUsers.city || 'City'}</th>`;
-        html += `<th>${tUsers.email || 'Email'}</th>`;
-        html += `<th>${tUsers.status || 'Status'}</th>`;
-        html += `<th>${tUsers.actions || 'Actions'}</th>`;
+        html += `<th>${tUsers.username}</th>`;
+        html += `<th>${tUsers.full_name}</th>`;
+        html += `<th>${tUsers.department}</th>`;
+        html += `<th>${tUsers.city}</th>`;
+        html += `<th>${tUsers.email}</th>`;
+        html += `<th>${tUsers.status}</th>`;
+        html += `<th>${tUsers.actions}</th>`;
         html += '</tr></thead>';
         
         html += '<tbody>';
@@ -325,7 +325,7 @@
                     <td>${escapeHtml(item.department_name || '-')}</td>
                     <td>${escapeHtml(item.city_name || '-')}</td>
                     <td>${escapeHtml(item.email || '-')}</td>
-                    <td><span class="status-badge ${item.status === 'active' ? 'active' : 'inactive'}">${item.status === 'active' ? (tUsers.active || 'Active') : (tUsers.inactive || 'Inactive')}</span></td>
+                    <td><span class="status-badge ${item.status === 'active' ? 'active' : 'inactive'}">${item.status === 'active' ? tUsers.active : tUsers.inactive}</span></td>
                     <td>
                         <div class="table-actions">
                             <button class="btn-action btn-edit" data-item-id="${item.id}">
@@ -379,14 +379,14 @@
         container.innerHTML = `
             <div class="loading">
                 <span class="material-symbols-rounded">sync</span>
-                <p>${tCommon.loading || 'Loading...'}</p>
+                <p>${tCommon.loading}</p>
             </div>
         `;
     }
     
     // Show error
     function showError(message) {
-        showToast('error', message || tCommon.error || 'Error');
+        showToast('error', message || tCommon.error);
     }
     
     // Clear form errors
@@ -440,7 +440,7 @@
         if (modal && form && title) {
             form.reset();
             delete form.dataset.id;
-            title.textContent = tUsers.add_user || 'Add User';
+            title.textContent = tUsers.add_user;
             clearFormErrors(form);
             modal.classList.add('active');
         }
@@ -487,7 +487,7 @@
         modal.classList.add('active');
         
         form.dataset.id = id;
-        title.textContent = tUsers.edit_user || 'Edit User';
+        title.textContent = tUsers.edit_user;
         
         // Fill form
         form.querySelector('[name="username"]').value = item.username || '';
@@ -515,12 +515,12 @@
         const citySelect = document.getElementById('citySelect');
         
         if (regionSelect) {
-            regionSelect.innerHTML = `<option value="">${tUsers.select_region || 'Select Region'}</option>`;
+            regionSelect.innerHTML = `<option value="">${tUsers.select_region}</option>`;
             regionSelect.disabled = true;
         }
         
         if (citySelect) {
-            citySelect.innerHTML = `<option value="">${tUsers.select_city || 'Select City'}</option>`;
+            citySelect.innerHTML = `<option value="">${tUsers.select_city}</option>`;
             citySelect.disabled = true;
         }
         
@@ -546,7 +546,7 @@
                         
                         if (regionsResult.success && regionsResult.data) {
                             if (regionSelect) {
-                                regionSelect.innerHTML = `<option value="">${tUsers.select_region || 'Select Region'}</option>`;
+                                regionSelect.innerHTML = `<option value="">${tUsers.select_region}</option>`;
                                 regionsResult.data.forEach(region => {
                                     regionSelect.innerHTML += `<option value="${region.id}" ${region.id == city.region_id ? 'selected' : ''}>${region.name}</option>`;
                                 });
@@ -688,7 +688,7 @@
             const result = await response.json();
             
             if (result.success) {
-                showToast('success', tUsers.user_added || 'User added successfully');
+                showToast('success', tUsers.user_added);
                 closeModal();
                 await loadData();
             } else {
@@ -716,11 +716,11 @@
                 }
                 
                 // Show toast notification
-                showToast('error', result.message || tCommon.save_failed || 'Failed to create user');
+                showToast('error', result.message || tCommon.save_failed);
             }
         } catch (error) {
             console.error('Error creating user:', error);
-            showToast('error', tCommon.save_failed || 'Failed to create user');
+            showToast('error', tCommon.save_failed);
         }
     }
     
@@ -741,7 +741,7 @@
             const result = await response.json();
             
             if (result.success) {
-                showToast('success', tUsers.user_updated || 'User updated successfully');
+                showToast('success', tUsers.user_updated);
                 closeModal();
                 await loadData();
             } else {
@@ -769,11 +769,11 @@
                 }
                 
                 // Show toast notification
-                showToast('error', result.message || tCommon.update_failed || 'Failed to update user');
+                showToast('error', result.message || tCommon.update_failed);
             }
         } catch (error) {
             console.error('Error updating user:', error);
-            showToast('error', tCommon.update_failed || 'Failed to update user');
+            showToast('error', tCommon.update_failed);
         }
     }
     
