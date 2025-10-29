@@ -196,14 +196,8 @@
                 tourRegionsHtml = regionNames.length > 0 ? regionNames.join(', ') : '-';
             }
             
-            // Create link to contract-routes page if vehicle_contract_id exists
+            // Contract routes link removed (contract-routes.php no longer exists)
             let contractLink = '';
-            if (item.vehicle_contract_id) {
-                const contractRouteUrl = `../../app/definitions/contract-routes.php?id=${item.vehicle_contract_id}`;
-                contractLink = `<a href="${contractRouteUrl}" class="btn-action btn-link" title="${tVehicles.view_routes || 'View Routes'}" style="background: #3b82f6; color: white;">
-                    <span class="material-symbols-rounded">route</span>
-                </a>`;
-            }
             
             html += `
                 <tr>

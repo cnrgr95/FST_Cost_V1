@@ -37,13 +37,10 @@ $t_sidebar = $all_translations['sidebar'] ?? [];
 // Detect current page
 $currentPage = basename($_SERVER['PHP_SELF']);
 $currentDir = dirname($_SERVER['PHP_SELF']);
-$isDefinitionsPage = strpos($currentDir, 'definitions') !== false || ($currentPage === 'contract-routes.php');
+$isDefinitionsPage = strpos($currentDir, 'definitions') !== false;
 
 // Get any ID from URL
 $currentId = $_GET['id'] ?? $_GET['contract_id'] ?? $_GET['user_id'] ?? null;
-
-// Check if we're on contract-routes page (linked to vehicles)
-$isContractRoutesPage = ($currentPage === 'contract-routes.php');
 
 // Helper function to check if page is active
 function isActivePage($page, $isSubPage = false) {
@@ -58,10 +55,10 @@ function isActivePage($page, $isSubPage = false) {
     return $pageBasename === $currentPage;
 }
 
-// Helper function to check if vehicles or contract-routes is active
-function isVehiclesOrContractRoutesActive() {
+// Helper function to check if vehicles is active
+function isVehiclesActive() {
     global $currentPage;
-    return ($currentPage === 'vehicles.php' || $currentPage === 'contract-routes.php');
+    return ($currentPage === 'vehicles.php');
 }
 
 // Helper function to check if item should be marked active
@@ -128,17 +125,6 @@ function isActiveMenuItem($pages = [], $requireExact = false) {
         </ul>
       </li>
 
-      <!-- Contract -->
-      <li class="nav-item <?php echo isActivePage('contracts.php') ? 'active' : ''; ?>">
-        <a href="<?php echo $basePath; ?>app/contracts.php" class="nav-link" data-tooltip="<?php echo $t_sidebar['contract'] ?? 'Contract'; ?>">
-          <span class="material-symbols-rounded">description</span>
-          <span class="nav-label"><?php echo $t_sidebar['contract'] ?? 'Contract'; ?></span>
-        </a>
-        <ul class="dropdown-menu">
-          <li class="nav-item"><a class="nav-link dropdown-title"><?php echo $t_sidebar['contract'] ?? 'Contract'; ?></a></li>
-        </ul>
-      </li>
-
       <!-- Tour List -->
       <li class="nav-item">
         <a href="#" class="nav-link" data-tooltip="<?php echo $t_sidebar['tour_list'] ?? 'Tour List'; ?>">
@@ -178,7 +164,7 @@ function isActiveMenuItem($pages = [], $requireExact = false) {
           <li class="nav-item <?php echo isActivePage('locations.php', true) ? 'active' : ''; ?>"><a href="<?php echo $basePath; ?>app/definitions/locations.php" class="nav-link dropdown-link"><?php echo $t_sidebar['locations'] ?? 'Locations'; ?></a></li>
           <li class="nav-item <?php echo isActivePage('positions.php', true) ? 'active' : ''; ?>"><a href="<?php echo $basePath; ?>app/definitions/positions.php" class="nav-link dropdown-link"><?php echo $t_sidebar['positions'] ?? 'Positions'; ?></a></li>
           <li class="nav-item <?php echo isActivePage('merchants.php', true) ? 'active' : ''; ?>"><a href="<?php echo $basePath; ?>app/definitions/merchants.php" class="nav-link dropdown-link"><?php echo $t_sidebar['merchants'] ?? 'Merchants'; ?></a></li>
-          <li class="nav-item <?php echo isVehiclesOrContractRoutesActive() ? 'active' : ''; ?>"><a href="<?php echo $basePath; ?>app/definitions/vehicles.php" class="nav-link dropdown-link"><?php echo $t_sidebar['vehicles'] ?? 'Vehicles'; ?></a></li>
+          <li class="nav-item <?php echo isVehiclesActive() ? 'active' : ''; ?>"><a href="<?php echo $basePath; ?>app/definitions/vehicles.php" class="nav-link dropdown-link"><?php echo $t_sidebar['vehicles'] ?? 'Vehicles'; ?></a></li>
         </ul>
       </li>
 

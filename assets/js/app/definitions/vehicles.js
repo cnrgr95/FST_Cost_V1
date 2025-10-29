@@ -700,9 +700,9 @@
         }
     }
     
-    // Navigate to contract routes page
+    // Navigate to contract routes page (removed - contract-routes.php no longer exists)
     window.editContractRoutes = function(contractId) {
-        window.location.href = BASE_PATH + 'app/definitions/contract-routes.php?id=' + contractId;
+        showToast('info', 'Contract routes functionality has been removed');
     };
     
     // Create operations

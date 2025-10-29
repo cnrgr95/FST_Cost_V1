@@ -227,24 +227,7 @@ function updateCurrency($conn, $data) {
 function deleteCurrency($conn, $id) {
     $id = (int)$id;
     
-    // Check if currency is used in contracts
-    $checkQuery = "SELECT COUNT(*) as count FROM contracts 
-                   WHERE adult_currency = (SELECT code FROM currencies WHERE id = $id)
-                   OR child_currency = (SELECT code FROM currencies WHERE id = $id)
-                   OR infant_currency = (SELECT code FROM currencies WHERE id = $id)";
-    $checkResult = pg_query($conn, $checkQuery);
-    
-    if (!$checkResult) {
-        echo json_encode(['success' => false, 'message' => getDbErrorMessage($conn)]);
-        return;
-    }
-    
-    $row = pg_fetch_assoc($checkResult);
-    
-    if ($row && $row['count'] > 0) {
-        echo json_encode(['success' => false, 'message' => 'Currency is being used in contracts and cannot be deleted']);
-        return;
-    }
+    // Note: contracts table check removed as contracts module has been removed
     
     $query = "DELETE FROM currencies WHERE id = $id";
     $result = pg_query($conn, $query);
