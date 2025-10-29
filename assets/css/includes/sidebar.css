@@ -456,13 +456,14 @@ html {
   top: 0;
   left: 100%;
   opacity: 0;
+  visibility: hidden;
   height: auto !important;
   padding: 6px 0 !important;
   overflow-y: unset;
   pointer-events: none;
   border-radius: 0 8px 8px 0;
   background: var(--primary-color);
-  transition: opacity 0.15s ease;
+  transition: opacity 0.15s ease, visibility 0.15s ease;
   z-index: 1001;
   box-shadow: 4px 0 20px rgba(0, 0, 0, 0.3);
   min-width: 200px;
@@ -478,7 +479,20 @@ html {
 .sidebar.collapsed .dropdown-menu:hover,
 .sidebar.collapsed .nav-item:hover > .dropdown-menu {
   opacity: 1 !important;
+  visibility: visible !important;
   pointer-events: auto !important;
+  transition: opacity 0.15s ease, visibility 0.15s ease !important;
+}
+
+/* Hide dropdowns immediately when sidebar is collapsing */
+.sidebar.collapsing .dropdown-menu,
+.sidebar.collapsing .dropdown-container:hover > .dropdown-menu,
+.sidebar.collapsing .dropdown-menu:hover,
+.sidebar.collapsing .dropdown-container.open .dropdown-menu {
+  opacity: 0 !important;
+  visibility: hidden !important;
+  pointer-events: none !important;
+  transition: opacity 0s ease, visibility 0s ease !important;
 }
 
 

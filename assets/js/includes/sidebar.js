@@ -144,12 +144,38 @@
         // Desktop: toggle collapsed and save state
         // DO NOT close dropdowns when toggling sidebar - preserve open state
         const wasCollapsed = sidebar.classList.contains("collapsed");
-        sidebar.classList.toggle("collapsed");
+        
+        // Add collapsing class and hide dropdowns before toggling to prevent flash
+        if (!wasCollapsed) {
+          sidebar.classList.add('collapsing');
+          
+          // Immediately hide all dropdowns synchronously before transition starts
+          document.querySelectorAll(".dropdown-container.open").forEach((dropdown) => {
+            const menu = dropdown.querySelector(".dropdown-menu");
+            if (menu) {
+              menu.style.opacity = '0';
+              menu.style.visibility = 'hidden';
+              menu.style.pointerEvents = 'none';
+              menu.style.transition = 'opacity 0s ease, visibility 0s ease';
+            }
+          });
+          
+          // Force a reflow to ensure styles are applied
+          void sidebar.offsetHeight;
+          
+          // Now toggle collapsed class
+          sidebar.classList.toggle("collapsed");
+        } else {
+          sidebar.classList.toggle("collapsed");
+        }
+        
         const isNowCollapsed = sidebar.classList.contains("collapsed");
         saveSidebarState(isNowCollapsed);
         
         // When expanding from collapsed to expanded, restore dropdown heights and positions
         if (wasCollapsed && !isNowCollapsed) {
+          // Remove collapsing class when expanding
+          sidebar.classList.remove('collapsing');
           // Sidebar just expanded - restore any open dropdowns
           // Remove collapsed-specific inline styles immediately
           document.querySelectorAll(".dropdown-container.open").forEach((dropdown) => {
@@ -177,17 +203,29 @@
             restoreDropdownHeights();
           }, 450);
         } else if (!wasCollapsed && isNowCollapsed) {
-          // Sidebar just collapsed - preserve open state but let CSS handle styling
-          // Clear any inline height styles that might interfere with collapsed CSS
-          requestAnimationFrame(() => {
+          // Sidebar just collapsed - dropdowns already hidden above
+          // Clear inline height to let CSS handle collapsed positioning
+          document.querySelectorAll(".dropdown-container.open").forEach((dropdown) => {
+            const menu = dropdown.querySelector(".dropdown-menu");
+            if (menu) {
+              menu.style.removeProperty('height');
+            }
+          });
+          
+          // Remove collapsing class and clear inline styles after sidebar transition completes
+          setTimeout(() => {
+            sidebar.classList.remove('collapsing');
+            // Clear inline styles to allow CSS to handle hover states
             document.querySelectorAll(".dropdown-container.open").forEach((dropdown) => {
               const menu = dropdown.querySelector(".dropdown-menu");
               if (menu) {
-                // Clear inline height to let CSS handle collapsed positioning
-                menu.style.removeProperty('height');
+                menu.style.removeProperty('opacity');
+                menu.style.removeProperty('visibility');
+                menu.style.removeProperty('pointer-events');
+                menu.style.removeProperty('transition');
               }
             });
-          });
+          }, 450);
         }
       }
     });
