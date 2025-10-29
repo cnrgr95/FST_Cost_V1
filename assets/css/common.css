@@ -4,11 +4,12 @@
   --sidebar-collapsed-width: 70px;
 }
 
-/* Main Content Layout */
+/* Main Content Layout - Responsive to Sidebar Width */
 .main-content {
   margin-left: var(--sidebar-width);
   transition: margin-left 0.4s ease, width 0.4s ease;
   width: calc(100% - var(--sidebar-width));
+  min-width: 0; /* Allow content to shrink */
 }
 
 .sidebar.collapsed ~ .main-content {

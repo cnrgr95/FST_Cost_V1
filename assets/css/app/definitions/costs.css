@@ -10,8 +10,7 @@ select.error:focus {
     outline: 2px solid #dc3545 !important;
 }
 .costs-container {
-    max-width: 1400px;
-    margin: 0 auto;
+    width: 100%;
 }
 
 .costs-header {

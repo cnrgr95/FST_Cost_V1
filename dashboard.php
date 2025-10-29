@@ -192,22 +192,6 @@ $t_dashboard = $all_translations['dashboard'] ?? [];
         
         /* Responsive */
         @media (max-width: 768px) {
-            .main-content {
-                margin-left: 0 !important;
-            }
-            
-            .sidebar.collapsed ~ .main-content {
-                margin-left: 0 !important;
-            }
-            
-            .sidebar.active ~ .main-content {
-                margin-left: 0 !important;
-            }
-            
-            .content-wrapper {
-                padding: 20px;
-            }
-            
             .stats-grid {
                 grid-template-columns: 1fr;
             }

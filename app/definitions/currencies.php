@@ -137,39 +137,7 @@ $t_currencies = $all_translations['currencies'] ?? [];
     </div>
     
     <style>
-        /* Main Content Styles */
-        .main-content {
-            margin-left: var(--sidebar-width);
-            transition: margin-left 0.4s ease;
-        }
-        
-        .sidebar.collapsed ~ .main-content {
-            margin-left: var(--sidebar-collapsed-width);
-        }
-        
-        .content-wrapper {
-            margin-top: 70px;
-            padding: 30px;
-        }
-        
-        /* Responsive */
-        @media (max-width: 768px) {
-            .main-content {
-                margin-left: 0 !important;
-            }
-            
-            .sidebar.collapsed ~ .main-content {
-                margin-left: 0 !important;
-            }
-            
-            .sidebar.active ~ .main-content {
-                margin-left: 0 !important;
-            }
-            
-            .content-wrapper {
-                padding: 20px;
-            }
-        }
+        /* Page-specific styles */
     </style>
     
     <!-- Toast Notification Container -->

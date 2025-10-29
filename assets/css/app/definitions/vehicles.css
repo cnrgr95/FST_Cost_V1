@@ -10,8 +10,7 @@ select.error:focus {
     outline: 2px solid #dc3545 !important;
 }
 .vehicles-container {
-    max-width: 1400px;
-    margin: 0 auto;
+    width: 100%;
 }
 
 .vehicles-header {
