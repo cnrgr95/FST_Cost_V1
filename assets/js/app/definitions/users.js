@@ -116,7 +116,7 @@
             
             const contentType = response.headers.get('content-type');
             if (!contentType || !contentType.includes('application/json')) {
-                throw new Error('Invalid response format');
+                throw new Error(tCommon.invalid_response_format || 'Invalid response format');
             }
             
             const result = await response.json();
@@ -144,7 +144,7 @@
             
             const contentType = response.headers.get('content-type');
             if (!contentType || !contentType.includes('application/json')) {
-                throw new Error('Invalid response format');
+                throw new Error(tCommon.invalid_response_format || 'Invalid response format');
             }
             
             const result = await response.json();
@@ -177,7 +177,7 @@
             
             const contentType = response.headers.get('content-type');
             if (!contentType || !contentType.includes('application/json')) {
-                throw new Error('Invalid response format');
+                throw new Error(tCommon.invalid_response_format || 'Invalid response format');
             }
             
             const result = await response.json();
@@ -219,7 +219,7 @@
             
             const contentType = response.headers.get('content-type');
             if (!contentType || !contentType.includes('application/json')) {
-                throw new Error('Invalid response format');
+                throw new Error(tCommon.invalid_response_format || 'Invalid response format');
             }
             
             const result = await response.json();
@@ -262,7 +262,7 @@
             
             const contentType = response.headers.get('content-type');
             if (!contentType || !contentType.includes('application/json')) {
-                throw new Error('Invalid response format');
+                throw new Error(tCommon.invalid_response_format || 'Invalid response format');
             }
             
             const result = await response.json();
@@ -467,7 +467,7 @@
     async function editUser(id) {
         const item = currentData.users.find(u => u.id == id);
         if (!item) {
-            showError('User not found');
+            showError(tUsers.user_not_found);
             return;
         }
         
@@ -476,7 +476,7 @@
         const title = document.getElementById('userModalTitle');
         
         if (!modal || !form || !title) {
-            console.error('Modal, form or title not found');
+            console.error(tCommon.modal_form_not_found || tCommon.error);
             return;
         }
         
@@ -503,7 +503,7 @@
             if (id === currentUserId) {
                 // User cannot change their own status
                 statusSelect.disabled = true;
-                statusSelect.title = tUsers.cannot_change_own_status || 'You cannot change your own status';
+                statusSelect.title = tUsers.cannot_change_own_status;
             } else {
                 statusSelect.disabled = false;
                 statusSelect.removeAttribute('title');
@@ -575,24 +575,26 @@
     async function toggleUserStatus(id, newStatus) {
         // Prevent users from deactivating themselves
         if (id === currentUserId) {
-            showToast('error', tUsers.cannot_deactivate_self || 'You cannot change your own status');
+            showToast('error', tUsers.cannot_deactivate_self);
             return;
         }
         
-        const statusText = newStatus === 'active' ? 'activate' : 'deactivate';
-        const confirmMessage = `Are you sure you want to ${statusText} this user?`;
+        const statusText = newStatus === 'active' ? tUsers.activate_user : tUsers.deactivate_user;
+        const confirmMessage = newStatus === 'active' 
+            ? tUsers.activate_user_confirm
+            : tUsers.deactivate_user_confirm;
         
         showConfirmDialog(confirmMessage, async () => {
             try {
                 const user = currentData.users.find(u => u.id == id);
                 if (!user) {
-                    showError('User not found');
+                    showError(tUsers.user_not_found);
                     return;
                 }
                 
                 // Double-check: prevent self-deactivation
                 if (id === currentUserId) {
-                    showToast('error', tUsers.cannot_deactivate_self || 'You cannot change your own status');
+                    showToast('error', tUsers.cannot_deactivate_self);
                     return;
                 }
                 
@@ -615,14 +617,23 @@
                 const result = await response.json();
                 
                 if (result.success) {
-                    showToast('success', tUsers.user_status_updated || `User ${statusText}d successfully`);
+                    const successMessage = newStatus === 'active' 
+                        ? tUsers.user_activated
+                        : tUsers.user_deactivated;
+                    showToast('success', successMessage);
                     await loadData();
                 } else {
-                    showToast('error', result.message || `Failed to ${statusText} user`);
+                    const errorMessage = newStatus === 'active'
+                        ? (result.message || tUsers.failed_to_activate_user)
+                        : (result.message || tUsers.failed_to_deactivate_user);
+                    showToast('error', errorMessage);
                 }
             } catch (error) {
                 console.error(`Error ${statusText} user:`, error);
-                showToast('error', `Failed to ${statusText} user`);
+                const errorMessage = newStatus === 'active'
+                    ? tUsers.failed_to_activate_user
+                    : tUsers.failed_to_deactivate_user;
+                showToast('error', errorMessage);
             }
         });
     }
@@ -655,7 +666,7 @@
                     // Keep status as active for self
                     data.status = 'active';
                 } else if (data.status !== 'active') {
-                    showToast('error', tUsers.cannot_deactivate_self || 'You cannot change your own status');
+                    showToast('error', tUsers.cannot_deactivate_self);
                     return;
                 }
             }
@@ -718,7 +729,7 @@
         try {
             // Prevent users from changing their own status
             if (data.id === currentUserId && data.status && data.status !== 'active') {
-                showToast('error', tUsers.cannot_deactivate_self || 'You cannot change your own status');
+                showToast('error', tUsers.cannot_deactivate_self);
                 return;
             }
             

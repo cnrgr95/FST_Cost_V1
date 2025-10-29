@@ -79,7 +79,7 @@
             }
         } catch (error) {
             console.error('Error fetching languages:', error);
-            showToast('error', 'Failed to load languages');
+            showToast('error', tLangMgmt.failed_to_load || 'Failed to load languages');
         }
     }
     
@@ -136,7 +136,7 @@
             }
         } catch (error) {
             console.error('Error loading translation:', error);
-            showToast('error', 'Failed to load translations');
+            showToast('error', tLangMgmt.failed_to_load || 'Failed to load translations');
         }
     }
     
@@ -228,7 +228,7 @@
             }
         } catch (error) {
             console.error('Error saving translations:', error);
-            showToast('error', 'Failed to save translations');
+            showToast('error', tLangMgmt.failed_to_save_translations || 'Failed to save translations');
         }
     };
     
@@ -271,7 +271,7 @@
             }
         } catch (error) {
             console.error('Error creating language:', error);
-            showToast('error', 'Failed to create language');
+            showToast('error', tLangMgmt.failed_to_create || 'Failed to create language');
         }
     }
     
@@ -332,7 +332,7 @@
             }
         } catch (error) {
             console.error('Error updating language name:', error);
-            showToast('error', 'Failed to update language name');
+            showToast('error', tLangMgmt.failed_to_update || 'Failed to update language name');
         }
     }
     
@@ -367,7 +367,7 @@
                 }
             } catch (error) {
                 console.error('Error deleting language:', error);
-                showToast('error', 'Failed to delete language');
+                showToast('error', tLangMgmt.failed_to_delete || 'Failed to delete language');
             }
         });
     };

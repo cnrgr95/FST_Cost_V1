@@ -60,12 +60,12 @@
                     currencies = data.data;
                     renderTable();
                 } else {
-                    showToast(data.message || 'Error loading currencies', 'error');
+                    showToast('error', data.message || tCurrencies.error_loading_currencies || 'Error loading currencies');
                 }
             })
             .catch(error => {
                 console.error('Error loading currencies:', error);
-                showToast('Error loading currencies', 'error');
+                showToast('error', tCurrencies.error_loading_currencies || 'Error loading currencies');
             });
     }
     
@@ -171,12 +171,12 @@
                 closeModal();
                 loadCurrencies();
             } else {
-                showToast(result.message || 'Error saving currency', 'error');
+                showToast('error', result.message || tCurrencies.error_saving_currency || 'Error saving currency');
             }
         })
         .catch(error => {
             console.error('Error saving currency:', error);
-            showToast('Error saving currency', 'error');
+            showToast('error', tCurrencies.error_saving_currency || 'Error saving currency');
         });
     }
     
@@ -199,12 +199,12 @@
                 showToast(tCurrencies.currency_deleted || 'Currency deleted successfully', 'success');
                 loadCurrencies();
             } else {
-                showToast(result.message || 'Error deleting currency', 'error');
+                showToast('error', result.message || tCurrencies.error_deleting_currency || 'Error deleting currency');
             }
         })
         .catch(error => {
             console.error('Error deleting currency:', error);
-            showToast('Error deleting currency', 'error');
+            showToast('error', tCurrencies.error_deleting_currency || 'Error deleting currency');
         });
     };
     

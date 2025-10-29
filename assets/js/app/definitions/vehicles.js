@@ -422,7 +422,7 @@
         
         const item = (currentData[type] || []).find(item => item.id == id);
         if (!item) {
-            console.error('Item not found:', type, id);
+            console.error((tCommon.item_not_found || 'Item not found') + ':', type, id);
             return;
         }
         

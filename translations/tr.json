@@ -435,7 +435,10 @@
         "failed_to_create": "Dil oluşturulamadı",
         "failed_to_update": "Dil adı güncellenemedi",
         "failed_to_delete": "Dil silinemedi",
-        "failed_to_save_translations": "Çeviriler kaydedilemedi"
+        "failed_to_save_translations": "Çeviriler kaydedilemedi",
+        "invalid_response_format": "Geçersiz yanıt formatı",
+        "modal_form_not_found": "Modal, form veya başlık bulunamadı",
+        "item_not_found": "Öğe bulunamadı"
     },
     "users": {
         "title": "Kullanıcı Yönetimi",
@@ -467,7 +470,16 @@
         "email_ldap": "LDAP e-posta - değiştirilemez",
         "cannot_deactivate_self": "Kendi durumunuzu değiştiremezsiniz",
         "cannot_change_own_status": "Kendi durumunuzu değiştiremezsiniz",
-        "user_status_updated": "Kullanıcı durumu başarıyla güncellendi"
+        "user_status_updated": "Kullanıcı durumu başarıyla güncellendi",
+        "user_not_found": "Kullanıcı bulunamadı",
+        "activate_user_confirm": "Bu kullanıcıyı aktive etmek istediğinizden emin misiniz?",
+        "deactivate_user_confirm": "Bu kullanıcıyı pasif yapmak istediğinizden emin misiniz?",
+        "activate_user": "aktive et",
+        "deactivate_user": "pasif yap",
+        "user_activated": "Kullanıcı başarıyla aktive edildi",
+        "user_deactivated": "Kullanıcı başarıyla pasif yapıldı",
+        "failed_to_activate_user": "Kullanıcı aktive edilemedi",
+        "failed_to_deactivate_user": "Kullanıcı pasif yapılamadı"
     },
     "app": {
         "name": "FST Maliyet Yönetimi"

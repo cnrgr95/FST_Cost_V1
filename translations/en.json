@@ -434,7 +434,10 @@
         "failed_to_create": "Failed to create language",
         "failed_to_update": "Failed to update language name",
         "failed_to_delete": "Failed to delete language",
-        "failed_to_save_translations": "Failed to save translations"
+        "failed_to_save_translations": "Failed to save translations",
+        "invalid_response_format": "Invalid response format",
+        "modal_form_not_found": "Modal, form or title not found",
+        "item_not_found": "Item not found"
     },
     "users": {
         "title": "User Management",
@@ -466,7 +469,16 @@
         "email_ldap": "LDAP email - cannot be changed",
         "cannot_deactivate_self": "You cannot change your own status",
         "cannot_change_own_status": "You cannot change your own status",
-        "user_status_updated": "User status updated successfully"
+        "user_status_updated": "User status updated successfully",
+        "user_not_found": "User not found",
+        "activate_user_confirm": "Are you sure you want to activate this user?",
+        "deactivate_user_confirm": "Are you sure you want to deactivate this user?",
+        "activate_user": "activate",
+        "deactivate_user": "deactivate",
+        "user_activated": "User activated successfully",
+        "user_deactivated": "User deactivated successfully",
+        "failed_to_activate_user": "Failed to activate user",
+        "failed_to_deactivate_user": "Failed to deactivate user"
     },
     "currencies": {
         "title": "Currency Management",
@@ -486,7 +498,10 @@
         "search_placeholder": "Search by code, name, symbol...",
         "currency_added": "Currency added successfully",
         "currency_updated": "Currency updated successfully",
-        "currency_deleted": "Currency deleted successfully"
+        "currency_deleted": "Currency deleted successfully",
+        "error_loading_currencies": "Error loading currencies",
+        "error_saving_currency": "Error saving currency",
+        "error_deleting_currency": "Error deleting currency"
     },
     "app": {
         "name": "FST Cost Management"
