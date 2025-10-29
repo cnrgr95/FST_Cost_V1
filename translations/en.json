@@ -463,7 +463,10 @@
         "search_placeholder": "Search by username, name, department...",
         "username_ldap": "LDAP username - cannot be changed",
         "full_name_ldap": "LDAP full name - cannot be changed",
-        "email_ldap": "LDAP email - cannot be changed"
+        "email_ldap": "LDAP email - cannot be changed",
+        "cannot_deactivate_self": "You cannot change your own status",
+        "cannot_change_own_status": "You cannot change your own status",
+        "user_status_updated": "User status updated successfully"
     },
     "currencies": {
         "title": "Currency Management",

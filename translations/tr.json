@@ -464,7 +464,10 @@
         "search_placeholder": "Kullanıcı adı, isim, departman ara...",
         "username_ldap": "LDAP kullanıcı adı - değiştirilemez",
         "full_name_ldap": "LDAP adı soyadı - değiştirilemez",
-        "email_ldap": "LDAP e-posta - değiştirilemez"
+        "email_ldap": "LDAP e-posta - değiştirilemez",
+        "cannot_deactivate_self": "Kendi durumunuzu değiştiremezsiniz",
+        "cannot_change_own_status": "Kendi durumunuzu değiştiremezsiniz",
+        "user_status_updated": "Kullanıcı durumu başarıyla güncellendi"
     },
     "app": {
         "name": "FST Maliyet Yönetimi"

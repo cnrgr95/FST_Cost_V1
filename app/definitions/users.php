@@ -148,186 +148,20 @@ $t_users = $all_translations['users'] ?? [];
         </div>
     </div>
     
-    <style>
-        /* Page-specific styles */
-        .users-container {
-            background: white;
-            border-radius: 12px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
-            overflow: hidden;
-        }
-        
-        .users-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 20px 30px;
-            border-bottom: 1px solid #e5e7eb;
-        }
-        
-        .users-header h1 {
-            font-size: 24px;
-            font-weight: 600;
-            color: #1f2937;
-        }
-        
-        .users-search-section {
-            padding: 20px 30px;
-            border-bottom: 1px solid #e5e7eb;
-        }
-        
-        .users-content {
-            padding: 20px 30px;
-        }
-        
-        /* Modal Styles */
-        .modal {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.5);
-            z-index: 1000;
-            align-items: center;
-            justify-content: center;
-        }
-        
-        .modal.active {
-            display: flex;
-        }
-        
-        .modal-content {
-            background: white;
-            border-radius: 12px;
-            width: 90%;
-            max-width: 600px;
-            max-height: 90vh;
-            overflow-y: auto;
-            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
-        }
-        
-        .modal-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 20px 30px;
-            border-bottom: 1px solid #e5e7eb;
-        }
-        
-        .modal-header h2 {
-            font-size: 20px;
-            font-weight: 600;
-            color: #1f2937;
-            margin: 0;
-        }
-        
-        .btn-close {
-            background: none;
-            border: none;
-            cursor: pointer;
-            color: #6b7280;
-            padding: 4px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-        
-        .btn-close:hover {
-            color: #374151;
-        }
-        
-        form {
-            padding: 30px;
-        }
-        
-        .form-group {
-            margin-bottom: 20px;
-        }
-        
-        .form-group label {
-            display: block;
-            margin-bottom: 8px;
-            font-weight: 500;
-            color: #374151;
-        }
-        
-        .form-group input,
-        .form-group select {
-            width: 100%;
-            padding: 10px 12px;
-            border: 1px solid #d1d5db;
-            border-radius: 6px;
-            font-size: 14px;
-        }
-        
-        .form-group input:focus,
-        .form-group select:focus {
-            outline: none;
-            border-color: #151A2D;
-        }
-        
-        .form-group small {
-            display: block;
-            margin-top: 4px;
-            font-size: 12px;
-        }
-        
-        .modal-footer {
-            display: flex;
-            justify-content: flex-end;
-            gap: 12px;
-            padding: 20px 30px;
-            border-top: 1px solid #e5e7eb;
-        }
-        
-        .btn-secondary,
-        .btn-primary {
-            padding: 10px 20px;
-            border: none;
-            border-radius: 6px;
-            font-size: 14px;
-            font-weight: 500;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-        
-        .btn-secondary {
-            background: #f3f4f6;
-            color: #374151;
-        }
-        
-        .btn-secondary:hover {
-            background: #e5e7eb;
-        }
-        
-        .btn-primary {
-            background: #151A2D;
-            color: white;
-        }
-        
-        .btn-primary:hover {
-            background: #0f1119;
-        }
-        
-        /* Responsive */
-        @media (max-width: 768px) {
-            .modal-content {
-                width: 95%;
-            }
-        }
-    </style>
-    
-    <!-- Define API base path and translations for JavaScript -->
-    <script>
-        const BASE_PATH = '<?php echo $basePath; ?>';
-        window.API_BASE = BASE_PATH + 'api/definitions/users.php';
-        window.Translations = {
-            users: <?php echo json_encode($t_users); ?>,
-            common: <?php echo json_encode($t_common); ?>,
-            sidebar: <?php echo json_encode($t_sidebar); ?>
-        };
+    <!-- Page configuration for JavaScript -->
+    <script type="application/json" id="page-config">
+    <?php
+    echo json_encode([
+        'basePath' => $basePath,
+        'apiBase' => $basePath . 'api/definitions/users.php',
+        'currentUserId' => $_SESSION['user_id'] ?? null,
+        'translations' => [
+            'users' => $t_users,
+            'common' => $t_common,
+            'sidebar' => $t_sidebar
+        ]
+    ], JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_PRETTY_PRINT);
+    ?>
     </script>
     
     <!-- Toast Notification Container -->

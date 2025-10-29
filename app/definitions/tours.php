@@ -160,20 +160,20 @@ $t_vehicles = $all_translations['vehicles'] ?? [];
         </div>
     </div>
     
-    <style>
-        /* Page-specific styles */
-    </style>
-    
-    <!-- Define API base path and translations for JavaScript -->
-    <script>
-        const BASE_PATH = '<?php echo $basePath; ?>';
-        window.API_BASE = BASE_PATH + 'api/definitions/tours.php';
-        window.Translations = {
-            tours: <?php echo json_encode($t_tours); ?>,
-            common: <?php echo json_encode($t_common); ?>,
-            sidebar: <?php echo json_encode($t_sidebar); ?>,
-            vehicles: <?php echo json_encode($t_vehicles); ?>
-        };
+    <!-- Page configuration for JavaScript -->
+    <script type="application/json" id="page-config">
+    <?php
+    echo json_encode([
+        'basePath' => $basePath,
+        'apiBase' => $basePath . 'api/definitions/tours.php',
+        'translations' => [
+            'tours' => $t_tours,
+            'common' => $t_common,
+            'sidebar' => $t_sidebar,
+            'vehicles' => $t_vehicles
+        ]
+    ], JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_PRETTY_PRINT);
+    ?>
     </script>
     
     <!-- Toast Notification Container -->

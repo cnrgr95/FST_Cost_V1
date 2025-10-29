@@ -2,6 +2,23 @@
 (function() {
     'use strict';
     
+    // Load page configuration
+    let pageConfig = {};
+    const configElement = document.getElementById('page-config');
+    if (configElement) {
+        try {
+            pageConfig = JSON.parse(configElement.textContent);
+            if (pageConfig.apiBase) {
+                window.API_BASE = pageConfig.apiBase;
+            }
+            if (pageConfig.translations) {
+                window.Translations = pageConfig.translations;
+            }
+        } catch (e) {
+            console.error('Failed to parse page config:', e);
+        }
+    }
+    
     const API_BASE = (typeof window.API_BASE !== 'undefined') ? window.API_BASE : 'api/definitions/languages.php';
     
     // Get translations

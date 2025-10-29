@@ -100,19 +100,19 @@ $t_costs = $all_translations['costs'] ?? [];
         </div>
     </div>
     
-    <style>
-        /* Page-specific styles */
-    </style>
-    
-    <!-- Define API base path and translations for JavaScript -->
-    <script>
-        const BASE_PATH = '<?php echo $basePath; ?>';
-        window.API_BASE = BASE_PATH + 'api/definitions/costs.php';
-        window.Translations = {
-            costs: <?php echo json_encode($t_costs); ?>,
-            common: <?php echo json_encode($t_common); ?>,
-            sidebar: <?php echo json_encode($t_sidebar); ?>
-        };
+    <!-- Page configuration for JavaScript -->
+    <script type="application/json" id="page-config">
+    <?php
+    echo json_encode([
+        'basePath' => $basePath,
+        'apiBase' => $basePath . 'api/definitions/costs.php',
+        'translations' => [
+            'costs' => $t_costs,
+            'common' => $t_common,
+            'sidebar' => $t_sidebar
+        ]
+    ], JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_PRETTY_PRINT);
+    ?>
     </script>
     
     <script src="<?php echo $basePath; ?>assets/js/includes/sidebar.js"></script>

@@ -136,23 +136,23 @@ $t_currencies = $all_translations['currencies'] ?? [];
         </div>
     </div>
     
-    <style>
-        /* Page-specific styles */
-    </style>
+    <!-- Page configuration for JavaScript -->
+    <script type="application/json" id="page-config">
+    <?php
+    echo json_encode([
+        'basePath' => $basePath,
+        'apiBase' => $basePath . 'api/definitions/currencies.php',
+        'translations' => [
+            'currencies' => $t_currencies,
+            'common' => $t_common,
+            'sidebar' => $t_sidebar
+        ]
+    ], JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_PRETTY_PRINT);
+    ?>
+    </script>
     
     <!-- Toast Notification Container -->
     <div id="toastContainer" class="toast-container"></div>
-    
-    <!-- Define API base path and translations for JavaScript -->
-    <script>
-        const BASE_PATH = '<?php echo $basePath; ?>';
-        window.API_BASE = BASE_PATH + 'api/definitions/currencies.php';
-        window.Translations = {
-            currencies: <?php echo json_encode($t_currencies); ?>,
-            common: <?php echo json_encode($t_common); ?>,
-            sidebar: <?php echo json_encode($t_sidebar); ?>
-        };
-    </script>
     
     <script src="<?php echo $basePath; ?>assets/js/includes/sidebar.js"></script>
     <script src="<?php echo $basePath; ?>assets/js/toast.js"></script>

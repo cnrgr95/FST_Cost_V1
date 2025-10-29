@@ -142,25 +142,29 @@ function handleDelete($conn, $action) {
 
 // Get users
 function getUsers($conn) {
-    $query = "SELECT u.*, 
-                     d.name as department_name,
-                     c.name as city_name,
-                     r.name as region_name,
-                     co.name as country_name
-              FROM users u
-              LEFT JOIN departments d ON u.department_id = d.id
-              LEFT JOIN cities c ON u.city_id = c.id
-              LEFT JOIN regions r ON c.region_id = r.id
-              LEFT JOIN countries co ON r.country_id = co.id
-              ORDER BY u.username ASC";
-    
-    $result = pg_query($conn, $query);
-    
-    if ($result) {
-        $users = pg_fetch_all($result);
-        echo json_encode(['success' => true, 'data' => $users]);
-    } else {
-        echo json_encode(['success' => false, 'message' => getDbErrorMessage($conn)]);
+    try {
+        $query = "SELECT u.*, 
+                         d.name as department_name,
+                         c.name as city_name,
+                         r.name as region_name,
+                         co.name as country_name
+                  FROM users u
+                  LEFT JOIN departments d ON u.department_id = d.id
+                  LEFT JOIN cities c ON u.city_id = c.id
+                  LEFT JOIN regions r ON c.region_id = r.id
+                  LEFT JOIN countries co ON r.country_id = co.id
+                  ORDER BY u.username ASC";
+        
+        $result = pg_query($conn, $query);
+        
+        if ($result) {
+            $users = pg_fetch_all($result) ?: [];
+            echo json_encode(['success' => true, 'data' => $users], JSON_NUMERIC_CHECK);
+        } else {
+            echo json_encode(['success' => false, 'message' => getDbErrorMessage($conn)]);
+        }
+    } catch (Exception $e) {
+        echo json_encode(['success' => false, 'message' => 'Error loading users: ' . $e->getMessage()]);
     }
 }
 
@@ -195,18 +199,22 @@ function checkUsername($conn) {
 
 // Get departments
 function getDepartments($conn) {
-    $query = "SELECT d.*, c.name as city_name 
-              FROM departments d 
-              LEFT JOIN cities c ON d.city_id = c.id 
-              ORDER BY d.name ASC";
-    
-    $result = pg_query($conn, $query);
-    
-    if ($result) {
-        $departments = pg_fetch_all($result);
-        echo json_encode(['success' => true, 'data' => $departments]);
-    } else {
-        echo json_encode(['success' => false, 'message' => getDbErrorMessage($conn)]);
+    try {
+        $query = "SELECT d.*, c.name as city_name 
+                  FROM departments d 
+                  LEFT JOIN cities c ON d.city_id = c.id 
+                  ORDER BY d.name ASC";
+        
+        $result = pg_query($conn, $query);
+        
+        if ($result) {
+            $departments = pg_fetch_all($result) ?: [];
+            echo json_encode(['success' => true, 'data' => $departments], JSON_NUMERIC_CHECK);
+        } else {
+            echo json_encode(['success' => false, 'message' => getDbErrorMessage($conn)]);
+        }
+    } catch (Exception $e) {
+        echo json_encode(['success' => false, 'message' => 'Error loading departments: ' . $e->getMessage()]);
     }
 }
 
@@ -214,61 +222,72 @@ function getDepartments($conn) {
 function getCities($conn) {
     $region_id = isset($_GET['region_id']) ? (int)$_GET['region_id'] : null;
     
-    if ($region_id) {
-        $query = "SELECT c.*, r.name as region_name, r.country_id, co.name as country_name 
-                  FROM cities c 
-                  LEFT JOIN regions r ON c.region_id = r.id 
-                  LEFT JOIN countries co ON r.country_id = co.id 
-                  WHERE c.region_id = $region_id
-                  ORDER BY c.name ASC";
-    } else {
-        $query = "SELECT c.*, r.name as region_name, r.country_id, co.name as country_name 
-                  FROM cities c 
-                  LEFT JOIN regions r ON c.region_id = r.id 
-                  LEFT JOIN countries co ON r.country_id = co.id 
-                  ORDER BY c.name ASC";
-    }
-    
-    $result = pg_query($conn, $query);
-    
-    if ($result) {
-        $cities = pg_fetch_all($result);
-        echo json_encode(['success' => true, 'data' => $cities]);
-    } else {
-        echo json_encode(['success' => false, 'message' => getDbErrorMessage($conn)]);
+    try {
+        if ($region_id) {
+            $query = "SELECT c.*, r.name as region_name, r.country_id, co.name as country_name 
+                      FROM cities c 
+                      LEFT JOIN regions r ON c.region_id = r.id 
+                      LEFT JOIN countries co ON r.country_id = co.id 
+                      WHERE c.region_id = $1
+                      ORDER BY c.name ASC";
+            $result = pg_query_params($conn, $query, [$region_id]);
+        } else {
+            $query = "SELECT c.*, r.name as region_name, r.country_id, co.name as country_name 
+                      FROM cities c 
+                      LEFT JOIN regions r ON c.region_id = r.id 
+                      LEFT JOIN countries co ON r.country_id = co.id 
+                      ORDER BY c.name ASC";
+            $result = pg_query($conn, $query);
+        }
+        
+        if ($result) {
+            $cities = pg_fetch_all($result) ?: [];
+            echo json_encode(['success' => true, 'data' => $cities], JSON_NUMERIC_CHECK);
+        } else {
+            echo json_encode(['success' => false, 'message' => getDbErrorMessage($conn)]);
+        }
+    } catch (Exception $e) {
+        echo json_encode(['success' => false, 'message' => 'Error loading cities: ' . $e->getMessage()]);
     }
 }
 
 // Get regions
 function getRegions($conn, $country_id = null) {
-    if ($country_id) {
-        $country_id = (int)$country_id;
-        $query = "SELECT * FROM regions WHERE country_id = $country_id ORDER BY name ASC";
-    } else {
-        $query = "SELECT r.*, c.name as country_name FROM regions r LEFT JOIN countries c ON r.country_id = c.id ORDER BY r.name ASC";
-    }
-    
-    $result = pg_query($conn, $query);
-    
-    if ($result) {
-        $regions = pg_fetch_all($result);
-        echo json_encode(['success' => true, 'data' => $regions]);
-    } else {
-        echo json_encode(['success' => false, 'message' => getDbErrorMessage($conn)]);
+    try {
+        if ($country_id) {
+            $query = "SELECT * FROM regions WHERE country_id = $1 ORDER BY name ASC";
+            $result = pg_query_params($conn, $query, [$country_id]);
+        } else {
+            $query = "SELECT r.*, c.name as country_name FROM regions r LEFT JOIN countries c ON r.country_id = c.id ORDER BY r.name ASC";
+            $result = pg_query($conn, $query);
+        }
+        
+        if ($result) {
+            $regions = pg_fetch_all($result) ?: [];
+            echo json_encode(['success' => true, 'data' => $regions], JSON_NUMERIC_CHECK);
+        } else {
+            echo json_encode(['success' => false, 'message' => getDbErrorMessage($conn)]);
+        }
+    } catch (Exception $e) {
+        echo json_encode(['success' => false, 'message' => 'Error loading regions: ' . $e->getMessage()]);
     }
 }
 
 // Get countries
 function getCountries($conn) {
-    $query = "SELECT * FROM countries ORDER BY name ASC";
-    
-    $result = pg_query($conn, $query);
-    
-    if ($result) {
-        $countries = pg_fetch_all($result);
-        echo json_encode(['success' => true, 'data' => $countries]);
-    } else {
-        echo json_encode(['success' => false, 'message' => getDbErrorMessage($conn)]);
+    try {
+        $query = "SELECT * FROM countries ORDER BY name ASC";
+        
+        $result = pg_query($conn, $query);
+        
+        if ($result) {
+            $countries = pg_fetch_all($result) ?: [];
+            echo json_encode(['success' => true, 'data' => $countries], JSON_NUMERIC_CHECK);
+        } else {
+            echo json_encode(['success' => false, 'message' => getDbErrorMessage($conn)]);
+        }
+    } catch (Exception $e) {
+        echo json_encode(['success' => false, 'message' => 'Error loading countries: ' . $e->getMessage()]);
     }
 }
 
@@ -329,6 +348,13 @@ function updateUser($conn, $data) {
     $email = pg_escape_string($conn, $data['email'] ?? '');
     $phone = pg_escape_string($conn, $data['phone'] ?? '');
     $status = pg_escape_string($conn, $data['status'] ?? 'active');
+    
+    // Prevent users from deactivating themselves
+    $current_user_id = isset($_SESSION['user_id']) ? (int)$_SESSION['user_id'] : null;
+    if ($id === $current_user_id && $status !== 'active') {
+        echo json_encode(['success' => false, 'message' => 'You cannot change your own status']);
+        return;
+    }
     
     // Validate email if provided
     if (!empty($email) && !validateEmail($email)) {

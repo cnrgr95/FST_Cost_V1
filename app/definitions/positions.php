@@ -147,35 +147,18 @@ $t_dependencies = $all_translations['dependencies'] ?? [];
         </div>
     </div>
     
-    <style>
-        /* Page-specific styles */
-        .page-header {
-            margin-bottom: 30px;
-        }
-        
-        .page-header h1 {
-            font-size: 28px;
-            font-weight: 600;
-            color: #1f2937;
-            margin-bottom: 8px;
-        }
-        
-        .page-header p {
-            font-size: 16px;
-            color: #6b7280;
-        }
-    </style>
-    
-    <!-- Define API base path and translations for JavaScript -->
-    <script>
-        const BASE_PATH = '<?php echo $basePath; ?>';
-        window.API_BASE = BASE_PATH + 'api/definitions/positions.php';
-        window.Translations = {
-            positions: <?php echo json_encode($t_positions); ?>,
-            common: <?php echo json_encode($t_common); ?>,
-            sidebar: <?php echo json_encode($t_sidebar); ?>,
-            dependencies: <?php echo json_encode($t_dependencies); ?>
-        };
+    <!-- Data attributes for JavaScript configuration -->
+    <script type="application/json" id="page-config">
+    {
+        "basePath": "<?php echo htmlspecialchars($basePath, ENT_QUOTES, 'UTF-8'); ?>",
+        "apiBase": "<?php echo htmlspecialchars($basePath, ENT_QUOTES, 'UTF-8'); ?>api/definitions/positions.php",
+        "translations": <?php echo json_encode([
+            'positions' => $t_positions,
+            'common' => $t_common,
+            'sidebar' => $t_sidebar,
+            'dependencies' => $t_dependencies
+        ], JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT); ?>
+    }
     </script>
     
     <!-- Toast Notification Container -->

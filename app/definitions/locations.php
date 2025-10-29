@@ -222,35 +222,20 @@ $t_dependencies = $all_translations['dependencies'] ?? [];
         </div>
     </div>
     
-    <style>
-        /* Page-specific styles */
-        .page-header {
-            margin-bottom: 30px;
-        }
-        
-        .page-header h1 {
-            font-size: 28px;
-            font-weight: 600;
-            color: #1f2937;
-            margin-bottom: 8px;
-        }
-        
-        .page-header p {
-            font-size: 16px;
-            color: #6b7280;
-        }
-    </style>
-    
-    <!-- Define API base path and translations for JavaScript -->
-    <script>
-        const BASE_PATH = '<?php echo $basePath; ?>';
-        window.API_BASE = BASE_PATH + 'api/definitions/locations.php';
-        window.Translations = {
-            locations: <?php echo json_encode($t_locations); ?>,
-            common: <?php echo json_encode($t_common); ?>,
-            sidebar: <?php echo json_encode($t_sidebar); ?>,
-            dependencies: <?php echo json_encode($t_dependencies); ?>
-        };
+    <!-- Page configuration for JavaScript -->
+    <script type="application/json" id="page-config">
+    <?php
+    echo json_encode([
+        'basePath' => $basePath,
+        'apiBase' => $basePath . 'api/definitions/locations.php',
+        'translations' => [
+            'locations' => $t_locations,
+            'common' => $t_common,
+            'sidebar' => $t_sidebar,
+            'dependencies' => $t_dependencies
+        ]
+    ], JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_PRETTY_PRINT);
+    ?>
     </script>
     
     <!-- Toast Notification Container -->

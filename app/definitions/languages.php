@@ -45,84 +45,6 @@ $t_lang_mgmt = $all_translations['language_mgmt'] ?? [];
     
     <link rel="icon" type="image/svg+xml" href="<?php echo $basePath; ?>assets/images/logo.svg">
     
-    <style>
-        .languages-container {
-            display: flex;
-            gap: 20px;
-            margin-top: 20px;
-        }
-        
-        .languages-sidebar {
-            width: 300px;
-            background: white;
-            border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-            padding: 20px;
-        }
-        
-        .languages-editor {
-            flex: 1;
-            background: white;
-            border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-            padding: 20px;
-        }
-        
-        .lang-item {
-            padding: 12px;
-            border: 1px solid #e5e7eb;
-            border-radius: 6px;
-            margin-bottom: 8px;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-        
-        .lang-item:hover {
-            background: #f3f4f6;
-            border-color: #3b82f6;
-        }
-        
-        .lang-item.active {
-            background: #3b82f6;
-            color: white;
-            border-color: #3b82f6;
-        }
-        
-        .translation-section {
-            margin-bottom: 20px;
-        }
-        
-        .translation-section h3 {
-            margin-bottom: 10px;
-            font-size: 16px;
-            color: #374151;
-        }
-        
-        .translation-item {
-            margin-bottom: 10px;
-        }
-        
-        .translation-item label {
-            display: block;
-            font-size: 12px;
-            color: #6b7280;
-            margin-bottom: 4px;
-        }
-        
-        .translation-item input,
-        .translation-item textarea {
-            width: 100%;
-            padding: 8px;
-            border: 1px solid #d1d5db;
-            border-radius: 4px;
-            font-size: 14px;
-        }
-        
-        .translation-item textarea {
-            min-height: 60px;
-            resize: vertical;
-        }
-    </style>
 </head>
 <body>
     <?php include $basePath . 'includes/sidebar.php'; ?>
@@ -225,27 +147,18 @@ $t_lang_mgmt = $all_translations['language_mgmt'] ?? [];
         </div>
     </div>
     
-    <style>
-        /* Page-specific styles */
-        @media (max-width: 768px) {
-            .languages-container {
-                flex-direction: column;
-            }
-            
-            .languages-sidebar {
-                width: 100%;
-            }
-        }
-    </style>
-    
-    <!-- Define API base path and translations for JavaScript -->
-    <script>
-        const BASE_PATH = '<?php echo $basePath; ?>';
-        window.API_BASE = BASE_PATH + 'api/definitions/languages.php';
-        window.Translations = {
-            common: <?php echo json_encode($t_common); ?>,
-            language_mgmt: <?php echo json_encode($t_lang_mgmt); ?>
-        };
+    <!-- Page configuration for JavaScript -->
+    <script type="application/json" id="page-config">
+    <?php
+    echo json_encode([
+        'basePath' => $basePath,
+        'apiBase' => $basePath . 'api/definitions/languages.php',
+        'translations' => [
+            'common' => $t_common,
+            'language_mgmt' => $t_lang_mgmt
+        ]
+    ], JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_PRETTY_PRINT);
+    ?>
     </script>
     
     <!-- Toast Notification Container -->

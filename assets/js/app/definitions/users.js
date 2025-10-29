@@ -2,7 +2,27 @@
 (function() {
     'use strict';
     
+    // Load page configuration
+    let pageConfig = {};
+    const configElement = document.getElementById('page-config');
+    if (configElement) {
+        try {
+            pageConfig = JSON.parse(configElement.textContent);
+            if (pageConfig.apiBase) {
+                window.API_BASE = pageConfig.apiBase;
+            }
+            if (pageConfig.translations) {
+                window.Translations = pageConfig.translations;
+            }
+        } catch (e) {
+            console.error('Failed to parse page config:', e);
+        }
+    }
+    
     const API_BASE = (typeof window.API_BASE !== 'undefined') ? window.API_BASE : 'api/definitions/users.php';
+    
+    // Get current user ID (prevent self-deactivation)
+    const currentUserId = pageConfig.currentUserId ? parseInt(pageConfig.currentUserId) : null;
     
     // Get translations
     const t = window.Translations || {};
@@ -89,6 +109,16 @@
         try {
             showLoading();
             const response = await fetch(`${API_BASE}?action=users`);
+            
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            
+            const contentType = response.headers.get('content-type');
+            if (!contentType || !contentType.includes('application/json')) {
+                throw new Error('Invalid response format');
+            }
+            
             const result = await response.json();
             
             if (result.success) {
@@ -98,6 +128,7 @@
                 showError(result.message || tCommon.failed_to_load_data || 'Failed to load data');
             }
         } catch (error) {
+            console.error('Error loading users:', error);
             showError(tCommon.failed_to_load_data || 'Failed to load data');
         }
     }
@@ -106,6 +137,16 @@
     async function loadDepartments() {
         try {
             const response = await fetch(`${API_BASE}?action=departments`);
+            
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            
+            const contentType = response.headers.get('content-type');
+            if (!contentType || !contentType.includes('application/json')) {
+                throw new Error('Invalid response format');
+            }
+            
             const result = await response.json();
             
             if (result.success) {
@@ -117,6 +158,8 @@
                         select.innerHTML += `<option value="${dept.id}">${dept.name}${dept.city_name ? ' (' + dept.city_name + ')' : ''}</option>`;
                     });
                 }
+            } else {
+                console.error('Failed to load departments:', result.message);
             }
         } catch (error) {
             console.error('Error loading departments:', error);
@@ -127,6 +170,16 @@
     async function loadCountries() {
         try {
             const response = await fetch(`${API_BASE}?action=countries`);
+            
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            
+            const contentType = response.headers.get('content-type');
+            if (!contentType || !contentType.includes('application/json')) {
+                throw new Error('Invalid response format');
+            }
+            
             const result = await response.json();
             
             if (result.success) {
@@ -138,6 +191,8 @@
                         select.innerHTML += `<option value="${country.id}">${country.name}</option>`;
                     });
                 }
+            } else {
+                console.error('Failed to load countries:', result.message);
             }
         } catch (error) {
             console.error('Error loading countries:', error);
@@ -157,6 +212,16 @@
         
         try {
             const response = await fetch(`${API_BASE}?action=regions&country_id=${countryId}`);
+            
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            
+            const contentType = response.headers.get('content-type');
+            if (!contentType || !contentType.includes('application/json')) {
+                throw new Error('Invalid response format');
+            }
+            
             const result = await response.json();
             
             if (result.success && result.data) {
@@ -169,6 +234,8 @@
                     });
                     select.disabled = false;
                 }
+            } else {
+                console.error('Failed to load regions:', result.message);
             }
         } catch (error) {
             console.error('Error loading regions:', error);
@@ -188,6 +255,16 @@
         
         try {
             const response = await fetch(`${API_BASE}?action=cities&region_id=${regionId}`);
+            
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            
+            const contentType = response.headers.get('content-type');
+            if (!contentType || !contentType.includes('application/json')) {
+                throw new Error('Invalid response format');
+            }
+            
             const result = await response.json();
             
             if (result.success && result.data) {
@@ -200,6 +277,8 @@
                     });
                     select.disabled = false;
                 }
+            } else {
+                console.error('Failed to load cities:', result.message);
             }
         } catch (error) {
             console.error('Error loading cities:', error);
@@ -252,11 +331,11 @@
                             <button class="btn-action btn-edit" data-item-id="${item.id}">
                                 <span class="material-symbols-rounded">edit</span>
                             </button>
-                            ${item.status === 'active' ? `<button class="btn-action btn-deactivate" data-item-id="${item.id}">
+                            ${item.id === currentUserId ? '' : (item.status === 'active' ? `<button class="btn-action btn-deactivate" data-item-id="${item.id}">
                                 <span class="material-symbols-rounded">block</span>
                             </button>` : `<button class="btn-action btn-activate" data-item-id="${item.id}">
                                 <span class="material-symbols-rounded">check_circle</span>
-                            </button>`}
+                            </button>`)}
                         </div>
                     </td>
                 </tr>
@@ -310,6 +389,48 @@
         showToast('error', message || tCommon.error || 'Error');
     }
     
+    // Clear form errors
+    function clearFormErrors(form) {
+        if (!form) return;
+        
+        // Remove error classes
+        form.querySelectorAll('.error').forEach(el => {
+            el.classList.remove('error');
+            el.setCustomValidity('');
+        });
+        
+        // Remove error messages
+        form.querySelectorAll('.error-message').forEach(el => {
+            el.remove();
+        });
+    }
+    
+    // Show field error
+    function showFieldError(fieldName, message) {
+        const field = document.querySelector(`[name="${fieldName}"]`);
+        if (!field) return;
+        
+        // Add error class
+        field.classList.add('error');
+        field.setCustomValidity(message);
+        field.reportValidity();
+        
+        // Remove existing error message
+        const existingError = field.parentElement.querySelector('.error-message');
+        if (existingError) {
+            existingError.remove();
+        }
+        
+        // Add error message below field
+        const errorDiv = document.createElement('div');
+        errorDiv.className = 'error-message';
+        errorDiv.style.color = '#dc3545';
+        errorDiv.style.fontSize = '12px';
+        errorDiv.style.marginTop = '4px';
+        errorDiv.textContent = message;
+        field.parentElement.appendChild(errorDiv);
+    }
+    
     // Open modal
     window.openModal = function() {
         const modal = document.getElementById('userModal');
@@ -318,8 +439,9 @@
         
         if (modal && form && title) {
             form.reset();
-            form.dataset.id = '';
+            delete form.dataset.id;
             title.textContent = tUsers.add_user || 'Add User';
+            clearFormErrors(form);
             modal.classList.add('active');
         }
     };
@@ -329,6 +451,15 @@
         const modal = document.getElementById('userModal');
         if (modal) {
             modal.classList.remove('active');
+        }
+        
+        // Reset form
+        const form = document.getElementById('userForm');
+        if (form) {
+            form.reset();
+            delete form.dataset.id;
+            // Clear all errors
+            clearFormErrors(form);
         }
     };
     
@@ -349,6 +480,9 @@
             return;
         }
         
+        // Clear previous errors
+        clearFormErrors(form);
+        
         // Open modal first
         modal.classList.add('active');
         
@@ -361,7 +495,20 @@
         form.querySelector('[name="department_id"]').value = item.department_id || '';
         form.querySelector('[name="email"]').value = item.email || '';
         form.querySelector('[name="phone"]').value = item.phone || '';
-        form.querySelector('[name="status"]').value = item.status || 'active';
+        
+        // Status field - disable if user is editing themselves
+        const statusSelect = form.querySelector('[name="status"]');
+        if (statusSelect) {
+            statusSelect.value = item.status || 'active';
+            if (id === currentUserId) {
+                // User cannot change their own status
+                statusSelect.disabled = true;
+                statusSelect.title = tUsers.cannot_change_own_status || 'You cannot change your own status';
+            } else {
+                statusSelect.disabled = false;
+                statusSelect.removeAttribute('title');
+            }
+        }
         
         // Reset location dropdowns
         const regionSelect = document.getElementById('regionSelect');
@@ -426,6 +573,12 @@
     
     // Toggle user status
     async function toggleUserStatus(id, newStatus) {
+        // Prevent users from deactivating themselves
+        if (id === currentUserId) {
+            showToast('error', tUsers.cannot_deactivate_self || 'You cannot change your own status');
+            return;
+        }
+        
         const statusText = newStatus === 'active' ? 'activate' : 'deactivate';
         const confirmMessage = `Are you sure you want to ${statusText} this user?`;
         
@@ -434,6 +587,12 @@
                 const user = currentData.users.find(u => u.id == id);
                 if (!user) {
                     showError('User not found');
+                    return;
+                }
+                
+                // Double-check: prevent self-deactivation
+                if (id === currentUserId) {
+                    showToast('error', tUsers.cannot_deactivate_self || 'You cannot change your own status');
                     return;
                 }
                 
@@ -456,12 +615,13 @@
                 const result = await response.json();
                 
                 if (result.success) {
-                    showToast('success', `User ${statusText}d successfully`);
+                    showToast('success', tUsers.user_status_updated || `User ${statusText}d successfully`);
                     await loadData();
                 } else {
                     showToast('error', result.message || `Failed to ${statusText} user`);
                 }
             } catch (error) {
+                console.error(`Error ${statusText} user:`, error);
                 showToast('error', `Failed to ${statusText} user`);
             }
         });
@@ -486,7 +646,20 @@
         };
         
         if (userId) {
-            data.id = userId;
+            data.id = parseInt(userId);
+            
+            // Prevent users from changing their own status
+            if (data.id === currentUserId) {
+                const statusSelect = form.querySelector('[name="status"]');
+                if (statusSelect && statusSelect.disabled) {
+                    // Keep status as active for self
+                    data.status = 'active';
+                } else if (data.status !== 'active') {
+                    showToast('error', tUsers.cannot_deactivate_self || 'You cannot change your own status');
+                    return;
+                }
+            }
+            
             await updateUser(data);
         } else {
             await createUser(data);
@@ -508,9 +681,34 @@
                 closeModal();
                 await loadData();
             } else {
+                // Clear previous errors
+                const form = document.getElementById('userForm');
+                if (form) {
+                    clearFormErrors(form);
+                }
+                
+                // Show field-specific errors if available
+                if (result.errors && typeof result.errors === 'object') {
+                    Object.keys(result.errors).forEach(fieldName => {
+                        showFieldError(fieldName, result.errors[fieldName]);
+                    });
+                } else if (result.message) {
+                    // Show general error on relevant field
+                    const message = result.message.toLowerCase();
+                    if (message.includes('username')) {
+                        showFieldError('username', result.message);
+                    } else if (message.includes('email')) {
+                        showFieldError('email', result.message);
+                    } else if (message.includes('phone')) {
+                        showFieldError('phone', result.message);
+                    }
+                }
+                
+                // Show toast notification
                 showToast('error', result.message || tCommon.save_failed || 'Failed to create user');
             }
         } catch (error) {
+            console.error('Error creating user:', error);
             showToast('error', tCommon.save_failed || 'Failed to create user');
         }
     }
@@ -518,6 +716,12 @@
     // Update user
     async function updateUser(data) {
         try {
+            // Prevent users from changing their own status
+            if (data.id === currentUserId && data.status && data.status !== 'active') {
+                showToast('error', tUsers.cannot_deactivate_self || 'You cannot change your own status');
+                return;
+            }
+            
             const response = await fetch(`${API_BASE}?action=user`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
@@ -530,9 +734,34 @@
                 closeModal();
                 await loadData();
             } else {
+                // Clear previous errors
+                const form = document.getElementById('userForm');
+                if (form) {
+                    clearFormErrors(form);
+                }
+                
+                // Show field-specific errors if available
+                if (result.errors && typeof result.errors === 'object') {
+                    Object.keys(result.errors).forEach(fieldName => {
+                        showFieldError(fieldName, result.errors[fieldName]);
+                    });
+                } else if (result.message) {
+                    // Show general error on relevant field
+                    const message = result.message.toLowerCase();
+                    if (message.includes('username')) {
+                        showFieldError('username', result.message);
+                    } else if (message.includes('email')) {
+                        showFieldError('email', result.message);
+                    } else if (message.includes('phone')) {
+                        showFieldError('phone', result.message);
+                    }
+                }
+                
+                // Show toast notification
                 showToast('error', result.message || tCommon.update_failed || 'Failed to update user');
             }
         } catch (error) {
+            console.error('Error updating user:', error);
             showToast('error', tCommon.update_failed || 'Failed to update user');
         }
     }

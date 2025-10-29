@@ -154,22 +154,26 @@ $t_dependencies = $all_translations['dependencies'] ?? [];
     </div>
     
     
-    <!-- Define API base path and translations for JavaScript -->
-    <script>
-        const BASE_PATH = '<?php echo $basePath; ?>';
-        window.API_BASE = BASE_PATH + 'api/definitions/merchants.php';
-        window.Translations = {
-            merchants: <?php echo json_encode($t_merchants); ?>,
-            common: <?php echo json_encode($t_common); ?>,
-            sidebar: <?php echo json_encode($t_sidebar); ?>,
-            dependencies: <?php echo json_encode($t_dependencies); ?>,
-            locations: {
-                "country": "<?php echo $t_sidebar['country'] ?? 'Country'; ?>",
-                "region": "<?php echo $t_sidebar['region'] ?? 'Region'; ?>",
-                "city": "<?php echo $t_sidebar['city'] ?? 'City'; ?>",
-                "actions": "<?php echo $t_common['actions'] ?? 'Actions'; ?>"
-            }
-        };
+    <!-- Page configuration for JavaScript -->
+    <script type="application/json" id="page-config">
+    <?php
+    echo json_encode([
+        'basePath' => $basePath,
+        'apiBase' => $basePath . 'api/definitions/merchants.php',
+        'translations' => [
+            'merchants' => $t_merchants,
+            'common' => $t_common,
+            'sidebar' => $t_sidebar,
+            'dependencies' => $t_dependencies,
+            'locations' => [
+                'country' => $t_sidebar['country'] ?? 'Country',
+                'region' => $t_sidebar['region'] ?? 'Region',
+                'city' => $t_sidebar['city'] ?? 'City',
+                'actions' => $t_common['actions'] ?? 'Actions'
+            ]
+        ]
+    ], JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_PRETTY_PRINT);
+    ?>
     </script>
     
     <!-- Toast Notification Container -->
