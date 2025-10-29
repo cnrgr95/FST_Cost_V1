@@ -275,6 +275,170 @@ INSERT INTO merchants (name, official_title, sub_region_id, authorized_person, a
 ON CONFLICT (name, sub_region_id) DO NOTHING;
 
 -- ============================================
+-- SAMPLE VEHICLE COMPANIES
+-- ============================================
+INSERT INTO vehicle_companies (name, city_id, contact_person, contact_email, contact_phone) VALUES 
+-- Istanbul Vehicle Companies
+('Istanbul Transport Co.', 
+ (SELECT id FROM cities WHERE name = 'Istanbul'),
+ 'Ahmet Demir', 
+ 'ahmet.demir@istanbultransport.com', 
+ '+90 212 555 9001'),
+('Bosphorus Vehicles', 
+ (SELECT id FROM cities WHERE name = 'Istanbul'),
+ 'Zeynep Kaya', 
+ 'zeynep.kaya@bosphorus.com', 
+ '+90 212 555 9002'),
+('Marmara Fleet Services', 
+ (SELECT id FROM cities WHERE name = 'Istanbul'),
+ 'Mehmet Şahin', 
+ 'mehmet.sahin@marmara.com', 
+ '+90 212 555 9003'),
+-- Ankara Vehicle Companies
+('Ankara Transport Solutions', 
+ (SELECT id FROM cities WHERE name = 'Ankara'),
+ 'Can Öztürk', 
+ 'can.ozturk@ankara-transport.com', 
+ '+90 312 555 9101'),
+('Capital Vehicles Ltd.', 
+ (SELECT id FROM cities WHERE name = 'Ankara'),
+ 'Ayşe Yıldız', 
+ 'ayse.yildiz@capital-vehicles.com', 
+ '+90 312 555 9102'),
+-- Antalya Vehicle Companies
+('Mediterranean Transport', 
+ (SELECT id FROM cities WHERE name = 'Antalya'),
+ 'Berk Aktaş', 
+ 'berk.aktas@mediterranean.com', 
+ '+90 242 555 9201'),
+('Antalya Coast Vehicles', 
+ (SELECT id FROM cities WHERE name = 'Antalya'),
+ 'Elif Çakır', 
+ 'elif.cakir@coast-vehicles.com', 
+ '+90 242 555 9202'),
+-- Munich Vehicle Companies
+('Bavaria Transport GmbH', 
+ (SELECT id FROM cities WHERE name = 'Munich'),
+ 'Michael Schmidt', 
+ 'michael.schmidt@bavaria-transport.de', 
+ '+49 89 555 9301'),
+('Munich Fleet Services', 
+ (SELECT id FROM cities WHERE name = 'Munich'),
+ 'Lisa Wagner', 
+ 'lisa.wagner@munich-fleet.de', 
+ '+49 89 555 9302'),
+-- Berlin Vehicle Companies
+('Berlin Transport GmbH', 
+ (SELECT id FROM cities WHERE name = 'Berlin'),
+ 'Stefan Becker', 
+ 'stefan.becker@berlin-transport.de', 
+ '+49 30 555 9401'),
+-- Paris Vehicle Companies
+('Paris Transport SARL', 
+ (SELECT id FROM cities WHERE name = 'Paris'),
+ 'François Dubois', 
+ 'francois.dubois@paris-transport.fr', 
+ '+33 1 55 9501'),
+('Ile-de-France Vehicles', 
+ (SELECT id FROM cities WHERE name = 'Paris'),
+ 'Marie Laurent', 
+ 'marie.laurent@idf-vehicles.fr', 
+ '+33 1 55 9502'),
+-- Marseille Vehicle Companies
+('Provence Transport SARL', 
+ (SELECT id FROM cities WHERE name = 'Marseille'),
+ 'Jean-Pierre Moreau', 
+ 'jean-pierre.moreau@provence.fr', 
+ '+33 4 91 9601')
+ON CONFLICT (name, city_id) DO NOTHING;
+
+-- ============================================
+-- SAMPLE VEHICLE TYPES
+-- ============================================
+INSERT INTO vehicle_types (name, vehicle_company_id) VALUES 
+-- Istanbul Transport Co. Types
+('VIP Mini', (SELECT id FROM vehicle_companies WHERE name = 'Istanbul Transport Co.' AND city_id = (SELECT id FROM cities WHERE name = 'Istanbul'))),
+('Mini', (SELECT id FROM vehicle_companies WHERE name = 'Istanbul Transport Co.' AND city_id = (SELECT id FROM cities WHERE name = 'Istanbul'))),
+('Midi', (SELECT id FROM vehicle_companies WHERE name = 'Istanbul Transport Co.' AND city_id = (SELECT id FROM cities WHERE name = 'Istanbul'))),
+('Bus', (SELECT id FROM vehicle_companies WHERE name = 'Istanbul Transport Co.' AND city_id = (SELECT id FROM cities WHERE name = 'Istanbul'))),
+-- Bosphorus Vehicles Types
+('VIP Mini', (SELECT id FROM vehicle_companies WHERE name = 'Bosphorus Vehicles' AND city_id = (SELECT id FROM cities WHERE name = 'Istanbul'))),
+('Mini', (SELECT id FROM vehicle_companies WHERE name = 'Bosphorus Vehicles' AND city_id = (SELECT id FROM cities WHERE name = 'Istanbul'))),
+('Midi', (SELECT id FROM vehicle_companies WHERE name = 'Bosphorus Vehicles' AND city_id = (SELECT id FROM cities WHERE name = 'Istanbul'))),
+-- Marmara Fleet Services Types
+('Bus', (SELECT id FROM vehicle_companies WHERE name = 'Marmara Fleet Services' AND city_id = (SELECT id FROM cities WHERE name = 'Istanbul'))),
+('Mini Bus', (SELECT id FROM vehicle_companies WHERE name = 'Marmara Fleet Services' AND city_id = (SELECT id FROM cities WHERE name = 'Istanbul'))),
+-- Ankara Transport Solutions Types
+('Mini', (SELECT id FROM vehicle_companies WHERE name = 'Ankara Transport Solutions' AND city_id = (SELECT id FROM cities WHERE name = 'Ankara'))),
+('Midi', (SELECT id FROM vehicle_companies WHERE name = 'Ankara Transport Solutions' AND city_id = (SELECT id FROM cities WHERE name = 'Ankara'))),
+('Bus', (SELECT id FROM vehicle_companies WHERE name = 'Ankara Transport Solutions' AND city_id = (SELECT id FROM cities WHERE name = 'Ankara'))),
+-- Capital Vehicles Types
+('VIP Mini', (SELECT id FROM vehicle_companies WHERE name = 'Capital Vehicles Ltd.' AND city_id = (SELECT id FROM cities WHERE name = 'Ankara'))),
+('Mini', (SELECT id FROM vehicle_companies WHERE name = 'Capital Vehicles Ltd.' AND city_id = (SELECT id FROM cities WHERE name = 'Ankara'))),
+-- Mediterranean Transport Types
+('VIP Mini', (SELECT id FROM vehicle_companies WHERE name = 'Mediterranean Transport' AND city_id = (SELECT id FROM cities WHERE name = 'Antalya'))),
+('Mini', (SELECT id FROM vehicle_companies WHERE name = 'Mediterranean Transport' AND city_id = (SELECT id FROM cities WHERE name = 'Antalya'))),
+('Midi', (SELECT id FROM vehicle_companies WHERE name = 'Mediterranean Transport' AND city_id = (SELECT id FROM cities WHERE name = 'Antalya'))),
+-- Antalya Coast Vehicles Types
+('Bus', (SELECT id FROM vehicle_companies WHERE name = 'Antalya Coast Vehicles' AND city_id = (SELECT id FROM cities WHERE name = 'Antalya'))),
+('Mini Bus', (SELECT id FROM vehicle_companies WHERE name = 'Antalya Coast Vehicles' AND city_id = (SELECT id FROM cities WHERE name = 'Antalya'))),
+-- Bavaria Transport Types
+('Mercedes Sprinter', (SELECT id FROM vehicle_companies WHERE name = 'Bavaria Transport GmbH' AND city_id = (SELECT id FROM cities WHERE name = 'Munich'))),
+('Van', (SELECT id FROM vehicle_companies WHERE name = 'Bavaria Transport GmbH' AND city_id = (SELECT id FROM cities WHERE name = 'Munich'))),
+('Bus', (SELECT id FROM vehicle_companies WHERE name = 'Bavaria Transport GmbH' AND city_id = (SELECT id FROM cities WHERE name = 'Munich'))),
+-- Munich Fleet Services Types
+('Luxury Van', (SELECT id FROM vehicle_companies WHERE name = 'Munich Fleet Services' AND city_id = (SELECT id FROM cities WHERE name = 'Munich'))),
+('Standard Bus', (SELECT id FROM vehicle_companies WHERE name = 'Munich Fleet Services' AND city_id = (SELECT id FROM cities WHERE name = 'Munich'))),
+-- Berlin Transport Types
+('Berlin Cab', (SELECT id FROM vehicle_companies WHERE name = 'Berlin Transport GmbH' AND city_id = (SELECT id FROM cities WHERE name = 'Berlin'))),
+('Mini Van', (SELECT id FROM vehicle_companies WHERE name = 'Berlin Transport GmbH' AND city_id = (SELECT id FROM cities WHERE name = 'Berlin'))),
+('Coach', (SELECT id FROM vehicle_companies WHERE name = 'Berlin Transport GmbH' AND city_id = (SELECT id FROM cities WHERE name = 'Berlin'))),
+-- Paris Transport Types
+('Renault Master', (SELECT id FROM vehicle_companies WHERE name = 'Paris Transport SARL' AND city_id = (SELECT id FROM cities WHERE name = 'Paris'))),
+('Peugeot Boxer', (SELECT id FROM vehicle_companies WHERE name = 'Paris Transport SARL' AND city_id = (SELECT id FROM cities WHERE name = 'Paris'))),
+('Coaches', (SELECT id FROM vehicle_companies WHERE name = 'Paris Transport SARL' AND city_id = (SELECT id FROM cities WHERE name = 'Paris'))),
+-- Ile-de-France Vehicles Types
+('Luxury Sedan', (SELECT id FROM vehicle_companies WHERE name = 'Ile-de-France Vehicles' AND city_id = (SELECT id FROM cities WHERE name = 'Paris'))),
+('Executive Van', (SELECT id FROM vehicle_companies WHERE name = 'Ile-de-France Vehicles' AND city_id = (SELECT id FROM cities WHERE name = 'Paris'))),
+-- Provence Transport Types
+('Van', (SELECT id FROM vehicle_companies WHERE name = 'Provence Transport SARL' AND city_id = (SELECT id FROM cities WHERE name = 'Marseille'))),
+('Mini Bus', (SELECT id FROM vehicle_companies WHERE name = 'Provence Transport SARL' AND city_id = (SELECT id FROM cities WHERE name = 'Marseille')))
+ON CONFLICT (name, vehicle_company_id) DO NOTHING;
+
+-- ============================================
+-- SAMPLE VEHICLE CONTRACTS
+-- ============================================
+INSERT INTO vehicle_contracts (contract_code, vehicle_company_id, start_date, end_date) VALUES 
+-- Istanbul Transport Co. Contracts
+('FST-001', (SELECT id FROM vehicle_companies WHERE name = 'Istanbul Transport Co.' AND city_id = (SELECT id FROM cities WHERE name = 'Istanbul')), '2024-01-01', '2024-12-31'),
+('FST-002', (SELECT id FROM vehicle_companies WHERE name = 'Istanbul Transport Co.' AND city_id = (SELECT id FROM cities WHERE name = 'Istanbul')), '2024-06-01', '2025-05-31'),
+-- Bosphorus Vehicles Contracts
+('FST-003', (SELECT id FROM vehicle_companies WHERE name = 'Bosphorus Vehicles' AND city_id = (SELECT id FROM cities WHERE name = 'Istanbul')), '2024-01-15', '2024-12-15'),
+-- Marmara Fleet Services Contracts
+('FST-004', (SELECT id FROM vehicle_companies WHERE name = 'Marmara Fleet Services' AND city_id = (SELECT id FROM cities WHERE name = 'Istanbul')), '2024-03-01', '2025-02-28'),
+-- Ankara Transport Solutions Contracts
+('FST-005', (SELECT id FROM vehicle_companies WHERE name = 'Ankara Transport Solutions' AND city_id = (SELECT id FROM cities WHERE name = 'Ankara')), '2024-01-01', '2024-12-31'),
+-- Capital Vehicles Contracts
+('FST-006', (SELECT id FROM vehicle_companies WHERE name = 'Capital Vehicles Ltd.' AND city_id = (SELECT id FROM cities WHERE name = 'Ankara')), '2024-04-01', '2025-03-31'),
+-- Mediterranean Transport Contracts
+('FST-007', (SELECT id FROM vehicle_companies WHERE name = 'Mediterranean Transport' AND city_id = (SELECT id FROM cities WHERE name = 'Antalya')), '2024-01-01', '2024-12-31'),
+-- Antalya Coast Vehicles Contracts
+('FST-008', (SELECT id FROM vehicle_companies WHERE name = 'Antalya Coast Vehicles' AND city_id = (SELECT id FROM cities WHERE name = 'Antalya')), '2024-05-01', '2025-04-30'),
+-- Bavaria Transport Contracts
+('FST-009', (SELECT id FROM vehicle_companies WHERE name = 'Bavaria Transport GmbH' AND city_id = (SELECT id FROM cities WHERE name = 'Munich')), '2024-01-01', '2024-12-31'),
+-- Munich Fleet Services Contracts
+('FST-010', (SELECT id FROM vehicle_companies WHERE name = 'Munich Fleet Services' AND city_id = (SELECT id FROM cities WHERE name = 'Munich')), '2024-02-01', '2025-01-31'),
+-- Berlin Transport Contracts
+('FST-011', (SELECT id FROM vehicle_companies WHERE name = 'Berlin Transport GmbH' AND city_id = (SELECT id FROM cities WHERE name = 'Berlin')), '2024-01-01', '2024-12-31'),
+-- Paris Transport Contracts
+('FST-012', (SELECT id FROM vehicle_companies WHERE name = 'Paris Transport SARL' AND city_id = (SELECT id FROM cities WHERE name = 'Paris')), '2024-01-01', '2024-12-31'),
+-- Ile-de-France Vehicles Contracts
+('FST-013', (SELECT id FROM vehicle_companies WHERE name = 'Ile-de-France Vehicles' AND city_id = (SELECT id FROM cities WHERE name = 'Paris')), '2024-03-01', '2025-02-28'),
+-- Provence Transport Contracts
+('FST-014', (SELECT id FROM vehicle_companies WHERE name = 'Provence Transport SARL' AND city_id = (SELECT id FROM cities WHERE name = 'Marseille')), '2024-01-01', '2024-12-31')
+ON CONFLICT (contract_code) DO NOTHING;
+
+-- ============================================
 -- SAMPLE POSITIONS
 -- ============================================
 INSERT INTO positions (name, department_id) VALUES 
@@ -401,6 +565,9 @@ SELECT
     (SELECT COUNT(*) FROM departments) as departments_count,
     (SELECT COUNT(*) FROM positions) as positions_count,
     (SELECT COUNT(*) FROM merchants) as merchants_count,
+    (SELECT COUNT(*) FROM vehicle_companies) as vehicle_companies_count,
+    (SELECT COUNT(*) FROM vehicle_types) as vehicle_types_count,
+    (SELECT COUNT(*) FROM vehicle_contracts) as vehicle_contracts_count,
     (SELECT COUNT(*) FROM users) as users_count;
 */
 

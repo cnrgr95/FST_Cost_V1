@@ -486,7 +486,16 @@
             form.querySelector('select[name="vehicle_company_id"]').value = item.vehicle_company_id;
         } else if (type === 'contracts') {
             document.getElementById('contractId').value = item.id;
-            document.getElementById('contract_vehicle_company_id').value = item.vehicle_company_id;
+            
+            // First load companies, then set the value
+            await loadCompaniesForContractSelect();
+            
+            // Set vehicle company after dropdown is populated
+            const vehicleCompanySelect = document.getElementById('contract_vehicle_company_id');
+            if (vehicleCompanySelect && item.vehicle_company_id) {
+                vehicleCompanySelect.value = item.vehicle_company_id;
+            }
+            
             const contractCodeInput = document.getElementById('contract_code');
             if (contractCodeInput) {
                 contractCodeInput.value = item.contract_code || '';
@@ -495,7 +504,6 @@
             }
             document.getElementById('contract_start_date').value = item.start_date || '';
             document.getElementById('contract_end_date').value = item.end_date || '';
-            await loadCompaniesForContractSelect();
         }
         
         modal.classList.add('active');

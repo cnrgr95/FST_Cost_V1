@@ -70,6 +70,9 @@ This will insert:
 - Sample sub regions
 - Sample departments and positions
 - Sample merchants (restaurants, hotels, shops, etc.)
+- Sample vehicle companies (13 companies across all cities)
+- Sample vehicle types (28 types across all companies)
+- Sample vehicle contracts (14 contracts with FST-001 to FST-014 codes)
 - 4 sample users (john.doe, jane.smith, ahmet.yilmaz, anna.mueller)
 
 ### Database Schema
@@ -83,6 +86,9 @@ The database includes the following tables:
 - **departments** - Departments within cities
 - **positions** - Positions within departments
 - **merchants** - Merchants within sub regions
+- **vehicle_companies** - Vehicle companies within cities
+- **vehicle_types** - Vehicle types within vehicle companies
+- **vehicle_contracts** - Vehicle contracts within vehicle companies
 - **users** - User accounts (LDAP authentication)
 
 ### Table Relationships
@@ -97,6 +103,9 @@ departments (1) ────> (N) positions
 departments (1) ────> (N) users
 positions (1) ────> (N) users
 sub_regions (1) ────> (N) merchants
+cities (1) ────> (N) vehicle_companies
+vehicle_companies (1) ────> (N) vehicle_types
+vehicle_companies (1) ────> (N) vehicle_contracts
 ```
 
 ### Verification

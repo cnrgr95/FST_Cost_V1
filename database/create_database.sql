@@ -89,6 +89,41 @@ CREATE TABLE IF NOT EXISTS merchants (
     UNIQUE(name, sub_region_id)
 );
 
+-- Vehicle Companies Table
+CREATE TABLE IF NOT EXISTS vehicle_companies (
+    id SERIAL PRIMARY KEY,
+    name VARCHAR(255) NOT NULL,
+    city_id INTEGER REFERENCES cities(id) ON DELETE CASCADE,
+    contact_person VARCHAR(255),
+    contact_email VARCHAR(255),
+    contact_phone VARCHAR(50),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE(name, city_id)
+);
+
+-- Vehicle Types Table
+CREATE TABLE IF NOT EXISTS vehicle_types (
+    id SERIAL PRIMARY KEY,
+    name VARCHAR(255) NOT NULL,
+    vehicle_company_id INTEGER REFERENCES vehicle_companies(id) ON DELETE CASCADE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE(name, vehicle_company_id)
+);
+
+-- Vehicle Contracts Table
+CREATE TABLE IF NOT EXISTS vehicle_contracts (
+    id SERIAL PRIMARY KEY,
+    vehicle_company_id INTEGER REFERENCES vehicle_companies(id) ON DELETE CASCADE,
+    contract_code VARCHAR(50) NOT NULL,
+    start_date DATE NOT NULL,
+    end_date DATE NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE(contract_code)
+);
+
 -- Users Table
 CREATE TABLE IF NOT EXISTS users (
     id SERIAL PRIMARY KEY,
@@ -136,6 +171,19 @@ CREATE INDEX IF NOT EXISTS idx_positions_name ON positions(name);
 CREATE INDEX IF NOT EXISTS idx_merchants_sub_region_id ON merchants(sub_region_id);
 CREATE INDEX IF NOT EXISTS idx_merchants_name ON merchants(name);
 
+-- Vehicle Companies indexes
+CREATE INDEX IF NOT EXISTS idx_vehicle_companies_city_id ON vehicle_companies(city_id);
+CREATE INDEX IF NOT EXISTS idx_vehicle_companies_name ON vehicle_companies(name);
+
+-- Vehicle Types indexes
+CREATE INDEX IF NOT EXISTS idx_vehicle_types_company_id ON vehicle_types(vehicle_company_id);
+CREATE INDEX IF NOT EXISTS idx_vehicle_types_name ON vehicle_types(name);
+
+-- Vehicle Contracts indexes
+CREATE INDEX IF NOT EXISTS idx_vehicle_contracts_company_id ON vehicle_contracts(vehicle_company_id);
+CREATE INDEX IF NOT EXISTS idx_vehicle_contracts_code ON vehicle_contracts(contract_code);
+CREATE INDEX IF NOT EXISTS idx_vehicle_contracts_dates ON vehicle_contracts(start_date, end_date);
+
 -- Users indexes
 CREATE INDEX IF NOT EXISTS idx_users_username ON users(username);
 CREATE INDEX IF NOT EXISTS idx_users_department_id ON users(department_id);
@@ -177,6 +225,15 @@ CREATE TRIGGER update_positions_updated_at BEFORE UPDATE ON positions
     FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
 CREATE TRIGGER update_merchants_updated_at BEFORE UPDATE ON merchants
+    FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+
+CREATE TRIGGER update_vehicle_companies_updated_at BEFORE UPDATE ON vehicle_companies
+    FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+
+CREATE TRIGGER update_vehicle_types_updated_at BEFORE UPDATE ON vehicle_types
+    FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+
+CREATE TRIGGER update_vehicle_contracts_updated_at BEFORE UPDATE ON vehicle_contracts
     FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
 CREATE TRIGGER update_users_updated_at BEFORE UPDATE ON users
