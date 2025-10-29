@@ -359,18 +359,9 @@
         
         html += '<td>';
         html += '<div class="table-actions">';
-        if (type === 'contracts') {
-            html += `<button class="btn-action btn-edit" onclick="window.editContractRoutes(${item.id})" title="${tVehicles.edit_routes || 'Edit Routes'}">
-                        <span class="material-symbols-rounded">route</span>
-                     </button>`;
-            html += `<button class="btn-action btn-edit" data-item-type="${type}" data-item-id="${item.id}">
-                        <span class="material-symbols-rounded">edit</span>
-                     </button>`;
-        } else {
-            html += `<button class="btn-action btn-edit" data-item-type="${type}" data-item-id="${item.id}">
-                        <span class="material-symbols-rounded">edit</span>
-                     </button>`;
-        }
+        html += `<button class="btn-action btn-edit" data-item-type="${type}" data-item-id="${item.id}">
+                    <span class="material-symbols-rounded">edit</span>
+                 </button>`;
         html += `<button class="btn-action btn-delete" data-item-type="${type}" data-item-id="${item.id}">
                     <span class="material-symbols-rounded">delete</span>
                  </button>`;
@@ -700,10 +691,7 @@
         }
     }
     
-    // Navigate to contract routes page (removed - contract-routes.php no longer exists)
-    window.editContractRoutes = function(contractId) {
-        showToast('info', 'Contract routes functionality has been removed');
-    };
+    // Note: editContractRoutes function removed - contract-routes.php page no longer exists
     
     // Create operations
     async function createCompany(data) {
