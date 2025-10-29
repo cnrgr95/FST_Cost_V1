@@ -41,6 +41,16 @@ CREATE TABLE IF NOT EXISTS cities (
     UNIQUE(name, region_id)
 );
 
+-- Sub Regions Table
+CREATE TABLE IF NOT EXISTS sub_regions (
+    id SERIAL PRIMARY KEY,
+    name VARCHAR(255) NOT NULL,
+    city_id INTEGER REFERENCES cities(id) ON DELETE CASCADE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE(name, city_id)
+);
+
 -- Departments Table
 CREATE TABLE IF NOT EXISTS departments (
     id SERIAL PRIMARY KEY,
@@ -51,12 +61,23 @@ CREATE TABLE IF NOT EXISTS departments (
     UNIQUE(name, city_id)
 );
 
+-- Positions Table
+CREATE TABLE IF NOT EXISTS positions (
+    id SERIAL PRIMARY KEY,
+    name VARCHAR(255) NOT NULL,
+    department_id INTEGER REFERENCES departments(id) ON DELETE CASCADE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE(name, department_id)
+);
+
 -- Users Table
 CREATE TABLE IF NOT EXISTS users (
     id SERIAL PRIMARY KEY,
     username VARCHAR(255) NOT NULL UNIQUE,
     full_name VARCHAR(255),
     department_id INTEGER REFERENCES departments(id) ON DELETE SET NULL,
+    position_id INTEGER REFERENCES positions(id) ON DELETE SET NULL,
     city_id INTEGER REFERENCES cities(id) ON DELETE SET NULL,
     email VARCHAR(255),
     phone VARCHAR(50),
@@ -81,13 +102,22 @@ CREATE INDEX IF NOT EXISTS idx_regions_name ON regions(name);
 CREATE INDEX IF NOT EXISTS idx_cities_region_id ON cities(region_id);
 CREATE INDEX IF NOT EXISTS idx_cities_name ON cities(name);
 
+-- Sub Regions indexes
+CREATE INDEX IF NOT EXISTS idx_sub_regions_city_id ON sub_regions(city_id);
+CREATE INDEX IF NOT EXISTS idx_sub_regions_name ON sub_regions(name);
+
 -- Departments indexes
 CREATE INDEX IF NOT EXISTS idx_departments_city_id ON departments(city_id);
 CREATE INDEX IF NOT EXISTS idx_departments_name ON departments(name);
 
+-- Positions indexes
+CREATE INDEX IF NOT EXISTS idx_positions_department_id ON positions(department_id);
+CREATE INDEX IF NOT EXISTS idx_positions_name ON positions(name);
+
 -- Users indexes
 CREATE INDEX IF NOT EXISTS idx_users_username ON users(username);
 CREATE INDEX IF NOT EXISTS idx_users_department_id ON users(department_id);
+CREATE INDEX IF NOT EXISTS idx_users_position_id ON users(position_id);
 CREATE INDEX IF NOT EXISTS idx_users_city_id ON users(city_id);
 CREATE INDEX IF NOT EXISTS idx_users_status ON users(status);
 CREATE INDEX IF NOT EXISTS idx_users_email ON users(email);
@@ -115,7 +145,13 @@ CREATE TRIGGER update_regions_updated_at BEFORE UPDATE ON regions
 CREATE TRIGGER update_cities_updated_at BEFORE UPDATE ON cities
     FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
+CREATE TRIGGER update_sub_regions_updated_at BEFORE UPDATE ON sub_regions
+    FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+
 CREATE TRIGGER update_departments_updated_at BEFORE UPDATE ON departments
+    FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+
+CREATE TRIGGER update_positions_updated_at BEFORE UPDATE ON positions
     FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
 CREATE TRIGGER update_users_updated_at BEFORE UPDATE ON users

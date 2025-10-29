@@ -79,7 +79,8 @@ function handleGet($conn, $action) {
             checkUsername($conn);
             break;
         case 'departments':
-            getDepartments($conn);
+            $city_id = isset($_GET['city_id']) ? (int)$_GET['city_id'] : null;
+            getDepartments($conn, $city_id);
             break;
         case 'cities':
             getCities($conn);
@@ -90,6 +91,10 @@ function handleGet($conn, $action) {
             break;
         case 'countries':
             getCountries($conn);
+            break;
+        case 'positions':
+            $department_id = isset($_GET['department_id']) ? (int)$_GET['department_id'] : null;
+            getPositions($conn, $department_id);
             break;
         default:
             echo json_encode(['success' => false, 'message' => 'Invalid action']);
@@ -145,11 +150,13 @@ function getUsers($conn) {
     try {
         $query = "SELECT u.*, 
                          d.name as department_name,
+                         p.name as position_name,
                          c.name as city_name,
                          r.name as region_name,
                          co.name as country_name
                   FROM users u
                   LEFT JOIN departments d ON u.department_id = d.id
+                  LEFT JOIN positions p ON u.position_id = p.id
                   LEFT JOIN cities c ON u.city_id = c.id
                   LEFT JOIN regions r ON c.region_id = r.id
                   LEFT JOIN countries co ON r.country_id = co.id
@@ -198,14 +205,23 @@ function checkUsername($conn) {
 }
 
 // Get departments
-function getDepartments($conn) {
+function getDepartments($conn, $city_id = null) {
     try {
-        $query = "SELECT d.*, c.name as city_name 
-                  FROM departments d 
-                  LEFT JOIN cities c ON d.city_id = c.id 
-                  ORDER BY d.name ASC";
-        
-        $result = pg_query($conn, $query);
+        if ($city_id) {
+            $city_id = (int)$city_id;
+            $query = "SELECT d.*, c.name as city_name 
+                      FROM departments d 
+                      LEFT JOIN cities c ON d.city_id = c.id 
+                      WHERE d.city_id = $1
+                      ORDER BY d.name ASC";
+            $result = pg_query_params($conn, $query, [$city_id]);
+        } else {
+            $query = "SELECT d.*, c.name as city_name 
+                      FROM departments d 
+                      LEFT JOIN cities c ON d.city_id = c.id 
+                      ORDER BY d.name ASC";
+            $result = pg_query($conn, $query);
+        }
         
         if ($result) {
             $departments = pg_fetch_all($result) ?: [];
@@ -291,11 +307,42 @@ function getCountries($conn) {
     }
 }
 
+// Get positions by department
+function getPositions($conn, $department_id = null) {
+    try {
+        if ($department_id) {
+            $department_id = (int)$department_id;
+            $query = "SELECT p.*, d.name as department_name
+                      FROM positions p
+                      LEFT JOIN departments d ON p.department_id = d.id
+                      WHERE p.department_id = $department_id
+                      ORDER BY p.name ASC";
+        } else {
+            $query = "SELECT p.*, d.name as department_name
+                      FROM positions p
+                      LEFT JOIN departments d ON p.department_id = d.id
+                      ORDER BY p.name ASC";
+        }
+        
+        $result = pg_query($conn, $query);
+        
+        if ($result) {
+            $positions = pg_fetch_all($result) ?: [];
+            echo json_encode(['success' => true, 'data' => $positions], JSON_NUMERIC_CHECK);
+        } else {
+            echo json_encode(['success' => false, 'message' => getDbErrorMessage($conn)]);
+        }
+    } catch (Exception $e) {
+        echo json_encode(['success' => false, 'message' => 'Error loading positions: ' . $e->getMessage()]);
+    }
+}
+
 // Create user
 function createUser($conn, $data) {
     $username = trim($data['username']);
     $full_name = trim($data['full_name'] ?? '');
     $department_id = isset($data['department_id']) ? (int)$data['department_id'] : null;
+    $position_id = isset($data['position_id']) ? (int)$data['position_id'] : null;
     $city_id = isset($data['city_id']) ? (int)$data['city_id'] : null;
     $email = trim($data['email'] ?? '');
     $phone = trim($data['phone'] ?? '');
@@ -322,11 +369,11 @@ function createUser($conn, $data) {
     }
     
     // Use prepared statement to prevent SQL injection
-    $query = "INSERT INTO users (username, full_name, department_id, city_id, email, phone, status, created_at) 
-              VALUES ($1, $2, $3, $4, $5, $6, $7, NOW()) 
+    $query = "INSERT INTO users (username, full_name, department_id, position_id, city_id, email, phone, status, created_at) 
+              VALUES ($1, $2, $3, $4, $5, $6, $7, $8, NOW()) 
               RETURNING id";
     
-    $params = [$username, $full_name, $department_id, $city_id, $email, $phone, $status];
+    $params = [$username, $full_name, $department_id, $position_id, $city_id, $email, $phone, $status];
     
     $result = pg_query_params($conn, $query, $params);
     
@@ -344,6 +391,7 @@ function updateUser($conn, $data) {
     $username = pg_escape_string($conn, $data['username']);
     $full_name = pg_escape_string($conn, $data['full_name'] ?? '');
     $department_id = isset($data['department_id']) ? (int)$data['department_id'] : null;
+    $position_id = isset($data['position_id']) ? (int)$data['position_id'] : null;
     $city_id = isset($data['city_id']) ? (int)$data['city_id'] : null;
     $email = pg_escape_string($conn, $data['email'] ?? '');
     $phone = pg_escape_string($conn, $data['phone'] ?? '');
@@ -371,12 +419,14 @@ function updateUser($conn, $data) {
     // Username and full_name are readonly (LDAP), so we don't update them
     
     $department_id_val = $department_id ? $department_id : 'NULL';
+    $position_id_val = $position_id ? $position_id : 'NULL';
     $city_id_val = $city_id ? $city_id : 'NULL';
     $email_val = $email ? "'$email'" : 'NULL';
     $phone_val = $phone ? "'$phone'" : 'NULL';
     
     $query = "UPDATE users SET 
                 department_id = $department_id_val,
+                position_id = $position_id_val,
                 city_id = $city_id_val,
                 phone = $phone_val,
                 status = '$status',

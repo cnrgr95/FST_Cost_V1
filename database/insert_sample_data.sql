@@ -1,5 +1,5 @@
 -- Sample Data for FST Cost Management Database
--- This script inserts sample countries, regions, cities, departments, and users
+-- This script inserts sample countries, regions, cities, sub_regions, departments, positions, and users
 
 -- ============================================
 -- SAMPLE COUNTRIES
@@ -67,6 +67,95 @@ INSERT INTO departments (name, city_id) VALUES
 ('Sales & Marketing', (SELECT id FROM cities WHERE name = 'Paris')),
 ('Finance Department', (SELECT id FROM cities WHERE name = 'Paris'))
 ON CONFLICT (name, city_id) DO NOTHING;
+
+-- ============================================
+-- SAMPLE SUB REGIONS
+-- ============================================
+INSERT INTO sub_regions (name, city_id) VALUES 
+-- Istanbul Sub Regions
+('Sultanahmet', (SELECT id FROM cities WHERE name = 'Istanbul')),
+('Taksim', (SELECT id FROM cities WHERE name = 'Istanbul')),
+('Kadıköy', (SELECT id FROM cities WHERE name = 'Istanbul')),
+('Beşiktaş', (SELECT id FROM cities WHERE name = 'Istanbul')),
+('Şişli', (SELECT id FROM cities WHERE name = 'Istanbul')),
+-- Ankara Sub Regions
+('Çankaya', (SELECT id FROM cities WHERE name = 'Ankara')),
+('Kızılay', (SELECT id FROM cities WHERE name = 'Ankara')),
+('Ulus', (SELECT id FROM cities WHERE name = 'Ankara')),
+('Bahçelievler', (SELECT id FROM cities WHERE name = 'Ankara')),
+-- Antalya Sub Regions
+('Kaleiçi', (SELECT id FROM cities WHERE name = 'Antalya')),
+('Lara', (SELECT id FROM cities WHERE name = 'Antalya')),
+('Konyaaltı', (SELECT id FROM cities WHERE name = 'Antalya')),
+-- Izmir Sub Regions
+('Alsancak', (SELECT id FROM cities WHERE name = 'Izmir')),
+('Konak', (SELECT id FROM cities WHERE name = 'Izmir')),
+('Bornova', (SELECT id FROM cities WHERE name = 'Izmir')),
+-- Munich Sub Regions
+('Marienplatz', (SELECT id FROM cities WHERE name = 'Munich')),
+('Schwabing', (SELECT id FROM cities WHERE name = 'Munich')),
+('Maxvorstadt', (SELECT id FROM cities WHERE name = 'Munich')),
+-- Berlin Sub Regions
+('Mitte', (SELECT id FROM cities WHERE name = 'Berlin')),
+('Prenzlauer Berg', (SELECT id FROM cities WHERE name = 'Berlin')),
+('Kreuzberg', (SELECT id FROM cities WHERE name = 'Berlin')),
+-- Paris Sub Regions
+('Le Marais', (SELECT id FROM cities WHERE name = 'Paris')),
+('Montmartre', (SELECT id FROM cities WHERE name = 'Paris')),
+('Champs-Élysées', (SELECT id FROM cities WHERE name = 'Paris')),
+('Latin Quarter', (SELECT id FROM cities WHERE name = 'Paris')),
+-- Marseille Sub Regions
+('Vieux-Port', (SELECT id FROM cities WHERE name = 'Marseille')),
+('Le Panier', (SELECT id FROM cities WHERE name = 'Marseille'))
+ON CONFLICT (name, city_id) DO NOTHING;
+
+-- ============================================
+-- SAMPLE POSITIONS
+-- ============================================
+INSERT INTO positions (name, department_id) VALUES 
+-- Istanbul IT Department Positions
+('Software Engineer', (SELECT id FROM departments WHERE name = 'IT Department' AND city_id = (SELECT id FROM cities WHERE name = 'Istanbul'))),
+('Senior Software Engineer', (SELECT id FROM departments WHERE name = 'IT Department' AND city_id = (SELECT id FROM cities WHERE name = 'Istanbul'))),
+('DevOps Engineer', (SELECT id FROM departments WHERE name = 'IT Department' AND city_id = (SELECT id FROM cities WHERE name = 'Istanbul'))),
+('IT Manager', (SELECT id FROM departments WHERE name = 'IT Department' AND city_id = (SELECT id FROM cities WHERE name = 'Istanbul'))),
+-- Istanbul Human Resources Positions
+('HR Specialist', (SELECT id FROM departments WHERE name = 'Human Resources' AND city_id = (SELECT id FROM cities WHERE name = 'Istanbul'))),
+('Recruiter', (SELECT id FROM departments WHERE name = 'Human Resources' AND city_id = (SELECT id FROM cities WHERE name = 'Istanbul'))),
+('HR Manager', (SELECT id FROM departments WHERE name = 'Human Resources' AND city_id = (SELECT id FROM cities WHERE name = 'Istanbul'))),
+-- Istanbul Finance Department Positions
+('Accountant', (SELECT id FROM departments WHERE name = 'Finance Department' AND city_id = (SELECT id FROM cities WHERE name = 'Istanbul'))),
+('Senior Accountant', (SELECT id FROM departments WHERE name = 'Finance Department' AND city_id = (SELECT id FROM cities WHERE name = 'Istanbul'))),
+('Financial Analyst', (SELECT id FROM departments WHERE name = 'Finance Department' AND city_id = (SELECT id FROM cities WHERE name = 'Istanbul'))),
+('Finance Manager', (SELECT id FROM departments WHERE name = 'Finance Department' AND city_id = (SELECT id FROM cities WHERE name = 'Istanbul'))),
+-- Istanbul Operations Positions
+('Operations Coordinator', (SELECT id FROM departments WHERE name = 'Operations' AND city_id = (SELECT id FROM cities WHERE name = 'Istanbul'))),
+('Operations Manager', (SELECT id FROM departments WHERE name = 'Operations' AND city_id = (SELECT id FROM cities WHERE name = 'Istanbul'))),
+-- Istanbul Sales & Marketing Positions
+('Sales Representative', (SELECT id FROM departments WHERE name = 'Sales & Marketing' AND city_id = (SELECT id FROM cities WHERE name = 'Istanbul'))),
+('Marketing Specialist', (SELECT id FROM departments WHERE name = 'Sales & Marketing' AND city_id = (SELECT id FROM cities WHERE name = 'Istanbul'))),
+('Sales Manager', (SELECT id FROM departments WHERE name = 'Sales & Marketing' AND city_id = (SELECT id FROM cities WHERE name = 'Istanbul'))),
+-- Ankara IT Department Positions
+('Software Developer', (SELECT id FROM departments WHERE name = 'IT Department' AND city_id = (SELECT id FROM cities WHERE name = 'Ankara'))),
+('System Administrator', (SELECT id FROM departments WHERE name = 'IT Department' AND city_id = (SELECT id FROM cities WHERE name = 'Ankara'))),
+-- Ankara Human Resources Positions
+('HR Assistant', (SELECT id FROM departments WHERE name = 'Human Resources' AND city_id = (SELECT id FROM cities WHERE name = 'Ankara'))),
+('HR Coordinator', (SELECT id FROM departments WHERE name = 'Human Resources' AND city_id = (SELECT id FROM cities WHERE name = 'Ankara'))),
+-- Ankara Finance Department Positions
+('Junior Accountant', (SELECT id FROM departments WHERE name = 'Finance Department' AND city_id = (SELECT id FROM cities WHERE name = 'Ankara'))),
+('Accounting Clerk', (SELECT id FROM departments WHERE name = 'Finance Department' AND city_id = (SELECT id FROM cities WHERE name = 'Ankara'))),
+-- Munich IT Department Positions
+('Software Engineer', (SELECT id FROM departments WHERE name = 'IT Department' AND city_id = (SELECT id FROM cities WHERE name = 'Munich'))),
+('Technical Lead', (SELECT id FROM departments WHERE name = 'IT Department' AND city_id = (SELECT id FROM cities WHERE name = 'Munich'))),
+-- Munich Operations Positions
+('Project Coordinator', (SELECT id FROM departments WHERE name = 'Operations' AND city_id = (SELECT id FROM cities WHERE name = 'Munich'))),
+('Operations Analyst', (SELECT id FROM departments WHERE name = 'Operations' AND city_id = (SELECT id FROM cities WHERE name = 'Munich'))),
+-- Paris Sales & Marketing Positions
+('Sales Executive', (SELECT id FROM departments WHERE name = 'Sales & Marketing' AND city_id = (SELECT id FROM cities WHERE name = 'Paris'))),
+('Marketing Manager', (SELECT id FROM departments WHERE name = 'Sales & Marketing' AND city_id = (SELECT id FROM cities WHERE name = 'Paris'))),
+-- Paris Finance Department Positions
+('Financial Controller', (SELECT id FROM departments WHERE name = 'Finance Department' AND city_id = (SELECT id FROM cities WHERE name = 'Paris'))),
+('Budget Analyst', (SELECT id FROM departments WHERE name = 'Finance Department' AND city_id = (SELECT id FROM cities WHERE name = 'Paris')))
+ON CONFLICT (name, department_id) DO NOTHING;
 
 -- ============================================
 -- SAMPLE USERS (Passwordless - LDAP Authentication)
@@ -143,7 +232,9 @@ SELECT
     (SELECT COUNT(*) FROM countries) as countries_count,
     (SELECT COUNT(*) FROM regions) as regions_count,
     (SELECT COUNT(*) FROM cities) as cities_count,
+    (SELECT COUNT(*) FROM sub_regions) as sub_regions_count,
     (SELECT COUNT(*) FROM departments) as departments_count,
+    (SELECT COUNT(*) FROM positions) as positions_count,
     (SELECT COUNT(*) FROM users) as users_count;
 */
 

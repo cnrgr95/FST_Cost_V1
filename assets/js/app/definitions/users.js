@@ -62,18 +62,19 @@
         }
         
         // Load dependencies
-        loadDepartments();
         loadCountries();
         
         // Setup cascade dropdowns
         setupCascadeDropdowns();
     });
     
-    // Setup cascade dropdowns
+    // Setup cascade dropdowns - Full cascade: Country -> Region -> City -> Department -> Position
     function setupCascadeDropdowns() {
         const countrySelect = document.getElementById('countrySelect');
         const regionSelect = document.getElementById('regionSelect');
         const citySelect = document.getElementById('citySelect');
+        const departmentSelect = document.getElementById('departmentSelect');
+        const positionSelect = document.getElementById('positionSelect');
         
         if (countrySelect) {
             countrySelect.addEventListener('change', function() {
@@ -82,10 +83,11 @@
                     loadRegions(countryId);
                     regionSelect.disabled = false;
                 } else {
-                    regionSelect.innerHTML = `<option value="">${tUsers.select_region}</option>`;
-                    regionSelect.disabled = true;
-                    citySelect.innerHTML = `<option value="">${tUsers.select_city}</option>`;
-                    citySelect.disabled = true;
+                    // Reset all downstream dropdowns
+                    resetDropdown(regionSelect, tUsers.select_region);
+                    resetDropdown(citySelect, tUsers.select_city);
+                    resetDropdown(departmentSelect, tUsers.select_department);
+                    resetDropdown(positionSelect, tUsers.select_position);
                 }
             });
         }
@@ -97,10 +99,47 @@
                     loadCities(regionId);
                     citySelect.disabled = false;
                 } else {
-                    citySelect.innerHTML = `<option value="">${tUsers.select_city}</option>`;
-                    citySelect.disabled = true;
+                    // Reset downstream dropdowns
+                    resetDropdown(citySelect, tUsers.select_city);
+                    resetDropdown(departmentSelect, tUsers.select_department);
+                    resetDropdown(positionSelect, tUsers.select_position);
                 }
             });
+        }
+        
+        if (citySelect) {
+            citySelect.addEventListener('change', function() {
+                const cityId = this.value;
+                if (cityId) {
+                    loadDepartments(cityId);
+                    departmentSelect.disabled = false;
+                } else {
+                    // Reset downstream dropdowns
+                    resetDropdown(departmentSelect, tUsers.select_department);
+                    resetDropdown(positionSelect, tUsers.select_position);
+                }
+            });
+        }
+        
+        if (departmentSelect) {
+            departmentSelect.addEventListener('change', function() {
+                const departmentId = this.value;
+                if (departmentId) {
+                    loadPositions(departmentId);
+                    positionSelect.disabled = false;
+                } else {
+                    resetDropdown(positionSelect, tUsers.select_position);
+                }
+            });
+        }
+    }
+    
+    // Helper function to reset dropdown
+    function resetDropdown(selectElement, defaultText) {
+        if (selectElement) {
+            selectElement.innerHTML = `<option value="">${defaultText}</option>`;
+            selectElement.disabled = true;
+            selectElement.value = '';
         }
     }
     
@@ -133,10 +172,13 @@
         }
     }
     
-    // Load departments
-    async function loadDepartments() {
+    // Load departments by city
+    async function loadDepartments(cityId = null) {
         try {
-            const response = await fetch(`${API_BASE}?action=departments`);
+            const url = cityId 
+                ? `${API_BASE}?action=departments&city_id=${cityId}`
+                : `${API_BASE}?action=departments`;
+            const response = await fetch(url);
             
             if (!response.ok) {
                 throw new Error(`HTTP error! status: ${response.status}`);
@@ -151,11 +193,11 @@
             
             if (result.success) {
                 currentData.departments = result.data || [];
-                const select = document.querySelector('[name="department_id"]');
+                const select = document.getElementById('departmentSelect');
                 if (select) {
                     select.innerHTML = `<option value="">${tUsers.select_department}</option>`;
                     result.data.forEach(dept => {
-                        select.innerHTML += `<option value="${dept.id}">${dept.name}${dept.city_name ? ' (' + dept.city_name + ')' : ''}</option>`;
+                        select.innerHTML += `<option value="${dept.id}">${dept.name}</option>`;
                     });
                 }
             } else {
@@ -163,6 +205,42 @@
             }
         } catch (error) {
             console.error('Error loading departments:', error);
+        }
+    }
+    
+    // Load positions
+    async function loadPositions(departmentId = null) {
+        try {
+            const url = departmentId 
+                ? `${API_BASE}?action=positions&department_id=${departmentId}`
+                : `${API_BASE}?action=positions`;
+            const response = await fetch(url);
+            
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            
+            const contentType = response.headers.get('content-type');
+            if (!contentType || !contentType.includes('application/json')) {
+                throw new Error(tCommon.invalid_response_format);
+            }
+            
+            const result = await response.json();
+            
+            if (result.success) {
+                currentData.positions = result.data || [];
+                const select = document.getElementById('positionSelect');
+                if (select) {
+                    select.innerHTML = `<option value="">${tUsers.select_position}</option>`;
+                    result.data.forEach(pos => {
+                        select.innerHTML += `<option value="${pos.id}">${pos.name}</option>`;
+                    });
+                }
+            } else {
+                console.error('Failed to load positions:', result.message);
+            }
+        } catch (error) {
+            console.error('Error loading positions:', error);
         }
     }
     
@@ -310,6 +388,7 @@
         html += `<th>${tUsers.username}</th>`;
         html += `<th>${tUsers.full_name}</th>`;
         html += `<th>${tUsers.department}</th>`;
+        html += `<th>${tUsers.position}</th>`;
         html += `<th>${tUsers.city}</th>`;
         html += `<th>${tUsers.email}</th>`;
         html += `<th>${tUsers.status}</th>`;
@@ -323,6 +402,7 @@
                     <td><strong>${escapeHtml(item.username)}</strong></td>
                     <td>${escapeHtml(item.full_name || '-')}</td>
                     <td>${escapeHtml(item.department_name || '-')}</td>
+                    <td>${escapeHtml(item.position_name || '-')}</td>
                     <td>${escapeHtml(item.city_name || '-')}</td>
                     <td>${escapeHtml(item.email || '-')}</td>
                     <td><span class="status-badge ${item.status === 'active' ? 'active' : 'inactive'}">${item.status === 'active' ? tUsers.active : tUsers.inactive}</span></td>
@@ -442,6 +522,23 @@
             delete form.dataset.id;
             title.textContent = tUsers.add_user;
             clearFormErrors(form);
+            
+            // Reset all cascade dropdowns
+            const countrySelect = document.getElementById('countrySelect');
+            const regionSelect = document.getElementById('regionSelect');
+            const citySelect = document.getElementById('citySelect');
+            const departmentSelect = document.getElementById('departmentSelect');
+            const positionSelect = document.getElementById('positionSelect');
+            
+            // Reset country (others will be reset by cascade)
+            if (countrySelect) {
+                countrySelect.value = '';
+            }
+            resetDropdown(regionSelect, tUsers.select_region);
+            resetDropdown(citySelect, tUsers.select_city);
+            resetDropdown(departmentSelect, tUsers.select_department);
+            resetDropdown(positionSelect, tUsers.select_position);
+            
             modal.classList.add('active');
         }
     };
@@ -492,7 +589,7 @@
         // Fill form
         form.querySelector('[name="username"]').value = item.username || '';
         form.querySelector('[name="full_name"]').value = item.full_name || '';
-        form.querySelector('[name="department_id"]').value = item.department_id || '';
+        
         form.querySelector('[name="email"]').value = item.email || '';
         form.querySelector('[name="phone"]').value = item.phone || '';
         
@@ -510,21 +607,18 @@
             }
         }
         
-        // Reset location dropdowns
+        // Reset all cascade dropdowns first
         const regionSelect = document.getElementById('regionSelect');
         const citySelect = document.getElementById('citySelect');
+        const departmentSelect = document.getElementById('departmentSelect');
+        const positionSelect = document.getElementById('positionSelect');
         
-        if (regionSelect) {
-            regionSelect.innerHTML = `<option value="">${tUsers.select_region}</option>`;
-            regionSelect.disabled = true;
-        }
+        resetDropdown(regionSelect, tUsers.select_region);
+        resetDropdown(citySelect, tUsers.select_city);
+        resetDropdown(departmentSelect, tUsers.select_department);
+        resetDropdown(positionSelect, tUsers.select_position);
         
-        if (citySelect) {
-            citySelect.innerHTML = `<option value="">${tUsers.select_city}</option>`;
-            citySelect.disabled = true;
-        }
-        
-        // Load city info and cascade dropdowns
+        // Load city info and cascade all dropdowns
         if (item.city_id) {
             try {
                 // Load city details (all cities to find the one we need)
@@ -556,10 +650,28 @@
                             // Load cities for the region and wait for it to complete
                             await loadCities(city.region_id);
                             
-                            // Set city after a small delay to ensure select is populated
-                            setTimeout(() => {
+                            // Set city after a small delay to ensure select is populated, then load departments
+                            setTimeout(async () => {
                                 if (citySelect) {
                                     citySelect.value = item.city_id;
+                                    // Trigger change to load departments for this city
+                                    citySelect.dispatchEvent(new Event('change'));
+                                    
+                                    // Wait for departments to load, then set department
+                                    await new Promise(resolve => setTimeout(resolve, 300));
+                                    const deptSelect = document.getElementById('departmentSelect');
+                                    if (deptSelect && item.department_id) {
+                                        deptSelect.value = item.department_id;
+                                        // Trigger change to load positions for this department
+                                        deptSelect.dispatchEvent(new Event('change'));
+                                        
+                                        // Wait for positions to load, then set position
+                                        await new Promise(resolve => setTimeout(resolve, 300));
+                                        const posSelect = document.getElementById('positionSelect');
+                                        if (posSelect && item.position_id) {
+                                            posSelect.value = item.position_id;
+                                        }
+                                    }
                                 }
                             }, 100);
                         }
@@ -603,6 +715,7 @@
                     username: user.username,
                     full_name: user.full_name,
                     department_id: user.department_id,
+                    position_id: user.position_id,
                     city_id: user.city_id,
                     email: user.email,
                     phone: user.phone,
@@ -650,6 +763,7 @@
             username: formData.get('username'),
             full_name: formData.get('full_name'),
             department_id: formData.get('department_id') || null,
+            position_id: formData.get('position_id') || null,
             city_id: formData.get('city_id') || null,
             email: formData.get('email') || null,
             phone: formData.get('phone') || null,

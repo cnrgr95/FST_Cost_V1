@@ -90,13 +90,6 @@ $t_users = $all_translations['users'] ?? [];
                 </div>
                 
                 <div class="form-group">
-                    <label><?php echo $t_users['department'] ?? 'Department'; ?></label>
-                    <select name="department_id">
-                        <option value=""><?php echo $t_users['select_department'] ?? 'Select Department'; ?></option>
-                    </select>
-                </div>
-                
-                <div class="form-group">
                     <label><?php echo $t_users['country'] ?? 'Country'; ?></label>
                     <select name="country_id" id="countrySelect">
                         <option value=""><?php echo $t_users['select_country'] ?? 'Select Country'; ?></option>
@@ -114,6 +107,20 @@ $t_users = $all_translations['users'] ?? [];
                     <label><?php echo $t_users['city'] ?? 'City'; ?></label>
                     <select name="city_id" id="citySelect" disabled>
                         <option value=""><?php echo $t_users['select_city'] ?? 'Select City'; ?></option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label><?php echo $t_users['department'] ?? 'Department'; ?></label>
+                    <select name="department_id" id="departmentSelect" disabled>
+                        <option value=""><?php echo $t_users['select_department'] ?? 'Select Department'; ?></option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label><?php echo $t_users['position'] ?? 'Position'; ?></label>
+                    <select name="position_id" id="positionSelect" disabled>
+                        <option value=""><?php echo $t_users['select_position'] ?? 'Select Position'; ?></option>
                     </select>
                 </div>
                 

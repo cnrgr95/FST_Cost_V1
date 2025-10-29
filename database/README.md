@@ -47,6 +47,30 @@
    psql -U postgres -d fst_cost_db -f database/create_database.sql
    ```
 
+### Method 3: Using Batch Script (Windows)
+
+1. **Run the batch script**:
+   ```bash
+   database\create_database.bat
+   ```
+
+   The script will prompt for PostgreSQL password and create the database automatically.
+
+### Sample Data
+
+After creating the database, you can insert sample data:
+
+```bash
+psql -U postgres -d fst_cost_db -f database/insert_sample_data.sql
+```
+
+This will insert:
+- Sample countries (Turkey, Germany, France)
+- Sample regions and cities
+- Sample sub regions
+- Sample departments and positions
+- 4 sample users (john.doe, jane.smith, ahmet.yilmaz, anna.mueller)
+
 ### Database Schema
 
 The database includes the following tables:
@@ -54,7 +78,9 @@ The database includes the following tables:
 - **countries** - Country master data
 - **regions** - Regional divisions within countries
 - **cities** - Cities within regions
+- **sub_regions** - Sub regions within cities
 - **departments** - Departments within cities
+- **positions** - Positions within departments
 - **users** - User accounts (LDAP authentication)
 
 ### Table Relationships
@@ -62,9 +88,12 @@ The database includes the following tables:
 ```
 countries (1) ────> (N) regions
 regions (1) ────> (N) cities
+cities (1) ────> (N) sub_regions
 cities (1) ────> (N) departments
 cities (1) ────> (N) users
+departments (1) ────> (N) positions
 departments (1) ────> (N) users
+positions (1) ────> (N) users
 ```
 
 ### Verification
