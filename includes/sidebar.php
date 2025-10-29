@@ -88,7 +88,7 @@ function isActiveMenuItem($pages = [], $requireExact = false) {
 </button>
 
 <!-- Sidebar -->
-<aside class="sidebar">
+<aside class="sidebar" id="main-sidebar">
   <!-- Sidebar Header -->
   <header class="sidebar-header">
     <a href="<?php echo $basePath; ?>dashboard.php" class="header-logo">
@@ -206,4 +206,26 @@ function isActiveMenuItem($pages = [], $requireExact = false) {
     </ul>
   </nav>
 </aside>
+
+<!-- Immediately restore sidebar state to prevent FOUC (Flash of Unstyled Content) -->
+<script>
+(function() {
+  'use strict';
+  try {
+    // Check if we're on desktop and if sidebar was collapsed
+    if (window.innerWidth > 768) {
+      const savedState = localStorage.getItem('sidebarCollapsed');
+      if (savedState === 'true') {
+        // Since this script runs right after sidebar HTML, the element should exist
+        const sidebar = document.getElementById('main-sidebar');
+        if (sidebar) {
+          sidebar.classList.add('collapsed');
+        }
+      }
+    }
+  } catch (e) {
+    // Silently fail if localStorage is not available
+  }
+})();
+</script>
 

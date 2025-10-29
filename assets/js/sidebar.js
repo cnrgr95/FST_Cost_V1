@@ -5,7 +5,37 @@
   // Toggle the visibility of a dropdown menu
   const toggleDropdown = (dropdown, menu, isOpen) => {
     dropdown.classList.toggle("open", isOpen);
-    menu.style.height = isOpen ? `${menu.scrollHeight}px` : 0;
+    if (isOpen) {
+      // Calculate proper height based on content
+      menu.style.height = 'auto';
+      const height = menu.scrollHeight;
+      menu.style.height = `${height}px`;
+    } else {
+      menu.style.height = '0';
+    }
+  };
+  
+  // Restore dropdown menu heights and positions when sidebar expands
+  const restoreDropdownHeights = () => {
+    document.querySelectorAll(".dropdown-container.open").forEach((dropdown) => {
+      const menu = dropdown.querySelector(".dropdown-menu");
+      if (menu && dropdown.classList.contains("open")) {
+        // Remove collapsed-specific inline styles to let CSS take over
+        menu.style.removeProperty('position');
+        menu.style.removeProperty('left');
+        menu.style.removeProperty('opacity');
+        menu.style.removeProperty('pointer-events');
+        menu.style.removeProperty('top');
+        
+        // Calculate and set proper height for expanded mode
+        // First set to auto to get true scrollHeight
+        const currentHeight = menu.style.height;
+        menu.style.height = 'auto';
+        const scrollHeight = menu.scrollHeight;
+        // Restore height with calculated value
+        menu.style.height = scrollHeight > 0 ? `${scrollHeight}px` : '';
+      }
+    });
   };
 
   // Close all open dropdowns
@@ -29,18 +59,67 @@
     });
   });
 
+  // Save sidebar state to localStorage
+  const saveSidebarState = (isCollapsed) => {
+    try {
+      localStorage.setItem('sidebarCollapsed', isCollapsed ? 'true' : 'false');
+    } catch (e) {
+      console.warn('Failed to save sidebar state to localStorage:', e);
+    }
+  };
+
+  // Load sidebar state from localStorage
+  const loadSidebarState = () => {
+    try {
+      const savedState = localStorage.getItem('sidebarCollapsed');
+      if (savedState !== null) {
+        return savedState === 'true';
+      }
+    } catch (e) {
+      console.warn('Failed to load sidebar state from localStorage:', e);
+    }
+    return false; // Default to expanded
+  };
+
+  // Apply sidebar state on page load (only on desktop)
+  const applySidebarState = () => {
+    if (window.innerWidth > 768) {
+      const sidebar = document.querySelector(".sidebar") || document.querySelector("#main-sidebar");
+      if (sidebar) {
+        const isCollapsed = loadSidebarState();
+        if (isCollapsed) {
+          sidebar.classList.add("collapsed");
+        } else {
+          sidebar.classList.remove("collapsed");
+        }
+        // Remove opacity restriction if it was set
+        sidebar.style.opacity = '';
+      }
+    }
+  };
+
+  // Apply state immediately when DOM is ready or if already loaded
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', applySidebarState);
+  } else {
+    // DOM already loaded, apply immediately
+    applySidebarState();
+  }
+
   // Attach click event to sidebar toggle buttons
   document.querySelectorAll(".sidebar-toggler, .sidebar-menu-button").forEach((button) => {
     button.addEventListener("click", (e) => {
       e.preventDefault();
       e.stopPropagation();
       
-      closeAllDropdowns(); // Close all open dropdowns
       const sidebar = document.querySelector(".sidebar");
       const overlay = document.querySelector(".sidebar-overlay");
       
       // Handle mobile sidebar
       if (window.innerWidth <= 768) {
+        // On mobile, close dropdowns when toggling sidebar
+        closeAllDropdowns();
+        
         if (button.classList.contains("sidebar-menu-button")) {
           // Toggle menu button - open/close sidebar
           sidebar.classList.toggle("active");
@@ -62,8 +141,54 @@
           document.body.style.overflow = "";
         }
       } else {
-        // Desktop: toggle collapsed
+        // Desktop: toggle collapsed and save state
+        // DO NOT close dropdowns when toggling sidebar - preserve open state
+        const wasCollapsed = sidebar.classList.contains("collapsed");
         sidebar.classList.toggle("collapsed");
+        const isNowCollapsed = sidebar.classList.contains("collapsed");
+        saveSidebarState(isNowCollapsed);
+        
+        // When expanding from collapsed to expanded, restore dropdown heights and positions
+        if (wasCollapsed && !isNowCollapsed) {
+          // Sidebar just expanded - restore any open dropdowns
+          // Remove collapsed-specific inline styles immediately
+          document.querySelectorAll(".dropdown-container.open").forEach((dropdown) => {
+            const menu = dropdown.querySelector(".dropdown-menu");
+            if (menu) {
+              // Clear all collapsed-specific inline styles
+              menu.style.removeProperty('position');
+              menu.style.removeProperty('left');
+              menu.style.removeProperty('opacity');
+              menu.style.removeProperty('pointer-events');
+              menu.style.removeProperty('top');
+            }
+          });
+          
+          // Force reflow to apply CSS changes
+          void sidebar.offsetHeight;
+          
+          // Restore heights after a frame to let CSS transition start
+          requestAnimationFrame(() => {
+            restoreDropdownHeights();
+          });
+          
+          // Final restore after sidebar transition completes (0.4s)
+          setTimeout(() => {
+            restoreDropdownHeights();
+          }, 450);
+        } else if (!wasCollapsed && isNowCollapsed) {
+          // Sidebar just collapsed - preserve open state but let CSS handle styling
+          // Clear any inline height styles that might interfere with collapsed CSS
+          requestAnimationFrame(() => {
+            document.querySelectorAll(".dropdown-container.open").forEach((dropdown) => {
+              const menu = dropdown.querySelector(".dropdown-menu");
+              if (menu) {
+                // Clear inline height to let CSS handle collapsed positioning
+                menu.style.removeProperty('height');
+              }
+            });
+          });
+        }
       }
     });
   });
@@ -147,8 +272,13 @@
       // Restore body scroll
       document.body.style.overflow = "";
     } else {
-      // On desktop, ensure collapsed class is handled properly
-      // Don't force collapse, let user control it
+      // On desktop, restore saved sidebar state when resizing from mobile to desktop
+      const isCollapsed = loadSidebarState();
+      if (isCollapsed) {
+        sidebar.classList.add("collapsed");
+      } else {
+        sidebar.classList.remove("collapsed");
+      }
       // Ensure body scroll is restored
       document.body.style.overflow = "";
     }
