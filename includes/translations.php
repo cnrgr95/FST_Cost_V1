@@ -28,7 +28,8 @@ function loadTranslations($lang = 'en') {
 
 // Get current language (only if not API request and session is active)
 if (!defined('API_REQUEST') && session_status() === PHP_SESSION_ACTIVE) {
-    $current_lang = $_GET['lang'] ?? $_SESSION['language'] ?? 'en';
+    $requested = $_GET['lang'] ?? $_SESSION['language'] ?? 'en';
+    $current_lang = in_array($requested, ['en', 'tr'], true) ? $requested : 'en';
     $_SESSION['language'] = $current_lang;
     $lang = $current_lang;
     

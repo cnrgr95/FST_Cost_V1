@@ -211,22 +211,19 @@ function updateCountryBase($conn, $data) {
         echo json_encode(['success' => false, 'message' => 'id is required']);
         return;
     }
-    $local_currency_code = array_key_exists('local_currency_code', $data) ? strtoupper(pg_escape_string($conn, $data['local_currency_code'] ?? '')) : null;
-    $setParts = [];
-    if ($local_currency_code !== null) {
-        if ($local_currency_code === '') {
-            $setParts[] = "local_currency_code = NULL";
-        } else {
-            $setParts[] = "local_currency_code = '" . $local_currency_code . "'";
-        }
-    }
-    if (empty($setParts)) {
+    $hasLcc = array_key_exists('local_currency_code', $data);
+    if (!$hasLcc) {
         echo json_encode(['success' => true]);
         return;
     }
-    $setParts[] = "updated_at = NOW()";
-    $query = "UPDATE countries SET " . implode(', ', $setParts) . " WHERE id = $id";
-    $result = pg_query($conn, $query);
+    $local_currency_code_raw = strtoupper((string)($data['local_currency_code'] ?? ''));
+    if ($local_currency_code_raw === '') {
+        $query = "UPDATE countries SET local_currency_code = NULL, updated_at = NOW() WHERE id = $1";
+        $result = pg_query_params($conn, $query, [$id]);
+    } else {
+        $query = "UPDATE countries SET local_currency_code = $1, updated_at = NOW() WHERE id = $2";
+        $result = pg_query_params($conn, $query, [$local_currency_code_raw, $id]);
+    }
     if ($result) echo json_encode(['success' => true]); else echo json_encode(['success' => false, 'message' => getDbErrorMessage($conn)]);
 }
 
@@ -235,9 +232,9 @@ function getCountryCurrencies($conn, $country_id) {
     $query = "SELECT cc.id, cc.country_id, cc.currency_code, cc.unit_name, cc.is_active, c.name as currency_name, c.symbol
               FROM country_currencies cc
               LEFT JOIN currencies c ON c.code = cc.currency_code
-              WHERE cc.country_id = $country_id
+              WHERE cc.country_id = $1
               ORDER BY cc.currency_code ASC";
-    $result = pg_query($conn, $query);
+    $result = pg_query_params($conn, $query, [$country_id]);
     if ($result) {
         $rows = pg_fetch_all($result) ?: [];
         echo json_encode(['success' => true, 'data' => $rows]);
@@ -248,17 +245,13 @@ function getCountryCurrencies($conn, $country_id) {
 
 // Rates: list
 function getExchangeRates($conn, $country_id, $start = null, $end = null) {
-    $where = "country_id = $country_id";
-    if ($start) {
-        $start = pg_escape_string($conn, $start);
-        $where .= " AND rate_date >= '$start'";
-    }
-    if ($end) {
-        $end = pg_escape_string($conn, $end);
-        $where .= " AND rate_date <= '$end'";
-    }
+    $params = [$country_id];
+    $clauses = ["country_id = $1"];
+    if ($start) { $params[] = $start; $clauses[] = "rate_date >= $" . count($params); }
+    if ($end) { $params[] = $end; $clauses[] = "rate_date <= $" . count($params); }
+    $where = implode(' AND ', $clauses);
     $query = "SELECT id, country_id, currency_code, rate_date, rate, source FROM exchange_rates WHERE $where ORDER BY rate_date DESC, currency_code ASC";
-    $result = pg_query($conn, $query);
+    $result = pg_query_params($conn, $query, $params);
     if ($result) {
         $rows = pg_fetch_all($result) ?: [];
         echo json_encode(['success' => true, 'data' => $rows]);
@@ -465,19 +458,27 @@ function updateCountryCurrency($conn, $data) {
         echo json_encode(['success' => false, 'message' => 'id is required']);
         return;
     }
-    $unit_name = array_key_exists('unit_name', $data) ? pg_escape_string($conn, $data['unit_name'] ?? '') : null;
-    $is_active = isset($data['is_active']) ? ((bool)$data['is_active'] ? 'true' : 'false') : null;
-    
-    $setParts = [];
-    if ($unit_name !== null) {
-        if ($unit_name === '') $setParts[] = "unit_name = NULL"; else $setParts[] = "unit_name = '$unit_name'";
+    $unit_present = array_key_exists('unit_name', $data);
+    $is_active_present = array_key_exists('is_active', $data);
+    $sets = [];
+    $params = [];
+    if ($unit_present) {
+        $unit_name = (string)($data['unit_name'] ?? '');
+        if ($unit_name === '') {
+            $sets[] = "unit_name = NULL";
+        } else {
+            $params[] = $unit_name;
+            $sets[] = "unit_name = $" . count($params);
+        }
     }
-    if ($is_active !== null) {
-        $setParts[] = "is_active = $is_active";
+    if ($is_active_present) {
+        $params[] = (bool)$data['is_active'] ? 'true' : 'false';
+        $sets[] = "is_active = $" . count($params);
     }
-    $setParts[] = "updated_at = NOW()";
-    $query = "UPDATE country_currencies SET " . implode(', ', $setParts) . " WHERE id = $id";
-    $result = pg_query($conn, $query);
+    $sets[] = "updated_at = NOW()";
+    $params[] = $id;
+    $query = "UPDATE country_currencies SET " . implode(', ', $sets) . " WHERE id = $" . count($params);
+    $result = pg_query_params($conn, $query, $params);
     if ($result) {
         echo json_encode(['success' => true]);
     } else {
