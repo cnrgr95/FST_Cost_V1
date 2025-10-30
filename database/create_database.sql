@@ -17,6 +17,10 @@ CREATE TABLE IF NOT EXISTS countries (
     id SERIAL PRIMARY KEY,
     name VARCHAR(255) NOT NULL UNIQUE,
     code VARCHAR(10),
+    -- Whether this country participates in currency management
+    use_in_currency BOOLEAN DEFAULT FALSE,
+    -- Optional local/base currency code for this country (e.g., TRY for Turkey)
+    local_currency_code VARCHAR(3),
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
@@ -139,6 +143,43 @@ CREATE TABLE IF NOT EXISTS users (
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
+-- Currencies master table (ISO-like codes)
+CREATE TABLE IF NOT EXISTS currencies (
+    id SERIAL PRIMARY KEY,
+    code VARCHAR(3) NOT NULL UNIQUE,
+    name VARCHAR(255) NOT NULL,
+    symbol VARCHAR(10),
+    is_active BOOLEAN DEFAULT TRUE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Country-currency settings (which foreign currencies are relevant per country, optional unit name override)
+CREATE TABLE IF NOT EXISTS country_currencies (
+    id SERIAL PRIMARY KEY,
+    country_id INTEGER NOT NULL REFERENCES countries(id) ON DELETE CASCADE,
+    currency_code VARCHAR(3) NOT NULL REFERENCES currencies(code) ON DELETE RESTRICT,
+    unit_name VARCHAR(50),
+    is_active BOOLEAN DEFAULT TRUE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE(country_id, currency_code)
+);
+
+-- Exchange rates per country and currency. If end_date is set, the rate applies inclusively from rate_date to end_date.
+CREATE TABLE IF NOT EXISTS exchange_rates (
+    id SERIAL PRIMARY KEY,
+    country_id INTEGER NOT NULL REFERENCES countries(id) ON DELETE CASCADE,
+    currency_code VARCHAR(3) NOT NULL REFERENCES currencies(code) ON DELETE RESTRICT,
+    rate_date DATE NOT NULL,
+    end_date DATE,
+    rate NUMERIC(18,6) NOT NULL CHECK (rate > 0),
+    source VARCHAR(10) NOT NULL DEFAULT 'manual' CHECK (source IN ('manual','cbrt')),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE(country_id, currency_code, rate_date)
+);
+
 -- ============================================
 -- INDEXES
 -- ============================================
@@ -146,6 +187,7 @@ CREATE TABLE IF NOT EXISTS users (
 -- Countries indexes
 CREATE INDEX IF NOT EXISTS idx_countries_name ON countries(name);
 CREATE INDEX IF NOT EXISTS idx_countries_code ON countries(code);
+CREATE INDEX IF NOT EXISTS idx_countries_use_in_currency ON countries(use_in_currency);
 
 -- Regions indexes
 CREATE INDEX IF NOT EXISTS idx_regions_country_id ON regions(country_id);
@@ -191,6 +233,18 @@ CREATE INDEX IF NOT EXISTS idx_users_position_id ON users(position_id);
 CREATE INDEX IF NOT EXISTS idx_users_city_id ON users(city_id);
 CREATE INDEX IF NOT EXISTS idx_users_status ON users(status);
 CREATE INDEX IF NOT EXISTS idx_users_email ON users(email);
+
+-- Currencies indexes
+CREATE INDEX IF NOT EXISTS idx_currencies_code ON currencies(code);
+CREATE INDEX IF NOT EXISTS idx_currencies_name ON currencies(name);
+
+-- Country currencies indexes
+CREATE INDEX IF NOT EXISTS idx_country_currencies_country_id ON country_currencies(country_id);
+CREATE INDEX IF NOT EXISTS idx_country_currencies_currency_code ON country_currencies(currency_code);
+
+-- Exchange rates indexes
+CREATE INDEX IF NOT EXISTS idx_exchange_rates_country_date ON exchange_rates(country_id, rate_date);
+CREATE INDEX IF NOT EXISTS idx_exchange_rates_currency_date ON exchange_rates(currency_code, rate_date);
 
 -- ============================================
 -- FUNCTIONS & TRIGGERS
@@ -239,6 +293,15 @@ CREATE TRIGGER update_vehicle_contracts_updated_at BEFORE UPDATE ON vehicle_cont
 CREATE TRIGGER update_users_updated_at BEFORE UPDATE ON users
     FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
+CREATE TRIGGER update_currencies_updated_at BEFORE UPDATE ON currencies
+    FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+
+CREATE TRIGGER update_country_currencies_updated_at BEFORE UPDATE ON country_currencies
+    FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+
+CREATE TRIGGER update_exchange_rates_updated_at BEFORE UPDATE ON exchange_rates
+    FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+
 -- ============================================
 -- SAMPLE DATA (OPTIONAL)
 -- ============================================
@@ -283,4 +346,104 @@ ON CONFLICT (name, city_id) DO NOTHING;
 -- SELECT table_name FROM information_schema.tables 
 -- WHERE table_schema = 'public' 
 -- ORDER BY table_name;
+
+-- ============================================
+-- OPTIONAL: UNUSED COLUMN CLEANUP (ADVANCED)
+-- ============================================
+-- This block identifies columns that are not part of any PK/FK and offers
+-- an optional drop step. Review carefully before enabling execution.
+-- If you want to use it right after creation, run this section separately.
+
+-- 1) List candidate columns (read-only)
+/*
+WITH pk_cols AS (
+  SELECT tc.table_name, kcu.column_name
+  FROM information_schema.table_constraints tc
+  JOIN information_schema.key_column_usage kcu
+    ON tc.constraint_name = kcu.constraint_name
+   AND tc.table_schema = kcu.table_schema
+  WHERE tc.table_schema='public' AND tc.constraint_type='PRIMARY KEY'
+),
+fk_cols AS (
+  SELECT kcu.table_name AS table_name, kcu.column_name AS column_name
+  FROM information_schema.table_constraints tc
+  JOIN information_schema.key_column_usage kcu
+    ON tc.constraint_name = kcu.constraint_name
+   AND tc.table_schema = kcu.table_schema
+  WHERE tc.table_schema='public' AND tc.constraint_type='FOREIGN KEY'
+  UNION
+  SELECT ccu.table_name, ccu.column_name
+  FROM information_schema.table_constraints tc
+  JOIN information_schema.constraint_column_usage ccu
+    ON ccu.constraint_name = tc.constraint_name
+   AND ccu.table_schema   = tc.table_schema
+  WHERE tc.table_schema='public' AND tc.constraint_type='FOREIGN KEY'
+)
+SELECT c.table_name, c.column_name, c.data_type, c.is_nullable
+FROM information_schema.columns c
+LEFT JOIN pk_cols p  ON p.table_name=c.table_name  AND p.column_name=c.column_name
+LEFT JOIN fk_cols fk ON fk.table_name=c.table_name AND fk.column_name=c.column_name
+WHERE c.table_schema='public'
+  AND p.column_name IS NULL
+  AND fk.column_name IS NULL
+  AND c.column_name NOT IN (
+    'name','code','created_at','updated_at','status','email','phone','symbol','location_url',
+    'authorized_person','authorized_email','authorized_phone','contact_person','contact_email','contact_phone',
+    'operasyon_name','operasyon_email','operasyon_phone','unit_name','rate','rate_date','end_date','source','is_active'
+  )
+ORDER BY c.table_name, c.ordinal_position;
+*/
+
+-- 2) Execute drops (disable by default; set exec_drops := true to enable)
+/*
+DO $$
+DECLARE
+  exec_drops boolean := false; -- CHANGE TO true AFTER REVIEW
+  r record;
+BEGIN
+  FOR r IN (
+    WITH pk_cols AS (
+      SELECT tc.table_name, kcu.column_name
+      FROM information_schema.table_constraints tc
+      JOIN information_schema.key_column_usage kcu
+        ON tc.constraint_name = kcu.constraint_name
+       AND tc.table_schema = kcu.table_schema
+      WHERE tc.table_schema='public' AND tc.constraint_type='PRIMARY KEY'
+    ),
+    fk_cols AS (
+      SELECT kcu.table_name AS table_name, kcu.column_name AS column_name
+      FROM information_schema.table_constraints tc
+      JOIN information_schema.key_column_usage kcu
+        ON tc.constraint_name = kcu.constraint_name
+       AND tc.table_schema = kcu.table_schema
+      WHERE tc.table_schema='public' AND tc.constraint_type='FOREIGN KEY'
+      UNION
+      SELECT ccu.table_name, ccu.column_name
+      FROM information_schema.table_constraints tc
+      JOIN information_schema.constraint_column_usage ccu
+        ON ccu.constraint_name = tc.constraint_name
+       AND ccu.table_schema   = tc.table_schema
+      WHERE tc.table_schema='public' AND tc.constraint_type='FOREIGN KEY'
+    )
+    SELECT c.table_name, c.column_name
+    FROM information_schema.columns c
+    LEFT JOIN pk_cols p  ON p.table_name=c.table_name  AND p.column_name=c.column_name
+    LEFT JOIN fk_cols fk ON fk.table_name=c.table_name AND fk.column_name=c.column_name
+    WHERE c.table_schema='public'
+      AND p.column_name IS NULL
+      AND fk.column_name IS NULL
+      AND c.column_name NOT IN (
+        'name','code','created_at','updated_at','status','email','phone','symbol','location_url',
+        'authorized_person','authorized_email','authorized_phone','contact_person','contact_email','contact_phone',
+        'operasyon_name','operasyon_email','operasyon_phone','unit_name','rate','rate_date','end_date','source','is_active'
+      )
+    ORDER BY c.table_name, c.ordinal_position
+  ) LOOP
+    RAISE NOTICE 'Candidate to drop: %.% ', r.table_name, r.column_name;
+    IF exec_drops THEN
+      EXECUTE format('ALTER TABLE %I DROP COLUMN %I', r.table_name, r.column_name);
+    END IF;
+  END LOOP;
+END $$;
+*/
 

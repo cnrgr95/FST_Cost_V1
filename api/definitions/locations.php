@@ -199,8 +199,11 @@ function createCountry($conn, $data) {
     }
     
     $code = pg_escape_string($conn, $data['code'] ?? '');
+    $use_in_currency = isset($data['use_in_currency']) ? ((bool)$data['use_in_currency'] ? 'true' : 'false') : 'false';
+    $local_currency_code = pg_escape_string($conn, $data['local_currency_code'] ?? '');
+    $local_currency_value = $local_currency_code === '' ? 'NULL' : "'" . strtoupper($local_currency_code) . "'";
     
-    $query = "INSERT INTO countries (name, code, created_at) VALUES ('$name', '$code', NOW()) RETURNING id";
+    $query = "INSERT INTO countries (name, code, use_in_currency, local_currency_code, created_at) VALUES ('$name', '$code', $use_in_currency, $local_currency_value, NOW()) RETURNING id";
     $result = pg_query($conn, $query);
     
     if ($result) {
@@ -215,8 +218,23 @@ function updateCountry($conn, $data) {
     $id = (int)$data['id'];
     $name = pg_escape_string($conn, $data['name']);
     $code = pg_escape_string($conn, $data['code'] ?? '');
+    $use_in_currency = isset($data['use_in_currency']) ? ((bool)$data['use_in_currency'] ? 'true' : 'false') : null;
+    $local_currency_code = array_key_exists('local_currency_code', $data) ? strtoupper(pg_escape_string($conn, $data['local_currency_code'] ?? '')) : null;
     
-    $query = "UPDATE countries SET name = '$name', code = '$code', updated_at = NOW() WHERE id = $id";
+    $setParts = [];
+    $setParts[] = "name = '$name'";
+    $setParts[] = "code = '$code'";
+    if ($use_in_currency !== null) { $setParts[] = "use_in_currency = $use_in_currency"; }
+    if ($local_currency_code !== null) {
+        if ($local_currency_code === '') {
+            $setParts[] = "local_currency_code = NULL";
+        } else {
+            $setParts[] = "local_currency_code = '" . $local_currency_code . "'";
+        }
+    }
+    $setParts[] = "updated_at = NOW()";
+    
+    $query = "UPDATE countries SET " . implode(', ', $setParts) . " WHERE id = $id";
     $result = pg_query($conn, $query);
     
     if ($result) {

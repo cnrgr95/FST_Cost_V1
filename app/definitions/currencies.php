@@ -68,16 +68,15 @@ $t_currencies = $all_translations['currencies'] ?? [];
                     <table class="currencies-table">
                         <thead>
                             <tr>
-                                <th><?php echo $t_currencies['code'] ?? 'Code'; ?></th>
-                                <th><?php echo $t_currencies['name'] ?? 'Name'; ?></th>
-                                <th><?php echo $t_currencies['symbol'] ?? 'Symbol'; ?></th>
-                                <th><?php echo $t_currencies['status'] ?? 'Status'; ?></th>
+                                <th><?php echo $t_currencies['country'] ?? 'Country'; ?></th>
+                                <th><?php echo $t_currencies['country_code'] ?? 'Code'; ?></th>
+                                <th><?php echo $t_currencies['local_currency'] ?? 'Local Currency'; ?></th>
                                 <th><?php echo $t_common['actions'] ?? 'Actions'; ?></th>
                             </tr>
                         </thead>
                         <tbody id="currenciesTableBody">
                             <tr>
-                                <td colspan="5" style="text-align: center; padding: 40px;">
+                                <td colspan="4" style="text-align: center; padding: 40px;">
                                     <span class="material-symbols-rounded" style="font-size: 48px; color: #9ca3af;">currency_exchange</span>
                                     <p style="color: #9ca3af; margin-top: 10px;"><?php echo $t_currencies['loading_data'] ?? 'Loading data...'; ?></p>
                                 </td>
@@ -133,6 +132,54 @@ $t_currencies = $all_translations['currencies'] ?? [];
                     </button>
                 </div>
             </form>
+        </div>
+    </div>
+
+    <!-- Country Manage Modal -->
+    <div class="modal" id="countryManageModal" style="display:none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="countryManageTitle">Manage Country</h2>
+                <button class="btn-close" id="closeCountryManageModal">
+                    <span class="material-symbols-rounded">close</span>
+                </button>
+            </div>
+            <div class="form-group">
+                <div id="countryManageBody" style="padding:8px 0; color:#4b5563;"></div>
+            </div>
+            <div class="form-group">
+                <label><?php echo $t_currencies['base_currency'] ?? 'Base currency of country'; ?></label>
+                <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
+                    <select id="manageBaseCurrencySelect" style="min-width:220px;"></select>
+                    <button class="btn-primary" id="manageSaveBaseCurrencyBtn">
+                        <span class="material-symbols-rounded">save</span>
+                        <?php echo $t_common['save'] ?? 'Save'; ?>
+                    </button>
+                </div>
+            </div>
+            <div class="form-group">
+                <label><?php echo $t_currencies['add_country_currency'] ?? 'Add currency to country'; ?></label>
+                <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
+                    <select id="manageCurrencySelect" style="min-width:220px;"></select>
+                    <input id="manageUnitName" type="text" placeholder="<?php echo $t_currencies['unit_name'] ?? 'Unit name (optional)'; ?>" style="min-width:200px;" />
+                    <label style="display:flex; align-items:center; gap:6px;">
+                        <input id="manageIsActive" type="checkbox" checked />
+                        <?php echo $t_currencies['active'] ?? 'Active'; ?>
+                    </label>
+                    <button class="btn-primary" id="manageAddCurrencyBtn">
+                        <span class="material-symbols-rounded">add</span>
+                        <?php echo $t_currencies['add'] ?? 'Add'; ?>
+                    </button>
+                </div>
+            </div>
+            <div class="form-group">
+                <div id="countryCurrenciesList" class="table-wrapper"></div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn-secondary" id="closeCountryManageFooter">
+                    <?php echo $t_common['close'] ?? 'Close'; ?>
+                </button>
+            </div>
         </div>
     </div>
     

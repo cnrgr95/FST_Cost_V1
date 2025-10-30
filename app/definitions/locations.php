@@ -114,6 +114,19 @@ $t_dependencies = $all_translations['dependencies'] ?? [];
                     <label><?php echo $t_locations['country_code'] ?? 'Country Code'; ?></label>
                     <input type="text" name="code" maxlength="3" placeholder="e.g., TR, US">
                 </div>
+                <div class="form-group">
+                    <label>
+                        <input type="checkbox" name="use_in_currency">
+                        <?php echo $t_locations['use_in_currency'] ?? 'Use in currencies'; ?>
+                    </label>
+                </div>
+                <div class="form-group">
+                    <label><?php echo $t_locations['local_currency_code'] ?? 'Local Currency Code'; ?></label>
+                    <select name="local_currency_code">
+                        <option value=""><?php echo $t_locations['select_currency'] ?? 'Select currency'; ?></option>
+                    </select>
+                    <small><?php echo $t_locations['local_currency_hint'] ?? 'Optional: e.g., TRY for Turkey'; ?></small>
+                </div>
                 <div class="modal-footer">
                     <button type="button" class="btn-secondary" onclick="closeModal()">
                         <?php echo $t_common['cancel'] ?? 'Cancel'; ?>
