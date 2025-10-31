@@ -19,10 +19,10 @@
             title = tCommon.error || 'Error';
         } else if (type === 'warning') {
             icon = 'warning';
-            title = 'Warning';
+            title = tCommon.warning || 'Warning';
         } else if (type === 'info') {
             icon = 'info';
-            title = 'Information';
+            title = tCommon.information || 'Information';
         } else if (type === 'success') {
             icon = 'check_circle';
             title = tCommon.success || 'Success';
@@ -70,14 +70,14 @@
             <div class="confirm-dialog">
                 <div class="confirm-dialog-header">
                     <span class="material-symbols-rounded confirm-icon">help</span>
-                    <h3>${tCommon.confirm || 'Onay'}</h3>
+                    <h3>${tCommon.confirm || 'Confirm'}</h3>
                 </div>
                 <div class="confirm-dialog-body">
                     <p>${message}</p>
                 </div>
                 <div class="confirm-dialog-footer">
-                    <button class="btn-cancel">${tCommon.no || 'Hayır'}</button>
-                    <button class="btn-confirm">${tCommon.yes || 'Evet'}</button>
+                    <button class="btn-cancel">${tCommon.no || 'No'}</button>
+                    <button class="btn-confirm">${tCommon.yes || 'Yes'}</button>
                 </div>
             </div>
         `;
@@ -179,7 +179,7 @@
                 </div>
                 <div class="confirm-dialog-footer">
                     <button class="btn-cancel" style="background: #3b82f6; color: white;">
-                        ${tCommon.close || 'Kapat'}
+                        ${tCommon.close || 'Close'}
                     </button>
                 </div>
             </div>

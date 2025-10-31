@@ -306,8 +306,8 @@ function createCbrtRates($conn, $data) {
         echo json_encode(['success' => false, 'message' => 'country_id and currency_code are required']);
         return;
     }
-    // Optional: ensure country is Turkey
-    $countryRes = pg_query($conn, "SELECT code, name FROM countries WHERE id = $country_id");
+    // Optional: ensure country is Turkey - use parameterized query
+    $countryRes = pg_query_params($conn, "SELECT code, name FROM countries WHERE id = $1", [$country_id]);
     $country = $countryRes ? pg_fetch_assoc($countryRes) : null;
     if (!$country) { echo json_encode(['success'=>false,'message'=>'Country not found']); return; }
     // Enforce CBRT only for Turkey
@@ -323,10 +323,9 @@ function createCbrtRates($conn, $data) {
     $inserted = 0; $skipped = 0; $notFound = 0; $alreadyExists = 0;
     $notFoundDates = []; // Track which dates had no rates
     foreach ($dates as $d) {
-        $dEsc = pg_escape_string($conn, $d);
-        // Check if rate already exists for this date
-        $checkQuery = "SELECT id FROM exchange_rates WHERE country_id = $country_id AND currency_code = '$currency_code' AND rate_date = '$dEsc'";
-        $checkRes = pg_query($conn, $checkQuery);
+        // Check if rate already exists for this date - use parameterized query
+        $checkQuery = "SELECT id FROM exchange_rates WHERE country_id = $1 AND currency_code = $2 AND rate_date = $3";
+        $checkRes = pg_query_params($conn, $checkQuery, [$country_id, $currency_code, $d]);
         if ($checkRes && pg_num_rows($checkRes) > 0) {
             $alreadyExists++;
             continue; // Skip API call if rate already exists
@@ -341,8 +340,9 @@ function createCbrtRates($conn, $data) {
             continue; 
         }
         
-        $query = "INSERT INTO exchange_rates (country_id, currency_code, rate_date, rate, source, created_at) VALUES ($country_id, '$currency_code', '$dEsc', $fetched, 'cbrt', NOW())";
-        $res = @pg_query($conn, $query);
+        // Use parameterized query to prevent SQL injection
+        $query = "INSERT INTO exchange_rates (country_id, currency_code, rate_date, rate, source, created_at) VALUES ($1, $2, $3, $4, 'cbrt', NOW())";
+        $res = @pg_query_params($conn, $query, [$country_id, $currency_code, $d, $fetched]);
         if ($res) { $inserted++; } else { $skipped++; }
     }
     echo json_encode(['success'=>true,'inserted'=>$inserted,'skipped'=>$skipped,'not_found'=>$notFound,'already_exists'=>$alreadyExists,'not_found_dates'=>$notFoundDates]);
@@ -441,18 +441,22 @@ function createCountryCurrency($conn, $data) {
         return;
     }
     
-    // Check currency exists
-    $checkCur = pg_query($conn, "SELECT id FROM currencies WHERE code = '$currency_code'");
+    // Check currency exists using parameterized query
+    $checkCur = pg_query_params($conn, "SELECT id FROM currencies WHERE code = $1", [$currency_code]);
     if (!$checkCur || pg_num_rows($checkCur) === 0) {
         echo json_encode(['success' => false, 'message' => 'Currency code not found']);
         return;
     }
     
-    // Insert
-    $unit_val = ($unit_name === null || $unit_name === '') ? 'NULL' : "'$unit_name'";
+    // Insert using parameterized query
     $query = "INSERT INTO country_currencies (country_id, currency_code, unit_name, is_active, created_at) 
-              VALUES ($country_id, '$currency_code', $unit_val, $is_active, NOW()) RETURNING id";
-    $result = pg_query($conn, $query);
+              VALUES ($1, $2, $3, $4, NOW()) RETURNING id";
+    $result = pg_query_params($conn, $query, [
+        $country_id,
+        $currency_code,
+        ($unit_name === null || $unit_name === '') ? null : $unit_name,
+        $is_active === 'true'
+    ]);
     if ($result) {
         $row = pg_fetch_assoc($result);
         echo json_encode(['success' => true, 'id' => $row['id']]);
@@ -522,9 +526,9 @@ function deleteRate($conn, $id) {
 
 function deleteRatesByDate($conn, $country_id, $date) {
     $country_id = (int)$country_id;
-    $date = pg_escape_string($conn, $date);
-    $q = "DELETE FROM exchange_rates WHERE country_id = $country_id AND rate_date = '$date'";
-    $r = pg_query($conn, $q);
+    // Use parameterized query to prevent SQL injection
+    $q = "DELETE FROM exchange_rates WHERE country_id = $1 AND rate_date = $2";
+    $r = pg_query_params($conn, $q, [$country_id, $date]);
     if ($r) echo json_encode(['success'=>true]); else echo json_encode(['success'=>false,'message'=>getDbErrorMessage($conn)]);
 }
 
@@ -540,9 +544,9 @@ function createCurrency($conn, $data) {
         return;
     }
     
-    // Check if code already exists
-    $checkQuery = "SELECT id FROM currencies WHERE code = '$code'";
-    $checkResult = pg_query($conn, $checkQuery);
+    // Check if code already exists - use parameterized query
+    $checkQuery = "SELECT id FROM currencies WHERE code = $1";
+    $checkResult = pg_query_params($conn, $checkQuery, [$code]);
     if ($checkResult && pg_num_rows($checkResult) > 0) {
         echo json_encode(['success' => false, 'message' => 'Currency code already exists']);
         return;
@@ -553,11 +557,16 @@ function createCurrency($conn, $data) {
         return;
     }
     
-    $symbol_val = empty($symbol) ? 'NULL' : "'$symbol'";
+    // Use parameterized query to prevent SQL injection
     $query = "INSERT INTO currencies (code, name, symbol, is_active, created_at) 
-              VALUES ('$code', '$name', $symbol_val, $is_active, NOW()) RETURNING id";
+              VALUES ($1, $2, $3, $4, NOW()) RETURNING id";
     
-    $result = pg_query($conn, $query);
+    $result = pg_query_params($conn, $query, [
+        $code,
+        $name,
+        empty($symbol) ? null : $symbol,
+        $is_active === 'true'
+    ]);
     
     if ($result) {
         $row = pg_fetch_assoc($result);
@@ -580,9 +589,9 @@ function updateCurrency($conn, $data) {
         return;
     }
     
-    // Check if code already exists for another currency
-    $checkQuery = "SELECT id FROM currencies WHERE code = '$code' AND id != $id";
-    $checkResult = pg_query($conn, $checkQuery);
+    // Check if code already exists for another currency - use parameterized query
+    $checkQuery = "SELECT id FROM currencies WHERE code = $1 AND id != $2";
+    $checkResult = pg_query_params($conn, $checkQuery, [$code, $id]);
     if ($checkResult && pg_num_rows($checkResult) > 0) {
         echo json_encode(['success' => false, 'message' => 'Currency code already exists']);
         return;
@@ -593,16 +602,22 @@ function updateCurrency($conn, $data) {
         return;
     }
     
-    $symbol_val = empty($symbol) ? 'NULL' : "'$symbol'";
+    // Use parameterized query to prevent SQL injection
     $query = "UPDATE currencies SET 
-                code = '$code',
-                name = '$name',
-                symbol = $symbol_val,
-                is_active = $is_active,
+                code = $1,
+                name = $2,
+                symbol = $3,
+                is_active = $4,
                 updated_at = NOW()
-              WHERE id = $id";
+              WHERE id = $5";
     
-    $result = pg_query($conn, $query);
+    $result = pg_query_params($conn, $query, [
+        $code,
+        $name,
+        empty($symbol) ? null : $symbol,
+        $is_active === 'true',
+        $id
+    ]);
     
     if ($result) {
         echo json_encode(['success' => true]);

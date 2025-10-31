@@ -242,19 +242,24 @@ function createCompany($conn, $data) {
     $contact_email = isset($data['contact_email']) ? pg_escape_string($conn, $data['contact_email']) : null;
     $contact_phone = isset($data['contact_phone']) ? pg_escape_string($conn, $data['contact_phone']) : null;
     
-    // Check if company name already exists in the same city
-    $checkQuery = "SELECT id FROM vehicle_companies WHERE name = '$name' AND city_id = $city_id";
-    $checkResult = pg_query($conn, $checkQuery);
+    // Check if company name already exists in the same city - use parameterized query
+    $checkQuery = "SELECT id FROM vehicle_companies WHERE name = $1 AND city_id = $2";
+    $checkResult = pg_query_params($conn, $checkQuery, [$name, $city_id]);
     if ($checkResult && pg_num_rows($checkResult) > 0) {
         echo json_encode(['success' => false, 'message' => 'A vehicle company with this name already exists in this city']);
         return;
     }
     
+    // Use parameterized query to prevent SQL injection
     $query = "INSERT INTO vehicle_companies (name, city_id, contact_person, contact_email, contact_phone, created_at) 
-              VALUES ('$name', $city_id, " . ($contact_person ? "'$contact_person'" : 'NULL') . ", " . 
-              ($contact_email ? "'$contact_email'" : 'NULL') . ", " . 
-              ($contact_phone ? "'$contact_phone'" : 'NULL') . ", NOW()) RETURNING id";
-    $result = pg_query($conn, $query);
+              VALUES ($1, $2, $3, $4, $5, NOW()) RETURNING id";
+    $result = pg_query_params($conn, $query, [
+        $name,
+        $city_id,
+        $contact_person,
+        $contact_email,
+        $contact_phone
+    ]);
     
     if ($result) {
         $row = pg_fetch_assoc($result);
@@ -272,12 +277,20 @@ function updateCompany($conn, $data) {
     $contact_email = isset($data['contact_email']) ? pg_escape_string($conn, $data['contact_email']) : null;
     $contact_phone = isset($data['contact_phone']) ? pg_escape_string($conn, $data['contact_phone']) : null;
     
-    $query = "UPDATE vehicle_companies SET name = '$name', city_id = $city_id, 
-              contact_person = " . ($contact_person ? "'$contact_person'" : 'NULL') . ", 
-              contact_email = " . ($contact_email ? "'$contact_email'" : 'NULL') . ", 
-              contact_phone = " . ($contact_phone ? "'$contact_phone'" : 'NULL') . ", 
-              updated_at = NOW() WHERE id = $id";
-    $result = pg_query($conn, $query);
+    // Use parameterized query to prevent SQL injection
+    $query = "UPDATE vehicle_companies SET name = $1, city_id = $2, 
+              contact_person = $3, 
+              contact_email = $4, 
+              contact_phone = $5, 
+              updated_at = NOW() WHERE id = $6";
+    $result = pg_query_params($conn, $query, [
+        $name,
+        $city_id,
+        $contact_person ? $contact_person : null,
+        $contact_email ? $contact_email : null,
+        $contact_phone ? $contact_phone : null,
+        $id
+    ]);
     
     if ($result) {
         echo json_encode(['success' => true]);
@@ -373,20 +386,23 @@ function createType($conn, $data) {
     $min_pax = isset($data['min_pax']) && $data['min_pax'] !== '' ? (int)$data['min_pax'] : null;
     $max_pax = isset($data['max_pax']) && $data['max_pax'] !== '' ? (int)$data['max_pax'] : null;
     
-    // Check if type name already exists in the same company
-    $checkQuery = "SELECT id FROM vehicle_types WHERE name = '$name' AND vehicle_company_id = $company_id";
-    $checkResult = pg_query($conn, $checkQuery);
+    // Check if type name already exists in the same company - use parameterized query
+    $checkQuery = "SELECT id FROM vehicle_types WHERE name = $1 AND vehicle_company_id = $2";
+    $checkResult = pg_query_params($conn, $checkQuery, [$name, $company_id]);
     if ($checkResult && pg_num_rows($checkResult) > 0) {
         echo json_encode(['success' => false, 'message' => 'A vehicle type with this name already exists in this company']);
         return;
     }
     
-    $minPaxValue = $min_pax !== null ? $min_pax : 'NULL';
-    $maxPaxValue = $max_pax !== null ? $max_pax : 'NULL';
-    
+    // Use parameterized query to prevent SQL injection
     $query = "INSERT INTO vehicle_types (name, vehicle_company_id, min_pax, max_pax, created_at) 
-              VALUES ('$name', $company_id, $minPaxValue, $maxPaxValue, NOW()) RETURNING id";
-    $result = pg_query($conn, $query);
+              VALUES ($1, $2, $3, $4, NOW()) RETURNING id";
+    $result = pg_query_params($conn, $query, [
+        $name,
+        $company_id,
+        $min_pax,
+        $max_pax
+    ]);
     
     if ($result) {
         $row = pg_fetch_assoc($result);
@@ -406,9 +422,16 @@ function updateType($conn, $data) {
     $minPaxValue = $min_pax !== null ? $min_pax : 'NULL';
     $maxPaxValue = $max_pax !== null ? $max_pax : 'NULL';
     
-    $query = "UPDATE vehicle_types SET name = '$name', vehicle_company_id = $company_id, 
-              min_pax = $minPaxValue, max_pax = $maxPaxValue, updated_at = NOW() WHERE id = $id";
-    $result = pg_query($conn, $query);
+    // Use parameterized query to prevent SQL injection
+    $query = "UPDATE vehicle_types SET name = $1, vehicle_company_id = $2, 
+              min_pax = $3, max_pax = $4, updated_at = NOW() WHERE id = $5";
+    $result = pg_query_params($conn, $query, [
+        $name,
+        $company_id,
+        $min_pax,
+        $max_pax,
+        $id
+    ]);
     
     if ($result) {
         echo json_encode(['success' => true]);
@@ -563,10 +586,16 @@ function createContract($conn, $data) {
             return;
         }
         
+        // Use parameterized query to prevent SQL injection
         $query = "INSERT INTO vehicle_contracts (vehicle_company_id, contract_code, start_date, end_date, created_at)
-                  VALUES ($vehicle_company_id, '$contract_code', '$start_date', '$end_date', NOW()) RETURNING id";
+                  VALUES ($1, $2, $3, $4, NOW()) RETURNING id";
         
-        $result = pg_query($conn, $query);
+        $result = pg_query_params($conn, $query, [
+            $vehicle_company_id,
+            $contract_code,
+            $start_date,
+            $end_date
+        ]);
         
         if ($result) {
             $row = pg_fetch_assoc($result);
@@ -599,15 +628,22 @@ function updateContract($conn, $data) {
             return;
         }
         
+        // Use parameterized query to prevent SQL injection
         $query = "UPDATE vehicle_contracts SET 
-                  vehicle_company_id = $vehicle_company_id,
-                  contract_code = '$contract_code',
-                  start_date = '$start_date',
-                  end_date = '$end_date',
+                  vehicle_company_id = $1,
+                  contract_code = $2,
+                  start_date = $3,
+                  end_date = $4,
                   updated_at = NOW()
-                  WHERE id = $id";
+                  WHERE id = $5";
         
-        $result = pg_query($conn, $query);
+        $result = pg_query_params($conn, $query, [
+            $vehicle_company_id,
+            $contract_code,
+            $start_date,
+            $end_date,
+            $id
+        ]);
         
         if ($result) {
             echo json_encode(['success' => true]);
@@ -947,8 +983,9 @@ function updateContractRoute($conn, $data) {
         }
         
         // Verify route exists and get contract_id
-        $checkQuery = "SELECT vehicle_contract_id FROM vehicle_contract_routes WHERE id = $route_id";
-        $checkResult = pg_query($conn, $checkQuery);
+        // Use parameterized query to prevent SQL injection
+        $checkQuery = "SELECT vehicle_contract_id FROM vehicle_contract_routes WHERE id = $1";
+        $checkResult = pg_query_params($conn, $checkQuery, [$route_id]);
         if (!$checkResult || pg_num_rows($checkResult) === 0) {
             echo json_encode(['success' => false, 'message' => 'Route not found']);
             return;
@@ -958,8 +995,9 @@ function updateContractRoute($conn, $data) {
         
         // Validate currency if provided
         if (!empty($currency_code)) {
-            $currencyQuery = "SELECT code FROM currencies WHERE code = '" . pg_escape_string($conn, $currency_code) . "' AND is_active = true";
-            $currencyResult = pg_query($conn, $currencyQuery);
+            // Use parameterized query to prevent SQL injection
+            $currencyQuery = "SELECT code FROM currencies WHERE code = $1 AND is_active = true";
+            $currencyResult = pg_query_params($conn, $currencyQuery, [$currency_code]);
             if (!$currencyResult || pg_num_rows($currencyResult) === 0) {
                 echo json_encode(['success' => false, 'message' => 'Invalid currency code']);
                 return;
@@ -974,15 +1012,18 @@ function updateContractRoute($conn, $data) {
             error_log('Updating route ' . $route_id . ' with prices: ' . $vehicleTypePricesJson);
         }
         
-        // Check if from/to combination already exists for another route
-        $fromLocationEsc = pg_escape_string($conn, $from_location);
-        $toLocationEsc = pg_escape_string($conn, $to_location);
+        // Check if from/to combination already exists for another route using parameterized query
         $duplicateQuery = "SELECT id FROM vehicle_contract_routes 
-                          WHERE vehicle_contract_id = $contract_id 
-                          AND from_location = '$fromLocationEsc' 
-                          AND to_location = '$toLocationEsc' 
-                          AND id != $route_id";
-        $duplicateResult = pg_query($conn, $duplicateQuery);
+                          WHERE vehicle_contract_id = $1 
+                          AND from_location = $2 
+                          AND to_location = $3 
+                          AND id != $4";
+        $duplicateResult = pg_query_params($conn, $duplicateQuery, [
+            $contract_id,
+            $from_location,
+            $to_location,
+            $route_id
+        ]);
         if ($duplicateResult && pg_num_rows($duplicateResult) > 0) {
             echo json_encode(['success' => false, 'message' => 'A route with the same From/To locations already exists']);
             return;
@@ -1034,9 +1075,9 @@ function createContractRoute($conn, $data) {
             return;
         }
         
-        // Verify contract exists
-        $contractQuery = "SELECT vehicle_company_id FROM vehicle_contracts WHERE id = $contract_id";
-        $contractResult = pg_query($conn, $contractQuery);
+        // Verify contract exists - use parameterized query
+        $contractQuery = "SELECT vehicle_company_id FROM vehicle_contracts WHERE id = $1";
+        $contractResult = pg_query_params($conn, $contractQuery, [$contract_id]);
         if (!$contractResult || pg_num_rows($contractResult) === 0) {
             echo json_encode(['success' => false, 'message' => 'Contract not found']);
             return;
@@ -1044,22 +1085,25 @@ function createContractRoute($conn, $data) {
         
         // Validate currency if provided
         if (!empty($currency_code)) {
-            $currencyQuery = "SELECT code FROM currencies WHERE code = '" . pg_escape_string($conn, $currency_code) . "' AND is_active = true";
-            $currencyResult = pg_query($conn, $currencyQuery);
+            // Use parameterized query to prevent SQL injection
+            $currencyQuery = "SELECT code FROM currencies WHERE code = $1 AND is_active = true";
+            $currencyResult = pg_query_params($conn, $currencyQuery, [$currency_code]);
             if (!$currencyResult || pg_num_rows($currencyResult) === 0) {
                 echo json_encode(['success' => false, 'message' => 'Invalid currency code']);
                 return;
             }
         }
         
-        // Check if from/to combination already exists
-        $fromLocationEsc = pg_escape_string($conn, $from_location);
-        $toLocationEsc = pg_escape_string($conn, $to_location);
+        // Check if from/to combination already exists - use parameterized query
         $duplicateQuery = "SELECT id FROM vehicle_contract_routes 
-                          WHERE vehicle_contract_id = $contract_id 
-                          AND from_location = '$fromLocationEsc' 
-                          AND to_location = '$toLocationEsc'";
-        $duplicateResult = pg_query($conn, $duplicateQuery);
+                          WHERE vehicle_contract_id = $1 
+                          AND from_location = $2 
+                          AND to_location = $3";
+        $duplicateResult = pg_query_params($conn, $duplicateQuery, [
+            $contract_id,
+            $from_location,
+            $to_location
+        ]);
         if ($duplicateResult && pg_num_rows($duplicateResult) > 0) {
             echo json_encode(['success' => false, 'message' => 'A route with the same From/To locations already exists']);
             return;
@@ -1124,9 +1168,9 @@ function saveContractRoutes($conn, $data) {
             return;
         }
         
-        // Verify contract exists
-        $contractQuery = "SELECT vehicle_company_id FROM vehicle_contracts WHERE id = $contract_id";
-        $contractResult = pg_query($conn, $contractQuery);
+        // Verify contract exists - use parameterized query
+        $contractQuery = "SELECT vehicle_company_id FROM vehicle_contracts WHERE id = $1";
+        $contractResult = pg_query_params($conn, $contractQuery, [$contract_id]);
         if (!$contractResult || pg_num_rows($contractResult) === 0) {
             echo json_encode(['success' => false, 'message' => 'Contract not found']);
             return;

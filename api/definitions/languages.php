@@ -69,6 +69,8 @@ function handleGet($action, $langDir) {
         } else {
             echo json_encode(['success' => false, 'message' => 'Language code is required']);
         }
+    } elseif ($action === 'language_order') {
+        getLanguageOrder($langDir);
     } else {
         echo json_encode(['success' => false, 'message' => 'Invalid action']);
     }
@@ -80,6 +82,8 @@ function handlePost($action, $langDir) {
     
     if ($action === 'language') {
         createLanguage($langDir, $data);
+    } elseif ($action === 'language_order') {
+        saveLanguageOrder($langDir, $data);
     } else {
         echo json_encode(['success' => false, 'message' => 'Invalid action']);
     }
@@ -114,26 +118,93 @@ function handleDelete($action, $langDir) {
     }
 }
 
-// Get all languages
+// Get language order
+function getLanguageOrder($langDir) {
+    $orderFile = $langDir . 'language_order.json';
+    $order = [];
+    
+    if (file_exists($orderFile)) {
+        $content = @file_get_contents($orderFile);
+        if ($content !== false) {
+            $data = @json_decode($content, true);
+            if ($data !== null && isset($data['order']) && is_array($data['order'])) {
+                $order = $data['order'];
+            }
+        }
+    }
+    
+    echo json_encode(['success' => true, 'data' => $order]);
+}
+
+// Save language order
+function saveLanguageOrder($langDir, $data) {
+    $order = $data['order'] ?? [];
+    
+    if (!is_array($order)) {
+        echo json_encode(['success' => false, 'message' => 'Invalid order data']);
+        return;
+    }
+    
+    $orderFile = $langDir . 'language_order.json';
+    $orderData = ['order' => $order];
+    
+    $result = @file_put_contents($orderFile, json_encode($orderData, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
+    
+    if ($result !== false) {
+        echo json_encode(['success' => true, 'message' => 'Language order saved successfully']);
+    } else {
+        echo json_encode(['success' => false, 'message' => 'Failed to save language order']);
+    }
+}
+
+// Get all languages (sorted by order)
 function getLanguages($langDir) {
     $languages = [];
+    $languageMap = [];
     
+    // First, collect all languages
     if (is_dir($langDir)) {
         $files = scandir($langDir);
         foreach ($files as $file) {
-            if (pathinfo($file, PATHINFO_EXTENSION) === 'json') {
+            if (pathinfo($file, PATHINFO_EXTENSION) === 'json' && $file !== 'language_order.json') {
                 $code = pathinfo($file, PATHINFO_FILENAME);
                 $filePath = $langDir . $file;
                 $content = file_get_contents($filePath);
                 $data = json_decode($content, true);
                 
-                $languages[] = [
+                $languageMap[$code] = [
                     'code' => $code,
                     'name' => $data['languages'][$code] ?? ucfirst($code),
                     'file' => $file
                 ];
             }
         }
+    }
+    
+    // Get order
+    $orderFile = $langDir . 'language_order.json';
+    $order = [];
+    if (file_exists($orderFile)) {
+        $content = @file_get_contents($orderFile);
+        if ($content !== false) {
+            $data = @json_decode($content, true);
+            if ($data !== null && isset($data['order']) && is_array($data['order'])) {
+                $order = $data['order'];
+            }
+        }
+    }
+    
+    // Add languages in order
+    foreach ($order as $code) {
+        if (isset($languageMap[$code])) {
+            $languages[] = $languageMap[$code];
+            unset($languageMap[$code]);
+        }
+    }
+    
+    // Add remaining languages (not in order file)
+    foreach ($languageMap as $lang) {
+        $languages[] = $lang;
     }
     
     echo json_encode(['success' => true, 'data' => $languages]);

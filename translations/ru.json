@@ -241,7 +241,7 @@
     },
     "dependencies": {
         "country_has_regions": "This country cannot be deleted because it has {count} region(s) associated with it. Please delete all regions first.",
-        "region_has_cities": "This region cannot be deleted because it has {count} city/cities associated with it. Please delete all cities first.",
+        "region_has_cities": "This region cannot be deleted because it has {count} city\/cities associated with it. Please delete all cities first.",
         "city_has_sub_regions": "This city cannot be deleted because it has {count} sub region(s) associated with it. Please delete all sub regions first.",
         "sub_region_has_merchants": "This sub region cannot be deleted because it has {count} merchant(s) associated with it. Please delete all merchants first.",
         "department_has_positions": "This department cannot be deleted because it has {count} position(s) associated with it. Please delete all positions first.",
@@ -469,14 +469,13 @@
     },
     "languages": {
         "en": "English",
-        "tr": "Türkçe"
+        "tr": "Türkçe",
+        "ru": "Russian"
     },
     "language_mgmt": {
         "title": "Languages & Translations",
         "languages": "Languages",
         "add_language": "Add Language",
-        "order_saved": "Language order saved",
-        "failed_to_save_order": "Failed to save language order",
         "edit_language": "Edit Language",
         "language_code": "Language Code",
         "language_name": "Language Name",

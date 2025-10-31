@@ -182,13 +182,15 @@
                     onSuccess(result);
                 }
             } else {
-                const errorMsg = result.message || 'An error occurred';
+                const tCommon = window.Translations?.common || {};
+                const errorMsg = result.message || tCommon.an_error_occurred || 'An error occurred';
                 showToast('error', errorMsg);
                 if (onError) onError(result);
             }
         } catch (error) {
             console.error('Error submitting form:', error);
-            showToast('error', 'An error occurred');
+            const tCommon = window.Translations?.common || {};
+            showToast('error', tCommon.an_error_occurred || 'An error occurred');
             if (onError) onError(error);
         }
     };

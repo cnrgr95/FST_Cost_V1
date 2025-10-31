@@ -46,7 +46,10 @@ $t_topbar = $all_translations['topbar'] ?? [];
     <!-- Language Selector -->
     <div class="topbar-item topbar-language">
       <span class="language-text">
-        <?php echo ($lang === 'en') ? ($all_translations['languages']['en'] ?? 'English') : ($all_translations['languages']['tr'] ?? 'Türkçe'); ?>
+        <?php 
+        $availableLanguages = $all_translations['_available_languages'] ?? ['en' => 'English', 'tr' => 'Türkçe'];
+        echo htmlspecialchars($availableLanguages[$lang] ?? 'English');
+        ?>
       </span>
       <span class="material-symbols-rounded dropdown-icon">keyboard_arrow_down</span>
       
@@ -55,24 +58,18 @@ $t_topbar = $all_translations['topbar'] ?? [];
         <?php
         // Preserve current URL parameters while changing language
         $currentParams = $_GET;
-        $currentParams['lang'] = 'en';
-        $langEnUrl = '?' . http_build_query($currentParams);
-        
-        $currentParams['lang'] = 'tr';
-        $langTrUrl = '?' . http_build_query($currentParams);
+        foreach ($availableLanguages as $langCode => $langName):
+            $currentParams['lang'] = $langCode;
+            $langUrl = '?' . http_build_query($currentParams);
+            $isActive = ($lang === $langCode);
         ?>
-        <a href="<?php echo htmlspecialchars($langEnUrl); ?>" class="dropdown-item <?php echo ($lang === 'en') ? 'active' : ''; ?>">
-          <span><?php echo $all_translations['languages']['en'] ?? 'English'; ?></span>
-          <?php if ($lang === 'en'): ?>
+        <a href="<?php echo htmlspecialchars($langUrl); ?>" class="dropdown-item <?php echo $isActive ? 'active' : ''; ?>">
+          <span><?php echo htmlspecialchars($langName); ?></span>
+          <?php if ($isActive): ?>
             <span class="material-symbols-rounded">check</span>
           <?php endif; ?>
         </a>
-        <a href="<?php echo htmlspecialchars($langTrUrl); ?>" class="dropdown-item <?php echo ($lang === 'tr') ? 'active' : ''; ?>">
-          <span><?php echo $all_translations['languages']['tr'] ?? 'Türkçe'; ?></span>
-          <?php if ($lang === 'tr'): ?>
-            <span class="material-symbols-rounded">check</span>
-          <?php endif; ?>
-        </a>
+        <?php endforeach; ?>
       </div>
     </div>
 

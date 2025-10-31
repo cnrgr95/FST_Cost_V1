@@ -320,7 +320,7 @@
                 <div class="empty-state">
                     <span class="material-symbols-rounded">route</span>
                     <h3>${tVehicles.no_routes || 'No routes found'}</h3>
-                    <p>${tVehicles.upload_price_list_hint || 'Upload an Excel file to add routes and prices'}</p>
+                    <p>${tVehicles.upload_price_list_hint_routes || 'Upload an Excel file to add routes and prices'}</p>
                 </div>
             `;
             return;
@@ -543,9 +543,12 @@
                 null // onCancel is optional
             );
         } else {
-            if (confirm(tVehicles.delete_route_confirm || 'Are you sure you want to delete this route?')) {
-                performDeleteRoute(routeId);
-            }
+            showConfirmDialog(
+                tVehicles.delete_route_confirm || 'Are you sure you want to delete this route?',
+                async () => {
+                    await performDeleteRoute(routeId);
+                }
+            );
         }
     };
     

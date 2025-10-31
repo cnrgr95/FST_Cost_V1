@@ -418,22 +418,24 @@ function updateUser($conn, $data) {
     
     // Username and full_name are readonly (LDAP), so we don't update them
     
-    $department_id_val = $department_id ? $department_id : 'NULL';
-    $position_id_val = $position_id ? $position_id : 'NULL';
-    $city_id_val = $city_id ? $city_id : 'NULL';
-    $email_val = $email ? "'$email'" : 'NULL';
-    $phone_val = $phone ? "'$phone'" : 'NULL';
-    
+    // Use parameterized query to prevent SQL injection
     $query = "UPDATE users SET 
-                department_id = $department_id_val,
-                position_id = $position_id_val,
-                city_id = $city_id_val,
-                phone = $phone_val,
-                status = '$status',
+                department_id = $1,
+                position_id = $2,
+                city_id = $3,
+                phone = $4,
+                status = $5,
                 updated_at = NOW() 
-              WHERE id = $id";
+              WHERE id = $6";
     
-    $result = pg_query($conn, $query);
+    $result = pg_query_params($conn, $query, [
+        $department_id,
+        $position_id,
+        $city_id,
+        $phone ? $phone : null,
+        $status,
+        $id
+    ]);
     
     if ($result) {
         echo json_encode(['success' => true]);
@@ -458,15 +460,17 @@ function deleteUser($conn, $id) {
 
 // Check username exists
 function checkUsernameExists($conn) {
-    $username = pg_escape_string($conn, $_GET['username'] ?? '');
+    $username = $_GET['username'] ?? '';
     $id = isset($_GET['id']) ? (int)$_GET['id'] : 0;
     
-    $query = "SELECT id FROM users WHERE username = '$username'";
+    // Use parameterized query to prevent SQL injection
     if ($id > 0) {
-        $query .= " AND id != $id";
+        $query = "SELECT id FROM users WHERE username = $1 AND id != $2";
+        $result = pg_query_params($conn, $query, [$username, $id]);
+    } else {
+        $query = "SELECT id FROM users WHERE username = $1";
+        $result = pg_query_params($conn, $query, [$username]);
     }
-    
-    $result = pg_query($conn, $query);
     
     if ($result && pg_num_rows($result) > 0) {
         echo json_encode(['success' => true, 'exists' => true]);

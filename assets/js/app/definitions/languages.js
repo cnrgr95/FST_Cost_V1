@@ -83,19 +83,22 @@
         }
     }
     
-    // Render languages list
+    // Render languages list with drag and drop
     function renderLanguagesList() {
         const container = document.getElementById('languages-list');
         let html = '';
         
-        currentData.languages.forEach(lang => {
+        currentData.languages.forEach((lang, index) => {
             const isActive = currentData.currentLang && currentData.currentLang.code === lang.code;
             const isBase = lang.code === 'en';
             html += `
-                <div class="lang-item ${isActive ? 'active' : ''}" data-code="${lang.code}">
+                <div class="lang-item ${isActive ? 'active' : ''}" data-code="${lang.code}" draggable="true" data-index="${index}">
                     <div style="display: flex; justify-content: space-between; align-items: center;">
-                        <div onclick="selectLanguage('${lang.code}')" style="flex: 1; cursor: pointer;">
-                            <strong>${lang.code.toUpperCase()}</strong> - ${lang.name}
+                        <div style="display: flex; align-items: center; gap: 8px; flex: 1;">
+                            <span class="drag-handle material-symbols-rounded" style="cursor: move; color: #6b7280; font-size: 20px;">drag_handle</span>
+                            <div onclick="selectLanguage('${lang.code}')" style="flex: 1; cursor: pointer;">
+                                <strong>${lang.code.toUpperCase()}</strong> - ${lang.name}
+                            </div>
                         </div>
                         <div style="display: flex; gap: 5px;">
                             ${!isBase ? `
@@ -113,6 +116,109 @@
         });
         
         container.innerHTML = html || `<p style="color: #9ca3af;">${tLangMgmt.no_languages || 'No languages found'}</p>`;
+        
+        // Setup drag and drop
+        setupDragAndDrop();
+    }
+    
+    // Setup drag and drop for language ordering
+    function setupDragAndDrop() {
+        const container = document.getElementById('languages-list');
+        const items = container.querySelectorAll('.lang-item');
+        
+        items.forEach(item => {
+            item.addEventListener('dragstart', handleDragStart);
+            item.addEventListener('dragover', handleDragOver);
+            item.addEventListener('drop', handleDrop);
+            item.addEventListener('dragend', handleDragEnd);
+        });
+    }
+    
+    let draggedElement = null;
+    
+    function handleDragStart(e) {
+        draggedElement = this;
+        this.style.opacity = '0.5';
+        e.dataTransfer.effectAllowed = 'move';
+        e.dataTransfer.setData('text/html', this.innerHTML);
+    }
+    
+    function handleDragOver(e) {
+        if (e.preventDefault) {
+            e.preventDefault();
+        }
+        e.dataTransfer.dropEffect = 'move';
+        
+        if (draggedElement !== this) {
+            const allItems = Array.from(this.parentElement.children);
+            const draggedIndex = Array.from(draggedElement.parentElement.children).indexOf(draggedElement);
+            const targetIndex = allItems.indexOf(this);
+            
+            if (draggedIndex < targetIndex) {
+                this.parentElement.insertBefore(draggedElement, this.nextSibling);
+            } else {
+                this.parentElement.insertBefore(draggedElement, this);
+            }
+        }
+        return false;
+    }
+    
+    function handleDrop(e) {
+        if (e.stopPropagation) {
+            e.stopPropagation();
+        }
+        return false;
+    }
+    
+    function handleDragEnd(e) {
+        this.style.opacity = '1';
+        
+        // Save new order
+        const container = document.getElementById('languages-list');
+        const items = Array.from(container.querySelectorAll('.lang-item'));
+        const newOrder = items.map(item => item.getAttribute('data-code'));
+        
+        saveLanguageOrder(newOrder);
+    }
+    
+    // Save language order
+    async function saveLanguageOrder(order) {
+        try {
+            const response = await fetch(`${API_BASE}?action=language_order`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ order: order })
+            });
+            
+            const result = await response.json();
+            
+            if (result.success) {
+                // Update local data order
+                const orderedLanguages = [];
+                order.forEach(code => {
+                    const lang = currentData.languages.find(l => l.code === code);
+                    if (lang) {
+                        orderedLanguages.push(lang);
+                    }
+                });
+                // Add any languages not in order
+                currentData.languages.forEach(lang => {
+                    if (!order.includes(lang.code)) {
+                        orderedLanguages.push(lang);
+                    }
+                });
+                currentData.languages = orderedLanguages;
+                
+                showToast('success', tLangMgmt.order_saved || 'Language order saved successfully');
+            } else {
+                showToast('error', result.message || 'Failed to save language order');
+            }
+        } catch (error) {
+            console.error('Error saving language order:', error);
+            showToast('error', tLangMgmt.failed_to_save_order || 'Failed to save language order');
+        }
     }
     
     // Select language

@@ -7,18 +7,52 @@
 require_once __DIR__ . '/config.php';
 initSecureSession();
 
+// Disable page caching for language changes
+header('Cache-Control: no-cache, no-store, must-revalidate');
+header('Pragma: no-cache');
+header('Expires: 0');
+
 // Redirect to dashboard if already logged in
 if (isset($_SESSION['user_id'])) {
     header('Location: dashboard.php');
     exit;
 }
 
-// Simple language handling
-$lang = $_GET['lang'] ?? $_SESSION['language'] ?? 'en';
-$_SESSION['language'] = $lang;
-
-// Load translations
+// Load translations first to get available languages
 require_once __DIR__ . '/includes/translations.php';
+
+// Get available languages - always call getAvailableLanguages() to get latest languages
+// This ensures newly added language files are immediately available
+$availableLanguages = getAvailableLanguages();
+$langKeys = array_keys($availableLanguages);
+
+// Also store in $all_translations for consistency
+if (!isset($all_translations['_available_languages'])) {
+    $all_translations['_available_languages'] = $availableLanguages;
+}
+
+// Ensure $lang is set (should already be set by translations.php)
+if (!isset($lang)) {
+    $lang = 'en';
+}
+
+// CRITICAL: If GET parameter exists, ALWAYS use it and reload translations
+// This ensures dropdown changes are immediately reflected regardless of session state
+if (isset($_GET['lang']) && !empty($_GET['lang'])) {
+    $getLang = trim($_GET['lang']);
+    if (in_array($getLang, $langKeys, true)) {
+        // Always update lang and reload translations when GET parameter is present
+        $lang = $getLang;
+        $_SESSION['language'] = $lang;
+        $all_translations = loadTranslations($lang);
+        // Refresh available languages to ensure newly added languages are included
+        $availableLanguages = getAvailableLanguages();
+        $all_translations['_available_languages'] = $availableLanguages;
+        $langKeys = array_keys($availableLanguages);
+    }
+}
+
+// Extract translation sections
 $t_login = $all_translations['login'] ?? [];
 $t_languages = $all_translations['languages'] ?? [];
 $t_common = $all_translations['common'] ?? [];
@@ -26,7 +60,27 @@ $app_name = $all_translations['app']['name'] ?? 'FST Cost Management';
 
 // Handle login form
 $error = '';
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    // Handle language change from POST
+    if (isset($_POST['language'])) {
+        $postLang = trim($_POST['language']);
+        if (in_array($postLang, $langKeys, true)) {
+            $_SESSION['language'] = $postLang;
+            $lang = $postLang;
+            // Reload translations with new language
+            $all_translations = loadTranslations($lang);
+            // Refresh available languages to ensure newly added languages are included
+            $availableLanguages = getAvailableLanguages();
+            $all_translations['_available_languages'] = $availableLanguages;
+            $langKeys = array_keys($availableLanguages);
+            $t_login = $all_translations['login'] ?? [];
+            $t_languages = $all_translations['languages'] ?? [];
+            $t_common = $all_translations['common'] ?? [];
+            $app_name = $all_translations['app']['name'] ?? 'FST Cost Management';
+        }
+    }
+    
     // CSRF protection
     if (!isset($_POST[CSRF_TOKEN_NAME]) || !validateCsrfToken($_POST[CSRF_TOKEN_NAME])) {
         $error = $t_login['security_token_failed'] ?? 'Security token validation failed. Please try again.';
@@ -74,6 +128,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         $_SESSION['full_name'] = $user['full_name'] ?? $username;
                         $_SESSION['last_activity'] = time();
                         $_SESSION['created'] = time();
+                        // Ensure language is preserved after login
+                        if (isset($_POST['language']) && in_array($_POST['language'], $langKeys, true)) {
+                            $_SESSION['language'] = $_POST['language'];
+                        }
                         
                         // Handle remember me with secure cookie
                         if (isset($_POST['remember_me']) && $_POST['remember_me'] === 'on') {
@@ -96,7 +154,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         // Close database connection
                         closeDbConnection($conn);
                         
-                        header('Location: dashboard.php');
+                        // Preserve language in redirect
+                        $redirectLang = isset($_POST['language']) && in_array($_POST['language'], $langKeys, true) ? $_POST['language'] : $lang;
+                        header('Location: dashboard.php' . ($redirectLang !== 'en' ? '?lang=' . urlencode($redirectLang) : ''));
                         exit;
                     }
                 } else {
@@ -118,6 +178,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
     <title><?php echo $t_login['title'] ?? 'Login'; ?> - <?php echo $app_name; ?></title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="assets/css/login.css">
@@ -138,7 +201,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             </div>
         <?php endif; ?>
         
-        <form method="POST" action="login.php">
+        <form method="POST" action="login.php<?php 
+            // Preserve language from GET or POST or session
+            $preserveLang = $_GET['lang'] ?? (isset($_POST['language']) ? $_POST['language'] : null) ?? $lang;
+            echo ($preserveLang && in_array($preserveLang, $langKeys, true)) ? '?lang=' . htmlspecialchars($preserveLang) : ''; 
+        ?>">
             <?php echo csrfField(); ?>
             <div class="form-group">
                 <div class="input-with-icon">
@@ -159,8 +226,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 <div class="input-with-icon">
                     <i class="fas fa-globe"></i>
                     <select id="language" name="language" class="form-control" required>
-                        <option value="en" <?php echo ($lang === 'en') ? 'selected' : ''; ?>><?php echo $t_languages['en'] ?? 'English'; ?></option>
-                        <option value="tr" <?php echo ($lang === 'tr') ? 'selected' : ''; ?>><?php echo $t_languages['tr'] ?? 'Türkçe'; ?></option>
+                        <?php 
+                        // Always get fresh list of available languages to include newly added ones
+                        $availableLanguages = getAvailableLanguages();
+                        foreach ($availableLanguages as $langCode => $langName): 
+                        ?>
+                            <option value="<?php echo htmlspecialchars($langCode); ?>" <?php echo ($lang === $langCode) ? 'selected' : ''; ?>><?php echo htmlspecialchars($langName); ?></option>
+                        <?php endforeach; ?>
                     </select>
                 </div>
             </div>

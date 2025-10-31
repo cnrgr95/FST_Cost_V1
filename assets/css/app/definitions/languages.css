@@ -35,6 +35,7 @@
     margin-bottom: 8px;
     cursor: pointer;
     transition: all 0.2s;
+    user-select: none;
 }
 
 .lang-item:hover {
@@ -46,6 +47,29 @@
     background: #3b82f6;
     color: white;
     border-color: #3b82f6;
+}
+
+.lang-item.dragging {
+    opacity: 0.5;
+    border: 2px dashed #3b82f6;
+}
+
+.drag-handle {
+    cursor: move;
+    color: #6b7280;
+    font-size: 20px;
+}
+
+.drag-handle:hover {
+    color: #3b82f6;
+}
+
+.lang-item.active .drag-handle {
+    color: rgba(255, 255, 255, 0.8);
+}
+
+.lang-item.active .drag-handle:hover {
+    color: white;
 }
 
 .translation-section {

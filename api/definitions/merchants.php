@@ -239,9 +239,9 @@ function getMerchants($conn, $sub_region_id = null) {
 function createMerchant($conn, $data) {
     $name = pg_escape_string($conn, $data['name']);
     
-    // Check if merchant name already exists
-    $checkQuery = "SELECT id FROM merchants WHERE name = '$name'";
-    $checkResult = pg_query($conn, $checkQuery);
+    // Check if merchant name already exists - use parameterized query
+    $checkQuery = "SELECT id FROM merchants WHERE name = $1";
+    $checkResult = pg_query_params($conn, $checkQuery, [$name]);
     if ($checkResult && pg_num_rows($checkResult) > 0) {
         echo json_encode(['success' => false, 'message' => 'A merchant with this name already exists']);
         return;
@@ -257,10 +257,22 @@ function createMerchant($conn, $data) {
     $operasyon_phone = pg_escape_string($conn, $data['operasyon_phone'] ?? '');
     $location_url = pg_escape_string($conn, $data['location_url'] ?? '');
     
+    // Use parameterized query to prevent SQL injection
     $query = "INSERT INTO merchants (name, official_title, sub_region_id, authorized_person, authorized_email, authorized_phone, operasyon_name, operasyon_email, operasyon_phone, location_url, created_at) 
-              VALUES ('$name', '$official_title', $sub_region_id, '$authorized_person', '$authorized_email', '$authorized_phone', '$operasyon_name', '$operasyon_email', '$operasyon_phone', '$location_url', NOW()) 
+              VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, NOW()) 
               RETURNING id";
-    $result = pg_query($conn, $query);
+    $result = pg_query_params($conn, $query, [
+        $name,
+        $official_title,
+        $sub_region_id,
+        $authorized_person,
+        $authorized_email,
+        $authorized_phone,
+        $operasyon_name,
+        $operasyon_email,
+        $operasyon_phone,
+        $location_url
+    ]);
     
     if ($result) {
         $row = pg_fetch_assoc($result);
@@ -283,20 +295,33 @@ function updateMerchant($conn, $data) {
     $operasyon_phone = pg_escape_string($conn, $data['operasyon_phone'] ?? '');
     $location_url = pg_escape_string($conn, $data['location_url'] ?? '');
     
+    // Use parameterized query to prevent SQL injection
     $query = "UPDATE merchants SET 
-                name = '$name', 
-                official_title = '$official_title', 
-                sub_region_id = $sub_region_id, 
-                authorized_person = '$authorized_person', 
-                authorized_email = '$authorized_email', 
-                authorized_phone = '$authorized_phone', 
-                operasyon_name = '$operasyon_name', 
-                operasyon_email = '$operasyon_email', 
-                operasyon_phone = '$operasyon_phone', 
-                location_url = '$location_url', 
+                name = $1, 
+                official_title = $2, 
+                sub_region_id = $3, 
+                authorized_person = $4, 
+                authorized_email = $5, 
+                authorized_phone = $6, 
+                operasyon_name = $7, 
+                operasyon_email = $8, 
+                operasyon_phone = $9, 
+                location_url = $10, 
                 updated_at = NOW() 
-              WHERE id = $id";
-    $result = pg_query($conn, $query);
+              WHERE id = $11";
+    $result = pg_query_params($conn, $query, [
+        $name,
+        $official_title,
+        $sub_region_id,
+        $authorized_person,
+        $authorized_email,
+        $authorized_phone,
+        $operasyon_name,
+        $operasyon_email,
+        $operasyon_phone,
+        $location_url,
+        $id
+    ]);
     
     if ($result) {
         echo json_encode(['success' => true]);

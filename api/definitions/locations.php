@@ -190,18 +190,19 @@ function getCountries($conn) {
 function createCountry($conn, $data) {
     $name = pg_escape_string($conn, $data['name']);
     
-    // Check if country name already exists
-    $checkQuery = "SELECT id FROM countries WHERE name = '$name'";
-    $checkResult = pg_query($conn, $checkQuery);
+    // Check if country name already exists - use parameterized query
+    $checkQuery = "SELECT id FROM countries WHERE name = $1";
+    $checkResult = pg_query_params($conn, $checkQuery, [$name]);
     if ($checkResult && pg_num_rows($checkResult) > 0) {
         echo json_encode(['success' => false, 'message' => 'A country with this name already exists']);
         return;
     }
     
-    $code = pg_escape_string($conn, $data['code'] ?? '');
+    $code = $data['code'] ?? '';
     // local_currency_code is managed from currency-country.php, so it's set to NULL here
-    $query = "INSERT INTO countries (name, code, local_currency_code, created_at) VALUES ('$name', '$code', NULL, NOW()) RETURNING id";
-    $result = pg_query($conn, $query);
+    // Use parameterized query to prevent SQL injection
+    $query = "INSERT INTO countries (name, code, local_currency_code, created_at) VALUES ($1, $2, NULL, NOW()) RETURNING id";
+    $result = pg_query_params($conn, $query, [$name, $code]);
     
     if ($result) {
         $row = pg_fetch_assoc($result);
@@ -218,14 +219,9 @@ function updateCountry($conn, $data) {
     
     // use_in_currency is always true - all countries are available for currencies
     // local_currency_code is managed from currency-country.php, so we don't update it here
-    // Only update name and code
-    $setParts = [];
-    $setParts[] = "name = '$name'";
-    $setParts[] = "code = '$code'";
-    $setParts[] = "updated_at = NOW()";
-    
-    $query = "UPDATE countries SET " . implode(', ', $setParts) . " WHERE id = $id";
-    $result = pg_query($conn, $query);
+    // Only update name and code - use parameterized query to prevent SQL injection
+    $query = "UPDATE countries SET name = $1, code = $2, updated_at = NOW() WHERE id = $3";
+    $result = pg_query_params($conn, $query, [$name, $code, $id]);
     
     if ($result) {
         echo json_encode(['success' => true]);
@@ -284,16 +280,17 @@ function createRegion($conn, $data) {
     $name = pg_escape_string($conn, $data['name']);
     $country_id = (int)$data['country_id'];
     
-    // Check if region name already exists in the same country
-    $checkQuery = "SELECT id FROM regions WHERE name = '$name' AND country_id = $country_id";
-    $checkResult = pg_query($conn, $checkQuery);
+    // Check if region name already exists in the same country - use parameterized query
+    $checkQuery = "SELECT id FROM regions WHERE name = $1 AND country_id = $2";
+    $checkResult = pg_query_params($conn, $checkQuery, [$name, $country_id]);
     if ($checkResult && pg_num_rows($checkResult) > 0) {
         echo json_encode(['success' => false, 'message' => 'A region with this name already exists in this country']);
         return;
     }
     
-    $query = "INSERT INTO regions (name, country_id, created_at) VALUES ('$name', $country_id, NOW()) RETURNING id";
-    $result = pg_query($conn, $query);
+    // Use parameterized query to prevent SQL injection
+    $query = "INSERT INTO regions (name, country_id, created_at) VALUES ($1, $2, NOW()) RETURNING id";
+    $result = pg_query_params($conn, $query, [$name, $country_id]);
     
     if ($result) {
         $row = pg_fetch_assoc($result);
@@ -305,11 +302,12 @@ function createRegion($conn, $data) {
 
 function updateRegion($conn, $data) {
     $id = (int)$data['id'];
-    $name = pg_escape_string($conn, $data['name']);
+    $name = $data['name'];
     $country_id = (int)$data['country_id'];
     
-    $query = "UPDATE regions SET name = '$name', country_id = $country_id, updated_at = NOW() WHERE id = $id";
-    $result = pg_query($conn, $query);
+    // Use parameterized query to prevent SQL injection
+    $query = "UPDATE regions SET name = $1, country_id = $2, updated_at = NOW() WHERE id = $3";
+    $result = pg_query_params($conn, $query, [$name, $country_id, $id]);
     
     if ($result) {
         echo json_encode(['success' => true]);
@@ -372,16 +370,17 @@ function createCity($conn, $data) {
     $name = pg_escape_string($conn, $data['name']);
     $region_id = (int)$data['region_id'];
     
-    // Check if city name already exists in the same region
-    $checkQuery = "SELECT id FROM cities WHERE name = '$name' AND region_id = $region_id";
-    $checkResult = pg_query($conn, $checkQuery);
+    // Check if city name already exists in the same region - use parameterized query
+    $checkQuery = "SELECT id FROM cities WHERE name = $1 AND region_id = $2";
+    $checkResult = pg_query_params($conn, $checkQuery, [$name, $region_id]);
     if ($checkResult && pg_num_rows($checkResult) > 0) {
         echo json_encode(['success' => false, 'message' => 'A city with this name already exists in this region']);
         return;
     }
     
-    $query = "INSERT INTO cities (name, region_id, created_at) VALUES ('$name', $region_id, NOW()) RETURNING id";
-    $result = pg_query($conn, $query);
+    // Use parameterized query to prevent SQL injection
+    $query = "INSERT INTO cities (name, region_id, created_at) VALUES ($1, $2, NOW()) RETURNING id";
+    $result = pg_query_params($conn, $query, [$name, $region_id]);
     
     if ($result) {
         $row = pg_fetch_assoc($result);
@@ -393,11 +392,12 @@ function createCity($conn, $data) {
 
 function updateCity($conn, $data) {
     $id = (int)$data['id'];
-    $name = pg_escape_string($conn, $data['name']);
+    $name = $data['name'];
     $region_id = (int)$data['region_id'];
     
-    $query = "UPDATE cities SET name = '$name', region_id = $region_id, updated_at = NOW() WHERE id = $id";
-    $result = pg_query($conn, $query);
+    // Use parameterized query to prevent SQL injection
+    $query = "UPDATE cities SET name = $1, region_id = $2, updated_at = NOW() WHERE id = $3";
+    $result = pg_query_params($conn, $query, [$name, $region_id, $id]);
     
     if ($result) {
         echo json_encode(['success' => true]);
@@ -467,16 +467,17 @@ function createSubRegion($conn, $data) {
     $name = pg_escape_string($conn, $data['name']);
     $city_id = (int)$data['city_id'];
     
-    // Check if sub region name already exists in the same city
-    $checkQuery = "SELECT id FROM sub_regions WHERE name = '$name' AND city_id = $city_id";
-    $checkResult = pg_query($conn, $checkQuery);
+    // Check if sub region name already exists in the same city - use parameterized query
+    $checkQuery = "SELECT id FROM sub_regions WHERE name = $1 AND city_id = $2";
+    $checkResult = pg_query_params($conn, $checkQuery, [$name, $city_id]);
     if ($checkResult && pg_num_rows($checkResult) > 0) {
         echo json_encode(['success' => false, 'message' => 'A sub region with this name already exists in this city']);
         return;
     }
     
-    $query = "INSERT INTO sub_regions (name, city_id, created_at) VALUES ('$name', $city_id, NOW()) RETURNING id";
-    $result = pg_query($conn, $query);
+    // Use parameterized query to prevent SQL injection
+    $query = "INSERT INTO sub_regions (name, city_id, created_at) VALUES ($1, $2, NOW()) RETURNING id";
+    $result = pg_query_params($conn, $query, [$name, $city_id]);
     
     if ($result) {
         $row = pg_fetch_assoc($result);
@@ -491,8 +492,9 @@ function updateSubRegion($conn, $data) {
     $name = pg_escape_string($conn, $data['name']);
     $city_id = (int)$data['city_id'];
     
-    $query = "UPDATE sub_regions SET name = '$name', city_id = $city_id, updated_at = NOW() WHERE id = $id";
-    $result = pg_query($conn, $query);
+    // Use parameterized query to prevent SQL injection
+    $query = "UPDATE sub_regions SET name = $1, city_id = $2, updated_at = NOW() WHERE id = $3";
+    $result = pg_query_params($conn, $query, [$name, $city_id, $id]);
     
     if ($result) {
         echo json_encode(['success' => true]);
@@ -531,16 +533,17 @@ function deleteSubRegion($conn, $id) {
 // Check functions
 function checkCountryName($conn) {
     $name = $_GET['name'] ?? '';
-    $name = pg_escape_string($conn, $name);
     $id = $_GET['id'] ?? null;
     
-    $query = "SELECT id FROM countries WHERE name = '$name'";
+    // Use parameterized query to prevent SQL injection
     if ($id) {
         $id = (int)$id;
-        $query .= " AND id != $id";
+        $query = "SELECT id FROM countries WHERE name = $1 AND id != $2";
+        $result = pg_query_params($conn, $query, [$name, $id]);
+    } else {
+        $query = "SELECT id FROM countries WHERE name = $1";
+        $result = pg_query_params($conn, $query, [$name]);
     }
-    
-    $result = pg_query($conn, $query);
     if ($result) {
         $exists = pg_num_rows($result) > 0;
         echo json_encode(['success' => true, 'exists' => $exists]);
@@ -551,7 +554,6 @@ function checkCountryName($conn) {
 
 function checkRegionName($conn) {
     $name = $_GET['name'] ?? '';
-    $name = pg_escape_string($conn, $name);
     $country_id = $_GET['country_id'] ?? null;
     $id = $_GET['id'] ?? null;
     
@@ -561,13 +563,16 @@ function checkRegionName($conn) {
     }
     
     $country_id = (int)$country_id;
-    $query = "SELECT id FROM regions WHERE name = '$name' AND country_id = $country_id";
+    
+    // Use parameterized query to prevent SQL injection
     if ($id) {
         $id = (int)$id;
-        $query .= " AND id != $id";
+        $query = "SELECT id FROM regions WHERE name = $1 AND country_id = $2 AND id != $3";
+        $result = pg_query_params($conn, $query, [$name, $country_id, $id]);
+    } else {
+        $query = "SELECT id FROM regions WHERE name = $1 AND country_id = $2";
+        $result = pg_query_params($conn, $query, [$name, $country_id]);
     }
-    
-    $result = pg_query($conn, $query);
     if ($result) {
         $exists = pg_num_rows($result) > 0;
         echo json_encode(['success' => true, 'exists' => $exists]);
@@ -578,7 +583,6 @@ function checkRegionName($conn) {
 
 function checkCityName($conn) {
     $name = $_GET['name'] ?? '';
-    $name = pg_escape_string($conn, $name);
     $region_id = $_GET['region_id'] ?? null;
     $id = $_GET['id'] ?? null;
     
@@ -588,13 +592,16 @@ function checkCityName($conn) {
     }
     
     $region_id = (int)$region_id;
-    $query = "SELECT id FROM cities WHERE name = '$name' AND region_id = $region_id";
+    
+    // Use parameterized query to prevent SQL injection
     if ($id) {
         $id = (int)$id;
-        $query .= " AND id != $id";
+        $query = "SELECT id FROM cities WHERE name = $1 AND region_id = $2 AND id != $3";
+        $result = pg_query_params($conn, $query, [$name, $region_id, $id]);
+    } else {
+        $query = "SELECT id FROM cities WHERE name = $1 AND region_id = $2";
+        $result = pg_query_params($conn, $query, [$name, $region_id]);
     }
-    
-    $result = pg_query($conn, $query);
     if ($result) {
         $exists = pg_num_rows($result) > 0;
         echo json_encode(['success' => true, 'exists' => $exists]);
@@ -605,7 +612,6 @@ function checkCityName($conn) {
 
 function checkSubRegionName($conn) {
     $name = $_GET['name'] ?? '';
-    $name = pg_escape_string($conn, $name);
     $city_id = $_GET['city_id'] ?? null;
     $id = $_GET['id'] ?? null;
     
@@ -615,13 +621,16 @@ function checkSubRegionName($conn) {
     }
     
     $city_id = (int)$city_id;
-    $query = "SELECT id FROM sub_regions WHERE name = '$name' AND city_id = $city_id";
+    
+    // Use parameterized query to prevent SQL injection
     if ($id) {
         $id = (int)$id;
-        $query .= " AND id != $id";
+        $query = "SELECT id FROM sub_regions WHERE name = $1 AND city_id = $2 AND id != $3";
+        $result = pg_query_params($conn, $query, [$name, $city_id, $id]);
+    } else {
+        $query = "SELECT id FROM sub_regions WHERE name = $1 AND city_id = $2";
+        $result = pg_query_params($conn, $query, [$name, $city_id]);
     }
-    
-    $result = pg_query($conn, $query);
     if ($result) {
         $exists = pg_num_rows($result) > 0;
         echo json_encode(['success' => true, 'exists' => $exists]);

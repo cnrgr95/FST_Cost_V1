@@ -112,7 +112,7 @@ $t_dependencies = $all_translations['dependencies'] ?? [];
                 </div>
                 <div class="form-group">
                     <label><?php echo $t_locations['country_code'] ?? 'Country Code'; ?></label>
-                    <input type="text" name="code" maxlength="3" placeholder="e.g., TR, US">
+                    <input type="text" name="code" maxlength="3" placeholder="<?php echo $t_locations['code_placeholder'] ?? 'e.g., TR, US'; ?>">
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn-secondary" onclick="closeModal()">

@@ -387,10 +387,10 @@ function createTour($conn, $data) {
     $sejour_tour_code = strtoupper(pg_escape_string($conn, $data['sejour_tour_code'] ?? ''));
     $name = pg_escape_string($conn, $data['name']);
     
-    // Check if sejour tour code already exists
+    // Check if sejour tour code already exists - use parameterized query
     if (!empty($sejour_tour_code)) {
-        $checkQuery = "SELECT id FROM tours WHERE sejour_tour_code = '$sejour_tour_code'";
-        $checkResult = pg_query($conn, $checkQuery);
+        $checkQuery = "SELECT id FROM tours WHERE sejour_tour_code = $1";
+        $checkResult = pg_query_params($conn, $checkQuery, [$sejour_tour_code]);
         if ($checkResult && pg_num_rows($checkResult) > 0) {
             echo json_encode(['success' => false, 'message' => 'This Sejour Tour Code already exists']);
             return;
@@ -400,12 +400,16 @@ function createTour($conn, $data) {
     $sub_region_id = (int)$data['sub_region_id'];
     $merchant_id = (int)$data['merchant_id'];
     
-    $sejour_tour_code_val = !empty($sejour_tour_code) ? "'$sejour_tour_code'" : 'NULL';
-    
+    // Use parameterized query to prevent SQL injection
     $query = "INSERT INTO tours (sejour_tour_code, name, sub_region_id, merchant_id, created_at) 
-              VALUES ($sejour_tour_code_val, '$name', $sub_region_id, $merchant_id, NOW()) 
+              VALUES ($1, $2, $3, $4, NOW()) 
               RETURNING id";
-    $result = pg_query($conn, $query);
+    $result = pg_query_params($conn, $query, [
+        !empty($sejour_tour_code) ? $sejour_tour_code : null,
+        $name,
+        $sub_region_id,
+        $merchant_id
+    ]);
     
     if ($result) {
         $row = pg_fetch_assoc($result);
@@ -430,26 +434,31 @@ function updateTour($conn, $data) {
     $sub_region_id = (int)$data['sub_region_id'];
     $merchant_id = (int)$data['merchant_id'];
     
-    // Check if sejour tour code already exists for another tour
+    // Check if sejour tour code already exists for another tour - use parameterized query
     if (!empty($sejour_tour_code)) {
-        $checkQuery = "SELECT id FROM tours WHERE sejour_tour_code = '$sejour_tour_code' AND id != $id";
-        $checkResult = pg_query($conn, $checkQuery);
+        $checkQuery = "SELECT id FROM tours WHERE sejour_tour_code = $1 AND id != $2";
+        $checkResult = pg_query_params($conn, $checkQuery, [$sejour_tour_code, $id]);
         if ($checkResult && pg_num_rows($checkResult) > 0) {
             echo json_encode(['success' => false, 'message' => 'This Sejour Tour Code already exists']);
             return;
         }
     }
     
-    $sejour_tour_code_val = !empty($sejour_tour_code) ? "'$sejour_tour_code'" : 'NULL';
-    
+    // Use parameterized query to prevent SQL injection
     $query = "UPDATE tours SET 
-                sejour_tour_code = $sejour_tour_code_val,
-                name = '$name', 
-                sub_region_id = $sub_region_id, 
-                merchant_id = $merchant_id, 
+                sejour_tour_code = $1,
+                name = $2, 
+                sub_region_id = $3, 
+                merchant_id = $4, 
                 updated_at = NOW() 
-              WHERE id = $id";
-    $result = pg_query($conn, $query);
+              WHERE id = $5";
+    $result = pg_query_params($conn, $query, [
+        !empty($sejour_tour_code) ? $sejour_tour_code : null,
+        $name,
+        $sub_region_id,
+        $merchant_id,
+        $id
+    ]);
     
     if ($result) {
         // Update tour sub regions
@@ -465,17 +474,17 @@ function updateTour($conn, $data) {
 
 // Save tour sub regions
 function saveTourSubRegions($conn, $tour_id, $sub_region_ids) {
-    // Delete existing associations
-    $deleteQuery = "DELETE FROM tour_sub_regions WHERE tour_id = $tour_id";
-    pg_query($conn, $deleteQuery);
+    // Delete existing associations - use parameterized query
+    $deleteQuery = "DELETE FROM tour_sub_regions WHERE tour_id = $1";
+    pg_query_params($conn, $deleteQuery, [$tour_id]);
     
-    // Insert new associations
+    // Insert new associations using parameterized query
     if (!empty($sub_region_ids)) {
         foreach ($sub_region_ids as $sub_region_id) {
             $sub_region_id = (int)$sub_region_id;
             if ($sub_region_id > 0) {
-                $insertQuery = "INSERT INTO tour_sub_regions (tour_id, sub_region_id) VALUES ($tour_id, $sub_region_id) ON CONFLICT (tour_id, sub_region_id) DO NOTHING";
-                pg_query($conn, $insertQuery);
+                $insertQuery = "INSERT INTO tour_sub_regions (tour_id, sub_region_id) VALUES ($1, $2) ON CONFLICT (tour_id, sub_region_id) DO NOTHING";
+                pg_query_params($conn, $insertQuery, [$tour_id, $sub_region_id]);
             }
         }
     }

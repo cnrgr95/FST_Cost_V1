@@ -159,11 +159,11 @@ function createCost($conn, $data) {
             return;
         }
         
-        // First try with all fields NULL
+        // Use parameterized query to prevent SQL injection
         $query = "INSERT INTO costs (cost_code, cost_name, country_id, region_id, city_id, created_at) 
-                  VALUES ('$cost_code', '$cost_name', NULL, NULL, NULL, NOW()) 
+                  VALUES ($1, $2, NULL, NULL, NULL, NOW()) 
                   RETURNING id, cost_code";
-        $result = pg_query($conn, $query);
+        $result = pg_query_params($conn, $query, [$cost_code, $cost_name]);
         
         if ($result) {
             $row = pg_fetch_assoc($result);
@@ -183,12 +183,13 @@ function updateCost($conn, $data) {
     $cost_code = pg_escape_string($conn, $data['cost_code'] ?? '');
     $cost_name = pg_escape_string($conn, $data['cost_name'] ?? '');
     
+    // Use parameterized query to prevent SQL injection
     $query = "UPDATE costs SET 
-                cost_code = '$cost_code', 
-                cost_name = '$cost_name',
+                cost_code = $1, 
+                cost_name = $2,
                 updated_at = NOW() 
-              WHERE id = $id";
-    $result = pg_query($conn, $query);
+              WHERE id = $3";
+    $result = pg_query_params($conn, $query, [$cost_code, $cost_name, $id]);
     
     if ($result) {
         echo json_encode(['success' => true]);

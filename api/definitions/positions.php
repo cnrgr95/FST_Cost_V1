@@ -192,16 +192,17 @@ function createDepartment($conn, $data) {
     $name = pg_escape_string($conn, $data['name']);
     $city_id = (int)$data['city_id'];
     
-    // Check if department name already exists in the same city
-    $checkQuery = "SELECT id FROM departments WHERE name = '$name' AND city_id = $city_id";
-    $checkResult = pg_query($conn, $checkQuery);
+    // Check if department name already exists in the same city - use parameterized query
+    $checkQuery = "SELECT id FROM departments WHERE name = $1 AND city_id = $2";
+    $checkResult = pg_query_params($conn, $checkQuery, [$name, $city_id]);
     if ($checkResult && pg_num_rows($checkResult) > 0) {
         echo json_encode(['success' => false, 'message' => 'A department with this name already exists in this city']);
         return;
     }
     
-    $query = "INSERT INTO departments (name, city_id, created_at) VALUES ('$name', $city_id, NOW()) RETURNING id";
-    $result = pg_query($conn, $query);
+    // Use parameterized query to prevent SQL injection
+    $query = "INSERT INTO departments (name, city_id, created_at) VALUES ($1, $2, NOW()) RETURNING id";
+    $result = pg_query_params($conn, $query, [$name, $city_id]);
     
     if ($result) {
         $row = pg_fetch_assoc($result);
@@ -216,8 +217,9 @@ function updateDepartment($conn, $data) {
     $name = pg_escape_string($conn, $data['name']);
     $city_id = (int)$data['city_id'];
     
-    $query = "UPDATE departments SET name = '$name', city_id = $city_id, updated_at = NOW() WHERE id = $id";
-    $result = pg_query($conn, $query);
+    // Use parameterized query to prevent SQL injection
+    $query = "UPDATE departments SET name = $1, city_id = $2, updated_at = NOW() WHERE id = $3";
+    $result = pg_query_params($conn, $query, [$name, $city_id, $id]);
     
     if ($result) {
         echo json_encode(['success' => true]);
@@ -289,16 +291,17 @@ function createPosition($conn, $data) {
     $name = pg_escape_string($conn, $data['name']);
     $department_id = (int)$data['department_id'];
     
-    // Check if position name already exists in the same department
-    $checkQuery = "SELECT id FROM positions WHERE name = '$name' AND department_id = $department_id";
-    $checkResult = pg_query($conn, $checkQuery);
+    // Check if position name already exists in the same department - use parameterized query
+    $checkQuery = "SELECT id FROM positions WHERE name = $1 AND department_id = $2";
+    $checkResult = pg_query_params($conn, $checkQuery, [$name, $department_id]);
     if ($checkResult && pg_num_rows($checkResult) > 0) {
         echo json_encode(['success' => false, 'message' => 'A position with this name already exists in this department']);
         return;
     }
     
-    $query = "INSERT INTO positions (name, department_id, created_at) VALUES ('$name', $department_id, NOW()) RETURNING id";
-    $result = pg_query($conn, $query);
+    // Use parameterized query to prevent SQL injection
+    $query = "INSERT INTO positions (name, department_id, created_at) VALUES ($1, $2, NOW()) RETURNING id";
+    $result = pg_query_params($conn, $query, [$name, $department_id]);
     
     if ($result) {
         $row = pg_fetch_assoc($result);
@@ -313,8 +316,9 @@ function updatePosition($conn, $data) {
     $name = pg_escape_string($conn, $data['name']);
     $department_id = (int)$data['department_id'];
     
-    $query = "UPDATE positions SET name = '$name', department_id = $department_id, updated_at = NOW() WHERE id = $id";
-    $result = pg_query($conn, $query);
+    // Use parameterized query to prevent SQL injection
+    $query = "UPDATE positions SET name = $1, department_id = $2, updated_at = NOW() WHERE id = $3";
+    $result = pg_query_params($conn, $query, [$name, $department_id, $id]);
     
     if ($result) {
         echo json_encode(['success' => true]);

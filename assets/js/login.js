@@ -58,7 +58,15 @@ document.addEventListener('DOMContentLoaded', function() {
     if (languageSelect) {
         languageSelect.addEventListener('change', function() {
             const selectedLang = this.value;
-            window.location.href = 'login.php?lang=' + selectedLang;
+            // Update form action to preserve language
+            const form = document.querySelector('form');
+            if (form) {
+                form.action = 'login.php?lang=' + encodeURIComponent(selectedLang);
+            }
+            // Reload page with new language immediately
+            // Add timestamp to prevent browser caching issues
+            const timestamp = new Date().getTime();
+            window.location.href = 'login.php?lang=' + encodeURIComponent(selectedLang) + '&t=' + timestamp;
         });
     }
 
@@ -71,6 +79,7 @@ document.addEventListener('DOMContentLoaded', function() {
             // Show loading state
             submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> ' + t('loading');
             submitBtn.disabled = true;
+            // Language is already in form (select name="language"), so it will be submitted automatically
         });
     }
 });
