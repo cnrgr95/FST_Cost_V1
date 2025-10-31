@@ -178,8 +178,6 @@
             html += `<thead><tr>
                         <th>${tLoc.country_name || 'Name'}</th>
                         <th>${tLoc.country_code || 'Code'}</th>
-                        <th>${tLoc.use_in_currency || 'Use in currencies'}</th>
-                        <th>${tLoc.local_currency_code || 'Local Currency'}</th>
                         <th>${tLoc.actions || 'Actions'}</th>
                      </tr></thead>`;
         } else if (type === 'regions') {
@@ -200,25 +198,6 @@
         
         // Attach event listeners to action buttons
         attachActionListeners();
-
-        // Attach toggle handlers for countries use_in_currency
-        if (type === 'countries') {
-            document.querySelectorAll('.toggle-use-currency[data-country-id]').forEach(el => {
-                el.addEventListener('change', async function() {
-                    const id = parseInt(this.getAttribute('data-country-id'));
-                    const country = currentData.countries.find(c => c.id == id);
-                    if (!country) return;
-                    const payload = {
-                        id,
-                        name: country.name,
-                        code: country.code || '',
-                        use_in_currency: this.checked,
-                        local_currency_code: country.local_currency_code || ''
-                    };
-                    await updateCountry(payload);
-                });
-            });
-        }
     }
     
     // Attach event listeners to action buttons
@@ -249,15 +228,6 @@
         if (type === 'countries') {
             html += `<td>${item.name}</td>`;
             html += `<td>${item.code || '-'}</td>`;
-            const isOn = (item.use_in_currency === true) || (item.use_in_currency === 't') || (item.use_in_currency === 1) || (item.use_in_currency === '1');
-            const checked = isOn ? 'checked' : '';
-            html += `<td>
-                        <label class="switch">
-                            <input type="checkbox" class="toggle-use-currency" data-country-id="${item.id}" ${checked} />
-                            <span class="slider round"></span>
-                        </label>
-                    </td>`;
-            html += `<td>${item.local_currency_code || '-'}</td>`;
         } else if (type === 'regions') {
             html += `<td>${item.name}</td>`;
             html += `<td>${item.country_name || '-'}</td>`;
@@ -419,15 +389,6 @@
             if (codeInput) {
                 codeInput.value = item.code || '';
             }
-            const useInCurrency = form.querySelector('input[name="use_in_currency"]');
-            if (useInCurrency) {
-                useInCurrency.checked = (item.use_in_currency === true) || (item.use_in_currency === 't') || (item.use_in_currency === 1) || (item.use_in_currency === '1');
-            }
-            await loadCurrenciesForSelect();
-            const localCurrencySelect = form.querySelector('select[name="local_currency_code"]');
-            if (localCurrencySelect) {
-                localCurrencySelect.value = item.local_currency_code || '';
-            }
         } else if (type === 'regions') {
             await loadCountriesForSelect();
             const countrySelect = form.querySelector('select[name="country_id"]');
@@ -529,9 +490,7 @@
         const formData = new FormData(form);
         const data = {
             name: formData.get('name'),
-            code: formData.get('code'),
-            use_in_currency: form.querySelector('input[name="use_in_currency"]').checked,
-            local_currency_code: formData.get('local_currency_code') || ''
+            code: formData.get('code')
         };
         
         if (form.dataset.id) {
@@ -837,30 +796,7 @@
         }
     }
 
-    // Load currencies for country modal select
-    async function loadCurrenciesForSelect() {
-        try {
-            const apiBaseCurrencies = (pageConfig && pageConfig.basePath) ? (pageConfig.basePath + 'api/definitions/currencies.php') : 'api/definitions/currencies.php';
-            const response = await fetch(`${apiBaseCurrencies}?action=currencies`);
-            const result = await response.json();
-            if (result.success) {
-                const select = document.querySelector('#countryForm select[name="local_currency_code"]');
-                if (select) {
-                    const current = select.value;
-                    select.innerHTML = `<option value="">${tLoc.select_currency || 'Select currency'}</option>`;
-                    (result.data || []).filter(c => c.is_active).forEach(c => {
-                        const option = document.createElement('option');
-                        option.value = (c.code || '').toUpperCase();
-                        option.textContent = `${(c.code || '').toUpperCase()} - ${c.name || ''}`;
-                        select.appendChild(option);
-                    });
-                    if (current) select.value = current;
-                }
-            }
-        } catch (e) {
-            console.error('Failed to load currencies', e);
-        }
-    }
+    // Load currencies for country modal select - REMOVED: Local Currency Code is now managed from currency-country.php
     
     // Sub Region CRUD operations
     async function createSubRegion(data) {
