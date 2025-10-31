@@ -255,10 +255,18 @@
         let html = `
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
                 <h2>${tLangMgmt.edit_translations || 'Edit Translations'} - ${lang.name} (${lang.code.toUpperCase()})</h2>
-                <button class="btn-primary" onclick="saveTranslations()" style="padding: 10px 20px;">
-                    <span class="material-symbols-rounded">save</span>
-                    ${tLangMgmt.save_translations || 'Save Translations'}
-                </button>
+                <div style="display: flex; gap: 10px;">
+                    ${lang.code !== 'en' ? `
+                    <button class="btn-secondary" onclick="autoTranslateAll('${lang.code}')" style="padding: 10px 20px;" id="autoTranslateBtn">
+                        <span class="material-symbols-rounded">translate</span>
+                        ${tLangMgmt.auto_translate_all || 'Auto Translate All'}
+                    </button>
+                    ` : ''}
+                    <button class="btn-primary" onclick="saveTranslations()" style="padding: 10px 20px;">
+                        <span class="material-symbols-rounded">save</span>
+                        ${tLangMgmt.save_translations || 'Save Translations'}
+                    </button>
+                </div>
             </div>
         `;
         
@@ -275,7 +283,14 @@
                     const fieldId = `${section}.${key}`;
                     
                     html += `<div class="translation-item">`;
+                    html += `<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">`;
                     html += `<label for="${fieldId}">${key}</label>`;
+                    if (lang.code !== 'en') {
+                        html += `<button type="button" onclick="translateField('${fieldId}', 'en', '${lang.code}')" class="btn-translate-field" title="${tLangMgmt.translate_field || 'Translate this field'}">`;
+                        html += `<span class="material-symbols-rounded" style="font-size: 16px;">translate</span>`;
+                        html += `</button>`;
+                    }
+                    html += `</div>`;
                     
                     if (typeof value === 'string' && value.length > 100) {
                         html += `<textarea id="${fieldId}" data-section="${section}" data-key="${key}">${escapeHtml(value)}</textarea>`;
@@ -298,6 +313,179 @@
         div.textContent = text;
         return div.innerHTML;
     }
+    
+    // Translate a single field
+    window.translateField = async function(fieldId, sourceLang, targetLang) {
+        const field = document.getElementById(fieldId);
+        if (!field) return;
+        
+        // Get English source value
+        const enTranslations = await getEnglishTranslations();
+        if (!enTranslations) {
+            showToast('error', tLangMgmt.failed_to_load_base || 'Failed to load base translations');
+            return;
+        }
+        
+        const section = field.dataset.section;
+        const key = field.dataset.key;
+        
+        if (!enTranslations[section] || !enTranslations[section][key]) {
+            showToast('warning', tLangMgmt.source_not_found || 'Source translation not found');
+            return;
+        }
+        
+        const sourceText = enTranslations[section][key];
+        if (!sourceText || sourceText.trim() === '') {
+            showToast('warning', tLangMgmt.empty_source || 'Source text is empty');
+            return;
+        }
+        
+        // Disable field and show loading
+        field.disabled = true;
+        const originalValue = field.value;
+        field.value = tLangMgmt.translating || 'Translating...';
+        
+        try {
+            const response = await fetch(`${API_BASE}?action=translate`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    text: sourceText,
+                    source: sourceLang,
+                    target: targetLang
+                })
+            });
+            
+            const result = await response.json();
+            
+            if (result.success && result.translatedText) {
+                field.value = result.translatedText;
+                showToast('success', tLangMgmt.field_translated || 'Field translated successfully');
+            } else {
+                field.value = originalValue;
+                showToast('error', result.message || tLangMgmt.translation_failed || 'Translation failed');
+            }
+        } catch (error) {
+            console.error('Error translating field:', error);
+            field.value = originalValue;
+            showToast('error', tLangMgmt.translation_failed || 'Translation failed');
+        } finally {
+            field.disabled = false;
+        }
+    };
+    
+    // Get English translations for source
+    async function getEnglishTranslations() {
+        try {
+            const response = await fetch(`${API_BASE}?action=translation&code=en`);
+            const result = await response.json();
+            
+            if (result.success) {
+                return result.data;
+            }
+        } catch (error) {
+            console.error('Error loading English translations:', error);
+        }
+        return null;
+    }
+    
+    // Auto translate all fields
+    window.autoTranslateAll = async function(targetLang) {
+        if (!currentData.currentLang || currentData.currentLang.code === 'en') {
+            showToast('warning', tLangMgmt.cannot_translate_base || 'Cannot translate base language');
+            return;
+        }
+        
+        const btn = document.getElementById('autoTranslateBtn');
+        if (btn) {
+            btn.disabled = true;
+            btn.innerHTML = `<span class="material-symbols-rounded" style="animation: spin 1s linear infinite;">sync</span> ${tLangMgmt.translating || 'Translating...'}`;
+        }
+        
+        // Get English translations
+        const enTranslations = await getEnglishTranslations();
+        if (!enTranslations) {
+            showToast('error', tLangMgmt.failed_to_load_base || 'Failed to load base translations');
+            if (btn) {
+                btn.disabled = false;
+                btn.innerHTML = `<span class="material-symbols-rounded">translate</span> ${tLangMgmt.auto_translate_all || 'Auto Translate All'}`;
+            }
+            return;
+        }
+        
+        const fields = document.querySelectorAll('#editor-content input, #editor-content textarea');
+        let translated = 0;
+        let failed = 0;
+        const total = fields.length;
+        
+        // Translate fields one by one with delay to avoid rate limiting
+        for (let i = 0; i < fields.length; i++) {
+            const field = fields[i];
+            const section = field.dataset.section;
+            const key = field.dataset.key;
+            
+            if (!section || !key) continue;
+            if (!enTranslations[section] || !enTranslations[section][key]) continue;
+            
+            const sourceText = enTranslations[section][key];
+            if (!sourceText || sourceText.trim() === '') continue;
+            
+            // Skip if already has translation
+            if (field.value && field.value.trim() !== '') {
+                // Check if it's different from source (might already be translated)
+                if (field.value.trim() !== sourceText.trim()) {
+                    translated++;
+                    continue;
+                }
+            }
+            
+            try {
+                const response = await fetch(`${API_BASE}?action=translate`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        text: sourceText,
+                        source: 'en',
+                        target: targetLang
+                    })
+                });
+                
+                const result = await response.json();
+                
+                if (result.success && result.translatedText) {
+                    field.value = result.translatedText;
+                    translated++;
+                } else {
+                    failed++;
+                }
+                
+                // Small delay to avoid rate limiting
+                await new Promise(resolve => setTimeout(resolve, 200));
+            } catch (error) {
+                console.error('Error translating field:', error);
+                failed++;
+            }
+            
+            // Update button text with progress
+            if (btn) {
+                btn.innerHTML = `<span class="material-symbols-rounded" style="animation: spin 1s linear infinite;">sync</span> ${tLangMgmt.translating || 'Translating'}... (${translated + failed}/${total})`;
+            }
+        }
+        
+        if (btn) {
+            btn.disabled = false;
+            btn.innerHTML = `<span class="material-symbols-rounded">translate</span> ${tLangMgmt.auto_translate_all || 'Auto Translate All'}`;
+        }
+        
+        const message = (tLangMgmt.translation_complete || 'Translation complete: {translated} translated, {failed} failed')
+            .replace('{translated}', translated)
+            .replace('{failed}', failed);
+        showToast('success', message);
+    };
     
     // Save translations
     window.saveTranslations = async function() {

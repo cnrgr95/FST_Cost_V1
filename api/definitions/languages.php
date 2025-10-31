@@ -84,6 +84,8 @@ function handlePost($action, $langDir) {
         createLanguage($langDir, $data);
     } elseif ($action === 'language_order') {
         saveLanguageOrder($langDir, $data);
+    } elseif ($action === 'translate') {
+        translateText($data);
     } else {
         echo json_encode(['success' => false, 'message' => 'Invalid action']);
     }
@@ -376,5 +378,119 @@ function updateTranslation($langDir, $code, $data) {
     } else {
         echo json_encode(['success' => false, 'message' => 'Failed to update translations']);
     }
+}
+
+// Translate text using LibreTranslate (free and open source)
+function translateText($data) {
+    $text = $data['text'] ?? '';
+    $sourceLang = $data['source'] ?? 'en';
+    $targetLang = $data['target'] ?? 'en';
+    
+    if (empty($text)) {
+        echo json_encode(['success' => false, 'message' => 'Text is required']);
+        return;
+    }
+    
+    if ($sourceLang === $targetLang) {
+        echo json_encode(['success' => true, 'translatedText' => $text]);
+        return;
+    }
+    
+    // LibreTranslate public API endpoints (try multiple for reliability)
+    $apiEndpoints = [
+        'https://libretranslate.com/translate',
+        'https://libretranslate.de/translate',
+        'https://translate.argosopentech.com/translate'
+    ];
+    
+    $translatedText = null;
+    $lastError = null;
+    
+    foreach ($apiEndpoints as $endpoint) {
+        try {
+            $postData = [
+                'q' => $text,
+                'source' => $sourceLang,
+                'target' => $targetLang,
+                'format' => 'text'
+            ];
+            
+            $ch = curl_init($endpoint);
+            curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+            curl_setopt($ch, CURLOPT_POST, true);
+            curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($postData));
+            curl_setopt($ch, CURLOPT_HTTPHEADER, [
+                'Content-Type: application/json',
+                'Accept: application/json'
+            ]);
+            curl_setopt($ch, CURLOPT_TIMEOUT, 10);
+            curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 5);
+            
+            $response = curl_exec($ch);
+            $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+            $error = curl_error($ch);
+            curl_close($ch);
+            
+            if ($error) {
+                $lastError = $error;
+                continue;
+            }
+            
+            if ($httpCode === 200 && $response) {
+                $result = json_decode($response, true);
+                if ($result && isset($result['translatedText'])) {
+                    $translatedText = $result['translatedText'];
+                    break;
+                }
+            }
+        } catch (Exception $e) {
+            $lastError = $e->getMessage();
+            continue;
+        }
+    }
+    
+    if ($translatedText !== null) {
+        echo json_encode(['success' => true, 'translatedText' => $translatedText]);
+    } else {
+        // Fallback: Try MyMemory Translation API (free tier)
+        $fallbackResult = translateWithMyMemory($text, $sourceLang, $targetLang);
+        if ($fallbackResult) {
+            echo json_encode(['success' => true, 'translatedText' => $fallbackResult]);
+        } else {
+            echo json_encode(['success' => false, 'message' => 'Translation failed. Please try again later.']);
+        }
+    }
+}
+
+// Fallback translation using MyMemory API
+function translateWithMyMemory($text, $sourceLang, $targetLang) {
+    try {
+        $url = sprintf(
+            'https://api.mymemory.translated.net/get?q=%s&langpair=%s|%s',
+            urlencode($text),
+            $sourceLang,
+            $targetLang
+        );
+        
+        $ch = curl_init($url);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_TIMEOUT, 10);
+        curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 5);
+        
+        $response = curl_exec($ch);
+        $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        curl_close($ch);
+        
+        if ($httpCode === 200 && $response) {
+            $result = json_decode($response, true);
+            if ($result && isset($result['responseData']['translatedText'])) {
+                return $result['responseData']['translatedText'];
+            }
+        }
+    } catch (Exception $e) {
+        // Silent fail
+    }
+    
+    return null;
 }
 ?>

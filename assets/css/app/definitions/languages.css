@@ -107,6 +107,38 @@
     resize: vertical;
 }
 
+.btn-translate-field {
+    background: #10b981;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    padding: 4px 8px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 12px;
+    transition: background 0.2s;
+}
+
+.btn-translate-field:hover {
+    background: #059669;
+}
+
+.btn-translate-field:disabled {
+    background: #9ca3af;
+    cursor: not-allowed;
+}
+
+@keyframes spin {
+    from {
+        transform: rotate(0deg);
+    }
+    to {
+        transform: rotate(360deg);
+    }
+}
+
 /* Responsive */
 @media (max-width: 768px) {
     .languages-container {

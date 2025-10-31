@@ -500,7 +500,17 @@
         "modal_form_not_found": "Modal, form veya başlık bulunamadı",
         "item_not_found": "Öğe bulunamadı",
         "order_saved": "Dil sıralaması kaydedildi",
-        "failed_to_save_order": "Dil sıralaması kaydedilemedi"
+        "failed_to_save_order": "Dil sıralaması kaydedilemedi",
+        "auto_translate_all": "Tümünü Otomatik Çevir",
+        "translate_field": "Bu alanı çevir",
+        "translating": "Çevriliyor...",
+        "translation_failed": "Çeviri başarısız",
+        "field_translated": "Alan başarıyla çevrildi",
+        "failed_to_load_base": "Kaynak çeviriler yüklenemedi",
+        "source_not_found": "Kaynak çeviri bulunamadı",
+        "empty_source": "Kaynak metin boş",
+        "cannot_translate_base": "Kaynak dil çevrilemez",
+        "translation_complete": "Çeviri tamamlandı: {translated} çevrildi, {failed} başarısız"
     },
     "users": {
         "title": "Kullanıcı Yönetimi",
