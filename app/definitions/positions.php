@@ -100,7 +100,7 @@ $t_dependencies = $all_translations['dependencies'] ?? [];
                 <div class="form-group">
                     <label><?php echo $t_positions['city'] ?? 'City'; ?> *</label>
                     <select name="city_id" required>
-                        <option value=""><?php echo $t_positions['loading_data'] ?? 'Yükleniyor...'; ?></option>
+                        <option value=""><?php echo $t_common['loading'] ?? 'Loading...'; ?></option>
                     </select>
                 </div>
                 <div class="modal-footer">
@@ -132,7 +132,7 @@ $t_dependencies = $all_translations['dependencies'] ?? [];
                 <div class="form-group">
                     <label><?php echo $t_sidebar['department'] ?? 'Department'; ?> *</label>
                     <select name="department_id" required>
-                        <option value=""><?php echo $t_positions['loading_data'] ?? 'Yükleniyor...'; ?></option>
+                        <option value=""><?php echo $t_common['loading'] ?? 'Loading...'; ?></option>
                     </select>
                 </div>
                 <div class="modal-footer">

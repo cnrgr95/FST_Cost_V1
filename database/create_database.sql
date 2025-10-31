@@ -243,6 +243,13 @@ CREATE INDEX IF NOT EXISTS idx_vehicle_contracts_company_id ON vehicle_contracts
 CREATE INDEX IF NOT EXISTS idx_vehicle_contracts_code ON vehicle_contracts(contract_code);
 CREATE INDEX IF NOT EXISTS idx_vehicle_contracts_dates ON vehicle_contracts(start_date, end_date);
 
+-- Vehicle Contract Routes indexes
+-- Note: UNIQUE(vehicle_contract_id, from_location, to_location) already creates a composite index
+-- This index is useful for WHERE vehicle_contract_id = X queries
+CREATE INDEX IF NOT EXISTS idx_vehicle_contract_routes_contract_id ON vehicle_contract_routes(vehicle_contract_id);
+-- Composite index for ORDER BY from_location, to_location queries
+CREATE INDEX IF NOT EXISTS idx_vehicle_contract_routes_location_order ON vehicle_contract_routes(from_location, to_location);
+
 -- Users indexes
 CREATE INDEX IF NOT EXISTS idx_users_username ON users(username);
 CREATE INDEX IF NOT EXISTS idx_users_department_id ON users(department_id);
@@ -307,6 +314,9 @@ CREATE TRIGGER update_vehicle_types_updated_at BEFORE UPDATE ON vehicle_types
 CREATE TRIGGER update_vehicle_contracts_updated_at BEFORE UPDATE ON vehicle_contracts
     FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
+CREATE TRIGGER update_vehicle_contract_routes_updated_at BEFORE UPDATE ON vehicle_contract_routes
+    FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+
 CREATE TRIGGER update_users_updated_at BEFORE UPDATE ON users
     FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
@@ -317,6 +327,83 @@ CREATE TRIGGER update_country_currencies_updated_at BEFORE UPDATE ON country_cur
     FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
 CREATE TRIGGER update_exchange_rates_updated_at BEFORE UPDATE ON exchange_rates
+    FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+
+-- Tours Table
+CREATE TABLE IF NOT EXISTS tours (
+    id SERIAL PRIMARY KEY,
+    sejour_tour_code VARCHAR(50),
+    name VARCHAR(255) NOT NULL,
+    sub_region_id INTEGER REFERENCES sub_regions(id) ON DELETE CASCADE,
+    merchant_id INTEGER REFERENCES merchants(id) ON DELETE CASCADE,
+    vehicle_contract_id INTEGER REFERENCES vehicle_contracts(id) ON DELETE SET NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE(sejour_tour_code)
+);
+
+-- Tour Sub Regions (Many-to-Many relationship)
+CREATE TABLE IF NOT EXISTS tour_sub_regions (
+    tour_id INTEGER NOT NULL REFERENCES tours(id) ON DELETE CASCADE,
+    sub_region_id INTEGER NOT NULL REFERENCES sub_regions(id) ON DELETE CASCADE,
+    PRIMARY KEY (tour_id, sub_region_id)
+);
+
+-- Tour Contract Routes (Links tours to specific contract routes by sub region)
+CREATE TABLE IF NOT EXISTS tour_contract_routes (
+    id SERIAL PRIMARY KEY,
+    tour_id INTEGER NOT NULL REFERENCES tours(id) ON DELETE CASCADE,
+    sub_region_id INTEGER NOT NULL REFERENCES sub_regions(id) ON DELETE CASCADE,
+    vehicle_contract_route_id INTEGER NOT NULL REFERENCES vehicle_contract_routes(id) ON DELETE CASCADE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE(tour_id, sub_region_id, vehicle_contract_route_id)
+);
+
+-- Costs Table
+CREATE TABLE IF NOT EXISTS costs (
+    id SERIAL PRIMARY KEY,
+    cost_code VARCHAR(50) NOT NULL UNIQUE,
+    cost_name VARCHAR(255) NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- ============================================
+-- INDEXES FOR NEW TABLES
+-- ============================================
+
+-- Tours indexes
+CREATE INDEX IF NOT EXISTS idx_tours_merchant_id ON tours(merchant_id);
+CREATE INDEX IF NOT EXISTS idx_tours_sub_region_id ON tours(sub_region_id);
+CREATE INDEX IF NOT EXISTS idx_tours_vehicle_contract_id ON tours(vehicle_contract_id);
+CREATE INDEX IF NOT EXISTS idx_tours_sejour_tour_code ON tours(sejour_tour_code);
+CREATE INDEX IF NOT EXISTS idx_tours_name ON tours(name);
+
+-- Tour Sub Regions indexes
+CREATE INDEX IF NOT EXISTS idx_tour_sub_regions_tour_id ON tour_sub_regions(tour_id);
+CREATE INDEX IF NOT EXISTS idx_tour_sub_regions_sub_region_id ON tour_sub_regions(sub_region_id);
+
+-- Tour Contract Routes indexes
+CREATE INDEX IF NOT EXISTS idx_tour_contract_routes_tour_id ON tour_contract_routes(tour_id);
+CREATE INDEX IF NOT EXISTS idx_tour_contract_routes_sub_region_id ON tour_contract_routes(sub_region_id);
+CREATE INDEX IF NOT EXISTS idx_tour_contract_routes_route_id ON tour_contract_routes(vehicle_contract_route_id);
+
+-- Costs indexes
+CREATE INDEX IF NOT EXISTS idx_costs_cost_code ON costs(cost_code);
+CREATE INDEX IF NOT EXISTS idx_costs_cost_name ON costs(cost_name);
+
+-- ============================================
+-- TRIGGERS FOR NEW TABLES
+-- ============================================
+
+CREATE TRIGGER update_tours_updated_at BEFORE UPDATE ON tours
+    FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+
+CREATE TRIGGER update_tour_contract_routes_updated_at BEFORE UPDATE ON tour_contract_routes
+    FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+
+CREATE TRIGGER update_costs_updated_at BEFORE UPDATE ON costs
     FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
 -- ============================================

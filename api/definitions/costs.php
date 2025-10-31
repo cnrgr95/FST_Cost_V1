@@ -160,8 +160,8 @@ function createCost($conn, $data) {
         }
         
         // Use parameterized query to prevent SQL injection
-        $query = "INSERT INTO costs (cost_code, cost_name, country_id, region_id, city_id, created_at) 
-                  VALUES ($1, $2, NULL, NULL, NULL, NOW()) 
+        $query = "INSERT INTO costs (cost_code, cost_name, created_at) 
+                  VALUES ($1, $2, NOW()) 
                   RETURNING id, cost_code";
         $result = pg_query_params($conn, $query, [$cost_code, $cost_name]);
         
