@@ -1,9 +1,42 @@
 # PostgreSQL Database Backup Script
-# Uses Laragon PostgreSQL path
+# Automatically detects PostgreSQL installation path
 
 $timestamp = Get-Date -Format "yyyyMMdd_HHmmss"
 $backupFile = Join-Path $PSScriptRoot "fst_cost_db_backup_$timestamp.sql"
-$pgDump = "C:\laragon\bin\postgresql\postgresql\bin\pg_dump.exe"
+
+# Try to find pg_dump.exe automatically
+$pgDump = $null
+$possiblePaths = @(
+    "pg_dump.exe",  # If PostgreSQL is in PATH
+    "C:\laragon\bin\postgresql\postgresql\bin\pg_dump.exe",
+    "C:\Program Files\PostgreSQL\16\bin\pg_dump.exe",
+    "C:\Program Files\PostgreSQL\15\bin\pg_dump.exe",
+    "C:\Program Files\PostgreSQL\14\bin\pg_dump.exe",
+    "C:\Program Files\PostgreSQL\13\bin\pg_dump.exe",
+    "C:\Program Files (x86)\PostgreSQL\16\bin\pg_dump.exe",
+    "C:\Program Files (x86)\PostgreSQL\15\bin\pg_dump.exe",
+    "C:\Program Files (x86)\PostgreSQL\14\bin\pg_dump.exe",
+    "C:\Program Files (x86)\PostgreSQL\13\bin\pg_dump.exe"
+)
+
+foreach ($path in $possiblePaths) {
+    if (Test-Path $path -ErrorAction SilentlyContinue) {
+        $pgDump = $path
+        break
+    }
+}
+
+# If not found, try to find in Program Files
+if (-not $pgDump) {
+    $pgInstalls = Get-ChildItem "C:\Program Files\PostgreSQL" -Directory -ErrorAction SilentlyContinue
+    foreach ($pgInstall in $pgInstalls) {
+        $pgDumpPath = Join-Path $pgInstall.FullName "bin\pg_dump.exe"
+        if (Test-Path $pgDumpPath) {
+            $pgDump = $pgDumpPath
+            break
+        }
+    }
+}
 
 # Database credentials
 $DB_HOST = "localhost"

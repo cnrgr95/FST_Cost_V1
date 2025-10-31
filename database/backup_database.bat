@@ -15,12 +15,23 @@ set "SCRIPT_DIR=%~dp0"
 pushd "%SCRIPT_DIR%"
 
 REM Try to locate PostgreSQL bin if not on PATH
+REM Also checks Laragon path and Program Files
 set "PGBIN="
+
+REM Check Laragon first (common development environment)
+if exist "C:\laragon\bin\postgresql\postgresql\bin\pg_dump.exe" (
+    set "PGBIN=C:\laragon\bin\postgresql\postgresql\bin"
+    goto :FOUND_PGBIN
+)
+
+REM Check standard PostgreSQL installations
 for %%V in (16 15 14 13 12 11 10) do (
   if exist "C:\Program Files\PostgreSQL\%%V\bin\pg_dump.exe" set "PGBIN=C:\Program Files\PostgreSQL\%%V\bin" && goto :FOUND_PGBIN
   if exist "C:\Program Files (x86)\PostgreSQL\%%V\bin\pg_dump.exe" set "PGBIN=C:\Program Files (x86)\PostgreSQL\%%V\bin" && goto :FOUND_PGBIN
 )
+
 :FOUND_PGBIN
+REM If PostgreSQL found, add to PATH; otherwise assume it's already in PATH
 if defined PGBIN set "PATH=%PGBIN%;%PATH%"
 
 REM Timestamp for file names
