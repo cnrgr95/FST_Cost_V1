@@ -107,12 +107,16 @@
         // Button handlers
         overlay.querySelector('.btn-confirm').addEventListener('click', function() {
             closeDialog();
-            if (onConfirm) onConfirm();
+            if (typeof onConfirm === 'function') {
+                onConfirm();
+            }
         });
         
         overlay.querySelector('.btn-cancel').addEventListener('click', function() {
             closeDialog();
-            if (onCancel) onCancel();
+            if (typeof onCancel === 'function') {
+                onCancel();
+            }
         });
         
         // Close on overlay click

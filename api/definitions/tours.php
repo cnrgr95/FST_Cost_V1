@@ -346,7 +346,7 @@ function getTours($conn) {
                 $exists = pg_fetch_result($tableExists, 0, 0);
                 if ($exists === 't') {
                     $routesQuery = "SELECT tcr.sub_region_id, tcr.vehicle_contract_route_id, 
-                                          vcr.vip_mini_price, vcr.mini_price, vcr.midi_price, vcr.bus_price, vcr.currency,
+                                          vcr.vehicle_type_prices, vcr.currency_code,
                                           vcr.from_location, vcr.to_location, sr.name as sub_region_name
                                    FROM tour_contract_routes tcr
                                    LEFT JOIN vehicle_contract_routes vcr ON tcr.vehicle_contract_route_id = vcr.id

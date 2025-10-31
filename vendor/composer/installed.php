@@ -3,7 +3,7 @@
         'name' => 'fst/cost-management',
         'pretty_version' => 'dev-main',
         'version' => 'dev-main',
-        'reference' => '6137a19c5211a41798b171febba44df854115ace',
+        'reference' => 'de29860c92a6791334aa4c1ae9779104e6ac1e31',
         'type' => 'project',
         'install_path' => __DIR__ . '/../../',
         'aliases' => array(),
@@ -31,7 +31,7 @@
         'fst/cost-management' => array(
             'pretty_version' => 'dev-main',
             'version' => 'dev-main',
-            'reference' => '6137a19c5211a41798b171febba44df854115ace',
+            'reference' => 'de29860c92a6791334aa4c1ae9779104e6ac1e31',
             'type' => 'project',
             'install_path' => __DIR__ . '/../../',
             'aliases' => array(),

@@ -94,6 +94,10 @@ function handleGet($conn, $action) {
             $company_id = isset($_GET['company_id']) ? (int)$_GET['company_id'] : null;
             getContracts($conn, $company_id);
             break;
+        case 'contract_routes':
+            $contract_id = isset($_GET['contract_id']) ? (int)$_GET['contract_id'] : 0;
+            getContractRoutes($conn, $contract_id);
+            break;
         default:
             echo json_encode(['success' => false, 'message' => 'Invalid action']);
     }
@@ -117,6 +121,17 @@ function handlePost($conn, $action) {
         case 'upload_excel':
             uploadExcel($conn);
             break;
+        case 'upload_contract_prices':
+            uploadContractPrices($conn);
+            break;
+        case 'save_contract_routes':
+            $data = json_decode(file_get_contents('php://input'), true);
+            saveContractRoutes($conn, $data);
+            break;
+        case 'contract_route':
+            $data = json_decode(file_get_contents('php://input'), true);
+            createContractRoute($conn, $data);
+            break;
         default:
             echo json_encode(['success' => false, 'message' => 'Invalid action']);
     }
@@ -135,6 +150,9 @@ function handlePut($conn, $action) {
             break;
         case 'contract':
             updateContract($conn, $data);
+            break;
+        case 'contract_route':
+            updateContractRoute($conn, $data);
             break;
         default:
             echo json_encode(['success' => false, 'message' => 'Invalid action']);
@@ -159,6 +177,9 @@ function handleDelete($conn, $action) {
             break;
         case 'contract':
             deleteContract($conn, $id);
+            break;
+        case 'contract_route':
+            deleteContractRoute($conn, $id);
             break;
         default:
             echo json_encode(['success' => false, 'message' => 'Invalid action']);
@@ -717,6 +738,541 @@ function uploadExcel($conn) {
         ]);
     } catch (Exception $e) {
         echo json_encode(['success' => false, 'message' => $e->getMessage()]);
+    }
+}
+
+
+function uploadContractPrices($conn) {
+    try {
+        // Better error handling - check for file upload errors
+        if (!isset($_FILES['excel_file'])) {
+            echo json_encode(['success' => false, 'message' => 'No file uploaded']);
+            return;
+        }
+        
+        $fileError = $_FILES['excel_file']['error'] ?? UPLOAD_ERR_NO_FILE;
+        if ($fileError !== UPLOAD_ERR_OK) {
+            $errorMessages = [
+                UPLOAD_ERR_INI_SIZE => 'File exceeds upload_max_filesize',
+                UPLOAD_ERR_FORM_SIZE => 'File exceeds MAX_FILE_SIZE',
+                UPLOAD_ERR_PARTIAL => 'File was only partially uploaded',
+                UPLOAD_ERR_NO_FILE => 'No file was uploaded',
+                UPLOAD_ERR_NO_TMP_DIR => 'Missing temporary folder',
+                UPLOAD_ERR_CANT_WRITE => 'Failed to write file to disk',
+                UPLOAD_ERR_EXTENSION => 'File upload stopped by extension'
+            ];
+            $errorMsg = $errorMessages[$fileError] ?? 'File upload failed (error code: ' . $fileError . ')';
+            echo json_encode(['success' => false, 'message' => $errorMsg]);
+            return;
+        }
+        
+        $contract_id = isset($_POST['contract_id']) ? (int)$_POST['contract_id'] : 0;
+        if ($contract_id <= 0) {
+            echo json_encode(['success' => false, 'message' => 'contract_id is required']);
+            return;
+        }
+        
+        $file = $_FILES['excel_file'];
+        
+        // Check file extension
+        $ext = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
+        if (!in_array($ext, ['xlsx', 'xls'])) {
+            echo json_encode(['success' => false, 'message' => 'Invalid file format. Only .xlsx and .xls files are allowed']);
+            return;
+        }
+        
+        // Check if PhpSpreadsheet is available
+        if (!file_exists(__DIR__ . '/../../vendor/autoload.php')) {
+            echo json_encode(['success' => false, 'message' => 'Composer autoload not found. Please run: composer install']);
+            return;
+        }
+        
+        require_once __DIR__ . '/../../vendor/autoload.php';
+        
+        if (!class_exists('PhpOffice\PhpSpreadsheet\Spreadsheet')) {
+            echo json_encode(['success' => false, 'message' => 'PhpSpreadsheet library not found. Please run: composer install']);
+            return;
+        }
+        
+        $spreadsheet = \PhpOffice\PhpSpreadsheet\IOFactory::load($file['tmp_name']);
+        $worksheet = $spreadsheet->getActiveSheet();
+        $rows = $worksheet->toArray();
+        
+        // Get first row to detect columns
+        $firstRow = $rows[0] ?? [];
+        
+        // Detect if first row is header (contains text that looks like column names)
+        $isHeader = false;
+        $hasTextualHeader = false;
+        if (!empty($firstRow)) {
+            // Check if first row contains common header keywords
+            $headerKeywords = ['nerden', 'nereye', 'from', 'to', 'vip', 'vito', 'mini', 'midi', 'bus'];
+            foreach ($firstRow as $cell) {
+                $cellLower = strtolower(trim($cell ?? ''));
+                foreach ($headerKeywords as $keyword) {
+                    if (stripos($cellLower, $keyword) !== false) {
+                        $hasTextualHeader = true;
+                        break 2;
+                    }
+                }
+            }
+            
+            if ($hasTextualHeader) {
+                $isHeader = true;
+                $headerRow = array_shift($rows); // Remove header row
+            }
+        }
+        
+        // If no header detected, use first row as sample data
+        $sampleRow = !empty($rows) ? $rows[0] : [];
+        $maxColumns = max(count($firstRow), count($sampleRow));
+        
+        // Build column options for mapping
+        $excelColumns = [];
+        for ($i = 0; $i < $maxColumns; $i++) {
+            $headerValue = isset($firstRow[$i]) ? trim($firstRow[$i]) : '';
+            $sampleValue = isset($sampleRow[$i]) ? trim($sampleRow[$i]) : '';
+            
+            $excelColumns[] = [
+                'index' => $i,
+                'header' => $headerValue ?: "Column " . ($i + 1),
+                'sample' => $sampleValue
+            ];
+        }
+        
+        // Check if full data is requested
+        $getFullData = isset($_POST['get_full_data']) && $_POST['get_full_data'] === '1';
+        
+        if ($getFullData) {
+            // Return full Excel data for processing with mapping
+            echo json_encode([
+                'success' => true,
+                'excel_rows' => $rows,
+                'has_header' => $isHeader,
+                'total_rows' => count($rows)
+            ], JSON_UNESCAPED_UNICODE);
+            return;
+        }
+        
+        // Return columns for manual mapping
+        // Also send first few rows as sample data (without header if detected)
+        $sampleRows = array_slice($rows, 0, min(5, count($rows)));
+        
+        echo json_encode([
+            'success' => true,
+            'mapping_required' => true,
+            'excel_columns' => $excelColumns,
+            'has_header' => $isHeader,
+            'total_rows' => count($rows),
+            'sample_data' => $sampleRows
+        ], JSON_UNESCAPED_UNICODE);
+        return;
+    } catch (Exception $e) {
+        error_log('Error in uploadContractPrices: ' . $e->getMessage() . ' | File: ' . $e->getFile() . ' | Line: ' . $e->getLine() . ' | Trace: ' . $e->getTraceAsString());
+        echo json_encode(['success' => false, 'message' => 'An error occurred while processing the file: ' . $e->getMessage()]);
+    } catch (Error $e) {
+        error_log('Fatal error in uploadContractPrices: ' . $e->getMessage() . ' | File: ' . $e->getFile() . ' | Line: ' . $e->getLine() . ' | Trace: ' . $e->getTraceAsString());
+        echo json_encode(['success' => false, 'message' => 'A fatal error occurred: ' . $e->getMessage()]);
+    }
+}
+
+
+function getContractRoutes($conn, $contract_id) {
+    if ($contract_id <= 0) {
+        echo json_encode(['success' => false, 'message' => 'contract_id is required']);
+        return;
+    }
+    
+    $query = "SELECT id, vehicle_contract_id, from_location, to_location,
+                     vehicle_type_prices, currency_code, created_at, updated_at
+              FROM vehicle_contract_routes
+              WHERE vehicle_contract_id = $contract_id
+              ORDER BY from_location ASC, to_location ASC";
+    
+    $result = pg_query($conn, $query);
+    
+    if ($result) {
+        $routes = pg_fetch_all($result) ?: [];
+        // Convert JSONB to PHP array for each route
+        // PostgreSQL returns JSONB as string, need to decode
+        foreach ($routes as &$route) {
+            if (isset($route['vehicle_type_prices'])) {
+                $pricesData = $route['vehicle_type_prices'];
+                // PostgreSQL JSONB is returned as string, decode it
+                if (is_string($pricesData)) {
+                    $decoded = json_decode($pricesData, true);
+                    // Ensure we have a valid array
+                    if (json_last_error() === JSON_ERROR_NONE && is_array($decoded)) {
+                        $route['vehicle_type_prices'] = $decoded;
+                        // Debug: Log what we're returning
+                        error_log('Route ' . ($route['id'] ?? 'unknown') . ' prices: ' . json_encode($decoded));
+                    } else {
+                        error_log('JSON decode error for route ' . ($route['id'] ?? 'unknown') . ': ' . json_last_error_msg() . ' | Raw data: ' . substr($pricesData, 0, 200));
+                        $route['vehicle_type_prices'] = [];
+                    }
+                } elseif (is_array($pricesData)) {
+                    // Already an array (shouldn't happen with JSONB, but just in case)
+                    $route['vehicle_type_prices'] = $pricesData;
+                    error_log('Route ' . ($route['id'] ?? 'unknown') . ' prices already array: ' . json_encode($pricesData));
+                } else {
+                    $route['vehicle_type_prices'] = [];
+                }
+            } else {
+                $route['vehicle_type_prices'] = [];
+            }
+        }
+        unset($route); // Break reference
+        echo json_encode(['success' => true, 'data' => $routes], JSON_UNESCAPED_UNICODE);
+    } else {
+        echo json_encode(['success' => false, 'message' => getDbErrorMessage($conn)], JSON_UNESCAPED_UNICODE);
+    }
+}
+
+function updateContractRoute($conn, $data) {
+    try {
+        $route_id = isset($data['id']) ? (int)$data['id'] : 0;
+        $from_location = isset($data['from_location']) ? trim($data['from_location']) : '';
+        $to_location = isset($data['to_location']) ? trim($data['to_location']) : '';
+        $vehicle_type_prices = isset($data['vehicle_type_prices']) ? $data['vehicle_type_prices'] : [];
+        $currency_code = isset($data['currency_code']) ? strtoupper(trim($data['currency_code'])) : '';
+        
+        if ($route_id <= 0) {
+            echo json_encode(['success' => false, 'message' => 'Route ID is required']);
+            return;
+        }
+        
+        if (empty($from_location) || empty($to_location)) {
+            echo json_encode(['success' => false, 'message' => 'From and To locations are required']);
+            return;
+        }
+        
+        // Verify route exists and get contract_id
+        $checkQuery = "SELECT vehicle_contract_id FROM vehicle_contract_routes WHERE id = $route_id";
+        $checkResult = pg_query($conn, $checkQuery);
+        if (!$checkResult || pg_num_rows($checkResult) === 0) {
+            echo json_encode(['success' => false, 'message' => 'Route not found']);
+            return;
+        }
+        $row = pg_fetch_assoc($checkResult);
+        $contract_id = (int)$row['vehicle_contract_id'];
+        
+        // Validate currency if provided
+        if (!empty($currency_code)) {
+            $currencyQuery = "SELECT code FROM currencies WHERE code = '" . pg_escape_string($conn, $currency_code) . "' AND is_active = true";
+            $currencyResult = pg_query($conn, $currencyQuery);
+            if (!$currencyResult || pg_num_rows($currencyResult) === 0) {
+                echo json_encode(['success' => false, 'message' => 'Invalid currency code']);
+                return;
+            }
+        }
+        
+        // Convert vehicle_type_prices to JSONB
+        $vehicleTypePricesJson = json_encode($vehicle_type_prices, JSON_UNESCAPED_UNICODE | JSON_NUMERIC_CHECK);
+        
+        // Debug: Log prices being updated
+        if (!empty($vehicle_type_prices)) {
+            error_log('Updating route ' . $route_id . ' with prices: ' . $vehicleTypePricesJson);
+        }
+        
+        // Check if from/to combination already exists for another route
+        $fromLocationEsc = pg_escape_string($conn, $from_location);
+        $toLocationEsc = pg_escape_string($conn, $to_location);
+        $duplicateQuery = "SELECT id FROM vehicle_contract_routes 
+                          WHERE vehicle_contract_id = $contract_id 
+                          AND from_location = '$fromLocationEsc' 
+                          AND to_location = '$toLocationEsc' 
+                          AND id != $route_id";
+        $duplicateResult = pg_query($conn, $duplicateQuery);
+        if ($duplicateResult && pg_num_rows($duplicateResult) > 0) {
+            echo json_encode(['success' => false, 'message' => 'A route with the same From/To locations already exists']);
+            return;
+        }
+        
+        // Update route using parameterized query
+        $query = "UPDATE vehicle_contract_routes 
+                 SET from_location = $1, 
+                     to_location = $2,
+                     vehicle_type_prices = $3::jsonb,
+                     currency_code = $4,
+                     updated_at = NOW()
+                 WHERE id = $5";
+        
+        $updateResult = pg_query_params($conn, $query, [
+            $from_location,
+            $to_location,
+            $vehicleTypePricesJson,
+            !empty($currency_code) ? $currency_code : null,
+            $route_id
+        ]);
+        
+        if ($updateResult) {
+            echo json_encode(['success' => true, 'message' => 'Route updated successfully']);
+        } else {
+            echo json_encode(['success' => false, 'message' => getDbErrorMessage($conn)]);
+        }
+    } catch (Exception $e) {
+        error_log('Error in updateContractRoute: ' . $e->getMessage());
+        echo json_encode(['success' => false, 'message' => 'An error occurred: ' . $e->getMessage()]);
+    }
+}
+
+function createContractRoute($conn, $data) {
+    try {
+        $contract_id = isset($data['contract_id']) ? (int)$data['contract_id'] : 0;
+        $from_location = isset($data['from_location']) ? trim($data['from_location']) : '';
+        $to_location = isset($data['to_location']) ? trim($data['to_location']) : '';
+        $vehicle_type_prices = isset($data['vehicle_type_prices']) ? $data['vehicle_type_prices'] : [];
+        $currency_code = isset($data['currency_code']) ? strtoupper(trim($data['currency_code'])) : '';
+        
+        if ($contract_id <= 0) {
+            echo json_encode(['success' => false, 'message' => 'Contract ID is required']);
+            return;
+        }
+        
+        if (empty($from_location) || empty($to_location)) {
+            echo json_encode(['success' => false, 'message' => 'From and To locations are required']);
+            return;
+        }
+        
+        // Verify contract exists
+        $contractQuery = "SELECT vehicle_company_id FROM vehicle_contracts WHERE id = $contract_id";
+        $contractResult = pg_query($conn, $contractQuery);
+        if (!$contractResult || pg_num_rows($contractResult) === 0) {
+            echo json_encode(['success' => false, 'message' => 'Contract not found']);
+            return;
+        }
+        
+        // Validate currency if provided
+        if (!empty($currency_code)) {
+            $currencyQuery = "SELECT code FROM currencies WHERE code = '" . pg_escape_string($conn, $currency_code) . "' AND is_active = true";
+            $currencyResult = pg_query($conn, $currencyQuery);
+            if (!$currencyResult || pg_num_rows($currencyResult) === 0) {
+                echo json_encode(['success' => false, 'message' => 'Invalid currency code']);
+                return;
+            }
+        }
+        
+        // Check if from/to combination already exists
+        $fromLocationEsc = pg_escape_string($conn, $from_location);
+        $toLocationEsc = pg_escape_string($conn, $to_location);
+        $duplicateQuery = "SELECT id FROM vehicle_contract_routes 
+                          WHERE vehicle_contract_id = $contract_id 
+                          AND from_location = '$fromLocationEsc' 
+                          AND to_location = '$toLocationEsc'";
+        $duplicateResult = pg_query($conn, $duplicateQuery);
+        if ($duplicateResult && pg_num_rows($duplicateResult) > 0) {
+            echo json_encode(['success' => false, 'message' => 'A route with the same From/To locations already exists']);
+            return;
+        }
+        
+        // Convert vehicle_type_prices to JSONB
+        $vehicleTypePricesJson = json_encode($vehicle_type_prices, JSON_UNESCAPED_UNICODE | JSON_NUMERIC_CHECK);
+        
+        // Debug: Log prices being saved
+        if (!empty($vehicle_type_prices)) {
+            error_log('Creating route with prices: ' . $vehicleTypePricesJson);
+        }
+        
+        // Insert route using parameterized query
+        $query = "INSERT INTO vehicle_contract_routes 
+                 (vehicle_contract_id, from_location, to_location, 
+                  vehicle_type_prices, currency_code, created_at)
+                 VALUES ($1, $2, $3, $4::jsonb, $5, NOW())";
+        
+        $insertResult = pg_query_params($conn, $query, [
+            $contract_id,
+            $from_location,
+            $to_location,
+            $vehicleTypePricesJson,
+            !empty($currency_code) ? $currency_code : null
+        ]);
+        
+        if ($insertResult) {
+            echo json_encode(['success' => true, 'message' => 'Route added successfully']);
+        } else {
+            echo json_encode(['success' => false, 'message' => getDbErrorMessage($conn)]);
+        }
+    } catch (Exception $e) {
+        error_log('Error in createContractRoute: ' . $e->getMessage());
+        echo json_encode(['success' => false, 'message' => 'An error occurred: ' . $e->getMessage()]);
+    }
+}
+
+function deleteContractRoute($conn, $id) {
+    $id = (int)$id;
+    
+    $query = "DELETE FROM vehicle_contract_routes WHERE id = $id";
+    $result = pg_query($conn, $query);
+    
+    if ($result) {
+        echo json_encode(['success' => true]);
+    } else {
+        echo json_encode(['success' => false, 'message' => getDbErrorMessage($conn)]);
+    }
+}
+
+function saveContractRoutes($conn, $data) {
+    try {
+        $contract_id = (int)($data['contract_id'] ?? 0);
+        $columnMapping = $data['column_mapping'] ?? []; // Maps field names to Excel column indices
+        $excelData = $data['excel_data'] ?? []; // Raw Excel rows
+        $hasHeader = isset($data['has_header']) ? (bool)$data['has_header'] : false;
+        $manualCurrency = isset($data['manual_currency']) ? trim($data['manual_currency']) : null;
+        
+        if ($contract_id <= 0 || empty($columnMapping) || empty($excelData)) {
+            echo json_encode(['success' => false, 'message' => 'contract_id, column_mapping, and excel_data are required']);
+            return;
+        }
+        
+        // Verify contract exists
+        $contractQuery = "SELECT vehicle_company_id FROM vehicle_contracts WHERE id = $contract_id";
+        $contractResult = pg_query($conn, $contractQuery);
+        if (!$contractResult || pg_num_rows($contractResult) === 0) {
+            echo json_encode(['success' => false, 'message' => 'Contract not found']);
+            return;
+        }
+        
+        // Default currency (if not manually selected or from Excel)
+        $defaultCurrencyCode = 'USD';
+        try {
+            $currencyQuery = "SELECT co.local_currency_code FROM vehicle_contracts vc
+                             LEFT JOIN vehicle_companies vc2 ON vc.vehicle_company_id = vc2.id
+                             LEFT JOIN cities c ON vc2.city_id = c.id
+                             LEFT JOIN regions r ON c.region_id = r.id
+                             LEFT JOIN countries co ON r.country_id = co.id
+                             WHERE vc.id = $contract_id";
+            $currencyResult = pg_query($conn, $currencyQuery);
+            if ($currencyResult && ($currRow = pg_fetch_assoc($currencyResult))) {
+                $lcc = trim($currRow['local_currency_code'] ?? '');
+                if (!empty($lcc)) {
+                    $defaultCurrencyCode = strtoupper($lcc);
+                }
+            }
+        } catch (Exception $e) {
+            error_log('Error fetching currency code: ' . $e->getMessage());
+        }
+        
+        $savedCount = 0;
+        $skippedCount = 0;
+        
+        // Get vehicle type mappings: { type_id => excel_column_index }
+        $vehicleTypeMappings = $columnMapping['vehicle_types'] ?? [];
+        
+        // Build mapping: vehicle_type_id => excel_column_index
+        // This will be used to create JSONB object with vehicle_type_id as key
+        $vehicleTypeColumnMap = []; // Maps vehicle_type_id => excel_column_index
+        if (!empty($vehicleTypeMappings)) {
+            foreach ($vehicleTypeMappings as $typeId => $colIndex) {
+                $vehicleTypeColumnMap[(int)$typeId] = (int)$colIndex;
+            }
+        }
+        
+        // Process Excel rows with column mapping
+        foreach ($excelData as $row) {
+            // Normalize row to ensure numeric indices (PhpSpreadsheet may return associative or mixed arrays)
+            $normalizedRow = [];
+            $rowIndex = 0;
+            foreach ($row as $key => $value) {
+                $normalizedRow[$rowIndex] = $value;
+                $rowIndex++;
+            }
+            $row = $normalizedRow;
+            
+            // Get values based on mapping
+            $fromLocation = isset($columnMapping['from_location']) && isset($row[$columnMapping['from_location']]) 
+                ? trim($row[$columnMapping['from_location']]) : '';
+            $toLocation = isset($columnMapping['to_location']) && isset($row[$columnMapping['to_location']]) 
+                ? trim($row[$columnMapping['to_location']]) : '';
+            
+            if (empty($fromLocation) || empty($toLocation)) {
+                $skippedCount++;
+                continue;
+            }
+            
+            // Get currency: manual > default
+            $currencyCode = $defaultCurrencyCode;
+            if (!empty($manualCurrency)) {
+                // Manual currency selected for all rows
+                $currencyCode = strtoupper($manualCurrency);
+            }
+            
+            // Build JSONB object for vehicle type prices
+            // Format: { "vehicle_type_id": price, ... }
+            $vehicleTypePrices = [];
+            foreach ($vehicleTypeColumnMap as $typeId => $colIndex) {
+                // Get price from Excel row
+                if (!isset($row[$colIndex])) {
+                    continue;
+                }
+                $value = trim((string)$row[$colIndex]);
+                // Remove any non-numeric characters except decimal point
+                $value = preg_replace('/[^0-9.]/', '', $value);
+                if (!empty($value)) {
+                    $price = (float)$value;
+                    if ($price > 0) {
+                        // Store as string key (JSON keys are always strings, but we'll ensure consistency)
+                        $vehicleTypePrices[(string)$typeId] = $price;
+                    }
+                }
+            }
+            
+            // Debug: Log prices being saved
+            if (!empty($vehicleTypePrices)) {
+                error_log('Saving prices for route: ' . $fromLocation . ' -> ' . $toLocation);
+                error_log('Vehicle type prices: ' . json_encode($vehicleTypePrices));
+            }
+            
+            // If no prices found, still create empty object
+            if (empty($vehicleTypePrices)) {
+                $vehicleTypePrices = [];
+            }
+            
+            // Convert PHP array to JSONB string
+            $vehicleTypePricesJson = json_encode($vehicleTypePrices, JSON_UNESCAPED_UNICODE | JSON_NUMERIC_CHECK);
+            
+            // Use parameterized query for safer JSONB insertion (avoids escaping issues)
+            $query = "INSERT INTO vehicle_contract_routes 
+                     (vehicle_contract_id, from_location, to_location, 
+                      vehicle_type_prices, currency_code, created_at)
+                     VALUES ($1, $2, $3, $4::jsonb, $5, NOW())
+                     ON CONFLICT (vehicle_contract_id, from_location, to_location) 
+                     DO UPDATE SET 
+                         vehicle_type_prices = $4::jsonb,
+                         currency_code = $5,
+                         updated_at = NOW()";
+            
+            $insertResult = pg_query_params($conn, $query, [
+                $contract_id,
+                $fromLocation,
+                $toLocation,
+                $vehicleTypePricesJson,
+                $currencyCode
+            ]);
+            
+            if ($insertResult) {
+                $savedCount++;
+            } else {
+                $errorMsg = getDbErrorMessage($conn);
+                error_log('Error inserting contract route: ' . $errorMsg);
+                error_log('Route: ' . $fromLocation . ' -> ' . $toLocation);
+                error_log('Prices JSON: ' . $vehicleTypePricesJson);
+                error_log('Vehicle type mappings: ' . json_encode($vehicleTypeColumnMap));
+                $skippedCount++;
+            }
+        }
+        
+        echo json_encode([
+            'success' => true,
+            'message' => "$savedCount routes imported successfully" . ($skippedCount > 0 ? ", $skippedCount skipped" : ''),
+            'saved_count' => $savedCount,
+            'skipped_count' => $skippedCount
+        ]);
+    } catch (Exception $e) {
+        error_log('Error in saveContractRoutes: ' . $e->getMessage() . ' | File: ' . $e->getFile() . ' | Line: ' . $e->getLine() . ' | Trace: ' . $e->getTraceAsString());
+        echo json_encode(['success' => false, 'message' => 'An error occurred: ' . $e->getMessage()]);
+    } catch (Error $e) {
+        error_log('Fatal error in saveContractRoutes: ' . $e->getMessage() . ' | File: ' . $e->getFile() . ' | Line: ' . $e->getLine() . ' | Trace: ' . $e->getTraceAsString());
+        echo json_encode(['success' => false, 'message' => 'A fatal error occurred: ' . $e->getMessage()]);
     }
 }
 ?>

@@ -194,7 +194,7 @@ function getCurrencies($conn) {
 
 // Get all countries
 function getCountriesForCurrency($conn) {
-    $query = "SELECT id, name, code, use_in_currency, local_currency_code FROM countries ORDER BY name ASC";
+    $query = "SELECT id, name, code, local_currency_code FROM countries ORDER BY name ASC";
     $result = pg_query($conn, $query);
     if ($result) {
         $rows = pg_fetch_all($result) ?: [];

@@ -199,9 +199,8 @@ function createCountry($conn, $data) {
     }
     
     $code = pg_escape_string($conn, $data['code'] ?? '');
-    // use_in_currency is now always true - all countries are available for currencies
     // local_currency_code is managed from currency-country.php, so it's set to NULL here
-    $query = "INSERT INTO countries (name, code, use_in_currency, local_currency_code, created_at) VALUES ('$name', '$code', true, NULL, NOW()) RETURNING id";
+    $query = "INSERT INTO countries (name, code, local_currency_code, created_at) VALUES ('$name', '$code', NULL, NOW()) RETURNING id";
     $result = pg_query($conn, $query);
     
     if ($result) {

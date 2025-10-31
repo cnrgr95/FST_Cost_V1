@@ -298,6 +298,11 @@
         
         html += '<td>';
         html += '<div class="table-actions">';
+        if (type === 'contracts') {
+            html += `<a href="${(pageConfig.basePath || '../../')}app/definitions/contract-detail.php?id=${item.id}" class="btn-action btn-link" title="${tVehicles.manage_contract || 'Manage Contract'}" style="background: #3b82f6; color: white;">
+                        <span class="material-symbols-rounded">settings</span>
+                    </a>`;
+        }
         html += `<button class="btn-action btn-edit" data-item-type="${type}" data-item-id="${item.id}">
                     <span class="material-symbols-rounded">edit</span>
                  </button>`;

@@ -56,6 +56,22 @@
 
    The script will prompt for PostgreSQL password and create the database automatically.
 
+### Migrations
+
+If you're upgrading from an older version of the database, you may need to run migration scripts:
+
+1. **Dynamic Pricing Migration** (for vehicle_contract_routes table):
+   ```bash
+   psql -U postgres -d fst_cost_db -f database/migrate_to_dynamic_prices.sql
+   ```
+   This migration converts fixed price columns to JSONB format for dynamic vehicle type pricing.
+
+2. **Cleanup Unused Columns** (optional, after migration):
+   ```bash
+   psql -U postgres -d fst_cost_db -f database/cleanup_unused_columns.sql
+   ```
+   This script removes unused columns from previous database versions.
+
 ### Sample Data
 
 After creating the database, you can insert sample data:
@@ -89,6 +105,10 @@ The database includes the following tables:
 - **vehicle_companies** - Vehicle companies within cities
 - **vehicle_types** - Vehicle types within vehicle companies
 - **vehicle_contracts** - Vehicle contracts within vehicle companies
+- **vehicle_contract_routes** - Route-based pricing with dynamic vehicle type prices (JSONB)
+- **currencies** - Currency master data
+- **country_currencies** - Country-currency relationships
+- **exchange_rates** - Exchange rates per country and currency
 - **users** - User accounts (LDAP authentication)
 
 ### Table Relationships

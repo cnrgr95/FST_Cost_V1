@@ -52,13 +52,22 @@ $t_topbar = $all_translations['topbar'] ?? [];
       
       <!-- Language Dropdown Menu -->
       <div class="language-dropdown">
-        <a href="?lang=en" class="dropdown-item <?php echo ($lang === 'en') ? 'active' : ''; ?>">
+        <?php
+        // Preserve current URL parameters while changing language
+        $currentParams = $_GET;
+        $currentParams['lang'] = 'en';
+        $langEnUrl = '?' . http_build_query($currentParams);
+        
+        $currentParams['lang'] = 'tr';
+        $langTrUrl = '?' . http_build_query($currentParams);
+        ?>
+        <a href="<?php echo htmlspecialchars($langEnUrl); ?>" class="dropdown-item <?php echo ($lang === 'en') ? 'active' : ''; ?>">
           <span><?php echo $all_translations['languages']['en'] ?? 'English'; ?></span>
           <?php if ($lang === 'en'): ?>
             <span class="material-symbols-rounded">check</span>
           <?php endif; ?>
         </a>
-        <a href="?lang=tr" class="dropdown-item <?php echo ($lang === 'tr') ? 'active' : ''; ?>">
+        <a href="<?php echo htmlspecialchars($langTrUrl); ?>" class="dropdown-item <?php echo ($lang === 'tr') ? 'active' : ''; ?>">
           <span><?php echo $all_translations['languages']['tr'] ?? 'Türkçe'; ?></span>
           <?php if ($lang === 'tr'): ?>
             <span class="material-symbols-rounded">check</span>

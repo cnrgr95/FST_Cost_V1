@@ -17,8 +17,6 @@ CREATE TABLE IF NOT EXISTS countries (
     id SERIAL PRIMARY KEY,
     name VARCHAR(255) NOT NULL UNIQUE,
     code VARCHAR(10),
-    -- Whether this country participates in currency management
-    use_in_currency BOOLEAN DEFAULT FALSE,
     -- Optional local/base currency code for this country (e.g., TRY for Turkey)
     local_currency_code VARCHAR(3),
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -130,6 +128,24 @@ CREATE TABLE IF NOT EXISTS vehicle_contracts (
     UNIQUE(contract_code)
 );
 
+-- Vehicle Contract Routes Table (Route-based pricing)
+-- Uses JSONB for dynamic vehicle type prices to support any vehicle type
+CREATE TABLE IF NOT EXISTS vehicle_contract_routes (
+    id SERIAL PRIMARY KEY,
+    vehicle_contract_id INTEGER NOT NULL REFERENCES vehicle_contracts(id) ON DELETE CASCADE,
+    from_location VARCHAR(255) NOT NULL,
+    to_location VARCHAR(255) NOT NULL,
+    vehicle_type_prices JSONB NOT NULL DEFAULT '{}', -- { vehicle_type_id: price, ... }
+    currency_code VARCHAR(3) REFERENCES currencies(code) ON DELETE RESTRICT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE(vehicle_contract_id, from_location, to_location)
+);
+
+-- Index for JSONB queries
+CREATE INDEX IF NOT EXISTS idx_vehicle_contract_routes_type_prices 
+ON vehicle_contract_routes USING GIN (vehicle_type_prices);
+
 -- Users Table
 CREATE TABLE IF NOT EXISTS users (
     id SERIAL PRIMARY KEY,
@@ -189,7 +205,6 @@ CREATE TABLE IF NOT EXISTS exchange_rates (
 -- Countries indexes
 CREATE INDEX IF NOT EXISTS idx_countries_name ON countries(name);
 CREATE INDEX IF NOT EXISTS idx_countries_code ON countries(code);
-CREATE INDEX IF NOT EXISTS idx_countries_use_in_currency ON countries(use_in_currency);
 
 -- Regions indexes
 CREATE INDEX IF NOT EXISTS idx_regions_country_id ON regions(country_id);

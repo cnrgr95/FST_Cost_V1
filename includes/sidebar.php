@@ -53,6 +53,11 @@ function isActivePage($page, $isSubPage = false) {
         return true;
     }
     
+    // Special case: contract-detail.php should also activate vehicles.php link
+    if ($pageBasename === 'vehicles.php' && $currentPage === 'contract-detail.php') {
+        return true;
+    }
+    
     if ($isSubPage && $isDefinitionsPage) {
         return $pageBasename === $currentPage;
     }
@@ -63,7 +68,7 @@ function isActivePage($page, $isSubPage = false) {
 // Helper function to check if vehicles is active
 function isVehiclesActive() {
     global $currentPage;
-    return ($currentPage === 'vehicles.php');
+    return ($currentPage === 'vehicles.php' || $currentPage === 'contract-detail.php');
 }
 
 // Helper function to check if item should be marked active
