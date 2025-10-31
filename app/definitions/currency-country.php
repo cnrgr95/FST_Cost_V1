@@ -67,17 +67,17 @@ $countryId = isset($_GET['id']) ? (int)$_GET['id'] : 0;
 							<select id="ccRateCurrency" style="min-width:220px;"></select>
 						</div>
 						<div style="position:relative;">
-							<label><?php echo ($t_currencies['start_date'] ?? 'Start Date') . ' - ' . ($t_currencies['end_date'] ?? 'End Date'); ?></label>
-							<input type="text" id="ccRateRange" placeholder="YYYY-MM-DD - YYYY-MM-DD" style="min-width:240px;" />
+							<label><?php echo ($t_currencies['start_date'] ?? 'Start Date') . ' - ' . ($t_currencies['end_date'] ?? 'End Date'); ?> <?php echo ($t_currencies['single_date_ok'] ?? '(veya tek tarih)'); ?></label>
+							<input type="text" id="ccRateRange" placeholder="<?php echo $t_currencies['date_range_placeholder'] ?? 'YYYY-MM-DD veya YYYY-MM-DD - YYYY-MM-DD'; ?>" style="min-width:240px;" />
 							<!-- hidden native date inputs to use single-calendar flow -->
 							<input type="date" id="ccRateStart" style="display:none;" />
 							<input type="date" id="ccRateEnd" style="display:none;" />
 							<!-- inline two-month range picker -->
-							<div id="ccRangePicker" style="position:absolute; top:100%; left:0; margin-top:6px; background:#fff; border:1px solid #e5e7eb; border-radius:8px; box-shadow:0 10px 25px rgba(0,0,0,.08); padding:12px; display:none; z-index:2000;"></div>
+							<div id="ccRangePicker" style="display:none;"></div>
 						</div>
 						<div>
 							<label><?php echo $t_currencies['rate'] ?? 'Rate'; ?></label>
-							<input type="number" step="0.000001" id="ccRateValue" placeholder="1.000000" />
+							<input type="number" step="0.000001" id="ccRateValue" placeholder="<?php echo $t_currencies['rate_placeholder'] ?? '1.000000'; ?>" />
 						</div>
 						<button class="btn-primary" id="ccAddRateRange">
 							<span class="material-symbols-rounded">add</span>
@@ -155,7 +155,7 @@ $countryId = isset($_GET['id']) ? (int)$_GET['id'] : 0;
 			</div>
 			<div class="form-group" style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
 				<select id="ccAddCurrency" style="min-width:220px;"></select>
-				<input id="ccUnitName" type="text" placeholder="<?php echo $t_currencies['unit_name'] ?? 'Unit name (optional)'; ?>" style="min-width:200px;" />
+				<input id="ccUnitName" type="text" placeholder="<?php echo ($t_currencies['unit_name_placeholder'] ?? $t_currencies['unit_name'] ?? 'Unit name (optional)'); ?>" style="min-width:200px;" />
 				<label style="display:flex; align-items:center; gap:6px;">
 					<input id="ccIsActive" type="checkbox" checked />
 					<?php echo $t_currencies['active'] ?? 'Active'; ?>

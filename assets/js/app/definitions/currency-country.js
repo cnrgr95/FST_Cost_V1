@@ -39,7 +39,8 @@
         // lazy-load rates after first paint
         const ratesContainer = document.getElementById('ccRatesList');
         if (ratesContainer) {
-            ratesContainer.innerHTML = `<div class="loading"><span class="material-symbols-rounded">sync</span><p>${tCommon.loading||'Loading...'}</p></div>`;
+            const loadingMsg = tCurrencies.loading_rates || tCurrencies.loading_exchange_rates || 'Loading exchange rates...';
+            ratesContainer.innerHTML = `<div class="loading"><span class="material-symbols-rounded">sync</span><p>${loadingMsg}</p></div>`;
         }
         (window.requestIdleCallback||function(cb){ return setTimeout(cb, 120); })(async function(){
             await loadRates();
@@ -138,10 +139,17 @@
                 const raw = (rangeInput.value || '').trim();
                 const parts = raw.split(/\s*(?:-|–|—|to)\s*/i).filter(Boolean);
                 if (parts.length >= 2) {
+                    // Date range
                     startInput.value = parts[0];
                     endInput.value = parts[1];
                     rpStart = startInput.value; rpEnd = endInput.value;
                     rpBaseMonth = rpStart ? new Date(rpStart) : new Date();
+                } else if (parts.length === 1 && /^\d{4}-\d{2}-\d{2}$/.test(parts[0])) {
+                    // Single date - set both start and end to the same date
+                    startInput.value = parts[0];
+                    endInput.value = parts[0];
+                    rpStart = parts[0]; rpEnd = parts[0];
+                    rpBaseMonth = new Date(parts[0]);
                 }
             };
             const openStartPicker = () => { startInput.showPicker ? startInput.showPicker() : startInput.focus(); };
@@ -158,7 +166,15 @@
             });
             endInput.addEventListener('change', function(){
                 if (startInput.value && endInput.value) {
-                    rangeInput.value = `${startInput.value} - ${endInput.value}`;
+                    if (startInput.value === endInput.value) {
+                        // Single date - show just the date without range separator
+                        rangeInput.value = startInput.value;
+                    } else {
+                        rangeInput.value = `${startInput.value} - ${endInput.value}`;
+                    }
+                } else if (startInput.value) {
+                    // Only start date - show as single date for now
+                    rangeInput.value = startInput.value;
                 }
             });
 
@@ -170,6 +186,12 @@
                 if (!rpBaseMonth) rpBaseMonth = new Date();
                 renderRangePicker();
                 picker.style.display = 'block';
+                // Ensure picker is properly positioned and visible
+                const rect = anchor.getBoundingClientRect();
+                picker.style.top = `${rect.bottom + 6}px`;
+                picker.style.left = `${rect.left}px`;
+                picker.style.position = 'fixed';
+                picker.style.zIndex = '2000';
                 document.addEventListener('click', outsideClose, true);
                 document.addEventListener('keydown', escClose, true);
             }
@@ -215,17 +237,49 @@
                 picker.querySelector('[data-rp-act="prev"]').onclick = () => { rpBaseMonth = addMonths(base, -1); renderRangePicker(); };
                 picker.querySelector('[data-rp-act="next"]').onclick = () => { rpBaseMonth = addMonths(base, 1); renderRangePicker(); };
                 picker.querySelector('[data-rp-act="clear"]').onclick = () => { rpStart=''; rpEnd=''; startInput.value=''; endInput.value=''; rangeInput.value=''; closeRangePicker(); };
-                picker.querySelector('[data-rp-act="apply"]').onclick = () => { if (rpStart && rpEnd) { startInput.value = rpStart; endInput.value = rpEnd; rangeInput.value = `${rpStart} - ${rpEnd}`; } closeRangePicker(); };
+                picker.querySelector('[data-rp-act="apply"]').onclick = () => { 
+                    if (rpStart) {
+                        startInput.value = rpStart; 
+                        if (rpEnd && rpEnd !== rpStart) {
+                            // Date range
+                            endInput.value = rpEnd; 
+                            rangeInput.value = `${rpStart} - ${rpEnd}`;
+                        } else {
+                            // Single date
+                            endInput.value = rpStart;
+                            rangeInput.value = rpStart;
+                        }
+                    }
+                    closeRangePicker(); 
+                };
                 picker.querySelectorAll('button[data-rp-date]').forEach(btn => {
                     btn.onclick = () => handleDateClick(btn.getAttribute('data-rp-date'));
                 });
             }
 
             function handleDateClick(iso){
-                if (!rpStart || (rpStart && rpEnd)) { rpStart = iso; rpEnd=''; }
+                // Support single date: if clicking the same date again when start=end, keep as single date
+                if (!rpStart || (rpStart && rpEnd)) { 
+                    rpStart = iso; 
+                    rpEnd = ''; 
+                }
                 else if (!rpEnd) {
-                    if (new Date(iso) < new Date(rpStart)) { rpEnd = rpStart; rpStart = iso; }
-                    else { rpEnd = iso; }
+                    if (new Date(iso) < new Date(rpStart)) { 
+                        rpEnd = rpStart; 
+                        rpStart = iso; 
+                    }
+                    else if (iso === rpStart) {
+                        // Same date clicked - keep as single date
+                        rpEnd = iso;
+                    }
+                    else { 
+                        rpEnd = iso; 
+                    }
+                }
+                else {
+                    // Both selected, start fresh
+                    rpStart = iso;
+                    rpEnd = '';
                 }
                 renderRangePicker();
             }
@@ -333,6 +387,11 @@
     }
 
     async function loadRates(){
+        const ratesContainer = document.getElementById('ccRatesList');
+        const loadingMsg = tCurrencies.loading_rates || tCurrencies.loading_exchange_rates || 'Kurlar yükleniyor...';
+        if (ratesContainer && (!window.__ccRates || window.__ccRates.length === 0)) {
+            ratesContainer.innerHTML = `<div class="loading"><span class="material-symbols-rounded">sync</span><p>${loadingMsg}</p></div>`;
+        }
         let attempt = 0; const maxAttempts = 2; let lastErr = null;
         while (attempt < maxAttempts) {
             try {
@@ -364,6 +423,11 @@
             const resp = await fetch(`${API_BASE}?action=rate_manual`, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(payload) });
             const res = await resp.json();
             if (!res.success) { showToast('error', res.message || (tCommon.save_failed||'Save failed')); return; }
+            const loadingMsg = tCurrencies.loading_rates || tCurrencies.loading_exchange_rates || 'Loading exchange rates...';
+            const ratesContainer = document.getElementById('ccRatesList');
+            if (ratesContainer) {
+                ratesContainer.innerHTML = `<div class="loading"><span class="material-symbols-rounded">sync</span><p>${loadingMsg}</p></div>`;
+            }
             await loadRates(); renderRatesPivot(); showToast('success', (tCurrencies.rates_added||'Rates added'));
         } catch(e){ console.error(e); showToast('error', tCommon.save_failed||'Save failed'); }
     }
@@ -372,48 +436,233 @@
         const code = (document.getElementById('ccRateCurrency')?.value)||'';
         const start = (document.getElementById('ccRateStart')?.value)||'';
         const end = (document.getElementById('ccRateEnd')?.value)||'';
-        if (!code || (!start || !end)) { showToast('warning', tCommon.fill_required_fields || 'Fill required fields'); return; }
-        if (new Date(start) > new Date(end)) { showToast('warning', (tCurrencies.invalid_date_range||'Start date cannot be after end date')); return; }
-        const payload = { country_id: COUNTRY_ID, currency_code: code, start_date: start, end_date: end };
+        
+        // Support single date: if only start is provided, or start equals end, use single date
+        if (!code || !start) { showToast('warning', tCommon.fill_required_fields || 'Fill required fields'); return; }
+        
+        // Show loading immediately
+        const loadingMsg = tCurrencies.loading_rates || tCurrencies.loading_exchange_rates || 'Kurlar yükleniyor...';
+        const ratesContainer = document.getElementById('ccRatesList');
+        if (ratesContainer) {
+            ratesContainer.innerHTML = `<div class="loading"><span class="material-symbols-rounded">sync</span><p>${loadingMsg}</p></div>`;
+        }
+        
+        let payload;
+        const useSingleDate = !end || start === end;
+        if (useSingleDate) {
+            // Single date
+            payload = { country_id: COUNTRY_ID, currency_code: code, rate_date: start };
+        } else {
+            // Date range
+            if (new Date(start) > new Date(end)) { 
+                showToast('warning', (tCurrencies.invalid_date_range||'Start date cannot be after end date')); 
+                renderRatesPivot(); // Restore previous view
+                return; 
+            }
+            payload = { country_id: COUNTRY_ID, currency_code: code, start_date: start, end_date: end };
+        }
+        
         try {
             const resp = await fetch(`${API_BASE}?action=rate_cbrt`, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(payload) });
             const res = await resp.json();
-            if (!res.success) { showToast('error', res.message || (tCommon.save_failed||'Save failed')); return; }
-            await loadRates(); renderRatesPivot(); showToast('success', (tCurrencies.rates_added||'Rates added'));
-        } catch(e){ console.error(e); showToast('error', tCommon.save_failed||'Save failed'); }
+            if (!res.success) { 
+                await loadRates(); renderRatesPivot();
+                showToast('error', res.message || (tCommon.save_failed||'Save failed')); 
+                return; 
+            }
+            await loadRates(); renderRatesPivot(); 
+            
+            // Show dates dialog for not found dates - ALWAYS show if there are any
+            if (res.not_found > 0) {
+                const notFoundDates = res.not_found_dates || [];
+                
+                // Always show dialog if we have dates list from API
+                if (notFoundDates && Array.isArray(notFoundDates) && notFoundDates.length > 0) {
+                    const title = (res.inserted > 0 || res.already_exists > 0)
+                        ? (tCurrencies.dates_had_no_rates || '{count} dates had no rates found').replace('{count}', res.not_found)
+                        : (tCurrencies.rates_not_available || 'Rates not available');
+                    
+                    // Show dialog - ensure it's displayed
+                    setTimeout(() => {
+                        if (typeof window.showDatesDialog === 'function') {
+                            try {
+                                window.showDatesDialog(title, notFoundDates);
+                            } catch (e) {
+                                console.error('Error calling showDatesDialog:', e);
+                                // Fallback: show dates in toast
+                                const datesStr = notFoundDates.join(', ');
+                                showToast('warning', `${title} - ${tCurrencies.dates_without_rates || 'Dates without rates'}: ${datesStr}`);
+                            }
+                        } else {
+                            // Function not available, show dates in toast
+                            const datesStr = notFoundDates.join(', ');
+                            showToast('warning', `${title} - ${tCurrencies.dates_without_rates || 'Dates without rates'}: ${datesStr}`);
+                        }
+                    }, 100);
+                } else {
+                    // No dates list in response, show toast with count
+                    const titleMsg = (tCurrencies.dates_had_no_rates || '{count} dates had no rates found').replace('{count}', res.not_found);
+                    showToast('warning', titleMsg);
+                }
+            }
+            
+            // If nothing was found at all, return early
+            if (res.not_found > 0 && (res.inserted === 0 || !res.inserted) && (res.already_exists === 0 || !res.already_exists)) {
+                return;
+            }
+            
+            // Show success message if we have any results
+            let msg = tCurrencies.rates_added || 'Rates added';
+            if (res.already_exists && res.already_exists > 0) {
+                const parts = [];
+                if (res.inserted > 0) parts.push(`${res.inserted} ${tCurrencies.new_rates || 'new'}`);
+                if (res.already_exists > 0) parts.push(`${res.already_exists} ${tCurrencies.already_exists || 'already exists'}`);
+                msg += ` (${parts.join(', ')})`;
+            } else if (res.inserted) {
+                msg = `${msg} (${res.inserted} ${tCurrencies.added || 'added'})`;
+            }
+            
+            if (res.inserted > 0 || res.already_exists > 0) {
+                showToast('success', msg);
+            }
+        } catch(e){ 
+            console.error(e); 
+            await loadRates(); renderRatesPivot();
+            showToast('error', tCommon.save_failed||'Save failed'); 
+        }
     }
 
     async function fetchCbrtRatesBulk(){
         const start = (document.getElementById('ccRateStart')?.value)||'';
         const end = (document.getElementById('ccRateEnd')?.value)||'';
-        if (!start || !end) { showToast('warning', tCommon.fill_required_fields || 'Fill required fields'); return; }
-        if (new Date(start) > new Date(end)) { showToast('warning', (tCurrencies.invalid_date_range||'Start date cannot be after end date')); return; }
+        if (!start) { showToast('warning', tCommon.fill_required_fields || 'Fill required fields'); return; }
+        
+        // Show loading immediately
+        const loadingMsg = tCurrencies.loading_rates || tCurrencies.loading_exchange_rates || 'Kurlar yükleniyor...';
+        const ratesContainer = document.getElementById('ccRatesList');
+        if (ratesContainer) {
+            ratesContainer.innerHTML = `<div class="loading"><span class="material-symbols-rounded">sync</span><p>${loadingMsg}</p></div>`;
+        }
+        
+        // Support single date or date range
+        const useSingleDate = !end || start === end;
+        if (end && new Date(start) > new Date(end)) { 
+            showToast('warning', (tCurrencies.invalid_date_range||'Start date cannot be after end date')); 
+            renderRatesPivot(); // Restore previous view
+            return; 
+        }
+        
         const baseCode = (currentCountry?.local_currency_code||'').toUpperCase();
         const codes = countryCurrencies
             .filter(x => (x.is_active===true)||(x.is_active==='t')||(x.is_active===1)||(x.is_active==='1'))
             .map(x => (x.currency_code||'').toUpperCase())
             .filter(c => c && c !== baseCode);
-        if (!codes.length) { showToast('warning', tCurrencies.no_country_currencies || 'No currencies assigned'); return; }
-        try {
+        if (!codes.length) { 
+            renderRatesPivot(); // Restore previous view
+            showToast('warning', tCurrencies.no_country_currencies || 'No currencies assigned'); 
+            return; 
+        }
+        
+            try {
             const chunks = chunkArray(codes, 3);
             let ok = 0; let total = 0;
+            let totalInserted = 0; let totalAlreadyExists = 0; let totalNotFound = 0;
+            let allNotFoundDates = []; // Collect all dates that had no rates
             for (const grp of chunks){
-                const tasks = grp.map(code => (
-                    fetch(`${API_BASE}?action=rate_cbrt`, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ country_id: COUNTRY_ID, currency_code: code, start_date: start, end_date: end }) })
-                        .then(r=>r.json()).catch(()=>({success:false}))
-                ));
+                const tasks = grp.map(code => {
+                    const payload = useSingleDate 
+                        ? { country_id: COUNTRY_ID, currency_code: code, rate_date: start }
+                        : { country_id: COUNTRY_ID, currency_code: code, start_date: start, end_date: end };
+                    return fetch(`${API_BASE}?action=rate_cbrt`, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(payload) })
+                        .then(r=>r.json()).catch(()=>({success:false}));
+                });
                 const results = await Promise.all(tasks);
-                ok += results.filter(r=>r && r.success).length;
+                results.forEach(r => {
+                    if (r && r.success) {
+                        ok++;
+                        totalInserted += (r.inserted || 0);
+                        totalAlreadyExists += (r.already_exists || 0);
+                        totalNotFound += (r.not_found || 0);
+                        // Collect all not found dates from this response
+                        if (r.not_found_dates && Array.isArray(r.not_found_dates)) {
+                            r.not_found_dates.forEach(date => {
+                                if (!allNotFoundDates.includes(date)) {
+                                    allNotFoundDates.push(date);
+                                }
+                            });
+                        }
+                    }
+                });
                 total += results.length;
                 await sleep(120);
             }
+            // Sort dates
+            allNotFoundDates.sort();
+            
             await loadRates(); renderRatesPivot();
-            if (ok === 0) {
-                showToast('warning', (tCurrencies.no_rates||'No rates')+` - ${tCurrencies.try_weekdays||'Try weekdays or adjust date range'}`);
+            
+            // If nothing was found at all, show warning with dates
+            if (ok === 0 && totalInserted === 0 && totalAlreadyExists === 0) {
+                if (totalNotFound > 0 && allNotFoundDates.length > 0) {
+                    // Show dialog with all dates that had no rates
+                    showDatesDialog(
+                        tCurrencies.rates_not_available || 'Rates not available',
+                        allNotFoundDates
+                    );
+                } else {
+                    const dateRange = useSingleDate ? start : `${start} - ${end}`;
+                    showToast('warning', `${tCurrencies.rates_not_available || 'Rates not available'} - ${tCurrencies.selected_dates || 'Selected dates'}: ${dateRange}`);
+                }
             } else {
-                showToast('success', `${tCurrencies.rates_added||'Rates added'} (${ok}/${total})`);
+                let msg = tCurrencies.rates_added || 'Rates added';
+                const parts = [];
+                if (totalInserted > 0) parts.push(`${totalInserted} ${tCurrencies.new_rates || 'new'}`);
+                if (totalAlreadyExists > 0) parts.push(`${totalAlreadyExists} ${tCurrencies.already_exists || 'already exists'}`);
+                
+                if (parts.length > 0) {
+                    msg += ` (${parts.join(', ')})`;
+                } else {
+                    msg += ` (${ok}/${total} ${tCurrencies.successful || 'successful'})`;
+                }
+                
+                // Show dialog with dates for not found rates
+                if (totalNotFound > 0 && allNotFoundDates.length > 0) {
+                    setTimeout(() => {
+                        if (typeof window.showDatesDialog === 'function') {
+                            try {
+                                window.showDatesDialog(
+                                    (tCurrencies.dates_had_no_rates || '{count} dates had no rates found').replace('{count}', totalNotFound),
+                                    allNotFoundDates
+                                );
+                            } catch (e) {
+                                console.error('Error showing dates dialog:', e);
+                                // Fallback: show dates in toast
+                                const datesStr = allNotFoundDates.join(', ');
+                                const titleMsg = (tCurrencies.dates_had_no_rates || '{count} dates had no rates found').replace('{count}', totalNotFound);
+                                showToast('warning', `${titleMsg} - ${tCurrencies.dates_without_rates || 'Dates without rates'}: ${datesStr}`);
+                            }
+                        } else {
+                            // Fallback if function not available
+                            const datesStr = allNotFoundDates.join(', ');
+                            const titleMsg = (tCurrencies.dates_had_no_rates || '{count} dates had no rates found').replace('{count}', totalNotFound);
+                            showToast('warning', `${titleMsg} - ${tCurrencies.dates_without_rates || 'Dates without rates'}: ${datesStr}`);
+                        }
+                    }, 100);
+                } else if (totalNotFound > 0) {
+                    // Fallback if dates not available
+                    const titleMsg = (tCurrencies.dates_had_no_rates || '{count} dates had no rates found').replace('{count}', totalNotFound);
+                    showToast('warning', titleMsg);
+                }
+                
+                if (totalInserted > 0 || totalAlreadyExists > 0) {
+                    showToast('success', msg);
+                }
             }
-        } catch(e){ console.error(e); showToast('error', tCommon.save_failed||'Save failed'); }
+        } catch(e){ 
+            console.error(e); 
+            await loadRates(); renderRatesPivot();
+            showToast('error', tCommon.save_failed||'Save failed'); 
+        }
     }
 
     function chunkArray(arr, size){
@@ -479,13 +728,21 @@
         });
         // Date row delete handler
         container.querySelectorAll('button[data-act="del-date"][data-date]').forEach(btn => {
-            btn.addEventListener('click', async function(){
+            btn.addEventListener('click', function(){
                 const d = this.getAttribute('data-date');
-                if (!confirm(tCommon.delete_confirm||'Delete?')) return;
-                const resp = await fetch(`${API_BASE}?action=rates_by_date&country_id=${COUNTRY_ID}&date=${encodeURIComponent(d)}`, { method:'DELETE' });
-                const res = await resp.json();
-                if (!res.success) { showToast('error', res.message || (tCommon.delete_failed||'Delete failed')); return; }
-                await loadRates(); renderRatesPivot(); showToast('success', tCommon.deleted_successfully||'Deleted');
+                // Use showConfirmDialog instead of confirm()
+                const confirmMsg = tCommon.delete_confirm || 'Bu kaydı silmek istediğinizden emin misiniz?';
+                showConfirmDialog(confirmMsg, async function() {
+                    const resp = await fetch(`${API_BASE}?action=rates_by_date&country_id=${COUNTRY_ID}&date=${encodeURIComponent(d)}`, { method:'DELETE' });
+                    const res = await resp.json();
+                    if (!res.success) { showToast('error', res.message || (tCommon.delete_failed||'Delete failed')); return; }
+                    const loadingMsg = tCurrencies.loading_rates || tCurrencies.loading_exchange_rates || 'Loading exchange rates...';
+                    const ratesContainer = document.getElementById('ccRatesList');
+                    if (ratesContainer) {
+                        ratesContainer.innerHTML = `<div class="loading"><span class="material-symbols-rounded">sync</span><p>${loadingMsg}</p></div>`;
+                    }
+                    await loadRates(); renderRatesPivot(); showToast('success', tCommon.deleted_successfully||'Deleted');
+                });
             });
         });
     }
@@ -517,6 +774,11 @@
             const res = await resp.json();
             if (!res.success) { showToast('error', res.message || (tCommon.update_failed||'Update failed')); return; }
             closeEditModal();
+            const loadingMsg = tCurrencies.loading_rates || tCurrencies.loading_exchange_rates || 'Loading exchange rates...';
+            const ratesContainer = document.getElementById('ccRatesList');
+            if (ratesContainer) {
+                ratesContainer.innerHTML = `<div class="loading"><span class="material-symbols-rounded">sync</span><p>${loadingMsg}</p></div>`;
+            }
             await loadRates(); renderRatesPivot(); showToast('success', tCommon.saved_successfully||'Saved');
         } catch(e){ console.error(e); showToast('error', tCommon.update_failed||'Update failed'); }
     }
@@ -574,6 +836,11 @@
         try {
             await Promise.all(updates);
             closeDateEditModal();
+            const loadingMsg = tCurrencies.loading_rates || tCurrencies.loading_exchange_rates || 'Loading exchange rates...';
+            const ratesContainer = document.getElementById('ccRatesList');
+            if (ratesContainer) {
+                ratesContainer.innerHTML = `<div class="loading"><span class="material-symbols-rounded">sync</span><p>${loadingMsg}</p></div>`;
+            }
             await loadRates(); renderRatesPivot();
             showToast('success', tCommon.saved_successfully||'Saved');
         } catch(e){ console.error(e); showToast('error', tCommon.save_failed||'Save failed'); }
@@ -643,10 +910,60 @@
                     const active = (row.is_active===true)||(row.is_active==='t')||(row.is_active===1)||(row.is_active==='1');
                     await fetch(`${API_BASE}?action=country_currency`, { method:'PUT', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ id, is_active: !active }) });
                 } else if (action==='edit') {
-                    const newUnit = prompt(tCurrencies.enter_unit_name||'Enter unit name (leave empty to clear):', row.unit_name||'');
-                    if (newUnit!==null){
-                        await fetch(`${API_BASE}?action=country_currency`, { method:'PUT', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ id, unit_name: newUnit }) });
+                    // Use modal for unit name editing (already implemented in currencies.js)
+                    // For currency-country.js, create a simple modal inline
+                    const modalId = 'ccUnitNameEditModal';
+                    let modal = document.getElementById(modalId);
+                    
+                    if (!modal) {
+                        modal = document.createElement('div');
+                        modal.id = modalId;
+                        modal.className = 'modal';
+                        modal.style.display = 'none';
+                        modal.innerHTML = `
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h2>${tCurrencies.enter_unit_name || 'Enter unit name'}</h2>
+                                    <button class="btn-close" id="ccCloseUnitNameModal">
+                                        <span class="material-symbols-rounded">close</span>
+                                    </button>
+                                </div>
+                                <div class="form-group">
+                                    <label>${tCurrencies.unit_name || 'Unit name'}</label>
+                                    <input type="text" id="ccUnitNameInput" placeholder="${tCurrencies.enter_unit_name || 'Enter unit name (leave empty to clear)'}" />
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn-secondary" id="ccCancelUnitNameModal">${tCommon.cancel || 'Cancel'}</button>
+                                    <button type="button" class="btn-primary" id="ccSaveUnitNameModal">${tCommon.save || 'Save'}</button>
+                                </div>
+                            </div>
+                        `;
+                        document.body.appendChild(modal);
+                        
+                        document.getElementById('ccCloseUnitNameModal').addEventListener('click', () => {
+                            modal.style.display = 'none';
+                        });
+                        document.getElementById('ccCancelUnitNameModal').addEventListener('click', () => {
+                            modal.style.display = 'none';
+                        });
+                        document.getElementById('ccSaveUnitNameModal').addEventListener('click', async () => {
+                            const input = document.getElementById('ccUnitNameInput');
+                            const newUnit = input.value.trim();
+                            await fetch(`${API_BASE}?action=country_currency`, { method:'PUT', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ id, unit_name: newUnit }) });
+                            modal.style.display = 'none';
+                            await loadCountryCurrencies(COUNTRY_ID);
+                            renderCountryCurrencies();
+                        });
+                        modal.addEventListener('click', function(e) {
+                            if (e.target === this) {
+                                modal.style.display = 'none';
+                            }
+                        });
                     }
+                    
+                    document.getElementById('ccUnitNameInput').value = row.unit_name || '';
+                    modal.style.display = 'flex';
+                    setTimeout(() => document.getElementById('ccUnitNameInput')?.focus(), 100);
                 }
                 await loadCountryCurrencies(COUNTRY_ID);
                 renderCountryCurrencies();

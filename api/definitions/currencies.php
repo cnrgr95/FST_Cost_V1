@@ -320,17 +320,32 @@ function createCbrtRates($conn, $data) {
     elseif ($start && $end) { $dates = expandDateRange($start, $end); }
     else { echo json_encode(['success'=>false,'message'=>'Provide rate_date or start_date and end_date']); return; }
 
-    $inserted = 0; $skipped = 0; $notFound = 0;
+    $inserted = 0; $skipped = 0; $notFound = 0; $alreadyExists = 0;
+    $notFoundDates = []; // Track which dates had no rates
     foreach ($dates as $d) {
-        // Try exact date; if not found, fallback to previous business days up to 5 days
-        $fetched = fetchCbrtRateWithFallback($d, $currency_code, 5);
-        if ($fetched === null) { $notFound++; continue; }
         $dEsc = pg_escape_string($conn, $d);
+        // Check if rate already exists for this date
+        $checkQuery = "SELECT id FROM exchange_rates WHERE country_id = $country_id AND currency_code = '$currency_code' AND rate_date = '$dEsc'";
+        $checkRes = pg_query($conn, $checkQuery);
+        if ($checkRes && pg_num_rows($checkRes) > 0) {
+            $alreadyExists++;
+            continue; // Skip API call if rate already exists
+        }
+        
+        // Try exact date only - NO FALLBACK to previous dates
+        // If rate doesn't exist for the exact date, don't add anything
+        $fetched = fetchCbrtRate($d, $currency_code);
+        if ($fetched === null) { 
+            $notFound++; 
+            $notFoundDates[] = $d; // Track the date
+            continue; 
+        }
+        
         $query = "INSERT INTO exchange_rates (country_id, currency_code, rate_date, rate, source, created_at) VALUES ($country_id, '$currency_code', '$dEsc', $fetched, 'cbrt', NOW())";
         $res = @pg_query($conn, $query);
         if ($res) { $inserted++; } else { $skipped++; }
     }
-    echo json_encode(['success'=>true,'inserted'=>$inserted,'skipped'=>$skipped,'not_found'=>$notFound]);
+    echo json_encode(['success'=>true,'inserted'=>$inserted,'skipped'=>$skipped,'not_found'=>$notFound,'already_exists'=>$alreadyExists,'not_found_dates'=>$notFoundDates]);
 }
 
 // Update single rate value by id

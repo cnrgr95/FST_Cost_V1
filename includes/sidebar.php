@@ -48,6 +48,11 @@ function isActivePage($page, $isSubPage = false) {
     
     $pageBasename = basename($page);
     
+    // Special case: currency-country.php should also activate currencies.php link
+    if ($pageBasename === 'currencies.php' && $currentPage === 'currency-country.php') {
+        return true;
+    }
+    
     if ($isSubPage && $isDefinitionsPage) {
         return $pageBasename === $currentPage;
     }

@@ -40,7 +40,15 @@
     });
     
     function setupEventListeners() {
-        // Modal controls
+        // Master Currencies Modal controls
+        const manageMasterBtn = document.getElementById('manageMasterCurrenciesBtn');
+        if (manageMasterBtn) manageMasterBtn.addEventListener('click', openMasterCurrenciesModal);
+        const closeMasterBtn = document.getElementById('closeMasterCurrenciesModal');
+        if (closeMasterBtn) closeMasterBtn.addEventListener('click', closeMasterCurrenciesModal);
+        const closeMasterFooter = document.getElementById('closeMasterCurrenciesModalFooter');
+        if (closeMasterFooter) closeMasterFooter.addEventListener('click', closeMasterCurrenciesModal);
+        
+        // Currency Modal controls
         const addBtn = document.getElementById('addCurrencyBtn');
         if (addBtn) addBtn.addEventListener('click', () => openModal());
         const closeBtn = document.getElementById('closeModal');
@@ -60,29 +68,71 @@
         if (form) form.addEventListener('submit', handleSubmit);
         
         // Close modal when clicking outside
-        document.getElementById('currencyModal').addEventListener('click', function(e) {
-            if (e.target === this) {
-                closeModal();
-            }
+        const currencyModal = document.getElementById('currencyModal');
+        if (currencyModal) {
+            currencyModal.addEventListener('click', function(e) {
+                if (e.target === this) {
+                    closeModal();
+                }
+            });
+        }
+        
+        const masterCurrenciesModal = document.getElementById('masterCurrenciesModal');
+        if (masterCurrenciesModal) {
+            masterCurrenciesModal.addEventListener('click', function(e) {
+                if (e.target === this) {
+                    closeMasterCurrenciesModal();
+                }
+            });
+        }
+    }
+    
+    function openMasterCurrenciesModal() {
+        const modal = document.getElementById('masterCurrenciesModal');
+        if (!modal) return;
+        
+        // Refresh currencies list before showing
+        loadAllCurrencies().then(() => {
+            renderMasterCurrenciesTable();
+            modal.style.display = 'flex';
         });
     }
+    
+    function closeMasterCurrenciesModal() {
+        const modal = document.getElementById('masterCurrenciesModal');
+        if (modal) modal.style.display = 'none';
+    }
+    
     // Master currency modal helpers
-    function openModal(currencyId = null) {
+    async function openModal(currencyId = null) {
         currentCurrencyId = currencyId;
         const modal = document.getElementById('currencyModal');
         const form = document.getElementById('currencyForm');
         const title = document.getElementById('currencyModalTitle');
         if (!modal || !form || !title) return;
+        
         if (currencyId) {
             title.textContent = tCurrencies.edit_currency || 'Edit Currency';
-            // We do not have a list of currencies in this page; editing requires fetching list first.
-            // Keep add-only for now: reset and treat as add when no list present.
-            form.reset();
-            document.getElementById('is_active').checked = true;
+            // Load currency data for editing
+            const currency = allCurrencies.find(c => c.id == currencyId);
+            if (currency) {
+                document.getElementById('currencyId').value = currency.id;
+                document.getElementById('code').value = currency.code || '';
+                document.getElementById('name').value = currency.name || '';
+                document.getElementById('symbol').value = currency.symbol || '';
+                document.getElementById('is_active').checked = (currency.is_active === true) || (currency.is_active === 't') || (currency.is_active === 1) || (currency.is_active === '1');
+            } else {
+                // Currency not found, treat as add
+                form.reset();
+                document.getElementById('is_active').checked = true;
+                currentCurrencyId = null;
+                title.textContent = tCurrencies.add_currency || 'Add Currency';
+            }
         } else {
             title.textContent = tCurrencies.add_currency || 'Add Currency';
             form.reset();
             document.getElementById('is_active').checked = true;
+            document.getElementById('currencyId').value = '';
             currentCurrencyId = null;
         }
         modal.style.display = 'flex';
@@ -95,9 +145,46 @@
         const form = document.getElementById('currencyForm');
         if (form) form.reset();
     }
-
-    function loadCurrencyData() {
-        // No-op: page does not maintain a currencies table view. Implement when needed.
+    
+    function renderMasterCurrenciesTable() {
+        const tbody = document.getElementById('masterCurrenciesTableBody');
+        if (!tbody) return;
+        
+        if (!allCurrencies || allCurrencies.length === 0) {
+            tbody.innerHTML = `
+                <tr>
+                    <td colspan="5" style="text-align: center; padding: 40px;">
+                        <span class="material-symbols-rounded" style="font-size: 48px; color: #9ca3af;">inventory_2</span>
+                        <p style="color: #9ca3af; margin-top: 10px;">${tCurrencies.no_currencies || 'No currencies found'}</p>
+                    </td>
+                </tr>
+            `;
+            return;
+        }
+        
+        tbody.innerHTML = allCurrencies.map(currency => {
+            const active = (currency.is_active === true) || (currency.is_active === 't') || (currency.is_active === 1) || (currency.is_active === '1');
+            return `
+                <tr>
+                    <td><strong>${(currency.code || '').toUpperCase()}</strong></td>
+                    <td>${currency.name || '-'}</td>
+                    <td>${currency.symbol || '-'}</td>
+                    <td>
+                        <span class="status-badge ${active ? 'active' : 'inactive'}">
+                            ${active ? (tCurrencies.active || 'Active') : (tCurrencies.inactive || 'Inactive')}
+                        </span>
+                    </td>
+                    <td>
+                        <button class="btn-icon" onclick="editCurrency(${currency.id})" title="${tCurrencies.edit || 'Edit'}">
+                            <span class="material-symbols-rounded">edit</span>
+                        </button>
+                        <button class="btn-icon btn-danger" onclick="deleteCurrency(${currency.id})" title="${tCurrencies.delete || 'Delete'}">
+                            <span class="material-symbols-rounded">delete</span>
+                        </button>
+                    </td>
+                </tr>
+            `;
+        }).join('');
     }
 
     
@@ -125,7 +212,7 @@
         if (!data || data.length === 0) {
             tbody.innerHTML = `
                 <tr>
-                    <td colspan="5" style="text-align: center; padding: 40px;">
+                    <td colspan="4" style="text-align: center; padding: 40px;">
                         <span class="material-symbols-rounded" style="font-size: 48px; color: #9ca3af;">currency_exchange</span>
                         <p style="color: #9ca3af; margin-top: 10px;">${tCurrencies.no_countries || 'No countries selected for currencies'}</p>
                     </td>
@@ -190,7 +277,9 @@
             if (res.success) {
                 allCurrencies = res.data || [];
             }
-        } catch (e) { console.error(e); }
+        } catch (e) { 
+            console.error('Error loading currencies:', e);
+        }
     }
 
     async function loadCountryCurrencies(countryId) {
@@ -250,11 +339,11 @@
                 const c = countries.find(x => x.id == currentCountryId);
                 if (c) c.local_currency_code = code || null;
                 renderTable();
-        } else {
+            } else {
                 showToast('error', res.message || (tCommon.update_failed||'Update failed'));
             }
         } catch (e) {
-            console.error(e);
+            console.error('Error saving base currency:', e);
             showToast('error', tCommon.update_failed||'Update failed');
         }
     }
@@ -290,6 +379,63 @@
         attachCountryCurrenciesActions();
     }
 
+    function openUnitNameEditModal(row) {
+        // Create a simple modal for unit name edit
+        const modalId = 'unitNameEditModal';
+        let modal = document.getElementById(modalId);
+        
+        if (!modal) {
+            modal = document.createElement('div');
+            modal.id = modalId;
+            modal.className = 'modal';
+            modal.style.display = 'none';
+            modal.innerHTML = `
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h2>${tCurrencies.enter_unit_name || 'Enter unit name'}</h2>
+                        <button class="btn-close" id="closeUnitNameModal">
+                            <span class="material-symbols-rounded">close</span>
+                        </button>
+                    </div>
+                    <div class="form-group">
+                        <label>${tCurrencies.unit_name || 'Unit name'}</label>
+                        <input type="text" id="unitNameInput" placeholder="${tCurrencies.enter_unit_name || 'Enter unit name (leave empty to clear)'}" />
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn-secondary" id="cancelUnitNameModal">${tCommon.cancel || 'Cancel'}</button>
+                        <button type="button" class="btn-primary" id="saveUnitNameModal">${tCommon.save || 'Save'}</button>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(modal);
+            
+            document.getElementById('closeUnitNameModal').addEventListener('click', () => {
+                modal.style.display = 'none';
+            });
+            document.getElementById('cancelUnitNameModal').addEventListener('click', () => {
+                modal.style.display = 'none';
+            });
+            document.getElementById('saveUnitNameModal').addEventListener('click', async () => {
+                const input = document.getElementById('unitNameInput');
+                const newUnit = input.value.trim();
+                await updateCountryCurrency({ id: row.id, unit_name: newUnit });
+                modal.style.display = 'none';
+                await loadCountryCurrencies(currentCountryId);
+                fillCurrencySelect();
+                renderCountryCurrencies();
+            });
+            modal.addEventListener('click', function(e) {
+                if (e.target === this) {
+                    modal.style.display = 'none';
+                }
+            });
+        }
+        
+        document.getElementById('unitNameInput').value = row.unit_name || '';
+        modal.style.display = 'flex';
+        setTimeout(() => document.getElementById('unitNameInput').focus(), 100);
+    }
+
     function attachCountryCurrenciesActions() {
         const container = document.getElementById('countryCurrenciesList');
         if (!container) return;
@@ -299,21 +445,49 @@
                 const action = this.getAttribute('data-action');
                 const row = countryCurrencies.find(x => x.id == id);
                 if (!row) return;
+                
                 if (action === 'delete') {
-                    if (!confirm(tCommon.delete_confirm || 'Delete?')) return;
-                    await deleteCountryCurrency(id);
+                    if (typeof window.showConfirmDialog === 'function') {
+                        window.showConfirmDialog(
+                            tCurrencies.delete || 'Delete',
+                            tCommon.delete_confirm || 'Are you sure you want to delete?',
+                            async () => {
+                                await deleteCountryCurrency(id);
+                                await loadCountryCurrencies(currentCountryId);
+                                fillCurrencySelect();
+                                renderCountryCurrencies();
+                            }
+                        );
+                    } else {
+                        if (typeof window.showConfirmDialog === 'function') {
+                            window.showConfirmDialog(
+                                tCurrencies.delete || 'Delete',
+                                tCommon.delete_confirm || 'Are you sure you want to delete?',
+                                async () => {
+                                    await deleteCountryCurrency(id);
+                                    await loadCountryCurrencies(currentCountryId);
+                                    fillCurrencySelect();
+                                    renderCountryCurrencies();
+                                }
+                            );
+                        } else {
+                            if (!confirm(tCommon.delete_confirm || 'Delete?')) return;
+                            await deleteCountryCurrency(id);
+                            await loadCountryCurrencies(currentCountryId);
+                            fillCurrencySelect();
+                            renderCountryCurrencies();
+                        }
+                    }
+                    return;
                 } else if (action === 'toggle') {
                     const active = (row.is_active === true) || (row.is_active === 't') || (row.is_active === 1) || (row.is_active === '1');
                     await updateCountryCurrency({ id, is_active: !active });
+                    await loadCountryCurrencies(currentCountryId);
+                    fillCurrencySelect();
+                    renderCountryCurrencies();
                 } else if (action === 'edit') {
-                    const newUnit = prompt(tCurrencies.enter_unit_name || 'Enter unit name (leave empty to clear):', row.unit_name || '');
-                    if (newUnit !== null) {
-                        await updateCountryCurrency({ id, unit_name: newUnit });
-                    }
+                    openUnitNameEditModal(row);
                 }
-                await loadCountryCurrencies(currentCountryId);
-                fillCurrencySelect();
-                renderCountryCurrencies();
             });
         });
         const addBtn = document.getElementById('manageAddCurrencyBtn');
@@ -323,10 +497,13 @@
                 const unit = document.getElementById('manageUnitName');
                 const isActive = document.getElementById('manageIsActive');
                 const code = sel && sel.value ? sel.value : '';
-                if (!code) { showToast(tCurrencies.select_currency_first||'Please select a currency', 'warning'); return; }
+                if (!code) { 
+                    showToast('warning', tCurrencies.select_currency_first||'Please select a currency'); 
+                    return; 
+                }
                 await createCountryCurrency({ country_id: currentCountryId, currency_code: code, unit_name: unit?.value || '', is_active: !!(isActive && isActive.checked) });
-                unit && (unit.value = '');
-                sel && (sel.value = '');
+                if (unit) unit.value = '';
+                if (sel) sel.value = '';
                 await loadCountryCurrencies(currentCountryId);
                 fillCurrencySelect();
                 renderCountryCurrencies();
@@ -338,34 +515,61 @@
         try {
             const resp = await fetch(`${API_BASE}?action=country_currency`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
             const res = await resp.json();
-            if (!res.success) showToast('error', res.message || (tCommon.save_failed||'Save failed'));
-        } catch (e) { console.error(e); }
+            if (res.success) {
+                showToast('success', tCommon.saved_successfully || 'Saved');
+            } else {
+                showToast('error', res.message || (tCommon.save_failed||'Save failed'));
+            }
+        } catch (e) { 
+            console.error('Error creating country currency:', e);
+            showToast('error', tCommon.save_failed||'Save failed');
+        }
     }
 
     async function updateCountryCurrency(payload) {
         try {
             const resp = await fetch(`${API_BASE}?action=country_currency`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
             const res = await resp.json();
-            if (!res.success) showToast('error', res.message || (tCommon.update_failed||'Update failed'));
-        } catch (e) { console.error(e); }
+            if (res.success) {
+                showToast('success', tCommon.saved_successfully || 'Saved');
+            } else {
+                showToast('error', res.message || (tCommon.update_failed||'Update failed'));
+            }
+        } catch (e) { 
+            console.error('Error updating country currency:', e);
+            showToast('error', tCommon.update_failed||'Update failed');
+        }
     }
 
     async function deleteCountryCurrency(id) {
         try {
             const resp = await fetch(`${API_BASE}?action=country_currency&id=${id}`, { method: 'DELETE' });
             const res = await resp.json();
-            if (!res.success) showToast('error', res.message || (tCommon.delete_failed||'Delete failed'));
-        } catch (e) { console.error(e); }
+            if (res.success) {
+                showToast('success', tCommon.deleted_successfully || 'Deleted');
+            } else {
+                showToast('error', res.message || (tCommon.delete_failed||'Delete failed'));
+            }
+        } catch (e) { 
+            console.error('Error deleting country currency:', e);
+            showToast('error', tCommon.delete_failed||'Delete failed');
+        }
     }
     
     function handleSubmit(e) {
         e.preventDefault();
         const formData = new FormData(e.target);
+        const currencyId = document.getElementById('currencyId').value;
         const data = Object.fromEntries(formData);
         data.is_active = document.getElementById('is_active').checked;
         
+        // Remove currencyId from data if it's empty
+        if (currencyId) {
+            data.id = parseInt(currencyId);
+        }
+        
         const url = `${API_BASE}?action=currency`;
-        const method = currentCurrencyId ? 'PUT' : 'POST';
+        const method = currencyId ? 'PUT' : 'POST';
         
         fetch(url, {
             method: method,
@@ -377,10 +581,15 @@
         .then(response => response.json())
         .then(result => {
             if (result.success) {
-                showToast(result.message || (currentCurrencyId ? (tCurrencies.currency_updated || 'Currency updated') : (tCurrencies.currency_added || 'Currency added')), 'success');
+                showToast('success', result.message || (currencyId ? (tCurrencies.currency_updated || 'Currency updated') : (tCurrencies.currency_added || 'Currency added')));
                 closeModal();
-                // refresh master list so Manage modal select updates
+                // Refresh master list
                 loadAllCurrencies().then(() => {
+                    // Refresh table if master currencies modal is open
+                    const masterModal = document.getElementById('masterCurrenciesModal');
+                    if (masterModal && masterModal.style.display === 'flex') {
+                        renderMasterCurrenciesTable();
+                    }
                     if (currentCountryId) {
                         fillCurrencySelect();
                     }
@@ -401,18 +610,43 @@
     };
     
     window.deleteCurrency = function(id) {
-        if (!confirm(tCurrencies.delete_confirm || 'Are you sure you want to delete this currency?')) {
-            return;
-        }
+        const currency = allCurrencies.find(c => c.id == id);
+        const currencyName = currency ? `${currency.code || ''} - ${currency.name || ''}` : '';
         
+        if (typeof window.showConfirmDialog === 'function') {
+            window.showConfirmDialog(
+                tCurrencies.delete_currency || 'Delete Currency',
+                tCurrencies.delete_confirm_message || `Are you sure you want to delete this currency?${currencyName ? '\n\n' + currencyName : ''}`,
+                () => {
+                    performDeleteCurrency(id);
+                }
+            );
+        } else {
+            if (!confirm(tCurrencies.delete_confirm || 'Are you sure you want to delete this currency?')) {
+                return;
+            }
+            performDeleteCurrency(id);
+        }
+    };
+    
+    function performDeleteCurrency(id) {
         fetch(`${API_BASE}?action=currency&id=${id}`, {
             method: 'DELETE'
         })
         .then(response => response.json())
         .then(result => {
             if (result.success) {
-                showToast(tCurrencies.currency_deleted || 'Currency deleted successfully', 'success');
-                loadCurrencies();
+                showToast('success', tCurrencies.currency_deleted || 'Currency deleted successfully');
+                loadAllCurrencies().then(() => {
+                    // Refresh table if master currencies modal is open
+                    const masterModal = document.getElementById('masterCurrenciesModal');
+                    if (masterModal && masterModal.style.display === 'flex') {
+                        renderMasterCurrenciesTable();
+                    }
+                    if (currentCountryId) {
+                        fillCurrencySelect();
+                    }
+                });
             } else {
                 showToast('error', result.message || tCurrencies.error_deleting_currency || 'Error deleting currency');
             }
@@ -421,7 +655,7 @@
             console.error('Error deleting currency:', error);
             showToast('error', tCurrencies.error_deleting_currency || 'Error deleting currency');
         });
-    };
+    }
     
     function showToast(type, message) {
         if (typeof window.showToast === 'function') {
@@ -431,4 +665,3 @@
         }
     }
 })();
-
