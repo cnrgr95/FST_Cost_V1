@@ -247,6 +247,8 @@
         "contract_has_routes": "Bu kontrat {count} rotaya sahip olduğu için silinemez. Lütfen önce tüm rotaları silin."
     },
     "vehicles": {
+        "min_pax": "Min Pax",
+        "max_pax": "Max Pax",
         "title": "Araç Yönetimi",
         "vehicle_company": "Araç Firması",
         "vehicle_type": "Araç Tipi",

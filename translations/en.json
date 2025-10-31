@@ -246,6 +246,8 @@
         "contract_has_routes": "This contract cannot be deleted because it has {count} route(s) associated with it. Please delete all routes first."
     },
     "vehicles": {
+        "min_pax": "Min Pax",
+        "max_pax": "Max Pax",
         "title": "Vehicle Management",
         "vehicle_company": "Vehicle Company",
         "vehicle_type": "Vehicle Type",

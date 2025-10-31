@@ -154,6 +154,14 @@ $t_dependencies = $all_translations['dependencies'] ?? [];
                         <option value=""><?php echo $t_vehicles['loading_data'] ?? 'Loading...'; ?></option>
                     </select>
                 </div>
+                <div class="form-group">
+                    <label><?php echo $t_vehicles['min_pax'] ?? 'Min Pax'; ?></label>
+                    <input type="number" name="min_pax" min="0" step="1" placeholder="<?php echo $t_vehicles['min_pax'] ?? 'Min Pax'; ?>">
+                </div>
+                <div class="form-group">
+                    <label><?php echo $t_vehicles['max_pax'] ?? 'Max Pax'; ?></label>
+                    <input type="number" name="max_pax" min="0" step="1" placeholder="<?php echo $t_vehicles['max_pax'] ?? 'Max Pax'; ?>">
+                </div>
                 <div class="modal-footer">
                     <button type="button" class="btn-secondary" onclick="closeModal()">
                         <?php echo $t_common['cancel'] ?? 'Cancel'; ?>

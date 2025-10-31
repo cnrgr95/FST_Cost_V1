@@ -234,7 +234,7 @@
          if (type === 'companies') {
              html += `<thead><tr><th>${tVehicles.company_name || 'Name'}</th><th>${tVehicles.city || 'City'}</th><th>${tVehicles.region || 'Region'}</th><th>${tVehicles.country || 'Country'}</th><th>${tVehicles.actions || 'Actions'}</th></tr></thead>`;
          } else if (type === 'types') {
-             html += `<thead><tr><th>${tVehicles.type_name || 'Name'}</th><th>${tVehicles.vehicle_company || 'Vehicle Company'}</th><th>${tVehicles.city || 'City'}</th><th>${tVehicles.region || 'Region'}</th><th>${tVehicles.country || 'Country'}</th><th>${tVehicles.actions || 'Actions'}</th></tr></thead>`;
+             html += `<thead><tr><th>${tVehicles.type_name || 'Name'}</th><th>${tVehicles.vehicle_company || 'Vehicle Company'}</th><th>${tVehicles.min_pax || 'Min Pax'}</th><th>${tVehicles.max_pax || 'Max Pax'}</th><th>${tVehicles.city || 'City'}</th><th>${tVehicles.region || 'Region'}</th><th>${tVehicles.country || 'Country'}</th><th>${tVehicles.actions || 'Actions'}</th></tr></thead>`;
         } else if (type === 'contracts') {
             html += `<thead><tr><th>${tVehicles.contract_code || 'Contract Code'}</th><th>${tVehicles.vehicle_company || 'Company'}</th><th>${tVehicles.start_date || 'Start Date'}</th><th>${tVehicles.end_date || 'End Date'}</th><th>${tVehicles.actions || 'Actions'}</th></tr></thead>`;
          }
@@ -284,6 +284,8 @@
         } else if (type === 'types') {
             html += `<td>${item.name}</td>`;
             html += `<td>${item.company_name || '-'}</td>`;
+            html += `<td>${item.min_pax !== null && item.min_pax !== undefined ? item.min_pax : '-'}</td>`;
+            html += `<td>${item.max_pax !== null && item.max_pax !== undefined ? item.max_pax : '-'}</td>`;
             html += `<td>${item.city_name || '-'}</td>`;
             html += `<td>${item.region_name || '-'}</td>`;
             html += `<td>${item.country_name || '-'}</td>`;
@@ -484,6 +486,14 @@
             form.querySelector('input[name="name"]').value = item.name;
             await loadCompaniesForSelect();
             form.querySelector('select[name="vehicle_company_id"]').value = item.vehicle_company_id;
+            const minPaxInput = form.querySelector('input[name="min_pax"]');
+            if (minPaxInput) {
+                minPaxInput.value = item.min_pax !== null && item.min_pax !== undefined ? item.min_pax : '';
+            }
+            const maxPaxInput = form.querySelector('input[name="max_pax"]');
+            if (maxPaxInput) {
+                maxPaxInput.value = item.max_pax !== null && item.max_pax !== undefined ? item.max_pax : '';
+            }
         } else if (type === 'contracts') {
             document.getElementById('contractId').value = item.id;
             
@@ -608,6 +618,15 @@
             name: formData.get('name'),
             vehicle_company_id: formData.get('vehicle_company_id')
         };
+        
+        const minPax = formData.get('min_pax');
+        const maxPax = formData.get('max_pax');
+        if (minPax) {
+            data.min_pax = minPax;
+        }
+        if (maxPax) {
+            data.max_pax = maxPax;
+        }
         
         if (form.dataset.id) {
             data.id = form.dataset.id;

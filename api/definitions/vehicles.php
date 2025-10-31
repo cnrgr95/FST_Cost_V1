@@ -316,7 +316,7 @@ function deleteCompany($conn, $id) {
 function getTypes($conn, $company_id = null) {
     if ($company_id) {
         $company_id = (int)$company_id;
-        $query = "SELECT vt.id, vt.name, vt.vehicle_company_id,
+        $query = "SELECT vt.id, vt.name, vt.vehicle_company_id, vt.min_pax, vt.max_pax,
                          vc.name as company_name, c.name as city_name, r.name as region_name, co.name as country_name
                   FROM vehicle_types vt 
                   LEFT JOIN vehicle_companies vc ON vt.vehicle_company_id = vc.id 
@@ -326,7 +326,7 @@ function getTypes($conn, $company_id = null) {
                   WHERE vt.vehicle_company_id = $company_id 
                   ORDER BY vt.name ASC";
     } else {
-        $query = "SELECT vt.id, vt.name, vt.vehicle_company_id,
+        $query = "SELECT vt.id, vt.name, vt.vehicle_company_id, vt.min_pax, vt.max_pax,
                          vc.name as company_name, c.name as city_name, r.name as region_name, co.name as country_name
                   FROM vehicle_types vt 
                   LEFT JOIN vehicle_companies vc ON vt.vehicle_company_id = vc.id 
@@ -349,6 +349,8 @@ function getTypes($conn, $company_id = null) {
 function createType($conn, $data) {
     $name = pg_escape_string($conn, $data['name']);
     $company_id = (int)$data['vehicle_company_id'];
+    $min_pax = isset($data['min_pax']) && $data['min_pax'] !== '' ? (int)$data['min_pax'] : null;
+    $max_pax = isset($data['max_pax']) && $data['max_pax'] !== '' ? (int)$data['max_pax'] : null;
     
     // Check if type name already exists in the same company
     $checkQuery = "SELECT id FROM vehicle_types WHERE name = '$name' AND vehicle_company_id = $company_id";
@@ -358,8 +360,11 @@ function createType($conn, $data) {
         return;
     }
     
-    $query = "INSERT INTO vehicle_types (name, vehicle_company_id, created_at) 
-              VALUES ('$name', $company_id, NOW()) RETURNING id";
+    $minPaxValue = $min_pax !== null ? $min_pax : 'NULL';
+    $maxPaxValue = $max_pax !== null ? $max_pax : 'NULL';
+    
+    $query = "INSERT INTO vehicle_types (name, vehicle_company_id, min_pax, max_pax, created_at) 
+              VALUES ('$name', $company_id, $minPaxValue, $maxPaxValue, NOW()) RETURNING id";
     $result = pg_query($conn, $query);
     
     if ($result) {
@@ -374,9 +379,14 @@ function updateType($conn, $data) {
     $id = (int)$data['id'];
     $name = pg_escape_string($conn, $data['name']);
     $company_id = (int)$data['vehicle_company_id'];
+    $min_pax = isset($data['min_pax']) && $data['min_pax'] !== '' ? (int)$data['min_pax'] : null;
+    $max_pax = isset($data['max_pax']) && $data['max_pax'] !== '' ? (int)$data['max_pax'] : null;
+    
+    $minPaxValue = $min_pax !== null ? $min_pax : 'NULL';
+    $maxPaxValue = $max_pax !== null ? $max_pax : 'NULL';
     
     $query = "UPDATE vehicle_types SET name = '$name', vehicle_company_id = $company_id, 
-              updated_at = NOW() WHERE id = $id";
+              min_pax = $minPaxValue, max_pax = $maxPaxValue, updated_at = NOW() WHERE id = $id";
     $result = pg_query($conn, $query);
     
     if ($result) {

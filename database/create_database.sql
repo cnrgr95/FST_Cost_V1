@@ -111,6 +111,8 @@ CREATE TABLE IF NOT EXISTS vehicle_types (
     id SERIAL PRIMARY KEY,
     name VARCHAR(255) NOT NULL,
     vehicle_company_id INTEGER REFERENCES vehicle_companies(id) ON DELETE CASCADE,
+    min_pax INTEGER,
+    max_pax INTEGER,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     UNIQUE(name, vehicle_company_id)
