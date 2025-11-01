@@ -572,7 +572,7 @@
         "actions": "İşlemler",
         "loading_rates": "Kurlar yükleniyor...",
         "loading_exchange_rates": "Döviz kurları yükleniyor...",
-        "date_range_placeholder": "GG/AA/YYYY veya GG/AA/YYYY - GG/AA/YYYY",
+        "date_range_placeholder": "Tarih seçin",
         "selected_dates": "Seçilen tarihler",
         "rates_not_available": "Kurlar mevcut değil",
         "dates_had_no_rates": "{count} tarih için kur bulunamadı",

@@ -576,7 +576,7 @@
         "actions": "Actions",
         "loading_rates": "Loading exchange rates...",
         "loading_exchange_rates": "Loading exchange rates...",
-        "date_range_placeholder": "DD/MM/YYYY or DD/MM/YYYY - DD/MM/YYYY",
+        "date_range_placeholder": "Select date",
         "selected_dates": "Selected dates",
         "rates_not_available": "Rates not available",
         "dates_had_no_rates": "{count} dates had no rates found",

@@ -76,8 +76,8 @@
 
 .currency-country-form-row > div:nth-child(2) {
     flex: 1 1 auto;
-    min-width: 280px;
-    max-width: 380px;
+    min-width: 240px;
+    max-width: 300px;
 }
 
 .currency-country-form-row > div:nth-child(3) {
@@ -105,8 +105,8 @@
     
     .currency-country-form-row > div:nth-child(2) {
         flex: 1 1 auto;
-        min-width: 260px;
-        max-width: 350px;
+        min-width: 220px;
+        max-width: 280px;
     }
     
     .currency-country-form-row > div:nth-child(3) {
@@ -128,7 +128,7 @@
     
     .currency-country-form-row > div:nth-child(2) {
         flex: 1 1 calc(33.333% - 7px);
-        min-width: 240px;
+        min-width: 200px;
         max-width: 100%;
     }
     
