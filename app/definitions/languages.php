@@ -54,9 +54,9 @@ $t_lang_mgmt = $all_translations['language_mgmt'] ?? [];
         
         <!-- Main Content Area -->
         <div class="content-wrapper">
-            <div class="tours-container">
+            <div class="languages-container-page">
                 <!-- Page Header -->
-                <div class="tours-header">
+                <div class="languages-header">
                     <h1><?php echo $t_lang_mgmt['title'] ?? 'Languages & Translations'; ?></h1>
                 </div>
                 

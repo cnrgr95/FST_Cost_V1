@@ -50,6 +50,31 @@
   color: #6b7280;
 }
 
+/* Universal Page Headers - All pages use consistent header styling */
+[class*="-header"] {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 30px;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+
+[class*="-header"] h1 {
+  font-size: 28px;
+  font-weight: 600;
+  color: #1f2937;
+  margin: 0;
+  flex: 1;
+  min-width: 200px;
+}
+
+[class*="-header"] .btn-add,
+[class*="-header"] button,
+[class*="-header"] a {
+  white-space: nowrap;
+}
+
 /* Responsive Tables */
 .table-container {
   overflow-x: auto !important;
@@ -100,23 +125,8 @@ table {
   border-radius: 8px;
   overflow: hidden;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-  min-width: 600px; /* Minimum width for table */
   display: table;
   table-layout: auto;
-}
-
-/* Force tables to expand on smaller screens */
-@media (max-width: 1400px) {
-  table {
-    width: max-content;
-    min-width: 600px;
-  }
-  
-  .table-wrapper table,
-  [class*="-table-wrapper"] table {
-    width: max-content !important;
-    min-width: 600px !important;
-  }
 }
 
 table thead {
@@ -138,7 +148,8 @@ table td {
   font-size: 14px;
   color: #1f2937;
   border-bottom: 1px solid #e5e7eb;
-  white-space: nowrap;
+  word-wrap: break-word;
+  max-width: 300px;
 }
 
 table tbody tr:hover {
@@ -406,21 +417,20 @@ table tbody tr:last-child td {
     line-height: 1.5;
   }
   
-  /* Responsive Tables */
+  /* Responsive Tables - Full Width */
   .table-container,
   .table-wrapper,
   [class*="-table-wrapper"] {
-    overflow-x: auto !important;
-    -webkit-overflow-scrolling: touch;
     width: 100%;
-    margin: 0 -15px;
-    padding: 0 15px;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
     display: block;
   }
   
   table {
-    min-width: 800px !important; /* Wider minimum for mobile scrolling */
-    width: max-content !important;
+    width: 100% !important;
+    display: table;
+    table-layout: fixed;
     font-size: 13px;
   }
   
@@ -428,11 +438,20 @@ table tbody tr:last-child td {
   table td {
     padding: 10px 12px;
     font-size: 13px;
-    white-space: nowrap !important;
+    word-wrap: break-word;
+    white-space: normal;
+    max-width: none;
   }
   
   table th {
     font-size: 12px;
+  }
+  
+  /* Actions column stays compact */
+  table tbody td:last-child {
+    white-space: nowrap;
+    width: auto;
+    min-width: 100px;
   }
   
   /* Buttons */
@@ -621,7 +640,8 @@ table tbody tr:last-child td {
   }
   
   table {
-    min-width: 700px !important;
+    width: 100% !important;
+    font-size: 12px;
   }
   
   table th,
@@ -632,6 +652,12 @@ table tbody tr:last-child td {
   
   table th {
     font-size: 11px;
+  }
+  
+  /* Hide less important columns on very small screens if needed */
+  table thead th:nth-child(n+4):not(:last-child),
+  table tbody td:nth-child(n+4):not(:last-child) {
+    display: none;
   }
   
   .form-container {

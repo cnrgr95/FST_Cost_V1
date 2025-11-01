@@ -106,6 +106,7 @@ $t_guide = $all_translations['guide'] ?? [];
     
     <script src="<?php echo $basePath; ?>assets/js/includes/sidebar.js"></script>
     <script src="<?php echo $basePath; ?>assets/js/toast.js"></script>
+    <script src="<?php echo $basePath; ?>assets/js/common.js"></script>
     <script src="<?php echo $basePath; ?>assets/js/app/guide.js"></script>
 </body>
 </html>

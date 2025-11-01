@@ -219,7 +219,10 @@ $countryId = isset($_GET['id']) ? (int)$_GET['id'] : 0;
 		]
 	], JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_PRETTY_PRINT); ?>
 	</script>
+	
+	<!-- Toast Notification Container -->
 	<div id="toastContainer" class="toast-container"></div>
+	
 	<script src="<?php echo $basePath; ?>assets/js/includes/sidebar.js"></script>
 	<script src="<?php echo $basePath; ?>assets/js/toast.js"></script>
 	<script src="<?php echo $basePath; ?>assets/js/common.js"></script>
