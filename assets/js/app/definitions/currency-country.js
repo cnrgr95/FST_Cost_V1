@@ -25,6 +25,41 @@
     let rpAnchor = null;
     let rpBaseMonth = null; // Date object representing first visible month
 
+    // Date formatting functions - available globally
+    function toISO(d){ const m=(d.getMonth()+1).toString().padStart(2,'0'); const day=d.getDate().toString().padStart(2,'0'); return `${d.getFullYear()}-${m}-${day}`; }
+    function toDDMMYYYY(d){ const day=d.getDate().toString().padStart(2,'0'); const m=(d.getMonth()+1).toString().padStart(2,'0'); return `${day}/${m}/${d.getFullYear()}`; }
+    function parseDDMMYYYY(str){
+        const parts = str.trim().split('/');
+        if (parts.length !== 3) return null;
+        const day = parseInt(parts[0], 10);
+        const month = parseInt(parts[1], 10) - 1;
+        const year = parseInt(parts[2], 10);
+        if (isNaN(day) || isNaN(month) || isNaN(year)) return null;
+        const d = new Date(year, month, day);
+        if (d.getDate() !== day || d.getMonth() !== month || d.getFullYear() !== year) return null;
+        return d;
+    }
+    function toISOFromDDMMYYYY(str){
+        const d = parseDDMMYYYY(str);
+        return d ? toISO(d) : null;
+    }
+    function formatDateDisplay(isoStr){
+        if (!isoStr) return '';
+        // If already in DD/MM/YYYY format, return as is
+        if (/^\d{2}\/\d{2}\/\d{4}$/.test(isoStr)) return isoStr;
+        // If in ISO format (YYYY-MM-DD), convert to DD/MM/YYYY
+        if (/^\d{4}-\d{2}-\d{2}$/.test(isoStr)) {
+            const d = new Date(isoStr + 'T00:00:00');
+            return d && !isNaN(d.getTime()) ? toDDMMYYYY(d) : isoStr;
+        }
+        // Try to parse as DD/MM/YYYY
+        const d = parseDDMMYYYY(isoStr);
+        if (d && !isNaN(d.getTime())) return toDDMMYYYY(d);
+        // Try to parse as Date and format
+        const dateObj = new Date(isoStr);
+        return dateObj && !isNaN(dateObj.getTime()) ? toDDMMYYYY(dateObj) : isoStr;
+    }
+
     document.addEventListener('DOMContentLoaded', async function(){
         await loadCountries();
         currentCountry = countries.find(c => c.id == COUNTRY_ID) || null;
@@ -56,41 +91,36 @@
         if (openBase) openBase.addEventListener('click', async function(){
             if (!allCurrencies.length) { await loadAllCurrencies(); }
             fillBaseCurrencySelect(currentCountry);
-            const m = document.getElementById('ccBaseModal');
-            if (m) m.style.display = 'flex';
+            openModal('ccBaseModal');
         });
         const baseClose = document.getElementById('ccBaseClose');
         const baseCancel = document.getElementById('ccBaseCancel');
-        if (baseClose) baseClose.addEventListener('click', function(){ const m = document.getElementById('ccBaseModal'); if (m) m.style.display = 'none'; });
-        if (baseCancel) baseCancel.addEventListener('click', function(){ const m = document.getElementById('ccBaseModal'); if (m) m.style.display = 'none'; });
+        if (baseClose) baseClose.addEventListener('click', function(){ closeModal('ccBaseModal'); });
+        if (baseCancel) baseCancel.addEventListener('click', function(){ closeModal('ccBaseModal'); });
         const addBtn = document.getElementById('ccAddBtn');
         if (addBtn) addBtn.addEventListener('click', addCountryCurrency);
         const openAdd = document.getElementById('ccOpenAdd');
         if (openAdd) openAdd.addEventListener('click', async function(){
             if (!allCurrencies.length) { await loadAllCurrencies(); }
             fillAddCurrencySelect();
-            const m = document.getElementById('ccAddCurModal');
-            if (m) m.style.display = 'flex';
+            openModal('ccAddCurModal');
         });
         const addClose = document.getElementById('ccAddClose');
         const addCancel = document.getElementById('ccAddCancel');
-        if (addClose) addClose.addEventListener('click', function(){ const m = document.getElementById('ccAddCurModal'); if (m) m.style.display = 'none'; });
-        if (addCancel) addCancel.addEventListener('click', function(){ const m = document.getElementById('ccAddCurModal'); if (m) m.style.display = 'none'; });
+        if (addClose) addClose.addEventListener('click', function(){ closeModal('ccAddCurModal'); });
+        if (addCancel) addCancel.addEventListener('click', function(){ closeModal('ccAddCurModal'); });
         const openCur = document.getElementById('ccOpenCurrencies');
         if (openCur) openCur.addEventListener('click', async function(){
             try {
                 await loadCountryCurrencies(COUNTRY_ID);
                 renderCountryCurrencies();
-                const m = document.getElementById('ccCurrenciesModal');
-                if (m) m.style.display = 'flex';
+                openModal('ccCurrenciesModal');
             } catch(e){ console.error(e); }
         });
         const curClose = document.getElementById('ccCurrenciesClose');
         const curCancel = document.getElementById('ccCurrenciesCancel');
-        if (curClose) curClose.addEventListener('click', function(){ const m = document.getElementById('ccCurrenciesModal'); if (m) m.style.display = 'none'; });
-        if (curCancel) curCancel.addEventListener('click', function(){ const m = document.getElementById('ccCurrenciesModal'); if (m) m.style.display = 'none'; });
-        const curModal = document.getElementById('ccCurrenciesModal');
-        if (curModal) curModal.addEventListener('click', function(e){ if (e.target === curModal) curModal.style.display = 'none'; });
+        if (curClose) curClose.addEventListener('click', function(){ closeModal('ccCurrenciesModal'); });
+        if (curCancel) curCancel.addEventListener('click', function(){ closeModal('ccCurrenciesModal'); });
         const addRange = document.getElementById('ccAddRateRange');
         if (addRange) addRange.addEventListener('click', addRateRange);
         const fetchCbrt = document.getElementById('ccFetchCbrt');
@@ -99,8 +129,8 @@
             // Show only for Turkey
             const isTR = (currentCountry?.code||'').toUpperCase() === 'TR';
             if (!isTR) {
-                if (fetchCbrt) fetchCbrt.style.display = 'none';
-                if (fetchCbrtBulk) fetchCbrtBulk.style.display = 'none';
+                if (fetchCbrt) fetchCbrt.style.display = 'none'; // Conditional visibility for Turkey
+                if (fetchCbrtBulk) fetchCbrtBulk.style.display = 'none'; // Conditional visibility for Turkey
             } else {
                 if (fetchCbrt) fetchCbrt.addEventListener('click', fetchCbrtRates);
                 if (fetchCbrtBulk) fetchCbrtBulk.addEventListener('click', fetchCbrtRatesBulk);
@@ -139,17 +169,22 @@
                 const raw = (rangeInput.value || '').trim();
                 const parts = raw.split(/\s*(?:-|–|—|to)\s*/i).filter(Boolean);
                 if (parts.length >= 2) {
-                    // Date range
-                    startInput.value = parts[0];
-                    endInput.value = parts[1];
-                    rpStart = startInput.value; rpEnd = endInput.value;
-                    rpBaseMonth = rpStart ? new Date(rpStart) : new Date();
-                } else if (parts.length === 1 && /^\d{4}-\d{2}-\d{2}$/.test(parts[0])) {
-                    // Single date - set both start and end to the same date
-                    startInput.value = parts[0];
-                    endInput.value = parts[0];
-                    rpStart = parts[0]; rpEnd = parts[0];
-                    rpBaseMonth = new Date(parts[0]);
+                    // Date range - parse DD/MM/YYYY to ISO
+                    const startISO = toISOFromDDMMYYYY(parts[0].trim()) || parts[0].trim();
+                    const endISO = toISOFromDDMMYYYY(parts[1].trim()) || parts[1].trim();
+                    startInput.value = startISO;
+                    endInput.value = endISO;
+                    rpStart = startISO; rpEnd = endISO;
+                    rpBaseMonth = rpStart ? (parseDDMMYYYY(formatDateDisplay(rpStart)) || new Date(rpStart)) : new Date();
+                } else if (parts.length === 1) {
+                    // Single date - parse DD/MM/YYYY or ISO
+                    const dateISO = toISOFromDDMMYYYY(parts[0].trim()) || (/^\d{4}-\d{2}-\d{2}$/.test(parts[0].trim()) ? parts[0].trim() : null);
+                    if (dateISO) {
+                        startInput.value = dateISO;
+                        endInput.value = dateISO;
+                        rpStart = dateISO; rpEnd = dateISO;
+                        rpBaseMonth = parseDDMMYYYY(formatDateDisplay(dateISO)) || new Date(dateISO);
+                    }
                 }
             };
             const openStartPicker = () => { startInput.showPicker ? startInput.showPicker() : startInput.focus(); };
@@ -185,7 +220,7 @@
                 rpOpen = true;
                 if (!rpBaseMonth) rpBaseMonth = new Date();
                 renderRangePicker();
-                picker.style.display = 'block';
+                picker.style.display = 'block'; // Date picker visibility controlled by JS logic
                 // Ensure picker is properly positioned and visible
                 const rect = anchor.getBoundingClientRect();
                 picker.style.top = `${rect.bottom + 6}px`;
@@ -199,7 +234,7 @@
             function closeRangePicker(){
                 if (!picker) return;
                 rpOpen = false;
-                picker.style.display = 'none';
+                picker.style.display = 'none'; // Date picker visibility controlled by JS logic
                 document.removeEventListener('click', outsideClose, true);
                 document.removeEventListener('keydown', escClose, true);
             }
@@ -216,20 +251,24 @@
                 const base = startOfMonth(rpBaseMonth || new Date());
                 const next = addMonths(base, 1);
                 const header = `
-                    <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:8px;">
-                        <button type="button" data-rp-act="prev" class="btn-icon" style="border:none;background:transparent;cursor:pointer;"><span class="material-symbols-rounded">chevron_left</span></button>
-                        <div style="display:flex; gap:16px; font-weight:600;">
+                    <div class="range-picker-header">
+                        <button type="button" data-rp-act="prev" class="range-picker-nav-btn">
+                            <span class="material-symbols-rounded">chevron_left</span>
+                        </button>
+                        <div class="range-picker-months">
                             <span>${formatMonthYear(base)}</span>
                             <span>${formatMonthYear(next)}</span>
                         </div>
-                        <button type="button" data-rp-act="next" class="btn-icon" style="border:none;background:transparent;cursor:pointer;"><span class="material-symbols-rounded">chevron_right</span></button>
+                        <button type="button" data-rp-act="next" class="range-picker-nav-btn">
+                            <span class="material-symbols-rounded">chevron_right</span>
+                        </button>
                     </div>`;
                 const grids = `
-                    <div style="display:flex; gap:16px;">
+                    <div class="range-picker-grids">
                         ${renderMonthGrid(base)}
                         ${renderMonthGrid(next)}
                     </div>
-                    <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:8px;">
+                    <div class="range-picker-footer">
                         <button type="button" data-rp-act="clear" class="btn-secondary">${tCommon.cancel||'Cancel'}</button>
                         <button type="button" data-rp-act="apply" class="btn-primary">${tCommon.confirm||'Confirm'}</button>
                     </div>`;
@@ -239,15 +278,16 @@
                 picker.querySelector('[data-rp-act="clear"]').onclick = () => { rpStart=''; rpEnd=''; startInput.value=''; endInput.value=''; rangeInput.value=''; closeRangePicker(); };
                 picker.querySelector('[data-rp-act="apply"]').onclick = () => { 
                     if (rpStart) {
-                        startInput.value = rpStart; 
+                        const startDisplay = formatDateDisplay(rpStart);
+                        const endDisplay = rpEnd && rpEnd !== rpStart ? formatDateDisplay(rpEnd) : startDisplay;
+                        startInput.value = rpStart; // ISO format for hidden input
+                        endInput.value = rpEnd || rpStart; // ISO format for hidden input
                         if (rpEnd && rpEnd !== rpStart) {
-                            // Date range
-                            endInput.value = rpEnd; 
-                            rangeInput.value = `${rpStart} - ${rpEnd}`;
+                            // Date range - display in DD/MM/YYYY
+                            rangeInput.value = `${startDisplay} - ${endDisplay}`;
                         } else {
-                            // Single date
-                            endInput.value = rpStart;
-                            rangeInput.value = rpStart;
+                            // Single date - display in DD/MM/YYYY
+                            rangeInput.value = startDisplay;
                         }
                     }
                     closeRangePicker(); 
@@ -262,6 +302,15 @@
                 if (!rpStart || (rpStart && rpEnd)) { 
                     rpStart = iso; 
                     rpEnd = ''; 
+                } else if (rpStart && !rpEnd) {
+                    // If start is set but end is not, clicking another date sets the end
+                    if (new Date(iso) < new Date(rpStart)) {
+                        // If clicked date is before start, swap them
+                        rpEnd = rpStart;
+                        rpStart = iso;
+                    } else {
+                        rpEnd = iso;
+                    }
                 }
                 else if (!rpEnd) {
                     if (new Date(iso) < new Date(rpStart)) { 
@@ -285,7 +334,9 @@
             }
 
             function renderMonthGrid(monthDate){
-                const days = ['Mo','Tu','We','Th','Fr','Sa','Su'];
+                const weekdays = tCommon.weekdays || {};
+                const dayNames = weekdays.short || ['Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa', 'Su'];
+                const days = dayNames;
                 const first = startOfMonth(monthDate);
                 const last = endOfMonth(monthDate);
                 const lead = (dayOfWeekMon(first)+6)%7; // 0..6 lead blanks, Monday-first
@@ -294,23 +345,29 @@
                 for (let i=0;i<lead;i++){ cells += `<div></div>`; }
                 for (let d=1; d<=totalDays; d++){
                     const iso = toISO(new Date(first.getFullYear(), first.getMonth(), d));
+                    const displayDate = toDDMMYYYY(new Date(first.getFullYear(), first.getMonth(), d));
                     const inRange = rpStart && rpEnd && (new Date(iso) >= new Date(rpStart)) && (new Date(iso) <= new Date(rpEnd));
                     const isStart = rpStart && iso===rpStart;
                     const isEnd = rpEnd && iso===rpEnd;
                     const cls = `rp-day${inRange?' in-range':''}${isStart?' start':''}${isEnd?' end':''}`;
-                    cells += `<button type="button" data-rp-date="${iso}" class="${cls}" style="border:1px solid #e5e7eb;background:${inRange?'#eef2ff':'#fff'};padding:6px;border-radius:6px;cursor:pointer;">${d}</button>`;
+                    cells += `<button type="button" data-rp-date="${iso}" class="${cls}">${d}</button>`;
                 }
-                const weekHeader = `<div style="display:grid;grid-template-columns:repeat(7,1fr);gap:6px;margin-bottom:6px;color:#6b7280;font-size:12px;">${days.map(w=>`<div>${w}</div>`).join('')}</div>`;
-                const grid = `<div style="display:grid;grid-template-columns:repeat(7,1fr);gap:6px;">${cells}</div>`;
-                return `<div>${weekHeader}${grid}</div>`;
+                const weekHeader = `<div class="range-picker-weekdays">${days.map(w=>`<div>${w}</div>`).join('')}</div>`;
+                const grid = `<div class="range-picker-days">${cells}</div>`;
+                return `<div class="range-picker-month">${weekHeader}${grid}</div>`;
             }
 
             function startOfMonth(d){ const x=new Date(d); x.setDate(1); x.setHours(0,0,0,0); return x; }
             function endOfMonth(d){ const x=new Date(d); x.setMonth(x.getMonth()+1,0); x.setHours(0,0,0,0); return x; }
             function addMonths(d, n){ const x=new Date(d); x.setMonth(x.getMonth()+n); return x; }
             function dayOfWeekMon(d){ const dow=d.getDay(); return dow===0?7:dow; }
-            function toISO(d){ const m=(d.getMonth()+1).toString().padStart(2,'0'); const day=d.getDate().toString().padStart(2,'0'); return `${d.getFullYear()}-${m}-${day}`; }
-            function formatMonthYear(d){ return d.toLocaleString(undefined,{ month:'long', year:'numeric' }); }
+            function formatMonthYear(d){ 
+                const months = tCommon.months || {};
+                const monthNames = months.names || ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+                const monthIndex = d.getMonth();
+                const monthName = monthNames[monthIndex] || d.toLocaleString(undefined,{ month:'long' });
+                return `${monthName} ${d.getFullYear()}`;
+            }
         }
     }
 
@@ -752,15 +809,18 @@
         const modal = document.getElementById('ccRateEditModal');
         if (!modal) return;
         document.getElementById('ccRateEditCurrency').value = (row.currency_code||'').toUpperCase();
-        document.getElementById('ccRateEditDate').value = row.rate_date || '';
+        const editDateInput = document.getElementById('ccRateEditDate');
+        if (editDateInput) {
+            const dateValue = row.rate_date || '';
+            editDateInput.value = dateValue ? formatDateDisplay(dateValue) : '';
+        }
         document.getElementById('ccRateEditValue').value = Number(row.rate).toFixed(6);
         document.getElementById('ccRateEditId').value = row.id;
-        modal.style.display = 'flex';
+        openModal('ccRateEditModal');
     }
 
     function closeEditModal(){
-        const modal = document.getElementById('ccRateEditModal');
-        if (modal) modal.style.display = 'none';
+        closeModal('ccRateEditModal');
         currentEditRate = null;
     }
 
@@ -784,12 +844,12 @@
     }
 
     function openDateEditModal(dateStr, mapByCode){
-        currentEditDate = dateStr;
+        currentEditDate = dateStr; // Store ISO format for API
         const modal = document.getElementById('ccDateEditModal');
         const dateInput = document.getElementById('ccDateEditDate');
         const list = document.getElementById('ccDateEditList');
         if (!modal || !dateInput || !list) return;
-        dateInput.value = dateStr;
+        dateInput.value = formatDateDisplay(dateStr); // Display in DD/MM/YYYY
         const baseCode = (currentCountry?.local_currency_code||'').toUpperCase();
         const codes = countryCurrencies
             .filter(x => (x.is_active===true)||(x.is_active==='t')||(x.is_active===1)||(x.is_active==='1'))
@@ -802,18 +862,17 @@
             const id = obj && obj.id ? obj.id : '';
             const meta = countryCurrencies.find(x => (x.currency_code||'').toUpperCase() === code);
             const sym = meta && meta.symbol ? ` ${meta.symbol}` : '';
-            html += `<div style="display:flex; gap:8px; align-items:center; margin-bottom:8px;">
-                        <label style="min-width:80px; font-weight:600;">${code}${sym}</label>
+            html += `<div class="currency-country-date-edit-row">
+                        <label class="currency-country-date-edit-label">${code}${sym}</label>
                         <input type="number" step="0.000001" class="ccDateEditInput" data-id="${id}" data-code="${code}" value="${val}" placeholder="${tCurrencies.rate||'Rate'}" />
                     </div>`;
         });
         list.innerHTML = html;
-        modal.style.display = 'flex';
+        openModal('ccDateEditModal');
     }
 
     function closeDateEditModal(){
-        const modal = document.getElementById('ccDateEditModal');
-        if (modal) modal.style.display = 'none';
+        closeModal('ccDateEditModal');
         currentEditDate = null;
     }
 
@@ -941,28 +1000,28 @@
                         document.body.appendChild(modal);
                         
                         document.getElementById('ccCloseUnitNameModal').addEventListener('click', () => {
-                            modal.style.display = 'none';
+                            closeModal(modalId);
                         });
                         document.getElementById('ccCancelUnitNameModal').addEventListener('click', () => {
-                            modal.style.display = 'none';
+                            closeModal(modalId);
                         });
                         document.getElementById('ccSaveUnitNameModal').addEventListener('click', async () => {
                             const input = document.getElementById('ccUnitNameInput');
                             const newUnit = input.value.trim();
                             await fetch(`${API_BASE}?action=country_currency`, { method:'PUT', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ id, unit_name: newUnit }) });
-                            modal.style.display = 'none';
+                            closeModal(modalId);
                             await loadCountryCurrencies(COUNTRY_ID);
                             renderCountryCurrencies();
                         });
                         modal.addEventListener('click', function(e) {
                             if (e.target === this) {
-                                modal.style.display = 'none';
+                                closeModal(modalId);
                             }
                         });
                     }
                     
                     document.getElementById('ccUnitNameInput').value = row.unit_name || '';
-                    modal.style.display = 'flex';
+                    openModal(modalId);
                     setTimeout(() => document.getElementById('ccUnitNameInput')?.focus(), 100);
                 }
                 await loadCountryCurrencies(COUNTRY_ID);
@@ -971,9 +1030,7 @@
         });
     }
 
-    function showToast(type, message){
-        if (typeof window.showToast==='function') window.showToast(type, message); else alert(message||type);
-    }
+    // Toast notifications use global showToast from toast.js
 })();
 
 

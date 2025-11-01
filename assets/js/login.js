@@ -22,10 +22,6 @@ function getCurrentLanguage() {
     if (langFromURL) {
         return langFromURL;
     }
-    // Get from global variable (set by PHP)
-    if (typeof currentLang !== 'undefined') {
-        return currentLang;
-    }
     // Get from page attribute
     const htmlLang = document.documentElement.getAttribute('lang');
     return htmlLang || 'en';

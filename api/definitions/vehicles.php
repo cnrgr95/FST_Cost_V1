@@ -948,7 +948,6 @@ function getContractRoutes($conn, $contract_id) {
                     // Ensure we have a valid array
                     if (json_last_error() === JSON_ERROR_NONE && is_array($decoded)) {
                         $route['vehicle_type_prices'] = $decoded;
-                        // Debug: Log what we're returning
                         error_log('Route ' . ($route['id'] ?? 'unknown') . ' prices: ' . json_encode($decoded));
                     } else {
                         error_log('JSON decode error for route ' . ($route['id'] ?? 'unknown') . ': ' . json_last_error_msg() . ' | Raw data: ' . substr($pricesData, 0, 200));
@@ -1015,7 +1014,6 @@ function updateContractRoute($conn, $data) {
         // Convert vehicle_type_prices to JSONB
         $vehicleTypePricesJson = json_encode($vehicle_type_prices, JSON_UNESCAPED_UNICODE | JSON_NUMERIC_CHECK);
         
-        // Debug: Log prices being updated
         if (!empty($vehicle_type_prices)) {
             error_log('Updating route ' . $route_id . ' with prices: ' . $vehicleTypePricesJson);
         }
@@ -1120,7 +1118,6 @@ function createContractRoute($conn, $data) {
         // Convert vehicle_type_prices to JSONB
         $vehicleTypePricesJson = json_encode($vehicle_type_prices, JSON_UNESCAPED_UNICODE | JSON_NUMERIC_CHECK);
         
-        // Debug: Log prices being saved
         if (!empty($vehicle_type_prices)) {
             error_log('Creating route with prices: ' . $vehicleTypePricesJson);
         }
@@ -1268,7 +1265,6 @@ function saveContractRoutes($conn, $data) {
                 }
             }
             
-            // Debug: Log prices being saved
             if (!empty($vehicleTypePrices)) {
                 error_log('Saving prices for route: ' . $fromLocation . ' -> ' . $toLocation);
                 error_log('Vehicle type prices: ' . json_encode($vehicleTypePrices));

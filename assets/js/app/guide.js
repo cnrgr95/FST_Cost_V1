@@ -2,12 +2,25 @@
 (function() {
     'use strict';
     
-    const API_BASE_MERCHANTS = (typeof window.API_BASE_MERCHANTS !== 'undefined') ? window.API_BASE_MERCHANTS : '../api/definitions/merchants.php';
-    const API_BASE_VEHICLES = (typeof window.API_BASE_VEHICLES !== 'undefined') ? window.API_BASE_VEHICLES : '../api/definitions/vehicles.php';
-    const API_BASE_USERS = (typeof window.API_BASE_USERS !== 'undefined') ? window.API_BASE_USERS : '../api/definitions/users.php';
+    // Get page configuration
+    const pageConfig = (function() {
+        const configEl = document.getElementById('page-config');
+        if (configEl) {
+            try {
+                return JSON.parse(configEl.textContent);
+            } catch (e) {
+                console.error('Failed to parse page config:', e);
+            }
+        }
+        return {};
+    })();
+    
+    const API_BASE_MERCHANTS = pageConfig.apiBaseMerchants || '../api/definitions/merchants.php';
+    const API_BASE_VEHICLES = pageConfig.apiBaseVehicles || '../api/definitions/vehicles.php';
+    const API_BASE_USERS = pageConfig.apiBaseUsers || '../api/definitions/users.php';
     
     // Get translations
-    const t = window.Translations || {};
+    const t = pageConfig.translations || {};
     const tGuide = t.guide || {};
     const tCommon = t.common || {};
     
@@ -236,51 +249,6 @@
         `;
     }
     
-    // Toast notification function
-    function showToast(type, message, duration = 5000) {
-        const container = document.getElementById('toastContainer');
-        if (!container) return;
-        
-        const toast = document.createElement('div');
-        toast.className = `toast ${type}`;
-        
-        let icon = '';
-        let title = '';
-        if (type === 'error') {
-            icon = 'error';
-            title = tCommon.error || 'Error';
-        } else if (type === 'warning') {
-            icon = 'warning';
-            title = 'Warning';
-        } else if (type === 'info') {
-            icon = 'info';
-            title = 'Information';
-        } else if (type === 'success') {
-            icon = 'check_circle';
-            title = tCommon.success || 'Success';
-        }
-        
-        toast.innerHTML = `
-            <span class="material-symbols-rounded toast-icon">${icon}</span>
-            <div class="toast-content">
-                <div class="toast-title">${title}</div>
-                <div class="toast-message">${message}</div>
-            </div>
-            <button class="toast-close">&times;</button>
-        `;
-        
-        container.appendChild(toast);
-        toast.querySelector('.toast-close').addEventListener('click', () => closeToast(toast));
-        if (duration > 0) {
-            setTimeout(() => closeToast(toast), duration);
-        }
-    }
-    
-    function closeToast(toast) {
-        toast.classList.add('fade-out');
-        setTimeout(() => {
-            if (toast.parentNode) toast.parentNode.removeChild(toast);
-        }, 300);
-    }
+    // Toast notifications use global showToast from toast.js
 })();
 

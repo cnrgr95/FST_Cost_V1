@@ -88,17 +88,21 @@ $t_guide = $all_translations['guide'] ?? [];
     </div>
     
     
-    <!-- Define API base path and translations for JavaScript -->
-    <script>
-        const BASE_PATH = '<?php echo $basePath; ?>';
-        window.API_BASE_MERCHANTS = BASE_PATH + 'api/definitions/merchants.php';
-        window.API_BASE_VEHICLES = BASE_PATH + 'api/definitions/vehicles.php';
-        window.API_BASE_USERS = BASE_PATH + 'api/definitions/users.php';
-        window.Translations = {
-            guide: <?php echo json_encode($t_guide); ?>,
-            common: <?php echo json_encode($t_common); ?>,
-            sidebar: <?php echo json_encode($t_sidebar); ?>
-        };
+    <!-- Page configuration for JavaScript -->
+    <script type="application/json" id="page-config">
+    <?php
+    echo json_encode([
+        'basePath' => $basePath,
+        'apiBaseMerchants' => $basePath . 'api/definitions/merchants.php',
+        'apiBaseVehicles' => $basePath . 'api/definitions/vehicles.php',
+        'apiBaseUsers' => $basePath . 'api/definitions/users.php',
+        'translations' => [
+            'guide' => $t_guide,
+            'common' => $t_common,
+            'sidebar' => $t_sidebar
+        ]
+    ], JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_PRETTY_PRINT);
+    ?>
     </script>
     
     <!-- Toast Notification Container -->

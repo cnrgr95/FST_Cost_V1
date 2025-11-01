@@ -64,10 +64,10 @@ $t_lang_mgmt = $all_translations['language_mgmt'] ?? [];
                 <div class="languages-container">
                     <!-- Sidebar -->
                     <div class="languages-sidebar">
-                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                        <div class="languages-sidebar-header">
                             <h2><?php echo $t_lang_mgmt['languages'] ?? 'Languages'; ?></h2>
-                            <button class="btn-add" onclick="openAddModal()" style="padding: 6px 12px; font-size: 14px;">
-                                <span class="material-symbols-rounded" style="font-size: 18px;">add</span>
+                            <button class="btn-add btn-add-small" onclick="openAddModal()">
+                                <span class="material-symbols-rounded icon-small">add</span>
                                 <?php echo $t_lang_mgmt['add'] ?? 'Add'; ?>
                             </button>
                         </div>
@@ -77,8 +77,8 @@ $t_lang_mgmt = $all_translations['language_mgmt'] ?? [];
                     <!-- Editor -->
                     <div class="languages-editor">
                         <div id="editor-content">
-                            <div style="text-align: center; padding: 40px; color: #9ca3af;">
-                                <span class="material-symbols-rounded" style="font-size: 48px;">language</span>
+                            <div class="languages-editor-empty">
+                                <span class="material-symbols-rounded languages-editor-empty-icon">language</span>
                                 <p><?php echo $t_lang_mgmt['select_language_prompt'] ?? 'Select a language to edit translations'; ?></p>
                             </div>
                         </div>
@@ -100,7 +100,7 @@ $t_lang_mgmt = $all_translations['language_mgmt'] ?? [];
             <form id="addLanguageForm">
                 <div class="form-group">
                     <label><?php echo $t_lang_mgmt['language_code'] ?? 'Language Code'; ?> *</label>
-                    <input type="text" name="code" placeholder="<?php echo $t_lang_mgmt['language_code_placeholder'] ?? 'e.g., de, fr, es'; ?>" required maxlength="2" style="text-transform: lowercase;">
+                    <input type="text" name="code" placeholder="<?php echo $t_lang_mgmt['language_code_placeholder'] ?? 'e.g., de, fr, es'; ?>" required maxlength="2" class="text-lowercase">
                 </div>
                 
                 <div class="form-group">

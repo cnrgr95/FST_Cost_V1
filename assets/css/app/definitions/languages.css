@@ -139,6 +139,36 @@
     }
 }
 
+.languages-sidebar-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+}
+
+.btn-add-small {
+    padding: 6px 12px;
+    font-size: 14px;
+}
+
+.btn-add-small .icon-small {
+    font-size: 18px;
+}
+
+.languages-editor-empty {
+    text-align: center;
+    padding: 40px;
+    color: #9ca3af;
+}
+
+.languages-editor-empty-icon {
+    font-size: 48px;
+}
+
+.text-lowercase {
+    text-transform: lowercase;
+}
+
 /* Responsive */
 @media (max-width: 768px) {
     .languages-container {

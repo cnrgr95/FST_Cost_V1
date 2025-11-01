@@ -249,15 +249,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             </button>
         </form>
         
-        <div style="text-align: center; margin-top: 1rem; font-size: 12px; color: #666;">
-            <i class="fas fa-info-circle"></i> FST Cost Management v1.0.0
+        <div class="login-footer">
+            <i class="fas fa-info-circle"></i> <?php echo $all_translations['app']['name'] ?? 'FST Cost Management'; ?> <?php echo $all_translations['app']['version'] ?? 'v1.0.0'; ?>
         </div>
     </div>
     
-    <script>
-        // Pass current language to JavaScript
-        const currentLang = '<?php echo $lang; ?>';
-    </script>
     <script src="assets/js/login.js"></script>
 </body>
 </html>

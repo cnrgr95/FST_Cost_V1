@@ -1318,12 +1318,6 @@
         }
     }
     
-    function showToast(type, message) {
-        if (typeof window.showToast === 'function') {
-            window.showToast(type, message);
-        } else {
-            alert(message || type);
-        }
-    }
+    // Toast notifications use global showToast from toast.js
 })();
 

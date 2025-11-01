@@ -79,14 +79,14 @@ $t_users = $all_translations['users'] ?? [];
             <form id="userForm">
                 <div class="form-group">
                     <label><?php echo $t_users['username'] ?? 'Username'; ?> *</label>
-                    <input type="text" name="username" required readonly style="background-color: #f3f4f6; color: #6b7280;">
-                    <small style="color: #6b7280;"><?php echo $t_users['username_ldap'] ?? 'LDAP username - cannot be changed'; ?></small>
+                    <input type="text" name="username" required readonly class="input-readonly">
+                    <small class="input-hint"><?php echo $t_users['username_ldap'] ?? 'LDAP username - cannot be changed'; ?></small>
                 </div>
                 
                 <div class="form-group">
                     <label><?php echo $t_users['full_name'] ?? 'Full Name'; ?> *</label>
-                    <input type="text" name="full_name" required readonly style="background-color: #f3f4f6; color: #6b7280;">
-                    <small style="color: #6b7280;"><?php echo $t_users['full_name_ldap'] ?? 'LDAP full name - cannot be changed'; ?></small>
+                    <input type="text" name="full_name" required readonly class="input-readonly">
+                    <small class="input-hint"><?php echo $t_users['full_name_ldap'] ?? 'LDAP full name - cannot be changed'; ?></small>
                 </div>
                 
                 <div class="form-group">
@@ -126,8 +126,8 @@ $t_users = $all_translations['users'] ?? [];
                 
                 <div class="form-group">
                     <label><?php echo $t_users['email'] ?? 'Email'; ?></label>
-                    <input type="email" name="email" readonly style="background-color: #f3f4f6; color: #6b7280;">
-                    <small style="color: #6b7280;"><?php echo $t_users['email_ldap'] ?? 'LDAP email - cannot be changed'; ?></small>
+                    <input type="email" name="email" readonly class="input-readonly">
+                    <small class="input-hint"><?php echo $t_users['email_ldap'] ?? 'LDAP email - cannot be changed'; ?></small>
                 </div>
                 
                 <div class="form-group">

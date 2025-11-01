@@ -471,11 +471,12 @@
                                 }
                             );
                         } else {
-                    if (!confirm(tCommon.delete_confirm || 'Delete?')) return;
-                    await deleteCountryCurrency(id);
-                            await loadCountryCurrencies(currentCountryId);
-                            fillCurrencySelect();
-                            renderCountryCurrencies();
+                            showConfirmDialog(tCommon.delete_confirm || 'Delete?', async function() {
+                                await deleteCountryCurrency(id);
+                                await loadCountryCurrencies(currentCountryId);
+                                fillCurrencySelect();
+                                renderCountryCurrencies();
+                            });
                         }
                     }
                     return;
@@ -622,10 +623,9 @@
                 }
             );
         } else {
-        if (!confirm(tCurrencies.delete_confirm || 'Are you sure you want to delete this currency?')) {
-            return;
-            }
-            performDeleteCurrency(id);
+            showConfirmDialog(tCurrencies.delete_confirm || 'Are you sure you want to delete this currency?', function() {
+                performDeleteCurrency(id);
+            });
         }
     };
         
@@ -657,11 +657,5 @@
         });
     }
     
-    function showToast(type, message) {
-        if (typeof window.showToast === 'function') {
-            window.showToast(type, message);
-        } else {
-            alert(message || type);
-        }
-    }
+    // Toast notifications use global showToast from toast.js
 })();

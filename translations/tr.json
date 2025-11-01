@@ -72,7 +72,6 @@
         "success": "Başarılı",
         "saved_successfully": "Kaydedildi",
         "deleted_successfully": "Silindi",
-        "fill_required_fields": "Zorunlu alanları doldurun",
         "cancel": "İptal",
         "save": "Kaydet",
         "delete": "Sil",
@@ -127,7 +126,16 @@
         "upload_failed": "Yükleme başarısız",
         "not_found": "Bulunamadı",
         "delete_confirm": "Bu kaydı silmek istediğinizden emin misiniz?",
-        "failed_to_delete_item": "Öğe silinemedi"
+        "failed_to_delete_item": "Öğe silinemedi",
+        "fill_required_fields": "Lütfen tüm zorunlu alanları doldurun",
+        "invalid_date_range": "Başlangıç tarihi bitiş tarihinden sonra olamaz",
+        "months": {
+            "names": ["Ocak", "Şubat", "Mart", "Nisan", "Mayıs", "Haziran", "Temmuz", "Ağustos", "Eylül", "Ekim", "Kasım", "Aralık"]
+        },
+        "weekdays": {
+            "short": ["Pt", "Sa", "Ça", "Pe", "Cu", "Ct", "Pz"],
+            "long": ["Pazartesi", "Salı", "Çarşamba", "Perşembe", "Cuma", "Cumartesi", "Pazar"]
+        }
     },
     "locations": {
         "title": "Lokasyonlar",
@@ -564,8 +572,7 @@
         "actions": "İşlemler",
         "loading_rates": "Kurlar yükleniyor...",
         "loading_exchange_rates": "Döviz kurları yükleniyor...",
-        "single_date_ok": "(veya tek tarih)",
-        "date_range_placeholder": "YYYY-MM-DD veya YYYY-MM-DD - YYYY-MM-DD",
+        "date_range_placeholder": "GG/AA/YYYY veya GG/AA/YYYY - GG/AA/YYYY",
         "selected_dates": "Seçilen tarihler",
         "rates_not_available": "Kurlar mevcut değil",
         "dates_had_no_rates": "{count} tarih için kur bulunamadı",
@@ -579,7 +586,7 @@
         "add": "Ekle"
     },
     "app": {
-        "name": "FST Maliyet Yönetimi"
-    },
-    "version": "v1.0.0"
+        "name": "FST Maliyet Yönetimi",
+        "version": "v1.0.0"
+    }
 }

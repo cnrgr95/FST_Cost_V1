@@ -385,6 +385,25 @@ table tbody tr:last-child td {
   background: #dc2626;
 }
 
+.form-group-flex {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.input-readonly {
+    background-color: #f3f4f6 !important;
+    color: #6b7280 !important;
+    cursor: not-allowed;
+}
+
+.input-hint {
+    display: block;
+    margin-top: 4px;
+    font-size: 12px;
+    color: #6b7280;
+}
+
 /* Mobile Responsive */
 @media (max-width: 768px) {
   .main-content {

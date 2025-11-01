@@ -1,14 +1,29 @@
 <?php
+/**
+ * Currency Country Management Page
+ * Manages currencies and exchange rates for a specific country
+ */
+
 session_start();
+
+// Define base path
 $basePath = '../../';
+
+// Check if user is logged in
 if (!isset($_SESSION['user_id'])) {
-	header('Location: ' . $basePath . 'login.php');
-	exit;
+    header('Location: ' . $basePath . 'login.php');
+    exit;
 }
+
+// Load translation helper
 require_once $basePath . 'includes/translations.php';
+
+// Get translations
 $t_sidebar = $all_translations['sidebar'] ?? [];
 $t_common = $all_translations['common'] ?? [];
 $t_currencies = $all_translations['currencies'] ?? [];
+
+// Get country ID from URL
 $countryId = isset($_GET['id']) ? (int)$_GET['id'] : 0;
 ?>
 <!DOCTYPE html>
@@ -17,15 +32,21 @@ $countryId = isset($_GET['id']) ? (int)$_GET['id'] : 0;
 	<meta charset="UTF-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
 	<title><?php echo ($t_currencies['manage_country'] ?? 'Manage Country') . ' - ' . ($all_translations['app']['name'] ?? 'FST Cost Management'); ?></title>
+	
 	<!-- Google Fonts for Icons -->
 	<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@24,400,0,0" />
+	
 	<!-- Font Awesome -->
 	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+	
+	<!-- CSS Files -->
 	<link rel="stylesheet" href="<?php echo $basePath; ?>assets/css/includes/sidebar.css">
 	<link rel="stylesheet" href="<?php echo $basePath; ?>assets/css/includes/topbar.css">
 	<link rel="stylesheet" href="<?php echo $basePath; ?>assets/css/common.css">
 	<link rel="stylesheet" href="<?php echo $basePath; ?>assets/css/confirm-dialog.css">
 	<link rel="stylesheet" href="<?php echo $basePath; ?>assets/css/app/definitions/currencies.css">
+	<link rel="stylesheet" href="<?php echo $basePath; ?>assets/css/app/definitions/currency-country.css">
+	
 	<link rel="icon" type="image/svg+xml" href="<?php echo $basePath; ?>assets/images/logo.svg">
 </head>
 <body>
@@ -41,7 +62,8 @@ $countryId = isset($_GET['id']) ? (int)$_GET['id'] : 0;
 						<?php echo $t_common['back'] ?? 'Back'; ?>
 					</a>
 				</div>
-				<div class="form-group" style="display:flex; gap:8px; flex-wrap:wrap;">
+				<!-- Action Buttons -->
+				<div class="currency-country-button-group">
 					<button class="btn-primary" id="ccOpenBase">
 						<span class="material-symbols-rounded">settings</span>
 						<?php echo $t_currencies['base_currency'] ?? 'Base currency of country'; ?>
@@ -55,25 +77,26 @@ $countryId = isset($_GET['id']) ? (int)$_GET['id'] : 0;
 						<?php echo $t_currencies['manage'] ?? 'Manage'; ?>
 					</button>
 				</div>
-				<div class="form-group" style="display:none;">
+				<div class="form-group currency-country-form-group-hidden">
 					<div id="ccCurrenciesListInline" class="table-wrapper"></div>
 				</div>
-				<hr/>
-				<div class="form-group">
-                    <h2 style="margin:8px 0;"><?php echo $t_currencies['exchange_rates'] ?? 'Exchange Rates'; ?></h2>
-					<div style="display:flex; gap:12px; align-items:flex-end; flex-wrap:wrap;">
+				
+				<!-- Exchange Rates Section -->
+				<div class="currency-country-section">
+					<h2 class="currency-country-section-title"><?php echo $t_currencies['exchange_rates'] ?? 'Exchange Rates'; ?></h2>
+					<div class="currency-country-form-row">
 						<div>
 							<label><?php echo $t_currencies['currency'] ?? 'Currency'; ?></label>
-							<select id="ccRateCurrency" style="min-width:220px;"></select>
+							<select id="ccRateCurrency" class="currency-country-select"></select>
 						</div>
-						<div style="position:relative;">
-							<label><?php echo ($t_currencies['start_date'] ?? 'Start Date') . ' - ' . ($t_currencies['end_date'] ?? 'End Date'); ?> <?php echo ($t_currencies['single_date_ok'] ?? '(veya tek tarih)'); ?></label>
-							<input type="text" id="ccRateRange" placeholder="<?php echo $t_currencies['date_range_placeholder'] ?? 'YYYY-MM-DD veya YYYY-MM-DD - YYYY-MM-DD'; ?>" style="min-width:240px;" />
+						<div class="currency-country-date-wrapper">
+							<label><?php echo ($t_currencies['start_date'] ?? 'Start Date') . ' - ' . ($t_currencies['end_date'] ?? 'End Date'); ?></label>
+							<input type="text" id="ccRateRange" placeholder="<?php echo $t_currencies['date_range_placeholder'] ?? 'YYYY-MM-DD veya YYYY-MM-DD - YYYY-MM-DD'; ?>" class="currency-country-input" />
 							<!-- hidden native date inputs to use single-calendar flow -->
-							<input type="date" id="ccRateStart" style="display:none;" />
-							<input type="date" id="ccRateEnd" style="display:none;" />
+							<input type="date" id="ccRateStart" class="currency-country-date-input" />
+							<input type="date" id="ccRateEnd" class="currency-country-date-input" />
 							<!-- inline two-month range picker -->
-							<div id="ccRangePicker" style="display:none;"></div>
+							<div id="ccRangePicker" class="currency-country-range-picker"></div>
 						</div>
 						<div>
 							<label><?php echo $t_currencies['rate'] ?? 'Rate'; ?></label>
@@ -93,15 +116,16 @@ $countryId = isset($_GET['id']) ? (int)$_GET['id'] : 0;
                         </button>
 					</div>
 				</div>
-				<div class="form-group">
+				<div class="currency-country-table-wrapper">
 					<div id="ccRatesList" class="table-wrapper"></div>
+				</div>
 				</div>
 			</div>
 		</div>
 	</div>
 
 	<!-- Single Edit Modal for Rate -->
-	<div class="modal" id="ccRateEditModal" style="display:none;">
+	<div class="modal currency-country-modal" id="ccRateEditModal">
 		<div class="modal-content">
 			<div class="modal-header">
                 <h2 id="ccRateEditTitle"><?php echo $t_currencies['edit_rate'] ?? 'Edit Rate'; ?></h2>
@@ -111,11 +135,11 @@ $countryId = isset($_GET['id']) ? (int)$_GET['id'] : 0;
 			</div>
 			<div class="form-group">
 				<label><?php echo $t_currencies['currency'] ?? 'Currency'; ?></label>
-				<input type="text" id="ccRateEditCurrency" readonly />
+				<input type="text" id="ccRateEditCurrency" readonly class="input-readonly" />
 			</div>
 			<div class="form-group">
 				<label><?php echo $t_currencies['date'] ?? 'Date'; ?></label>
-				<input type="text" id="ccRateEditDate" readonly />
+				<input type="text" id="ccRateEditDate" readonly class="input-readonly" />
 			</div>
 			<div class="form-group">
 				<label><?php echo $t_currencies['rate'] ?? 'Rate'; ?></label>
@@ -130,14 +154,15 @@ $countryId = isset($_GET['id']) ? (int)$_GET['id'] : 0;
 	</div>
 
 	<!-- Base Currency Modal -->
-	<div class="modal" id="ccBaseModal" style="display:none;">
+	<div class="modal currency-country-modal" id="ccBaseModal">
 		<div class="modal-content">
 			<div class="modal-header">
 				<h2><?php echo $t_currencies['base_currency'] ?? 'Base currency of country'; ?></h2>
 				<button class="btn-close" id="ccBaseClose"><span class="material-symbols-rounded">close</span></button>
 			</div>
 			<div class="form-group">
-				<select id="ccBaseCurrency" style="min-width:220px;"></select>
+				<label><?php echo $t_currencies['currency'] ?? 'Currency'; ?></label>
+				<select id="ccBaseCurrency" class="currency-country-select"></select>
 			</div>
 			<div class="modal-footer">
 				<button type="button" class="btn-secondary" id="ccBaseCancel"><?php echo $t_common['cancel'] ?? 'Cancel'; ?></button>
@@ -147,16 +172,16 @@ $countryId = isset($_GET['id']) ? (int)$_GET['id'] : 0;
 	</div>
 
 	<!-- Add Country Currency Modal -->
-	<div class="modal" id="ccAddCurModal" style="display:none;">
+	<div class="modal currency-country-modal" id="ccAddCurModal">
 		<div class="modal-content">
 			<div class="modal-header">
 				<h2><?php echo $t_currencies['add_country_currency'] ?? 'Add currency to country'; ?></h2>
 				<button class="btn-close" id="ccAddClose"><span class="material-symbols-rounded">close</span></button>
 			</div>
-			<div class="form-group" style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
-				<select id="ccAddCurrency" style="min-width:220px;"></select>
-				<input id="ccUnitName" type="text" placeholder="<?php echo ($t_currencies['unit_name_placeholder'] ?? $t_currencies['unit_name'] ?? 'Unit name (optional)'); ?>" style="min-width:200px;" />
-				<label style="display:flex; align-items:center; gap:6px;">
+			<div class="form-group form-group-flex">
+				<select id="ccAddCurrency" class="currency-country-select"></select>
+				<input id="ccUnitName" type="text" placeholder="<?php echo ($t_currencies['unit_name_placeholder'] ?? $t_currencies['unit_name'] ?? 'Unit name (optional)'); ?>" class="currency-country-input-small" />
+				<label class="currency-country-checkbox-label">
 					<input id="ccIsActive" type="checkbox" checked />
 					<?php echo $t_currencies['active'] ?? 'Active'; ?>
 				</label>
@@ -169,8 +194,8 @@ $countryId = isset($_GET['id']) ? (int)$_GET['id'] : 0;
 	</div>
 
 	<!-- Manage Country Currencies Modal -->
-	<div class="modal" id="ccCurrenciesModal" style="display:none;">
-		<div class="modal-content" style="max-width:900px;">
+	<div class="modal currency-country-modal" id="ccCurrenciesModal">
+		<div class="modal-content currency-country-modal-large">
 			<div class="modal-header">
 				<h2><?php echo $t_currencies['manage_country'] ?? 'Manage Country'; ?></h2>
 				<button class="btn-close" id="ccCurrenciesClose"><span class="material-symbols-rounded">close</span></button>
@@ -185,7 +210,7 @@ $countryId = isset($_GET['id']) ? (int)$_GET['id'] : 0;
 	</div>
 
 	<!-- Per-Date Edit Modal -->
-	<div class="modal" id="ccDateEditModal" style="display:none;">
+	<div class="modal currency-country-modal" id="ccDateEditModal">
 		<div class="modal-content">
 			<div class="modal-header">
                 <h2 id="ccDateEditTitle"><?php echo $t_currencies['edit_rates'] ?? 'Edit Rates'; ?></h2>
@@ -195,7 +220,7 @@ $countryId = isset($_GET['id']) ? (int)$_GET['id'] : 0;
 			</div>
 			<div class="form-group">
 				<label><?php echo $t_currencies['date'] ?? 'Date'; ?></label>
-				<input type="text" id="ccDateEditDate" readonly />
+				<input type="text" id="ccDateEditDate" readonly class="input-readonly" />
 			</div>
 			<div class="form-group">
 				<div id="ccDateEditList"></div>

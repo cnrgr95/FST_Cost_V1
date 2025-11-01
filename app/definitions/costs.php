@@ -79,8 +79,8 @@ $t_costs = $all_translations['costs'] ?? [];
             <form id="costForm">
                 <div class="form-group">
                     <label><?php echo $t_costs['cost_code'] ?? 'Cost Code'; ?></label>
-                    <input type="text" name="cost_code" disabled placeholder="<?php echo $t_costs['code_auto'] ?? 'Will be generated automatically'; ?>" style="background-color: #f3f4f6; color: #6b7280;">
-                    <small style="color: #6b7280;"><?php echo $t_costs['code_auto'] ?? 'Will be generated automatically'; ?></small>
+                    <input type="text" name="cost_code" disabled placeholder="<?php echo $t_costs['code_auto'] ?? 'Will be generated automatically'; ?>" class="input-readonly">
+                    <small class="input-hint"><?php echo $t_costs['code_auto'] ?? 'Will be generated automatically'; ?></small>
                 </div>
                 
                 <div class="form-group">

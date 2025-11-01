@@ -1,0 +1,371 @@
+/* Currency Country Page Styles */
+
+/* Form groups */
+.currency-country-form-group-hidden {
+    display: none;
+}
+
+.currency-country-section-title {
+    margin: 8px 0;
+    font-size: 18px;
+    font-weight: 600;
+    color: #1f2937;
+}
+
+.currency-country-form-row {
+    display: flex;
+    gap: 12px;
+    align-items: flex-end;
+    flex-wrap: nowrap;
+    width: 100%;
+    overflow-x: auto;
+}
+
+.currency-country-select {
+    width: 100%;
+}
+
+.currency-country-input {
+    width: 100%;
+}
+
+.currency-country-input-small {
+    min-width: 200px;
+}
+
+.currency-country-date-input {
+    display: none;
+}
+
+.currency-country-range-picker {
+    display: none;
+}
+
+.currency-country-date-wrapper {
+    position: relative;
+}
+
+.currency-country-checkbox-label {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    cursor: pointer;
+}
+
+.currency-country-checkbox-label input[type="checkbox"] {
+    cursor: pointer;
+}
+
+/* Modal sizes */
+.currency-country-modal-large {
+    max-width: 900px;
+}
+
+/* Form layout improvements */
+.currency-country-form-row > div {
+    flex: 1;
+    min-width: 200px;
+    max-width: 100%;
+}
+
+.currency-country-form-row > div:first-child {
+    flex: 0 0 200px;
+    min-width: 180px;
+    max-width: 220px;
+}
+
+.currency-country-form-row > div:nth-child(2) {
+    flex: 1 1 auto;
+    min-width: 280px;
+    max-width: 380px;
+}
+
+.currency-country-form-row > div:nth-child(3) {
+    flex: 0 0 140px;
+    min-width: 120px;
+    max-width: 160px;
+}
+
+.currency-country-form-row button {
+    margin-top: auto;
+    height: fit-content;
+    white-space: nowrap;
+}
+
+/* Prevent field overlap - responsive layout */
+@media (max-width: 1600px) {
+    .currency-country-form-row {
+        gap: 10px;
+    }
+    
+    .currency-country-form-row > div:first-child {
+        flex: 0 0 180px;
+        min-width: 160px;
+    }
+    
+    .currency-country-form-row > div:nth-child(2) {
+        flex: 1 1 auto;
+        min-width: 260px;
+        max-width: 350px;
+    }
+    
+    .currency-country-form-row > div:nth-child(3) {
+        flex: 0 0 130px;
+        min-width: 110px;
+    }
+}
+
+@media (max-width: 1200px) {
+    .currency-country-form-row {
+        gap: 10px;
+        flex-wrap: wrap;
+    }
+    
+    .currency-country-form-row > div:first-child {
+        flex: 0 0 calc(33.333% - 7px);
+        min-width: 150px;
+    }
+    
+    .currency-country-form-row > div:nth-child(2) {
+        flex: 1 1 calc(33.333% - 7px);
+        min-width: 240px;
+        max-width: 100%;
+    }
+    
+    .currency-country-form-row > div:nth-child(3) {
+        flex: 0 0 calc(33.333% - 7px);
+        min-width: 100px;
+    }
+    
+    .currency-country-form-row button {
+        flex: 0 0 auto;
+        min-width: auto;
+    }
+}
+
+@media (max-width: 992px) {
+    .currency-country-form-row {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 20px;
+        flex-wrap: wrap;
+    }
+    
+    .currency-country-form-row > div {
+        width: 100% !important;
+        min-width: 100% !important;
+        max-width: 100% !important;
+        flex: 1 1 100% !important;
+    }
+    
+    .currency-country-form-row button {
+        width: 100%;
+        margin-top: 0;
+    }
+    
+    .currency-country-select,
+    .currency-country-input {
+        width: 100%;
+        max-width: 100%;
+    }
+}
+
+/* Section improvements */
+.currency-country-section {
+    margin-top: 30px;
+    padding-top: 20px;
+    border-top: 1px solid #e5e7eb;
+}
+
+.currency-country-section:first-child {
+    margin-top: 0;
+    padding-top: 0;
+    border-top: none;
+}
+
+/* Table wrapper */
+.currency-country-table-wrapper {
+    margin-top: 20px;
+}
+
+/* Button group spacing */
+.currency-country-button-group {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin-bottom: 20px;
+}
+
+/* Date edit modal styles */
+.currency-country-date-edit-row {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    margin-bottom: 8px;
+}
+
+.currency-country-date-edit-label {
+    min-width: 80px;
+    font-weight: 600;
+    color: #374151;
+}
+
+/* Form field styles */
+.currency-country-form-row label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 500;
+    color: #374151;
+    font-size: 14px;
+    white-space: nowrap;
+}
+
+.currency-country-form-row input[type="text"],
+.currency-country-form-row input[type="number"],
+.currency-country-form-row select {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px solid #d1d5db;
+    border-radius: 8px;
+    font-size: 14px;
+    transition: all 0.3s ease;
+    font-family: inherit;
+    box-sizing: border-box;
+}
+
+.currency-country-form-row input[type="text"]:focus,
+.currency-country-form-row input[type="number"]:focus,
+.currency-country-form-row select:focus {
+    outline: none;
+    border-color: #151A2D;
+    box-shadow: 0 0 0 3px rgba(21, 26, 45, 0.1);
+}
+
+.currency-country-form-row input[type="number"] {
+    -moz-appearance: textfield;
+}
+
+.currency-country-form-row input[type="number"]::-webkit-inner-spin-button,
+.currency-country-form-row input[type="number"]::-webkit-outer-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
+/* Range picker styles */
+.currency-country-range-picker {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    background: white;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
+    padding: 16px;
+    z-index: 1000;
+    min-width: 600px;
+    margin-top: 4px;
+}
+
+.currency-country-range-picker .range-picker-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 8px;
+}
+
+.currency-country-range-picker .range-picker-months {
+    display: flex;
+    gap: 16px;
+    font-weight: 600;
+    color: #1f2937;
+    font-size: 16px;
+}
+
+.currency-country-range-picker .range-picker-nav-btn {
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    padding: 4px;
+    border-radius: 4px;
+    transition: background 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.currency-country-range-picker .range-picker-nav-btn:hover {
+    background: #f3f4f6;
+}
+
+.currency-country-range-picker .range-picker-nav-btn .material-symbols-rounded {
+    font-size: 20px;
+    color: #6b7280;
+}
+
+.currency-country-range-picker .range-picker-grids {
+    display: flex;
+    gap: 16px;
+    margin-bottom: 8px;
+}
+
+.currency-country-range-picker .range-picker-month {
+    min-width: 280px;
+}
+
+.currency-country-range-picker .range-picker-weekdays {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 6px;
+    margin-bottom: 6px;
+    color: #6b7280;
+    font-size: 12px;
+    font-weight: 500;
+}
+
+.currency-country-range-picker .range-picker-weekdays > div {
+    text-align: center;
+}
+
+.currency-country-range-picker .range-picker-days {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 6px;
+}
+
+.currency-country-range-picker .rp-day {
+    border: 1px solid #e5e7eb;
+    background: #fff;
+    padding: 8px;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.2s;
+    text-align: center;
+    font-size: 14px;
+    color: #1f2937;
+}
+
+.currency-country-range-picker .rp-day:hover {
+    background: #f3f4f6;
+    border-color: #151A2D;
+}
+
+.currency-country-range-picker .rp-day.in-range {
+    background: #eef2ff;
+    border-color: #6366f1;
+}
+
+.currency-country-range-picker .rp-day.start,
+.currency-country-range-picker .rp-day.end {
+    background: #151A2D;
+    color: white;
+    border-color: #151A2D;
+    font-weight: 600;
+}
+
+.currency-country-range-picker .range-picker-footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+    margin-top: 12px;
+}
+
