@@ -19,45 +19,24 @@
     let currentCountry = null;
     let currentEditRate = null;
     let currentEditDate = null;
-    let rpOpen = false;
-    let rpStart = '';
-    let rpEnd = '';
-    let rpAnchor = null;
-    let rpBaseMonth = null; // Date object representing first visible month
 
-    // Date formatting functions - available globally
-    function toISO(d){ const m=(d.getMonth()+1).toString().padStart(2,'0'); const day=d.getDate().toString().padStart(2,'0'); return `${d.getFullYear()}-${m}-${day}`; }
-    function toDDMMYYYY(d){ const day=d.getDate().toString().padStart(2,'0'); const m=(d.getMonth()+1).toString().padStart(2,'0'); return `${day}/${m}/${d.getFullYear()}`; }
-    function parseDDMMYYYY(str){
-        const parts = str.trim().split('/');
-        if (parts.length !== 3) return null;
-        const day = parseInt(parts[0], 10);
-        const month = parseInt(parts[1], 10) - 1;
-        const year = parseInt(parts[2], 10);
-        if (isNaN(day) || isNaN(month) || isNaN(year)) return null;
-        const d = new Date(year, month, day);
-        if (d.getDate() !== day || d.getMonth() !== month || d.getFullYear() !== year) return null;
-        return d;
-    }
-    function toISOFromDDMMYYYY(str){
-        const d = parseDDMMYYYY(str);
-        return d ? toISO(d) : null;
-    }
+    // Use formatDateDisplay from global date-range-picker library
     function formatDateDisplay(isoStr){
+        if (typeof window.formatDateDisplay === 'function') {
+            return window.formatDateDisplay(isoStr);
+        }
+        // Fallback if global function not available
         if (!isoStr) return '';
-        // If already in DD/MM/YYYY format, return as is
         if (/^\d{2}\/\d{2}\/\d{4}$/.test(isoStr)) return isoStr;
-        // If in ISO format (YYYY-MM-DD), convert to DD/MM/YYYY
         if (/^\d{4}-\d{2}-\d{2}$/.test(isoStr)) {
             const d = new Date(isoStr + 'T00:00:00');
-            return d && !isNaN(d.getTime()) ? toDDMMYYYY(d) : isoStr;
+            if (d && !isNaN(d.getTime())) {
+                const day=d.getDate().toString().padStart(2,'0'); 
+                const m=(d.getMonth()+1).toString().padStart(2,'0'); 
+                return `${day}/${m}/${d.getFullYear()}`;
+            }
         }
-        // Try to parse as DD/MM/YYYY
-        const d = parseDDMMYYYY(isoStr);
-        if (d && !isNaN(d.getTime())) return toDDMMYYYY(d);
-        // Try to parse as Date and format
-        const dateObj = new Date(isoStr);
-        return dateObj && !isNaN(dateObj.getTime()) ? toDDMMYYYY(dateObj) : isoStr;
+        return isoStr;
     }
 
     document.addEventListener('DOMContentLoaded', async function(){
@@ -159,215 +138,14 @@
         if (dSave) dSave.addEventListener('click', saveDateEditModal);
         if (dModal) { dModal.addEventListener('click', function(e){ if (e.target === dModal) closeDateEditModal(); }); }
 
-        // Single date range input behavior using two hidden native date inputs
-        const rangeInput = document.getElementById('ccRateRange');
-        const startInput = document.getElementById('ccRateStart');
-        const endInput = document.getElementById('ccRateEnd');
-        const picker = document.getElementById('ccRangePicker');
-        if (rangeInput && startInput && endInput) {
-            const parseRangeFromInput = () => {
-                const raw = (rangeInput.value || '').trim();
-                const parts = raw.split(/\s*(?:-|–|—|to)\s*/i).filter(Boolean);
-                if (parts.length >= 2) {
-                    // Date range - parse DD/MM/YYYY to ISO
-                    const startISO = toISOFromDDMMYYYY(parts[0].trim()) || parts[0].trim();
-                    const endISO = toISOFromDDMMYYYY(parts[1].trim()) || parts[1].trim();
-                    startInput.value = startISO;
-                    endInput.value = endISO;
-                    rpStart = startISO; rpEnd = endISO;
-                    rpBaseMonth = rpStart ? (parseDDMMYYYY(formatDateDisplay(rpStart)) || new Date(rpStart)) : new Date();
-                } else if (parts.length === 1) {
-                    // Single date - parse DD/MM/YYYY or ISO
-                    const dateISO = toISOFromDDMMYYYY(parts[0].trim()) || (/^\d{4}-\d{2}-\d{2}$/.test(parts[0].trim()) ? parts[0].trim() : null);
-                    if (dateISO) {
-                        startInput.value = dateISO;
-                        endInput.value = dateISO;
-                        rpStart = dateISO; rpEnd = dateISO;
-                        rpBaseMonth = parseDDMMYYYY(formatDateDisplay(dateISO)) || new Date(dateISO);
-                    }
-                }
+        // Initialize date range picker using global library
+        if (typeof window.initializeDateRangePicker === 'function') {
+            const translations = {
+                common: tCommon,
+                clear: tCommon.cancel,
+                apply: tCommon.confirm
             };
-            const openStartPicker = () => { startInput.showPicker ? startInput.showPicker() : startInput.focus(); };
-            const openEndPicker = () => { endInput.showPicker ? endInput.showPicker() : endInput.focus(); };
-            rangeInput.addEventListener('change', function(){ parseRangeFromInput(); openRangePicker(rangeInput); });
-            rangeInput.addEventListener('input', parseRangeFromInput);
-            rangeInput.addEventListener('focus', function(){ openRangePicker(rangeInput); });
-            rangeInput.addEventListener('click', function(){ openRangePicker(rangeInput); });
-            startInput.addEventListener('change', function(){
-                // if end missing or before start, prompt end selection
-                if (!endInput.value || new Date(endInput.value) < new Date(startInput.value)) {
-                    setTimeout(openEndPicker, 0);
-                }
-            });
-            endInput.addEventListener('change', function(){
-                if (startInput.value && endInput.value) {
-                    if (startInput.value === endInput.value) {
-                        // Single date - show just the date without range separator
-                        rangeInput.value = startInput.value;
-                    } else {
-                        rangeInput.value = `${startInput.value} - ${endInput.value}`;
-                    }
-                } else if (startInput.value) {
-                    // Only start date - show as single date for now
-                    rangeInput.value = startInput.value;
-                }
-            });
-
-            // Inline two-month picker wiring
-            function openRangePicker(anchor){
-                if (!picker) return;
-                rpAnchor = anchor;
-                rpOpen = true;
-                if (!rpBaseMonth) rpBaseMonth = new Date();
-                renderRangePicker();
-                picker.style.display = 'block'; // Date picker visibility controlled by JS logic
-                // Ensure picker is properly positioned and visible
-                const rect = anchor.getBoundingClientRect();
-                picker.style.top = `${rect.bottom + 6}px`;
-                picker.style.left = `${rect.left}px`;
-                picker.style.position = 'fixed';
-                picker.style.zIndex = '2000';
-                document.addEventListener('click', outsideClose, true);
-                document.addEventListener('keydown', escClose, true);
-            }
-
-            function closeRangePicker(){
-                if (!picker) return;
-                rpOpen = false;
-                picker.style.display = 'none'; // Date picker visibility controlled by JS logic
-                document.removeEventListener('click', outsideClose, true);
-                document.removeEventListener('keydown', escClose, true);
-            }
-
-            function outsideClose(e){
-                if (!rpOpen) return;
-                if (picker.contains(e.target) || rpAnchor.contains(e.target)) return;
-                closeRangePicker();
-            }
-
-            function escClose(e){ if (e.key === 'Escape') closeRangePicker(); }
-
-            function renderRangePicker(){
-                const base = startOfMonth(rpBaseMonth || new Date());
-                const next = addMonths(base, 1);
-                const header = `
-                    <div class="range-picker-header">
-                        <button type="button" data-rp-act="prev" class="range-picker-nav-btn">
-                            <span class="material-symbols-rounded">chevron_left</span>
-                        </button>
-                        <div class="range-picker-months">
-                            <span>${formatMonthYear(base)}</span>
-                            <span>${formatMonthYear(next)}</span>
-                        </div>
-                        <button type="button" data-rp-act="next" class="range-picker-nav-btn">
-                            <span class="material-symbols-rounded">chevron_right</span>
-                        </button>
-                    </div>`;
-                const grids = `
-                    <div class="range-picker-grids">
-                        ${renderMonthGrid(base)}
-                        ${renderMonthGrid(next)}
-                    </div>
-                    <div class="range-picker-footer">
-                        <button type="button" data-rp-act="clear" class="btn-secondary">${tCommon.cancel||'Cancel'}</button>
-                        <button type="button" data-rp-act="apply" class="btn-primary">${tCommon.confirm||'Confirm'}</button>
-                    </div>`;
-                picker.innerHTML = header + grids;
-                picker.querySelector('[data-rp-act="prev"]').onclick = () => { rpBaseMonth = addMonths(base, -1); renderRangePicker(); };
-                picker.querySelector('[data-rp-act="next"]').onclick = () => { rpBaseMonth = addMonths(base, 1); renderRangePicker(); };
-                picker.querySelector('[data-rp-act="clear"]').onclick = () => { rpStart=''; rpEnd=''; startInput.value=''; endInput.value=''; rangeInput.value=''; closeRangePicker(); };
-                picker.querySelector('[data-rp-act="apply"]').onclick = () => { 
-                    if (rpStart) {
-                        const startDisplay = formatDateDisplay(rpStart);
-                        const endDisplay = rpEnd && rpEnd !== rpStart ? formatDateDisplay(rpEnd) : startDisplay;
-                        startInput.value = rpStart; // ISO format for hidden input
-                        endInput.value = rpEnd || rpStart; // ISO format for hidden input
-                        if (rpEnd && rpEnd !== rpStart) {
-                            // Date range - display in DD/MM/YYYY
-                            rangeInput.value = `${startDisplay} - ${endDisplay}`;
-                        } else {
-                            // Single date - display in DD/MM/YYYY
-                            rangeInput.value = startDisplay;
-                        }
-                    }
-                    closeRangePicker(); 
-                };
-                picker.querySelectorAll('button[data-rp-date]').forEach(btn => {
-                    btn.onclick = () => handleDateClick(btn.getAttribute('data-rp-date'));
-                });
-            }
-
-            function handleDateClick(iso){
-                // Support single date: if clicking the same date again when start=end, keep as single date
-                if (!rpStart || (rpStart && rpEnd)) { 
-                    rpStart = iso; 
-                    rpEnd = ''; 
-                } else if (rpStart && !rpEnd) {
-                    // If start is set but end is not, clicking another date sets the end
-                    if (new Date(iso) < new Date(rpStart)) {
-                        // If clicked date is before start, swap them
-                        rpEnd = rpStart;
-                        rpStart = iso;
-                    } else {
-                        rpEnd = iso;
-                    }
-                }
-                else if (!rpEnd) {
-                    if (new Date(iso) < new Date(rpStart)) { 
-                        rpEnd = rpStart; 
-                        rpStart = iso; 
-                    }
-                    else if (iso === rpStart) {
-                        // Same date clicked - keep as single date
-                        rpEnd = iso;
-                    }
-                    else { 
-                        rpEnd = iso; 
-                    }
-                }
-                else {
-                    // Both selected, start fresh
-                    rpStart = iso;
-                    rpEnd = '';
-                }
-                renderRangePicker();
-            }
-
-            function renderMonthGrid(monthDate){
-                const weekdays = tCommon.weekdays || {};
-                const dayNames = weekdays.short || ['Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa', 'Su'];
-                const days = dayNames;
-                const first = startOfMonth(monthDate);
-                const last = endOfMonth(monthDate);
-                const lead = (dayOfWeekMon(first)+6)%7; // 0..6 lead blanks, Monday-first
-                const totalDays = last.getDate();
-                let cells = '';
-                for (let i=0;i<lead;i++){ cells += `<div></div>`; }
-                for (let d=1; d<=totalDays; d++){
-                    const iso = toISO(new Date(first.getFullYear(), first.getMonth(), d));
-                    const displayDate = toDDMMYYYY(new Date(first.getFullYear(), first.getMonth(), d));
-                    const inRange = rpStart && rpEnd && (new Date(iso) >= new Date(rpStart)) && (new Date(iso) <= new Date(rpEnd));
-                    const isStart = rpStart && iso===rpStart;
-                    const isEnd = rpEnd && iso===rpEnd;
-                    const cls = `rp-day${inRange?' in-range':''}${isStart?' start':''}${isEnd?' end':''}`;
-                    cells += `<button type="button" data-rp-date="${iso}" class="${cls}">${d}</button>`;
-                }
-                const weekHeader = `<div class="range-picker-weekdays">${days.map(w=>`<div>${w}</div>`).join('')}</div>`;
-                const grid = `<div class="range-picker-days">${cells}</div>`;
-                return `<div class="range-picker-month">${weekHeader}${grid}</div>`;
-            }
-
-            function startOfMonth(d){ const x=new Date(d); x.setDate(1); x.setHours(0,0,0,0); return x; }
-            function endOfMonth(d){ const x=new Date(d); x.setMonth(x.getMonth()+1,0); x.setHours(0,0,0,0); return x; }
-            function addMonths(d, n){ const x=new Date(d); x.setMonth(x.getMonth()+n); return x; }
-            function dayOfWeekMon(d){ const dow=d.getDay(); return dow===0?7:dow; }
-            function formatMonthYear(d){ 
-                const months = tCommon.months || {};
-                const monthNames = months.names || ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
-                const monthIndex = d.getMonth();
-                const monthName = monthNames[monthIndex] || d.toLocaleString(undefined,{ month:'long' });
-                return `${monthName} ${d.getFullYear()}`;
-            }
+            window.initializeDateRangePicker('ccRateRange', 'ccRateStart', 'ccRateEnd', 'ccRangePicker', translations);
         }
     }
 

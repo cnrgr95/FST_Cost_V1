@@ -1,0 +1,146 @@
+/* Global Date Range Picker Styles - Match currency-country.php style */
+.range-picker {
+    display: none;
+    position: absolute;
+    top: 100%;
+    left: 0;
+    background: white;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
+    padding: 16px;
+    z-index: 2000;
+    min-width: 600px;
+    margin-top: 4px;
+}
+
+.range-picker-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 8px;
+}
+
+.range-picker-months {
+    display: flex;
+    gap: 16px;
+    font-weight: 600;
+    color: #1f2937;
+    font-size: 16px;
+}
+
+.range-picker-header button {
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    padding: 4px;
+    border-radius: 4px;
+    transition: background 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.range-picker-header button:hover {
+    background: #f3f4f6;
+}
+
+.range-picker-header button .material-symbols-rounded {
+    font-size: 20px;
+    color: #6b7280;
+}
+
+.range-picker-grids {
+    display: flex;
+    gap: 16px;
+    margin-bottom: 8px;
+}
+
+.range-picker-month {
+    min-width: 280px;
+}
+
+.range-picker-weekdays {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 6px;
+    margin-bottom: 6px;
+    color: #6b7280;
+    font-size: 12px;
+    font-weight: 500;
+}
+
+.range-picker-weekdays > div {
+    text-align: center;
+}
+
+.range-picker-days {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 6px;
+}
+
+.range-picker-days > div {
+    height: auto;
+}
+
+.range-picker-days button.rp-day {
+    border: 1px solid #e5e7eb;
+    background: #fff;
+    padding: 8px;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.2s;
+    text-align: center;
+    font-size: 14px;
+    color: #1f2937;
+    width: 100%;
+}
+
+.range-picker-days button.rp-day:hover {
+    background: #f3f4f6;
+    border-color: #151A2D;
+}
+
+.range-picker-days button.rp-day.in-range {
+    background: #eef2ff;
+    border-color: #6366f1;
+}
+
+.range-picker-days button.rp-day.start,
+.range-picker-days button.rp-day.end {
+    background: #151A2D;
+    color: white;
+    border-color: #151A2D;
+    font-weight: 600;
+}
+
+.range-picker-actions,
+.range-picker-footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+    margin-top: 12px;
+}
+
+.range-picker-footer {
+    padding-top: 12px;
+    border-top: 1px solid #e5e7eb;
+}
+
+.date-range-wrapper {
+    position: relative;
+}
+
+.date-range-input {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px solid #d1d5db;
+    border-radius: 8px;
+    font-size: 14px;
+}
+
+.date-range-input-hidden {
+    display: none;
+}
+

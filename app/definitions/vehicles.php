@@ -44,6 +44,8 @@ $t_dependencies = $all_translations['dependencies'] ?? [];
     <link rel="stylesheet" href="<?php echo $basePath; ?>assets/css/common.css">
     <link rel="stylesheet" href="<?php echo $basePath; ?>assets/css/confirm-dialog.css">
     <link rel="stylesheet" href="<?php echo $basePath; ?>assets/css/app/definitions/vehicles.css">
+    <link rel="stylesheet" href="<?php echo $basePath; ?>assets/css/date-range-picker.css">
+    <link rel="stylesheet" href="<?php echo $basePath; ?>assets/css/select-search.css">
     
     <link rel="icon" type="image/svg+xml" href="<?php echo $basePath; ?>assets/images/logo.svg">
 </head>
@@ -201,14 +203,14 @@ $t_dependencies = $all_translations['dependencies'] ?? [];
                 </div>
                 
                 <div class="form-row">
-                    <div class="form-group">
-                        <label><?php echo $t_vehicles['start_date'] ?? 'Start Date'; ?> *</label>
-                        <input type="date" id="contract_start_date" name="start_date" required>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label><?php echo $t_vehicles['end_date'] ?? 'End Date'; ?> *</label>
-                        <input type="date" id="contract_end_date" name="end_date" required>
+                    <div class="form-group" style="flex: 1;">
+                        <label><?php echo ($t_vehicles['start_date'] ?? 'Start Date') . ' - ' . ($t_vehicles['end_date'] ?? 'End Date'); ?> *</label>
+                        <div class="date-range-wrapper" style="position: relative;">
+                            <input type="text" id="contract_date_range" placeholder="<?php echo $t_common['date_range_placeholder'] ?? 'Tarih seçin'; ?>" required style="width: 100%; padding: 10px 12px; border: 1px solid #d1d5db; border-radius: 8px; font-size: 14px;" />
+                            <input type="date" id="contract_start_date" name="start_date" required style="display: none;" />
+                            <input type="date" id="contract_end_date" name="end_date" required style="display: none;" />
+                            <div id="contractRangePicker" class="range-picker" style="display: none; position: absolute; top: 100%; left: 0; z-index: 2000; background: white; border: 1px solid #d1d5db; border-radius: 8px; padding: 16px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); margin-top: 4px;"></div>
+                        </div>
                     </div>
                 </div>
                 
@@ -247,6 +249,8 @@ $t_dependencies = $all_translations['dependencies'] ?? [];
     <script src="<?php echo $basePath; ?>assets/js/includes/sidebar.js"></script>
     <script src="<?php echo $basePath; ?>assets/js/toast.js"></script>
     <script src="<?php echo $basePath; ?>assets/js/common.js"></script>
+    <script src="<?php echo $basePath; ?>assets/js/date-range-picker.js"></script>
+    <script src="<?php echo $basePath; ?>assets/js/select-search.js"></script>
     <script src="<?php echo $basePath; ?>assets/js/app/definitions/vehicles.js"></script>
 </body>
 </html>

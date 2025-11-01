@@ -41,6 +41,7 @@ $t_currencies = $all_translations['currencies'] ?? [];
     <link rel="stylesheet" href="<?php echo $basePath; ?>assets/css/includes/topbar.css">
     <link rel="stylesheet" href="<?php echo $basePath; ?>assets/css/common.css">
     <link rel="stylesheet" href="<?php echo $basePath; ?>assets/css/confirm-dialog.css">
+    <link rel="stylesheet" href="<?php echo $basePath; ?>assets/css/select-search.css">
     <link rel="stylesheet" href="<?php echo $basePath; ?>assets/css/app/definitions/currencies.css">
     
     <link rel="icon" type="image/svg+xml" href="<?php echo $basePath; ?>assets/images/logo.svg">
@@ -253,6 +254,7 @@ $t_currencies = $all_translations['currencies'] ?? [];
     <script src="<?php echo $basePath; ?>assets/js/includes/sidebar.js"></script>
     <script src="<?php echo $basePath; ?>assets/js/toast.js"></script>
     <script src="<?php echo $basePath; ?>assets/js/common.js"></script>
+    <script src="<?php echo $basePath; ?>assets/js/select-search.js"></script>
     <script src="<?php echo $basePath; ?>assets/js/app/definitions/currencies.js"></script>
 </body>
 </html>

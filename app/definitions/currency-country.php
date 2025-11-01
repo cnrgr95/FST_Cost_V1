@@ -44,6 +44,7 @@ $countryId = isset($_GET['id']) ? (int)$_GET['id'] : 0;
 	<link rel="stylesheet" href="<?php echo $basePath; ?>assets/css/includes/topbar.css">
 	<link rel="stylesheet" href="<?php echo $basePath; ?>assets/css/common.css">
 	<link rel="stylesheet" href="<?php echo $basePath; ?>assets/css/confirm-dialog.css">
+	<link rel="stylesheet" href="<?php echo $basePath; ?>assets/css/select-search.css">
 	<link rel="stylesheet" href="<?php echo $basePath; ?>assets/css/app/definitions/currencies.css">
 	<link rel="stylesheet" href="<?php echo $basePath; ?>assets/css/app/definitions/currency-country.css">
 	
@@ -251,6 +252,8 @@ $countryId = isset($_GET['id']) ? (int)$_GET['id'] : 0;
 	<script src="<?php echo $basePath; ?>assets/js/includes/sidebar.js"></script>
 	<script src="<?php echo $basePath; ?>assets/js/toast.js"></script>
 	<script src="<?php echo $basePath; ?>assets/js/common.js"></script>
+	<script src="<?php echo $basePath; ?>assets/js/date-range-picker.js"></script>
+	<script src="<?php echo $basePath; ?>assets/js/select-search.js"></script>
 	<script src="<?php echo $basePath; ?>assets/js/app/definitions/currency-country.js"></script>
 </body>
 </html>

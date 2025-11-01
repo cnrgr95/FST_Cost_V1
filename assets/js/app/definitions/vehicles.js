@@ -36,10 +36,40 @@
     };
     let activeRequests = new Map(); // Track active requests for cancellation
     
+    // Initialize date range picker helper functions (from global library)
+    function formatDateDisplay(isoStr){
+        if (!isoStr) return '';
+        if (/^\d{2}\/\d{2}\/\d{4}$/.test(isoStr)) return isoStr;
+        if (/^\d{4}-\d{2}-\d{2}$/.test(isoStr)) {
+            const d = new Date(isoStr + 'T00:00:00');
+            if (d && !isNaN(d.getTime())) {
+                const day=d.getDate().toString().padStart(2,'0'); 
+                const m=(d.getMonth()+1).toString().padStart(2,'0'); 
+                return `${day}/${m}/${d.getFullYear()}`;
+            }
+        }
+        return isoStr;
+    }
+
     // Initialize
     document.addEventListener('DOMContentLoaded', function() {
         initTabs();
         loadData(currentTab);
+        
+        // Initialize date range picker for contract form
+        if (typeof window.initializeDateRangePicker === 'function') {
+            const translations = {
+                common: tCommon
+            };
+            window.initializeDateRangePicker('contract_date_range', 'contract_start_date', 'contract_end_date', 'contractRangePicker', translations);
+        }
+        
+        // Initialize select search for all selects
+        if (typeof window.initializeSelectSearch === 'function') {
+            document.querySelectorAll('select:not([data-search="false"])').forEach(select => {
+                window.initializeSelectSearch(select);
+            });
+        }
         
         // Setup modal close buttons
         document.querySelectorAll('.btn-close').forEach(btn => {
@@ -515,8 +545,22 @@
                 // Keep readonly in edit mode too
                 contractCodeInput.readOnly = true;
             }
-            document.getElementById('contract_start_date').value = item.start_date || '';
-            document.getElementById('contract_end_date').value = item.end_date || '';
+            const startDate = item.start_date || '';
+            const endDate = item.end_date || '';
+            document.getElementById('contract_start_date').value = startDate;
+            document.getElementById('contract_end_date').value = endDate;
+            const rangeInput = document.getElementById('contract_date_range');
+            if (rangeInput) {
+                if (startDate && endDate) {
+                    if (startDate === endDate) {
+                        rangeInput.value = formatDateDisplay(startDate);
+                    } else {
+                        rangeInput.value = `${formatDateDisplay(startDate)} - ${formatDateDisplay(endDate)}`;
+                    }
+                } else {
+                    rangeInput.value = '';
+                }
+            }
         }
         
         modal.classList.add('active');
