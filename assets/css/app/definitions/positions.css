@@ -434,6 +434,10 @@ select.error:focus {
 
 /* Responsive */
 @media (max-width: 768px) {
+    .positions-container {
+        padding: 0;
+    }
+    
     .positions-header {
         flex-direction: column;
         align-items: flex-start;
@@ -443,25 +447,120 @@ select.error:focus {
     .positions-tabs {
         flex-wrap: wrap;
         gap: 8px;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
     }
     
     .positions-tab {
         padding: 10px 16px;
         font-size: 14px;
+        white-space: nowrap;
+    }
+    
+    .positions-table-container {
+        padding: 20px;
+    }
+    
+    .positions-table-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 16px;
+    }
+    
+    .btn-add {
+        width: 100%;
+        justify-content: center;
+    }
+    
+    .currencies-table-section {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+    
+    .currencies-table {
+        font-size: 13px;
+        min-width: max-content;
+        width: max-content;
+    }
+    
+    .currencies-table th,
+    .currencies-table td {
+        padding: 10px 12px;
+        font-size: 13px;
+        white-space: nowrap;
     }
     
     .table {
         font-size: 13px;
+        min-width: max-content;
+        width: max-content;
     }
     
     .table thead th,
     .table tbody td {
-        padding: 12px;
+        padding: 10px 12px;
+        font-size: 13px;
+        white-space: nowrap;
+    }
+    
+    .table-actions {
+        flex-wrap: wrap;
+        gap: 4px;
     }
     
     .modal-content {
         margin: 20px;
         padding: 24px;
+        max-width: calc(100% - 40px);
+        max-height: calc(100vh - 40px);
+    }
+    
+    .toast-container {
+        left: 10px !important;
+        right: 10px !important;
+        top: 10px !important;
+    }
+    
+    .toast {
+        min-width: auto;
+        max-width: 100%;
+    }
+}
+
+@media (max-width: 480px) {
+    .positions-header h1 {
+        font-size: 22px;
+    }
+    
+    .currencies-table {
+        font-size: 12px;
+        min-width: max-content;
+        width: max-content;
+    }
+    
+    .currencies-table th,
+    .currencies-table td {
+        padding: 8px 10px;
+        font-size: 12px;
+        white-space: nowrap;
+    }
+    
+    .table {
+        font-size: 12px;
+        min-width: max-content;
+        width: max-content;
+    }
+    
+    .table thead th,
+    .table tbody td {
+        padding: 8px 10px;
+        font-size: 12px;
+        white-space: nowrap;
+    }
+    
+    .table-actions {
+        flex-direction: column;
+        gap: 4px;
     }
 }
 

@@ -117,15 +117,37 @@
       
       // Handle mobile sidebar
       if (window.innerWidth <= 768) {
-        // On mobile, close dropdowns when toggling sidebar
-        closeAllDropdowns();
+        // Find active dropdown before closing
+        const activeDropdown = findActiveDropdown();
         
         if (button.classList.contains("sidebar-menu-button")) {
           // Toggle menu button - open/close sidebar
+          const isOpening = !sidebar.classList.contains("active");
           sidebar.classList.toggle("active");
           if (overlay) {
             overlay.classList.toggle("active");
           }
+          
+          if (isOpening && activeDropdown) {
+            // When opening sidebar on mobile, restore active dropdown
+            const menu = activeDropdown.querySelector(".dropdown-menu");
+            if (menu) {
+              // Ensure dropdown is marked as open
+              activeDropdown.classList.add("open");
+              // Restore dropdown height
+              setTimeout(() => {
+                restoreDropdownHeights();
+              }, 100);
+            }
+          } else if (!isOpening) {
+            // When closing sidebar, close all dropdowns except active one (keep state)
+            document.querySelectorAll(".dropdown-container.open").forEach((openDropdown) => {
+              if (openDropdown !== activeDropdown) {
+                toggleDropdown(openDropdown, openDropdown.querySelector(".dropdown-menu"), false);
+              }
+            });
+          }
+          
           // Prevent body scroll when sidebar is open
           if (sidebar.classList.contains("active")) {
             document.body.style.overflow = "hidden";
@@ -134,11 +156,13 @@
           }
         } else if (button.classList.contains("sidebar-toggler")) {
           // Close sidebar on mobile when clicking toggler (close button)
+          // Don't close active dropdown - preserve its state for next open
           sidebar.classList.remove("active");
           if (overlay) {
             overlay.classList.remove("active");
           }
           document.body.style.overflow = "";
+          // Keep active dropdown open class for next time
         }
       } else {
         // Desktop: toggle collapsed and save state
@@ -293,14 +317,46 @@
     });
   }
 
+  // Find and preserve active dropdown (one that contains an active menu item)
+  const findActiveDropdown = () => {
+    // First, check if there's a dropdown with 'open' class from PHP (page load state)
+    const phpOpenDropdown = document.querySelector('.dropdown-container.open');
+    if (phpOpenDropdown) {
+      // Verify it contains an active item
+      const hasActiveItem = phpOpenDropdown.querySelector('.nav-item.active');
+      if (hasActiveItem) {
+        return phpOpenDropdown;
+      }
+    }
+    
+    // Otherwise, find active nav item and its parent dropdown
+    const activeNavItem = document.querySelector('.nav-item.active');
+    if (activeNavItem) {
+      // Check if active item is inside a dropdown
+      const dropdownContainer = activeNavItem.closest('.dropdown-container');
+      if (dropdownContainer) {
+        return dropdownContainer;
+      }
+      // Also check if active item's parent dropdown container
+      const parentDropdown = activeNavItem.closest('.nav-item.dropdown-container');
+      if (parentDropdown) {
+        return parentDropdown;
+      }
+    }
+    return null;
+  };
+
   // Handle responsive sidebar behavior
   const handleResize = () => {
     const sidebar = document.querySelector(".sidebar");
     const overlay = document.querySelector(".sidebar-overlay");
     
+    // Find active dropdown before closing all
+    const activeDropdown = findActiveDropdown();
+    
     // Close sidebar on mobile if it's open
     if (window.innerWidth <= 768) {
-      // Remove active state from mobile view
+      // Remove active state from mobile view (close sidebar overlay)
       sidebar.classList.remove("active");
       if (overlay) {
         overlay.classList.remove("active");
@@ -309,6 +365,19 @@
       sidebar.classList.remove("collapsed");
       // Restore body scroll
       document.body.style.overflow = "";
+      
+      // IMPORTANT: On mobile, preserve active dropdown when sidebar is closed
+      // When sidebar reopens, the dropdown should still be open if it contains active page
+      // This is handled by PHP's initial 'open' class, but we ensure it's maintained
+      if (activeDropdown) {
+        const menu = activeDropdown.querySelector(".dropdown-menu");
+        if (menu && !activeDropdown.classList.contains("open")) {
+          // Keep the dropdown open class for when sidebar reopens
+          activeDropdown.classList.add("open");
+          // Set height to maintain state (will be recalculated when sidebar opens)
+          menu.style.height = 'auto';
+        }
+      }
     } else {
       // On desktop, restore saved sidebar state when resizing from mobile to desktop
       const isCollapsed = loadSidebarState();
@@ -319,15 +388,37 @@
       }
       // Ensure body scroll is restored
       document.body.style.overflow = "";
+      
+      // Restore active dropdown if exists
+      if (activeDropdown) {
+        const menu = activeDropdown.querySelector(".dropdown-menu");
+        if (menu && !activeDropdown.classList.contains("open")) {
+          // Reopen the dropdown that contains the active page
+          toggleDropdown(activeDropdown, menu, true);
+        } else if (menu && activeDropdown.classList.contains("open")) {
+          // Ensure dropdown height is correct
+          restoreDropdownHeights();
+        }
+      }
     }
   };
 
-  // Close dropdowns when window is resized
+  // Close dropdowns when window is resized (but preserve active one)
   let resizeTimer;
   window.addEventListener("resize", () => {
     clearTimeout(resizeTimer);
     resizeTimer = setTimeout(() => {
-      closeAllDropdowns();
+      // Find active dropdown before closing
+      const activeDropdown = findActiveDropdown();
+      
+      // Close all dropdowns except the active one
+      document.querySelectorAll(".dropdown-container.open").forEach((openDropdown) => {
+        if (openDropdown !== activeDropdown) {
+          toggleDropdown(openDropdown, openDropdown.querySelector(".dropdown-menu"), false);
+        }
+      });
+      
+      // Now handle resize (which will restore active dropdown if needed)
       handleResize();
     }, 250);
   });

@@ -21,9 +21,14 @@ if (!isset($basePath)) {
 // Load translation helper
 require_once __DIR__ . '/translations.php';
 
-// Get username from session
-$username = isset($_SESSION['username']) ? htmlspecialchars($_SESSION['username']) : 'User';
-$user_initial = strtoupper(substr($username, 0, 1));
+// Get user display name from session (prefer full_name over username)
+$user_display_name = 'User';
+if (isset($_SESSION['full_name']) && !empty($_SESSION['full_name'])) {
+    $user_display_name = htmlspecialchars($_SESSION['full_name']);
+} elseif (isset($_SESSION['username'])) {
+    $user_display_name = htmlspecialchars($_SESSION['username']);
+}
+$user_initial = strtoupper(substr($user_display_name, 0, 1));
 
 // Get topbar translations
 $t_topbar = $all_translations['topbar'] ?? [];
@@ -79,7 +84,7 @@ $t_topbar = $all_translations['topbar'] ?? [];
         <?php echo $user_initial; ?>
       </div>
       <div class="profile-info">
-        <div class="profile-name"><?php echo $username; ?></div>
+        <div class="profile-name"><?php echo $user_display_name; ?></div>
         <div class="profile-role"><?php echo $t_topbar['administrator'] ?? 'Administrator'; ?></div>
       </div>
       <span class="material-symbols-rounded dropdown-icon">keyboard_arrow_down</span>

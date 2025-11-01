@@ -173,10 +173,77 @@
 @media (max-width: 768px) {
     .languages-container {
         flex-direction: column;
+        gap: 16px;
+        padding: 20px;
     }
     
     .languages-sidebar {
         width: 100%;
+    }
+    
+    .languages-editor {
+        width: 100%;
+    }
+    
+    .translation-section h3 {
+        font-size: 15px;
+    }
+    
+    .translation-item {
+        margin-bottom: 12px;
+    }
+    
+    .languages-sidebar-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 10px;
+    }
+    
+    .btn-add-small {
+        width: 100%;
+        justify-content: center;
+    }
+    
+    .lang-item {
+        padding: 10px;
+    }
+}
+
+@media (max-width: 480px) {
+    .languages-container {
+        padding: 15px;
+        gap: 12px;
+    }
+    
+    .languages-sidebar {
+        padding: 15px;
+    }
+    
+    .languages-editor {
+        padding: 15px;
+    }
+    
+    .translation-section h3 {
+        font-size: 14px;
+    }
+    
+    .translation-item label {
+        font-size: 11px;
+    }
+    
+    .translation-item input,
+    .translation-item textarea {
+        font-size: 13px;
+        padding: 8px;
+    }
+    
+    .lang-item {
+        padding: 8px;
+        font-size: 13px;
+    }
+    
+    .drag-handle {
+        font-size: 18px;
     }
 }
 

@@ -468,7 +468,8 @@
         "failed_to_save_translations": "Failed to save translations",
         "invalid_response_format": "Invalid response format",
         "modal_form_not_found": "Modal, form or title not found",
-        "item_not_found": "Item not found"
+        "item_not_found": "Item not found",
+        "not_enough_space": "Not enough space. Please scroll the page and try again."
     },
     "users": {
         "title": "User Management",

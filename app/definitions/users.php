@@ -18,6 +18,9 @@ if (!isset($_SESSION['user_id'])) {
 // Load translation helper
 require_once $basePath . 'includes/translations.php';
 
+// Load security helpers for CSRF token
+require_once $basePath . 'includes/security.php';
+
 // Get translations
 $t_sidebar = $all_translations['sidebar'] ?? [];
 $t_common = $all_translations['common'] ?? [];
@@ -163,6 +166,7 @@ $t_users = $all_translations['users'] ?? [];
         'basePath' => $basePath,
         'apiBase' => $basePath . 'api/definitions/users.php',
         'currentUserId' => $_SESSION['user_id'] ?? null,
+        'csrfToken' => csrfToken(),
         'translations' => [
             'users' => $t_users,
             'common' => $t_common,

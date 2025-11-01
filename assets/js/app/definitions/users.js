@@ -438,6 +438,11 @@
         toggleUserStatus(userId, newStatus);
     }
     
+    // Edit user - wrapper function (make it global)
+    window.editUser = function(id) {
+        editUser(id);
+    }
+    
     // Show loading state
     function showLoading() {
         const container = document.getElementById('users-content');
@@ -606,60 +611,83 @@
         // Load city info and cascade all dropdowns
         if (item.city_id) {
             try {
-                // Load city details (all cities to find the one we need)
-                const citiesResponse = await fetch(`${API_BASE}?action=cities`);
-                const citiesResult = await citiesResponse.json();
+                // Use country_id directly from user item if available (from API)
+                let countryId = item.country_id;
                 
-                if (citiesResult.success && citiesResult.data) {
-                    const city = citiesResult.data.find(c => c.id == item.city_id);
-                    if (city && city.country_id) {
-                        // Set country first
-                        const countrySelect = document.getElementById('countrySelect');
-                        if (countrySelect) {
-                            countrySelect.value = city.country_id;
+                // If not available, load city details to get country_id
+                if (!countryId) {
+                    const citiesResponse = await fetch(`${API_BASE}?action=cities`);
+                    const citiesResult = await citiesResponse.json();
+                    
+                    if (citiesResult.success && citiesResult.data) {
+                        const city = citiesResult.data.find(c => c.id == item.city_id);
+                        if (city && city.country_id) {
+                            countryId = city.country_id;
+                        }
+                    }
+                }
+                
+                if (countryId) {
+                    // Set country first
+                    const countrySelect = document.getElementById('countrySelect');
+                    if (countrySelect) {
+                        countrySelect.value = countryId;
+                        // Trigger change event to update select-search trigger
+                        countrySelect.dispatchEvent(new Event('change', { bubbles: true }));
+                    }
+                    
+                    // Load regions for the country
+                    const regionsResponse = await fetch(`${API_BASE}?action=regions&country_id=${countryId}`);
+                    const regionsResult = await regionsResponse.json();
+                    
+                    if (regionsResult.success && regionsResult.data) {
+                        // Use region_id from user item if available
+                        const regionId = item.region_id;
+                        
+                        if (regionSelect) {
+                            regionSelect.innerHTML = `<option value="">${tUsers.select_region}</option>`;
+                            regionsResult.data.forEach(region => {
+                                const isSelected = region.id == regionId;
+                                regionSelect.innerHTML += `<option value="${region.id}" ${isSelected ? 'selected' : ''}>${region.name}</option>`;
+                            });
+                            regionSelect.disabled = false;
+                            
+                            // Trigger change if region is set
+                            if (regionId) {
+                                regionSelect.value = regionId;
+                                regionSelect.dispatchEvent(new Event('change', { bubbles: true }));
+                            }
                         }
                         
-                        // Load regions for the country
-                        const regionsResponse = await fetch(`${API_BASE}?action=regions&country_id=${city.country_id}`);
-                        const regionsResult = await regionsResponse.json();
+                        // Load cities for the region and wait for it to complete
+                        if (regionId) {
+                            await loadCities(regionId);
+                        }
                         
-                        if (regionsResult.success && regionsResult.data) {
-                            if (regionSelect) {
-                                regionSelect.innerHTML = `<option value="">${tUsers.select_region}</option>`;
-                                regionsResult.data.forEach(region => {
-                                    regionSelect.innerHTML += `<option value="${region.id}" ${region.id == city.region_id ? 'selected' : ''}>${region.name}</option>`;
-                                });
-                                regionSelect.disabled = false;
-                            }
-                            
-                            // Load cities for the region and wait for it to complete
-                            await loadCities(city.region_id);
-                            
-                            // Set city after a small delay to ensure select is populated, then load departments
-                            setTimeout(async () => {
-                                if (citySelect) {
-                                    citySelect.value = item.city_id;
-                                    // Trigger change to load departments for this city
-                                    citySelect.dispatchEvent(new Event('change'));
+                        // Set city after a small delay to ensure select is populated, then load departments
+                        setTimeout(async () => {
+                            if (citySelect) {
+                                citySelect.value = item.city_id;
+                                // Trigger change to load departments for this city
+                                citySelect.dispatchEvent(new Event('change'));
+                                
+                                // Wait for departments to load, then set department
+                                await new Promise(resolve => setTimeout(resolve, 300));
+                                const deptSelect = document.getElementById('departmentSelect');
+                                if (deptSelect && item.department_id) {
+                                    deptSelect.value = item.department_id;
+                                    // Trigger change to load positions for this department
+                                    deptSelect.dispatchEvent(new Event('change'));
                                     
-                                    // Wait for departments to load, then set department
+                                    // Wait for positions to load, then set position
                                     await new Promise(resolve => setTimeout(resolve, 300));
-                                    const deptSelect = document.getElementById('departmentSelect');
-                                    if (deptSelect && item.department_id) {
-                                        deptSelect.value = item.department_id;
-                                        // Trigger change to load positions for this department
-                                        deptSelect.dispatchEvent(new Event('change'));
-                                        
-                                        // Wait for positions to load, then set position
-                                        await new Promise(resolve => setTimeout(resolve, 300));
-                                        const posSelect = document.getElementById('positionSelect');
-                                        if (posSelect && item.position_id) {
-                                            posSelect.value = item.position_id;
-                                        }
+                                    const posSelect = document.getElementById('positionSelect');
+                                    if (posSelect && item.position_id) {
+                                        posSelect.value = item.position_id;
                                     }
                                 }
-                            }, 100);
-                        }
+                            }
+                        }, 100);
                     }
                 }
             } catch (error) {
@@ -707,7 +735,7 @@
                     status: newStatus
                 };
                 
-                const response = await fetch(`${API_BASE}?action=user`, {
+                const response = await window.apiFetch(`${API_BASE}?action=user`, {
                     method: 'PUT',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(data)
@@ -779,11 +807,11 @@
     // Create user
     async function createUser(data) {
         try {
-            const response = await fetch(`${API_BASE}?action=user`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(data)
-            });
+                const response = await window.apiFetch(`${API_BASE}?action=user`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
             const result = await response.json();
             
             if (result.success) {
@@ -832,7 +860,7 @@
                 return;
             }
             
-            const response = await fetch(`${API_BASE}?action=user`, {
+            const response = await window.apiFetch(`${API_BASE}?action=user`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(data)

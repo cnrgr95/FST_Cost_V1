@@ -7,6 +7,23 @@
     'use strict';
     
     // ============================================
+    // PAGE CONFIG INITIALIZATION
+    // ============================================
+    
+    // Load page configuration and set as global
+    const configElement = document.getElementById('page-config');
+    if (configElement) {
+        try {
+            window.pageConfig = JSON.parse(configElement.textContent);
+        } catch (e) {
+            console.error('Failed to parse page config:', e);
+            window.pageConfig = {};
+        }
+    } else {
+        window.pageConfig = {};
+    }
+    
+    // ============================================
     // MODAL FUNCTIONS
     // ============================================
     
@@ -137,11 +154,88 @@
     // ============================================
     
     // ============================================
+    // CSRF TOKEN MANAGEMENT
+    // ============================================
+    
+    /**
+     * Get CSRF token from page config or meta tag
+     */
+    function getCsrfToken() {
+        // Try from page config first
+        const pageConfig = window.pageConfig || {};
+        if (pageConfig.csrfToken) {
+            return pageConfig.csrfToken;
+        }
+        
+        // Try from meta tag
+        const metaTag = document.querySelector('meta[name="csrf-token"]');
+        if (metaTag) {
+            return metaTag.getAttribute('content');
+        }
+        
+        return null;
+    }
+    
+    /**
+     * Enhanced fetch with automatic CSRF token injection
+     * This wrapper automatically adds CSRF token to POST, PUT, DELETE requests
+     */
+    window.apiFetch = async function(url, options = {}) {
+        const method = (options.method || 'GET').toUpperCase();
+        
+        // Only add token for state-changing methods
+        if (method === 'POST' || method === 'PUT' || method === 'DELETE' || method === 'PATCH') {
+            const token = getCsrfToken();
+            
+            if (!token) {
+                console.warn('CSRF token not found. Request may fail validation.');
+            }
+            
+            // Set headers if not provided
+            if (!options.headers) {
+                options.headers = {};
+            }
+            
+            // Ensure Content-Type is set for JSON requests
+            if (!options.headers['Content-Type'] && !options.headers['content-type']) {
+                options.headers['Content-Type'] = 'application/json';
+            }
+            
+            // Parse existing body if it's a string (JSON)
+            let bodyData = {};
+            if (options.body) {
+                if (typeof options.body === 'string') {
+                    try {
+                        bodyData = JSON.parse(options.body);
+                    } catch (e) {
+                        // If not JSON, use as-is
+                        bodyData = options.body;
+                    }
+                } else if (options.body instanceof FormData) {
+                    // For FormData, append token
+                    options.body.append('csrf_token', token);
+                    return fetch(url, options);
+                } else {
+                    bodyData = options.body;
+                }
+            }
+            
+            // Add CSRF token to JSON body
+            if (token && typeof bodyData === 'object' && !(bodyData instanceof FormData)) {
+                bodyData.csrf_token = token;
+                options.body = JSON.stringify(bodyData);
+            }
+        }
+        
+        return fetch(url, options);
+    };
+    
+    // ============================================
     // FORM SUBMISSION HELPER
     // ============================================
     
     /**
-     * Submit form via AJAX
+     * Submit form via AJAX (with CSRF token)
      */
     window.submitForm = async function(options) {
         const {
@@ -167,7 +261,7 @@
             data.action = action;
             
             const url = `${apiUrl}?action=${action}`;
-            const response = await fetch(url, {
+            const response = await window.apiFetch(url, {
                 method: method,
                 headers: {
                     'Content-Type': 'application/json'

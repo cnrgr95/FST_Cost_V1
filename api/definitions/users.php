@@ -160,7 +160,9 @@ function getUsers($conn) {
                          d.name as department_name,
                          p.name as position_name,
                          c.name as city_name,
+                         c.region_id as region_id,
                          r.name as region_name,
+                         r.country_id as country_id,
                          co.name as country_name
                   FROM users u
                   LEFT JOIN departments d ON u.department_id = d.id

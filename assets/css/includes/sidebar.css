@@ -357,6 +357,39 @@ html {
   color: var(--hover-text);
 }
 
+/* Responsive (mobile) - Show active state on both parent dropdown and active item */
+@media (max-width: 768px) {
+  /* On mobile, parent dropdown container SHOULD be active when it contains active item */
+  .sidebar.active .nav-item.dropdown-container:has(.nav-item.active) > .nav-link {
+    background: var(--hover-color) !important;
+    color: var(--hover-text) !important;
+    font-weight: 500 !important;
+  }
+
+  .sidebar.active .nav-item.dropdown-container:has(.nav-item.active) > .nav-link .material-symbols-rounded {
+    color: var(--hover-text) !important;
+  }
+
+  /* The actual active item inside dropdown should also be highlighted */
+  .sidebar.active .dropdown-menu .nav-item.active .dropdown-link {
+    background: var(--hover-color) !important;
+    color: var(--hover-text) !important;
+    font-weight: 500 !important;
+  }
+
+  /* Top-level active items (not in dropdown) should show active state */
+  .sidebar.active .nav-item:not(.dropdown-container).active > .nav-link {
+    color: var(--hover-text) !important;
+    background: var(--hover-color) !important;
+    border: 1px solid rgba(238, 242, 255, 0.3) !important;
+    font-weight: 500 !important;
+  }
+
+  .sidebar.active .nav-item:not(.dropdown-container).active > .nav-link .material-symbols-rounded {
+    color: var(--hover-text) !important;
+  }
+}
+
 /* FST Branding Styles */
 .nav-link-branding {
   display: flex;
@@ -774,6 +807,30 @@ html {
     letter-spacing: 0.3px;
     text-transform: uppercase;
     color: #b0b3d8;
+  }
+
+  /* Dropdown link styling on mobile - ensure proper padding and text alignment */
+  .sidebar.active .dropdown-menu .nav-item .dropdown-link {
+    padding: 10px 15px !important;
+    font-size: 14px !important;
+    color: var(--text-color) !important;
+    display: block !important;
+    text-decoration: none !important;
+    transition: all 0.2s ease !important;
+    border-radius: 4px !important;
+    margin: 2px 0 !important;
+  }
+
+  .sidebar.active .dropdown-menu .nav-item .dropdown-link:hover {
+    background: rgba(238, 242, 255, 0.1) !important;
+    color: var(--hover-color) !important;
+  }
+
+  /* Ensure active dropdown link has proper styling */
+  .sidebar.active .dropdown-menu .nav-item.active .dropdown-link {
+    background: var(--hover-color) !important;
+    color: var(--hover-text) !important;
+    font-weight: 500 !important;
   }
 }
 

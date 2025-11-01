@@ -290,7 +290,7 @@
     // Create cost
     window.createCost = async function(data) {
         try {
-            const response = await fetch(`${API_BASE}?action=cost`, {
+            const response = await window.apiFetch(`${API_BASE}?action=cost`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(data)
@@ -314,7 +314,7 @@
     // Update cost
     window.updateCost = async function(data) {
         try {
-            const response = await fetch(`${API_BASE}?action=cost`, {
+            const response = await window.apiFetch(`${API_BASE}?action=cost`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(data)

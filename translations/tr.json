@@ -453,6 +453,7 @@
         "invalid_response_format": "Geçersiz yanıt formatı",
         "modal_form_not_found": "Modal, form veya başlık bulunamadı",
         "item_not_found": "Öğe bulunamadı",
+        "not_enough_space": "Yeterli alan yok. Sayfayı kaydırın ve tekrar deneyin.",
         "order_saved": "Dil sıralaması kaydedildi",
         "failed_to_save_order": "Dil sıralaması kaydedilemedi",
         "auto_translate_all": "Tümünü Otomatik Çevir",

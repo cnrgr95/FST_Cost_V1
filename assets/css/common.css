@@ -447,9 +447,10 @@ table tbody tr:last-child td {
   }
   
   table {
-    width: 100% !important;
+    width: max-content !important;
+    min-width: max-content !important;
     display: table;
-    table-layout: fixed;
+    table-layout: auto;
     font-size: 13px;
   }
   
@@ -457,8 +458,7 @@ table tbody tr:last-child td {
   table td {
     padding: 10px 12px;
     font-size: 13px;
-    word-wrap: break-word;
-    white-space: normal;
+    white-space: nowrap;
     max-width: none;
   }
   
@@ -659,7 +659,8 @@ table tbody tr:last-child td {
   }
   
   table {
-    width: 100% !important;
+    width: max-content !important;
+    min-width: max-content !important;
     font-size: 12px;
   }
   
@@ -667,16 +668,21 @@ table tbody tr:last-child td {
   table td {
     padding: 8px 10px;
     font-size: 12px;
+    white-space: nowrap;
   }
   
   table th {
     font-size: 11px;
   }
   
-  /* Hide less important columns on very small screens if needed */
-  table thead th:nth-child(n+4):not(:last-child),
-  table tbody td:nth-child(n+4):not(:last-child) {
-    display: none;
+  /* Show all columns - use horizontal scroll instead of hiding */
+  .table-container,
+  .table-wrapper,
+  [class*="-table-wrapper"],
+  [class*="-table-section"] {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    width: 100%;
   }
   
   .form-container {

@@ -18,6 +18,9 @@ if (!isset($_SESSION['user_id'])) {
 // Load translation helper
 require_once $basePath . 'includes/translations.php';
 
+// Load security helpers for CSRF token
+require_once $basePath . 'includes/security.php';
+
 // Get translations
 $t_sidebar = $all_translations['sidebar'] ?? [];
 $t_common = $all_translations['common'] ?? [];
@@ -107,6 +110,7 @@ $t_costs = $all_translations['costs'] ?? [];
     echo json_encode([
         'basePath' => $basePath,
         'apiBase' => $basePath . 'api/definitions/costs.php',
+        'csrfToken' => csrfToken(),
         'translations' => [
             'costs' => $t_costs,
             'common' => $t_common,
