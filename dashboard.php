@@ -198,6 +198,11 @@ $t_dashboard = $all_translations['dashboard'] ?? [];
         }
     </style>
     
+    <!-- Toast Notification Container -->
+    <div id="toastContainer" class="toast-container"></div>
+    
     <script src="assets/js/includes/sidebar.js"></script>
+    <script src="assets/js/toast.js"></script>
+    <script src="assets/js/common.js"></script>
 </body>
 </html>

@@ -84,10 +84,16 @@ select:invalid {
 /* Table Styles - Matching currencies.php */
 .locations-table-container {
     background: white;
+<<<<<<< HEAD
     border-radius: 8px;
     box-shadow: 0 2px 4px rgba(0,0,0,0.1);
     padding: 30px;
     margin-bottom: 30px;
+=======
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    overflow: visible; /* Changed from hidden to visible for responsive scrolling */
+>>>>>>> a0307c1e3314e49827492687374a3c6c8e5841c8
 }
 
 .locations-table-header {
@@ -133,6 +139,7 @@ select:invalid {
     font-size: 20px;
 }
 
+<<<<<<< HEAD
 .currencies-table-section {
     overflow-x: auto;
     margin-bottom: 30px;
@@ -200,9 +207,23 @@ select:invalid {
 }
 
 /* Legacy support - map old classes to new */
+=======
+/* Table wrapper for responsive scrolling */
+.locations-table-wrapper,
+.table-wrapper {
+    width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    display: block;
+    position: relative;
+}
+
+>>>>>>> a0307c1e3314e49827492687374a3c6c8e5841c8
 .table {
     width: 100%;
     border-collapse: collapse;
+    display: table;
+    table-layout: auto;
 }
 
 .table thead {
@@ -213,16 +234,28 @@ select:invalid {
     padding: 12px;
     text-align: left;
     font-weight: 600;
+<<<<<<< HEAD
     font-size: 14px;
     color: #374151;
     border-bottom: 2px solid #e5e7eb;
+=======
+    color: #6b7280;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    white-space: nowrap;
+>>>>>>> a0307c1e3314e49827492687374a3c6c8e5841c8
 }
 
 .table tbody td {
     padding: 12px;
     border-bottom: 1px solid #e5e7eb;
     font-size: 14px;
+<<<<<<< HEAD
     color: #1f2937;
+=======
+    word-wrap: break-word;
+    max-width: 300px;
+>>>>>>> a0307c1e3314e49827492687374a3c6c8e5841c8
 }
 
 .table tbody tr:hover {
@@ -458,25 +491,87 @@ select:invalid {
     .locations-tabs {
         flex-wrap: wrap;
         gap: 8px;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
     }
     
     .locations-tab {
         padding: 10px 16px;
         font-size: 14px;
+        white-space: nowrap;
+    }
+    
+    /* Responsive table - full width */
+    .locations-table-container {
+        overflow: visible !important;
+        width: 100%;
+    }
+    
+    .locations-table-wrapper,
+    .table-wrapper {
+        width: 100%;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        display: block;
     }
     
     .table {
-        font-size: 13px;
+        width: 100% !important;
+        display: table;
+        table-layout: fixed;
     }
     
     .table thead th,
     .table tbody td {
-        padding: 12px;
+        padding: 12px 10px;
+        font-size: 13px;
+        word-wrap: break-word;
+        white-space: normal;
+        max-width: none;
+    }
+    
+    .table thead th {
+        font-size: 12px;
+    }
+    
+    /* Actions column stays compact */
+    .table tbody td:last-child {
+        white-space: nowrap;
+        width: auto;
+        min-width: 100px;
     }
     
     .modal-content {
         margin: 20px;
         padding: 24px;
+    }
+}
+
+@media (max-width: 480px) {
+    .locations-table-wrapper,
+    .table-wrapper {
+        width: 100%;
+    }
+    
+    .table {
+        width: 100% !important;
+        font-size: 12px;
+    }
+    
+    .table thead th,
+    .table tbody td {
+        padding: 10px 8px;
+        font-size: 12px;
+    }
+    
+    .table thead th {
+        font-size: 11px;
+    }
+    
+    /* Hide less important columns on very small screens */
+    .table thead th:nth-child(3),
+    .table tbody td:nth-child(3) {
+        display: none;
     }
 }
 
