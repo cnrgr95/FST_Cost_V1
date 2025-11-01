@@ -42,7 +42,9 @@ if (ob_get_level() > 0) {
 try {
     $conn = getDbConnection();
 } catch (Exception $e) {
-    echo json_encode(['success' => false, 'message' => 'Database connection failed: ' . $e->getMessage()]);
+    error_log("Database connection failed in currencies.php: " . $e->getMessage());
+    $message = APP_DEBUG ? 'Database connection failed: ' . $e->getMessage() : 'Database connection failed';
+    echo json_encode(['success' => false, 'message' => $message]);
     exit;
 }
 
@@ -73,7 +75,9 @@ try {
             echo json_encode(['success' => false, 'message' => 'Invalid request method']);
     }
 } catch (Exception $e) {
-    echo json_encode(['success' => false, 'message' => $e->getMessage()]);
+    error_log("API Error in currencies.php: " . $e->getMessage());
+    $message = APP_DEBUG ? $e->getMessage() : 'An error occurred while processing your request';
+    echo json_encode(['success' => false, 'message' => $message]);
 } finally {
     if (isset($conn)) {
         closeDbConnection($conn);

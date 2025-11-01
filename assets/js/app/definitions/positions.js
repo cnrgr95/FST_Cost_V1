@@ -542,14 +542,14 @@
                 console.warn('No cities found or API error');
                 const select = document.querySelector('[name="city_id"]');
                 if (select) {
-                    select.innerHTML = `<option value="">Şehir bulunamadı</option>`;
+                    select.innerHTML = `<option value="">${tPos.no_cities_found || tCommon.no_results || 'No results found'}</option>`;
                 }
             }
         } catch (error) {
             console.error('Error loading cities:', error);
             const select = document.querySelector('[name="city_id"]');
             if (select) {
-                select.innerHTML = `<option value="">Hata - Şehirler yüklenemedi</option>`;
+                select.innerHTML = `<option value="">${tCommon.error_cities_load || tCommon.load_failed || 'Error loading data'}</option>`;
             }
         }
     }

@@ -42,7 +42,9 @@ ob_end_clean();
 try {
     $conn = getDbConnection();
 } catch (Exception $e) {
-    echo json_encode(['success' => false, 'message' => 'Database connection failed: ' . $e->getMessage()]);
+    error_log("Database connection failed in vehicles.php: " . $e->getMessage());
+    $message = APP_DEBUG ? 'Database connection failed: ' . $e->getMessage() : 'Database connection failed';
+    echo json_encode(['success' => false, 'message' => $message]);
     exit;
 }
 
@@ -73,12 +75,90 @@ try {
             echo json_encode(['success' => false, 'message' => 'Invalid request method']);
     }
 } catch (Exception $e) {
-    echo json_encode(['success' => false, 'message' => $e->getMessage()]);
+    // Log error for debugging
+    error_log("API Error in vehicles.php: " . $e->getMessage());
+    
+    // Return safe error message - don't leak sensitive information
+    $message = APP_DEBUG ? $e->getMessage() : 'An error occurred while processing your request';
+    echo json_encode(['success' => false, 'message' => $message]);
 } finally {
     // Always close database connection
     if (isset($conn)) {
         closeDbConnection($conn);
     }
+}
+
+/**
+ * Validate Excel file upload - Check extension, MIME type, magic bytes, and size
+ * Returns array with 'valid' boolean and 'message' string
+ */
+function validateExcelFile($file) {
+    // 1. Check file exists and upload was successful
+    if (!isset($file) || !isset($file['tmp_name']) || !file_exists($file['tmp_name'])) {
+        return ['valid' => false, 'message' => 'File upload failed'];
+    }
+    
+    // 2. Check file extension
+    $ext = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
+    if (!in_array($ext, ['xlsx', 'xls'])) {
+        return ['valid' => false, 'message' => 'Invalid file format. Only .xlsx and .xls files are allowed'];
+    }
+    
+    // 3. Check file size
+    if (isset($file['size']) && $file['size'] > UPLOAD_MAX_SIZE) {
+        return ['valid' => false, 'message' => 'File size exceeds maximum allowed size of ' . (UPLOAD_MAX_SIZE / 1024 / 1024) . ' MB'];
+    }
+    
+    // 4. Check MIME type
+    if (function_exists('finfo_open')) {
+        $finfo = finfo_open(FILEINFO_MIME_TYPE);
+        $mimeType = finfo_file($finfo, $file['tmp_name']);
+        finfo_close($finfo);
+        
+        $allowedMimeTypes = [
+            'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', // .xlsx
+            'application/vnd.ms-excel', // .xls
+            'application/zip', // Some Excel files return this
+            'application/octet-stream' // Some Excel files return this
+        ];
+        
+        if (!in_array($mimeType, $allowedMimeTypes)) {
+            return ['valid' => false, 'message' => 'Invalid file type. MIME type: ' . $mimeType];
+        }
+    }
+    
+    // 5. Check magic bytes (file signature)
+    $handle = fopen($file['tmp_name'], 'rb');
+    if (!$handle) {
+        return ['valid' => false, 'message' => 'Could not read file'];
+    }
+    
+    $header = fread($handle, 8);
+    fclose($handle);
+    
+    // Excel files have specific magic bytes
+    // .xlsx files are ZIP archives, start with PK
+    // .xls files have OLE format signature
+    $isValidSignature = false;
+    if (substr($header, 0, 2) === 'PK') {
+        // ZIP-based format (.xlsx)
+        $isValidSignature = true;
+    } elseif (substr($header, 0, 8) === "\xD0\xCF\x11\xE0\xA1\xB1\x1A\xE1") {
+        // OLE format (.xls)
+        $isValidSignature = true;
+    }
+    
+    if (!$isValidSignature) {
+        return ['valid' => false, 'message' => 'Invalid file format. File does not appear to be a valid Excel file'];
+    }
+    
+    // 6. Sanitize filename
+    $sanitizedFilename = preg_replace('/[^a-zA-Z0-9._-]/', '_', $file['name']);
+    if ($sanitizedFilename !== $file['name']) {
+        error_log("Filename sanitized: {$file['name']} -> {$sanitizedFilename}");
+    }
+    
+    return ['valid' => true, 'message' => 'File is valid', 'sanitized_filename' => $sanitizedFilename];
 }
 
 // GET request handler
@@ -703,10 +783,10 @@ function uploadExcel($conn) {
         $vehicle_company_id = (int)$_POST['vehicle_company_id'];
         $file = $_FILES['excel_file'];
         
-        // Check file extension
-        $ext = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
-        if (!in_array($ext, ['xlsx', 'xls'])) {
-            echo json_encode(['success' => false, 'message' => 'Invalid file format. Only .xlsx and .xls files are allowed']);
+        // Validate file using comprehensive security checks
+        $validation = validateExcelFile($file);
+        if (!$validation['valid']) {
+            echo json_encode(['success' => false, 'message' => $validation['message']]);
             return;
         }
         
@@ -756,14 +836,11 @@ function uploadExcel($conn) {
                 $end_date = \PhpOffice\PhpSpreadsheet\Shared\Date::excelToDateTimeObject($end_date)->format('Y-m-d');
             }
             
-            $contract_code = pg_escape_string($conn, $contract_code);
-            $start_date = pg_escape_string($conn, $start_date);
-            $end_date = pg_escape_string($conn, $end_date);
-            
+            // Use prepared statement to prevent SQL injection
             $query = "INSERT INTO vehicle_contracts (vehicle_company_id, contract_code, start_date, end_date, created_at)
-                      VALUES ($vehicle_company_id, '$contract_code', '$start_date', '$end_date', NOW())";
+                      VALUES ($1, $2, $3, $4, NOW())";
             
-            $result = pg_query($conn, $query);
+            $result = pg_query_params($conn, $query, [$vehicle_company_id, $contract_code, $start_date, $end_date]);
             
             if ($result) {
                 $successCount++;
@@ -818,10 +895,10 @@ function uploadContractPrices($conn) {
         
         $file = $_FILES['excel_file'];
         
-        // Check file extension
-        $ext = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
-        if (!in_array($ext, ['xlsx', 'xls'])) {
-            echo json_encode(['success' => false, 'message' => 'Invalid file format. Only .xlsx and .xls files are allowed']);
+        // Validate file using comprehensive security checks
+        $validation = validateExcelFile($file);
+        if (!$validation['valid']) {
+            echo json_encode(['success' => false, 'message' => $validation['message']]);
             return;
         }
         

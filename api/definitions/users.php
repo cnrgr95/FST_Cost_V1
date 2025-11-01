@@ -38,7 +38,9 @@ ob_end_clean();
 try {
     $conn = getDbConnection();
 } catch (Exception $e) {
-    echo json_encode(['success' => false, 'message' => 'Database connection failed: ' . $e->getMessage()]);
+    error_log("Database connection failed in users.php: " . $e->getMessage());
+    $message = APP_DEBUG ? 'Database connection failed: ' . $e->getMessage() : 'Database connection failed';
+    echo json_encode(['success' => false, 'message' => $message]);
     exit;
 }
 
@@ -69,7 +71,9 @@ try {
             echo json_encode(['success' => false, 'message' => 'Invalid request method']);
     }
 } catch (Exception $e) {
-    echo json_encode(['success' => false, 'message' => $e->getMessage()]);
+    error_log("API Error in users.php: " . $e->getMessage());
+    $message = APP_DEBUG ? $e->getMessage() : 'An error occurred while processing your request';
+    echo json_encode(['success' => false, 'message' => $message]);
 } finally {
     // Always close database connection
     if (isset($conn)) {
@@ -181,7 +185,9 @@ function getUsers($conn) {
             echo json_encode(['success' => false, 'message' => getDbErrorMessage($conn)]);
         }
     } catch (Exception $e) {
-        echo json_encode(['success' => false, 'message' => 'Error loading users: ' . $e->getMessage()]);
+        error_log("Error loading users: " . $e->getMessage());
+        $message = APP_DEBUG ? 'Error loading users: ' . $e->getMessage() : 'An error occurred while loading users';
+        echo json_encode(['success' => false, 'message' => $message]);
     }
 }
 
@@ -240,7 +246,9 @@ function getDepartments($conn, $city_id = null) {
             echo json_encode(['success' => false, 'message' => getDbErrorMessage($conn)]);
         }
     } catch (Exception $e) {
-        echo json_encode(['success' => false, 'message' => 'Error loading departments: ' . $e->getMessage()]);
+        error_log("Error loading departments: " . $e->getMessage());
+        $message = APP_DEBUG ? 'Error loading departments: ' . $e->getMessage() : 'An error occurred while loading departments';
+        echo json_encode(['success' => false, 'message' => $message]);
     }
 }
 
@@ -273,7 +281,9 @@ function getCities($conn) {
             echo json_encode(['success' => false, 'message' => getDbErrorMessage($conn)]);
         }
     } catch (Exception $e) {
-        echo json_encode(['success' => false, 'message' => 'Error loading cities: ' . $e->getMessage()]);
+        error_log("Error loading cities: " . $e->getMessage());
+        $message = APP_DEBUG ? 'Error loading cities: ' . $e->getMessage() : 'An error occurred while loading cities';
+        echo json_encode(['success' => false, 'message' => $message]);
     }
 }
 
@@ -295,7 +305,9 @@ function getRegions($conn, $country_id = null) {
             echo json_encode(['success' => false, 'message' => getDbErrorMessage($conn)]);
         }
     } catch (Exception $e) {
-        echo json_encode(['success' => false, 'message' => 'Error loading regions: ' . $e->getMessage()]);
+        error_log("Error loading regions: " . $e->getMessage());
+        $message = APP_DEBUG ? 'Error loading regions: ' . $e->getMessage() : 'An error occurred while loading regions';
+        echo json_encode(['success' => false, 'message' => $message]);
     }
 }
 
@@ -313,7 +325,9 @@ function getCountries($conn) {
             echo json_encode(['success' => false, 'message' => getDbErrorMessage($conn)]);
         }
     } catch (Exception $e) {
-        echo json_encode(['success' => false, 'message' => 'Error loading countries: ' . $e->getMessage()]);
+        error_log("Error loading countries: " . $e->getMessage());
+        $message = APP_DEBUG ? 'Error loading countries: ' . $e->getMessage() : 'An error occurred while loading countries';
+        echo json_encode(['success' => false, 'message' => $message]);
     }
 }
 
@@ -398,14 +412,11 @@ function createUser($conn, $data) {
 // Update user
 function updateUser($conn, $data) {
     $id = (int)$data['id'];
-    $username = pg_escape_string($conn, $data['username']);
-    $full_name = pg_escape_string($conn, $data['full_name'] ?? '');
+    $phone = isset($data['phone']) ? trim($data['phone']) : '';
+    $status = isset($data['status']) ? trim($data['status']) : 'active';
     $department_id = isset($data['department_id']) ? (int)$data['department_id'] : null;
     $position_id = isset($data['position_id']) ? (int)$data['position_id'] : null;
     $city_id = isset($data['city_id']) ? (int)$data['city_id'] : null;
-    $email = pg_escape_string($conn, $data['email'] ?? '');
-    $phone = pg_escape_string($conn, $data['phone'] ?? '');
-    $status = pg_escape_string($conn, $data['status'] ?? 'active');
     
     // Prevent users from deactivating themselves
     $current_user_id = isset($_SESSION['user_id']) ? (int)$_SESSION['user_id'] : null;
@@ -415,7 +426,7 @@ function updateUser($conn, $data) {
     }
     
     // Validate email if provided
-    if (!empty($email) && !validateEmail($email)) {
+    if (!empty($data['email'] ?? '') && !validateEmail($data['email'])) {
         echo json_encode(['success' => false, 'message' => 'Invalid email format']);
         return;
     }

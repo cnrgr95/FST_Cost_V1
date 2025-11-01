@@ -54,10 +54,14 @@
         if (select.dataset.searchInitialized === 'true') return;
 
         // Try to get translation from page or use default
-        let defaultPlaceholder = 'Ara...';
-        if (typeof tCommon !== 'undefined' && tCommon.search) {
+        let defaultPlaceholder = 'Search...';
+        const pageConfig = window.pageConfig || {};
+        const translations = pageConfig.translations || {};
+        const tCommon = translations.common || (typeof window.Translations !== 'undefined' ? window.Translations.common : {}) || (typeof window.tCommon !== 'undefined' ? window.tCommon : {});
+        
+        if (tCommon && tCommon.search) {
             defaultPlaceholder = tCommon.search;
-        } else if (typeof translations !== 'undefined' && translations.common && translations.common.search) {
+        } else if (translations && translations.common && translations.common.search) {
             defaultPlaceholder = translations.common.search;
         }
 
@@ -170,8 +174,7 @@
                 // Skip if it's a loading message (more comprehensive list)
                 const loadingTexts = [
                     'loading', 'yükleniyor', 'loading...', 'veriler yükleniyor', 
-                    'loading_data', 'loading_companies', 'loading_types', 'loading_contracts',
-                    'araç firmaları yükleniyor', 'araç tipleri yükleniyor', 'kontratlar yükleniyor'
+                    'loading_data', 'loading_companies', 'loading_types', 'loading_contracts'
                 ];
                 const lowerText = text.toLowerCase();
                 
@@ -186,7 +189,7 @@
                 }
                 
                 // Skip empty placeholder options unless it's a meaningful empty option
-                if (value === '' && (text === '' || text === 'Seçin...' || text === 'Select...' || text.toLowerCase() === 'select')) {
+                if (value === '' && (text === '' || text.toLowerCase() === 'select')) {
                     return false;
                 }
                 
@@ -276,22 +279,20 @@
                 const loadingMsg = document.createElement('div');
                 loadingMsg.className = 'select-search-loading';
                 // Try to get translation
-                let loadingText = 'Veriler yükleniyor...';
-                if (typeof tCommon !== 'undefined' && tCommon.loading) {
-                    loadingText = tCommon.loading;
-                }
+                const pageConfig = window.pageConfig || {};
+                const translations = pageConfig.translations || {};
+                const tCommon = translations.common || (typeof window.Translations !== 'undefined' ? window.Translations.common : {}) || (typeof window.tCommon !== 'undefined' ? window.tCommon : {});
+                const loadingText = (tCommon && tCommon.loading) || 'Loading...';
                 loadingMsg.textContent = loadingText;
                 optionsContainer.appendChild(loadingMsg);
             } else {
                 const noResult = document.createElement('div');
                 noResult.className = 'select-search-no-result';
                 // Try to get translation
-                let noResultText = 'Sonuç bulunamadı';
-                if (typeof tCommon !== 'undefined' && tCommon.no_results) {
-                    noResultText = tCommon.no_results;
-                } else if (typeof tCommon !== 'undefined' && tCommon.not_found) {
-                    noResultText = tCommon.not_found;
-                }
+                const pageConfig = window.pageConfig || {};
+                const translations = pageConfig.translations || {};
+                const tCommon = translations.common || (typeof window.Translations !== 'undefined' ? window.Translations.common : {}) || (typeof window.tCommon !== 'undefined' ? window.tCommon : {});
+                const noResultText = (tCommon && tCommon.no_results) || (tCommon && tCommon.not_found) || 'No results found';
                 noResult.textContent = noResultText;
                 optionsContainer.appendChild(noResult);
             }
@@ -356,7 +357,11 @@
                 triggerText.textContent = selectedOption.textContent;
                 triggerText.style.color = '#1f2937';
             } else {
-                const placeholder = select.dataset.placeholder || select.options[0]?.textContent || 'Seçin...';
+                const pageConfig = window.pageConfig || {};
+                const translations = pageConfig.translations || {};
+                const tCommon = translations.common || (typeof window.Translations !== 'undefined' ? window.Translations.common : {}) || (typeof window.tCommon !== 'undefined' ? window.tCommon : {});
+                const defaultSelect = (tCommon && tCommon.select) || 'Select...';
+                const placeholder = select.dataset.placeholder || select.options[0]?.textContent || defaultSelect;
                 triggerText.textContent = placeholder;
                 triggerText.style.color = '#9ca3af';
             }
@@ -532,10 +537,11 @@
                 
                 if (spaceBelow < minSpace) {
                     // Still not enough - show message
-                    let errorMsg = 'Yeterli alan yok. Sayfayı kaydırın ve tekrar deneyin.';
-                    if (typeof tCommon !== 'undefined' && tCommon.not_enough_space) {
-                        errorMsg = tCommon.not_enough_space;
-                    }
+                    const pageConfig = window.pageConfig || {};
+                    const translations = pageConfig.translations || {};
+                    const tCommon = translations.common || (typeof window.Translations !== 'undefined' ? window.Translations.common : {}) || (typeof window.tCommon !== 'undefined' ? window.tCommon : {});
+                    const tLangMgmt = translations.language_mgmt || (typeof window.Translations !== 'undefined' ? window.Translations.language_mgmt : {}) || {};
+                    const errorMsg = (tLangMgmt && tLangMgmt.not_enough_space) || (tCommon && tCommon.not_enough_space) || 'Not enough space. Please scroll the page and try again.';
                     if (typeof showToast !== 'undefined') {
                         showToast('warning', errorMsg);
                     }

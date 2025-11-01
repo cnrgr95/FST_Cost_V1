@@ -11,7 +11,11 @@ if (!defined('APP_INIT')) {
 
 // Environment Configuration
 // Environment configuration - can be overridden by .env file
-define('APP_ENV', $_ENV['APP_ENV'] ?? 'development'); // development, production, testing
+$appEnvRaw = $_ENV['APP_ENV'] ?? 'development';
+if (!in_array($appEnvRaw, ['development', 'production', 'testing'])) {
+    throw new Exception('Invalid APP_ENV: ' . $appEnvRaw . '. Must be one of: development, production, testing');
+}
+define('APP_ENV', $appEnvRaw); // development, production, testing
 define('APP_DEBUG', isset($_ENV['APP_DEBUG']) ? ($_ENV['APP_DEBUG'] === 'true' || $_ENV['APP_DEBUG'] === '1') : (APP_ENV === 'development')); // Auto-disable in production
 
 // UTF-8 Encoding Configuration
@@ -118,7 +122,11 @@ define('CACHE_LIFETIME', 3600); // 1 hour
 
 // Security
 define('CSRF_TOKEN_NAME', 'csrf_token');
-define('SESSION_LIFETIME', 7200); // 2 hours
+$sessionLifetime = $_ENV['SESSION_LIFETIME'] ?? 7200;
+if (!is_numeric($sessionLifetime) || $sessionLifetime < 60 || $sessionLifetime > 86400) {
+    throw new Exception('Invalid SESSION_LIFETIME: must be between 60 and 86400 seconds');
+}
+define('SESSION_LIFETIME', (int)$sessionLifetime); // 2 hours
 
 // API Configuration
 define('API_VERSION', 'v1');

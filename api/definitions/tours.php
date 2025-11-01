@@ -94,7 +94,9 @@ try {
             echo json_encode(['success' => false, 'message' => 'Invalid request method']);
     }
 } catch (Exception $e) {
-    echo json_encode(['success' => false, 'message' => $e->getMessage()]);
+    error_log("API Error in tours.php: " . $e->getMessage());
+    $message = APP_DEBUG ? $e->getMessage() : 'An error occurred while processing your request';
+    echo json_encode(['success' => false, 'message' => $message]);
 } finally {
     // Always close database connection
     if (isset($conn)) {

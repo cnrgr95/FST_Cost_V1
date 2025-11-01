@@ -498,7 +498,9 @@
             const response = await fetch(`${API_BASE}?action=countries`);
             const result = await response.json();
             if (result.success) {
-                select.innerHTML = '<option value="">Select...</option>';
+                const tCommon = (window.pageConfig && window.pageConfig.translations && window.pageConfig.translations.common) || {};
+                const selectText = (tCommon.select || 'Select...');
+                select.innerHTML = `<option value="">${selectText}</option>`;
                 (result.data || []).forEach(country => {
                     const option = document.createElement('option');
                     option.value = country.id;
@@ -520,9 +522,13 @@
         if (!select) return;
         
         if (!country_id) {
-            select.innerHTML = '<option value="">Select...</option>';
-            if (citySelect) citySelect.innerHTML = '<option value="">Select...</option>';
-            if (subRegionSelect) subRegionSelect.innerHTML = '<option value="">Önce ülke, bölge ve şehir seçin</option>';
+            const tCommon = (window.pageConfig && window.pageConfig.translations && window.pageConfig.translations.common) || {};
+            const tTours = (window.pageConfig && window.pageConfig.translations && window.pageConfig.translations.tours) || {};
+            const selectText = (tCommon.select || 'Select...');
+            const selectRegionsFirstText = (tTours.select_regions_first || 'Please select country, region and city first');
+            select.innerHTML = `<option value="">${selectText}</option>`;
+            if (citySelect) citySelect.innerHTML = `<option value="">${selectText}</option>`;
+            if (subRegionSelect) subRegionSelect.innerHTML = `<option value="">${selectRegionsFirstText}</option>`;
             return;
         }
         
@@ -530,7 +536,11 @@
             const response = await fetch(`${API_BASE}?action=regions&country_id=${country_id}`);
             const result = await response.json();
             if (result.success) {
-                select.innerHTML = '<option value="">Select...</option>';
+                const tCommon = (window.pageConfig && window.pageConfig.translations && window.pageConfig.translations.common) || {};
+                const tTours = (window.pageConfig && window.pageConfig.translations && window.pageConfig.translations.tours) || {};
+                const selectText = (tCommon.select || 'Select...');
+                const selectRegionsFirstText = (tTours.select_regions_first || 'Please select country, region and city first');
+                select.innerHTML = `<option value="">${selectText}</option>`;
                 (result.data || []).forEach(region => {
                     const option = document.createElement('option');
                     option.value = region.id;
@@ -540,9 +550,13 @@
             }
             
             // Reset dependent dropdowns
-            if (citySelect) citySelect.innerHTML = '<option value="">Select...</option>';
+            const tCommon = (window.pageConfig && window.pageConfig.translations && window.pageConfig.translations.common) || {};
+            const tTours = (window.pageConfig && window.pageConfig.translations && window.pageConfig.translations.tours) || {};
+            const selectText = (tCommon.select || 'Select...');
+            const selectRegionsFirstText = (tTours.select_regions_first || 'Please select country, region and city first');
+            if (citySelect) citySelect.innerHTML = `<option value="">${selectText}</option>`;
             const checkboxContainer = document.getElementById('sub_regions_checkbox_container');
-            if (checkboxContainer) checkboxContainer.innerHTML = '<div class="checkbox-message">Önce ülke, bölge ve şehir seçin</div>';
+            if (checkboxContainer) checkboxContainer.innerHTML = `<div class="checkbox-message">${selectRegionsFirstText}</div>`;
         } catch (error) {
             console.error('Error loading regions:', error);
         }
@@ -556,8 +570,12 @@
         if (!select) return;
         
         if (!region_id) {
-            select.innerHTML = '<option value="">Select...</option>';
-            if (subRegionSelect) subRegionSelect.innerHTML = '<option value="">Önce ülke, bölge ve şehir seçin</option>';
+            const tCommon = (window.pageConfig && window.pageConfig.translations && window.pageConfig.translations.common) || {};
+            const tTours = (window.pageConfig && window.pageConfig.translations && window.pageConfig.translations.tours) || {};
+            const selectText = (tCommon.select || 'Select...');
+            const selectRegionsFirstText = (tTours.select_regions_first || 'Please select country, region and city first');
+            select.innerHTML = `<option value="">${selectText}</option>`;
+            if (subRegionSelect) subRegionSelect.innerHTML = `<option value="">${selectRegionsFirstText}</option>`;
             return;
         }
         
@@ -565,7 +583,11 @@
             const response = await fetch(`${API_BASE}?action=cities&region_id=${region_id}`);
             const result = await response.json();
             if (result.success) {
-                select.innerHTML = '<option value="">Select...</option>';
+                const tCommon = (window.pageConfig && window.pageConfig.translations && window.pageConfig.translations.common) || {};
+                const tTours = (window.pageConfig && window.pageConfig.translations && window.pageConfig.translations.tours) || {};
+                const selectText = (tCommon.select || 'Select...');
+                const selectRegionsFirstText = (tTours.select_regions_first || 'Please select country, region and city first');
+                select.innerHTML = `<option value="">${selectText}</option>`;
                 (result.data || []).forEach(city => {
                     const option = document.createElement('option');
                     option.value = city.id;

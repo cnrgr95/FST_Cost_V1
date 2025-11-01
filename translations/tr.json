@@ -129,6 +129,8 @@
         "failed_to_delete_item": "Öğe silinemedi",
         "fill_required_fields": "Lütfen tüm zorunlu alanları doldurun",
         "invalid_date_range": "Başlangıç tarihi bitiş tarihinden sonra olamaz",
+        "invalid_response_format": "Geçersiz yanıt formatı",
+        "no_results": "Sonuç bulunamadı",
         "months": {
             "names": ["Ocak", "Şubat", "Mart", "Nisan", "Mayıs", "Haziran", "Temmuz", "Ağustos", "Eylül", "Ekim", "Kasım", "Aralık"]
         },
@@ -201,6 +203,7 @@
         "edit_pos": "Görev Düzenle",
         "no_departments": "Departman bulunamadı",
         "no_positions": "Görev bulunamadı",
+        "no_cities_found": "Şehir bulunamadı",
         "select_city": "Şehir Seçin",
         "select_dept": "Departman Seçin",
         "name_required": "Ad alanı zorunludur",
@@ -330,7 +333,7 @@
         "upload_excel": "Excel Yükle",
         "select_vehicle_company": "Araç Firması Seçin",
         "select_excel_file": "Excel Dosyası Seçin",
-        "excel_format_hint": "Desteklenen formatlar: .xlsx, .xls",
+        "excel_format_hint": "Excel dosyasında gerekli alanlar: Nerden, Nereye, Vip Vito, Vip Mini, Vito, Mini, Midi, Bus. Sütunlar farklı sırada olabilir, yüklemeden sonra eşleştirme yapabilirsiniz.",
         "upload": "Yükle",
         "contract_added": "Kontrat başarıyla eklendi",
         "contract_updated": "Kontrat başarıyla güncellendi",
@@ -383,7 +386,12 @@
         "delete_confirm": "Bu kaydı silmek istediğinizden emin misiniz?",
         "loading_data": "Veriler yükleniyor...",
         "tour_added": "Tur başarıyla eklendi",
-        "tour_updated": "Tur başarıyla güncellendi"
+        "tour_updated": "Tur başarıyla güncellendi",
+        "tour_regions": "Bu Turun Gerçekleştiği Bölgeler",
+        "select_all": "Tümünü Seç",
+        "deselect_all": "Tümünü Temizle",
+        "search_regions": "Bölge ara...",
+        "select_regions_first": "Önce ülke, bölge ve şehir seçin"
     },
     "costs": {
         "title": "Maliyet Yönetimi",
@@ -422,6 +430,19 @@
         "invalid_request": "Geçersiz istek",
         "server_error": "Sunucu hatası"
     },
+    "api_validation": {
+        "missing_required_field": "Zorunlu alan eksik: {field}",
+        "invalid_field_number": "Geçersiz {field}: sayı olmalıdır",
+        "invalid_field_min": "Geçersiz {field}: en az {min} olmalıdır",
+        "invalid_field_max": "Geçersiz {field}: en fazla {max} olmalıdır",
+        "invalid_field_string": "Geçersiz {field}: metin olmalıdır",
+        "invalid_field_empty": "Geçersiz {field}: boş olamaz",
+        "invalid_field_length": "Geçersiz {field}: en fazla {max} karakter olmalıdır",
+        "unauthorized": "Yetkisiz erişim",
+        "invalid_request_method": "Geçersiz istek yöntemi",
+        "invalid_action": "Geçersiz işlem",
+        "database_query_failed": "Veritabanı sorgusu başarısız"
+    },
     "languages": {
         "en": "English",
         "tr": "Türkçe"
@@ -450,7 +471,6 @@
         "failed_to_update": "Dil adı güncellenemedi",
         "failed_to_delete": "Dil silinemedi",
         "failed_to_save_translations": "Çeviriler kaydedilemedi",
-        "invalid_response_format": "Geçersiz yanıt formatı",
         "modal_form_not_found": "Modal, form veya başlık bulunamadı",
         "item_not_found": "Öğe bulunamadı",
         "not_enough_space": "Yeterli alan yok. Sayfayı kaydırın ve tekrar deneyin.",

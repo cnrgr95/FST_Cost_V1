@@ -271,10 +271,7 @@
                         route.vehicle_type_prices = {};
                     }
                     
-                    // Debug: Log route prices for troubleshooting
-                    if (Object.keys(route.vehicle_type_prices).length > 0) {
-                        console.log('Route loaded:', route.from_location, '->', route.to_location, 'Prices:', route.vehicle_type_prices);
-                    }
+                    // Route prices loaded from database
                 });
                 await renderRoutesTable();
             } else {
@@ -382,9 +379,9 @@
                     || vehicleTypePrices[type.id] 
                     || null;
                 
-                // Debug logging for troubleshooting
+                // Vehicle type price processing
                 if (Object.keys(vehicleTypePrices).length > 0 && price === null) {
-                    console.log('Price not found for type', type.id, 'Available keys:', Object.keys(vehicleTypePrices), 'Prices:', vehicleTypePrices);
+                    // Price not found for vehicle type (handled gracefully with default)
                 }
                 
                 html += `<td>${formatPrice(price)}</td>`;
@@ -427,7 +424,7 @@
                 e.preventDefault();
                 e.stopPropagation();
                 const routeId = this.getAttribute('data-route-id');
-                console.log('Edit button clicked, route ID:', routeId);
+                // Edit button clicked
                 if (routeId) {
                     if (typeof window.openEditRouteModal === 'function') {
                         window.openEditRouteModal(parseInt(routeId));
@@ -447,7 +444,7 @@
                 e.preventDefault();
                 e.stopPropagation();
                 const routeId = this.getAttribute('data-route-id');
-                console.log('Delete button clicked, route ID:', routeId);
+                // Delete button clicked
                 if (routeId) {
                     if (typeof window.deleteRoute === 'function') {
                         window.deleteRoute(parseInt(routeId));
@@ -733,7 +730,7 @@
     }
     
     window.openEditRouteModal = async function(routeId) {
-        console.log('openEditRouteModal called with routeId:', routeId, 'Type:', typeof routeId);
+        // Open edit route modal
         
         // Ensure routeId is an integer
         const routeIdInt = parseInt(routeId);
@@ -755,7 +752,7 @@
             return;
         }
         
-        console.log('Route found:', route);
+        // Route data loaded
         
         // Set route ID
         document.getElementById('edit_route_id').value = routeIdInt;
@@ -825,7 +822,7 @@
                             || routePrices[type.id]
                             || '';
                         
-                        console.log('Setting price for type', type.id, ':', price, 'from', routePrices);
+                        // Setting price for vehicle type
                         
                         div.innerHTML = `
                             <label>${type.name || '-'} ${tVehicles.price || 'Price'}</label>
@@ -853,7 +850,7 @@
             return;
         }
         
-        console.log('Opening edit route modal for route ID:', routeIdInt);
+        // Opening edit route modal
         
         // Show modal - use both display and class
         modal.style.display = 'flex';
@@ -912,7 +909,7 @@
             }
         });
         
-        console.log('Updating route with prices:', vehicleTypePrices);
+        // Updating route with new prices
         
         const updateData = {
             id: routeId,
@@ -1178,14 +1175,14 @@
         const vehicleTypeMappings = {};
         const vehicleTypeRows = document.querySelectorAll('#mappingTableSection tr[data-vehicle-type-row]');
         
-        console.log('Found vehicle type rows:', vehicleTypeRows.length);
+        // Vehicle type rows processed
         
         vehicleTypeRows.forEach(row => {
             const select = row.querySelector('select');
             if (select && select.id.startsWith('map_vehicle_type_')) {
                 const typeId = select.id.replace('map_vehicle_type_', '');
                 const colIndex = select.value;
-                console.log('Found vehicle type mapping:', typeId, '-> column', colIndex);
+                // Vehicle type mapping found
                 if (colIndex && colIndex !== '') {
                     // Store typeId as integer key to match backend expectation
                     vehicleTypeMappings[parseInt(typeId)] = parseInt(colIndex);
@@ -1195,8 +1192,7 @@
             }
         });
         
-        // Debug: Log vehicle type mappings
-        console.log('Vehicle type mappings:', vehicleTypeMappings);
+        // Process vehicle type mappings
         
         // Get manual currency (only option now)
         const manualCurrency = document.getElementById('map_currency_manual')?.value;
@@ -1214,8 +1210,7 @@
             vehicle_types: vehicleTypeMappings // Object with type_id (int) => column_index (int)
         };
         
-        // Debug: Log complete mapping
-        console.log('Complete mapping to send:', cleanMapping);
+        // Complete mapping prepared
         
         // Re-upload file with mapping - we need full Excel data
         const fileInput = document.getElementById('excelFile');

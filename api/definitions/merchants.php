@@ -101,6 +101,7 @@ try {
             echo json_encode(['success' => false, 'message' => 'Invalid request method']);
     }
 } catch (Exception $e) {
+    error_log("API Error in merchants.php: " . $e->getMessage());
     if (ob_get_level() > 0) {
         ob_end_clean();
     }
@@ -109,6 +110,7 @@ try {
     echo json_encode(['success' => false, 'message' => $errorMsg]);
     exit;
 } catch (Error $e) {
+    error_log("Fatal Error in merchants.php: " . $e->getMessage());
     if (ob_get_level() > 0) {
         ob_end_clean();
     }

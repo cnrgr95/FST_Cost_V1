@@ -172,7 +172,7 @@
                 renderTable(type);
                 // Log performance (can be removed in production)
                 if (loadTime > 500) {
-                    console.log(`⚠️ Slow load detected for ${type}: ${loadTime.toFixed(2)}ms`);
+                    // Performance monitoring: Slow load detected (removed in production)
                 }
             } else {
                 currentData[type] = [];

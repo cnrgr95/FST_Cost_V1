@@ -1,13 +1,13 @@
 // Topbar JavaScript
 function toggleFullscreen() {
   if (!document.fullscreenElement) {
-    document.documentElement.requestFullscreen().catch(err => {
-      console.log('Error attempting to enable fullscreen:', err);
+    document.documentElement.requestFullscreen().catch(() => {
+      // Fullscreen request failed (browser may not support it)
     });
     document.querySelector('.topbar-fullscreen .material-symbols-rounded').textContent = 'fullscreen_exit';
   } else {
-    document.exitFullscreen().catch(err => {
-      console.log('Error attempting to exit fullscreen:', err);
+    document.exitFullscreen().catch(() => {
+      // Exit fullscreen failed (browser may not support it)
     });
     document.querySelector('.topbar-fullscreen .material-symbols-rounded').textContent = 'fullscreen';
   }

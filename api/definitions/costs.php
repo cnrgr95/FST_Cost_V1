@@ -38,7 +38,9 @@ ob_end_clean();
 try {
     $conn = getDbConnection();
 } catch (Exception $e) {
-    echo json_encode(['success' => false, 'message' => 'Database connection failed: ' . $e->getMessage()]);
+    error_log("Database connection failed in costs.php: " . $e->getMessage());
+    $message = APP_DEBUG ? 'Database connection failed: ' . $e->getMessage() : 'Database connection failed';
+    echo json_encode(['success' => false, 'message' => $message]);
     exit;
 }
 
@@ -69,7 +71,12 @@ try {
             echo json_encode(['success' => false, 'message' => 'Invalid request method']);
     }
 } catch (Exception $e) {
-    echo json_encode(['success' => false, 'message' => $e->getMessage()]);
+    // Log error for debugging
+    error_log("API Error in costs.php: " . $e->getMessage());
+    
+    // Return safe error message - don't leak sensitive information
+    $message = APP_DEBUG ? $e->getMessage() : 'An error occurred while processing your request';
+    echo json_encode(['success' => false, 'message' => $message]);
 } finally {
     // Always close database connection
     if (isset($conn)) {
@@ -181,7 +188,9 @@ function createCost($conn, $data) {
             echo json_encode(['success' => false, 'message' => 'Database error: ' . $error]);
         }
     } catch (Exception $e) {
-        echo json_encode(['success' => false, 'message' => 'Error: ' . $e->getMessage()]);
+        error_log("Error in createCost: " . $e->getMessage());
+        $message = APP_DEBUG ? 'Error: ' . $e->getMessage() : 'An error occurred while creating the cost';
+        echo json_encode(['success' => false, 'message' => $message]);
     }
 }
 
