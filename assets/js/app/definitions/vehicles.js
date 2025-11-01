@@ -227,8 +227,8 @@
                  </button>`;
         html += '</div>';
         html += '</div>';
-        html += '<div class="table-wrapper">';
-        html += '<table class="table">';
+        html += '<div class="currencies-table-section">';
+        html += '<table class="currencies-table">';
         
          // Table headers
          if (type === 'companies') {
@@ -297,19 +297,17 @@
         }
         
         html += '<td>';
-        html += '<div class="table-actions">';
         if (type === 'contracts') {
-            html += `<a href="${(pageConfig.basePath || '../../')}app/definitions/contract-detail.php?id=${item.id}" class="btn-action btn-link" title="${tVehicles.manage_contract || 'Manage Contract'}" style="background: #3b82f6; color: white;">
+            html += `<a href="${(pageConfig.basePath || '../../')}app/definitions/contract-detail.php?id=${item.id}" class="btn-icon" title="${tVehicles.manage_contract || 'Manage Contract'}" style="color: #3b82f6;">
                         <span class="material-symbols-rounded">settings</span>
                     </a>`;
         }
-        html += `<button class="btn-action btn-edit" data-item-type="${type}" data-item-id="${item.id}">
+        html += `<button class="btn-icon" onclick="window.editItem('${type}', ${item.id})" title="${tCommon.edit || 'Edit'}">
                     <span class="material-symbols-rounded">edit</span>
                  </button>`;
-        html += `<button class="btn-action btn-delete" data-item-type="${type}" data-item-id="${item.id}">
+        html += `<button class="btn-icon btn-danger" onclick="window.deleteItem('${type}', ${item.id})" title="${tCommon.delete || 'Delete'}">
                     <span class="material-symbols-rounded">delete</span>
                  </button>`;
-        html += '</div>';
         html += '</td>';
         html += '</tr>';
         

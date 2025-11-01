@@ -136,8 +136,8 @@
                     ${tTours.add_tour || 'Add Tour'}
                  </button>`;
         html += '</div>';
-        html += '<div class="table-wrapper">';
-        html += '<table class="table">';
+        html += '<div class="currencies-table-section">';
+        html += '<table class="currencies-table">';
         html += '<thead><tr>';
         html += `<th>${tTours.sejour_tour_code || 'Sejour Tour Code'}</th>`;
         html += `<th>${tTours.tour_name || 'Tour Name'}</th>`;
@@ -165,18 +165,16 @@
                     <td>${escapeHtml(item.merchant_name || '-')}</td>
                     <td>${tourRegionsHtml}</td>
                     <td>
-                        <div class="table-actions">
-                            <button class="btn-action btn-link" data-item-id="${item.id}" title="${tVehicles.link_prices || 'Link Prices'}" style="background: #10b981; color: white;">
-                                <span class="material-symbols-rounded">link</span>
-                            </button>
-                            ${contractLink}
-                            <button class="btn-action btn-edit" data-item-id="${item.id}">
-                                <span class="material-symbols-rounded">edit</span>
-                            </button>
-                            <button class="btn-action btn-delete" data-item-id="${item.id}">
-                                <span class="material-symbols-rounded">delete</span>
-                            </button>
-                        </div>
+                        <button class="btn-icon btn-success" onclick="linkPrices(${item.id})" title="${tVehicles.link_prices || 'Link Prices'}">
+                            <span class="material-symbols-rounded">link</span>
+                        </button>
+                        ${contractLink}
+                        <button class="btn-icon" onclick="editItem(${item.id})" title="${tCommon.edit || 'Edit'}">
+                            <span class="material-symbols-rounded">edit</span>
+                        </button>
+                        <button class="btn-icon btn-danger" onclick="deleteItem(${item.id})" title="${tCommon.delete || 'Delete'}">
+                            <span class="material-symbols-rounded">delete</span>
+                        </button>
                     </td>
                 </tr>
             `;

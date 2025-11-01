@@ -71,11 +71,11 @@
         const currencyModal = document.getElementById('currencyModal');
         if (currencyModal) {
             currencyModal.addEventListener('click', function(e) {
-                if (e.target === this) {
-                    closeModal();
-                }
-            });
-        }
+            if (e.target === this) {
+                closeModal();
+            }
+        });
+    }
         
         const masterCurrenciesModal = document.getElementById('masterCurrenciesModal');
         if (masterCurrenciesModal) {
@@ -123,8 +123,8 @@
                 document.getElementById('is_active').checked = (currency.is_active === true) || (currency.is_active === 't') || (currency.is_active === 1) || (currency.is_active === '1');
             } else {
                 // Currency not found, treat as add
-                form.reset();
-                document.getElementById('is_active').checked = true;
+            form.reset();
+            document.getElementById('is_active').checked = true;
                 currentCurrencyId = null;
                 title.textContent = tCurrencies.add_currency || 'Add Currency';
             }
@@ -145,7 +145,7 @@
         const form = document.getElementById('currencyForm');
         if (form) form.reset();
     }
-    
+
     function renderMasterCurrenciesTable() {
         const tbody = document.getElementById('masterCurrenciesTableBody');
         if (!tbody) return;
@@ -339,7 +339,7 @@
                 const c = countries.find(x => x.id == currentCountryId);
                 if (c) c.local_currency_code = code || null;
                 renderTable();
-            } else {
+        } else {
                 showToast('error', res.message || (tCommon.update_failed||'Update failed'));
             }
         } catch (e) {
@@ -471,8 +471,8 @@
                                 }
                             );
                         } else {
-                            if (!confirm(tCommon.delete_confirm || 'Delete?')) return;
-                            await deleteCountryCurrency(id);
+                    if (!confirm(tCommon.delete_confirm || 'Delete?')) return;
+                    await deleteCountryCurrency(id);
                             await loadCountryCurrencies(currentCountryId);
                             fillCurrencySelect();
                             renderCountryCurrencies();
@@ -622,13 +622,13 @@
                 }
             );
         } else {
-            if (!confirm(tCurrencies.delete_confirm || 'Are you sure you want to delete this currency?')) {
-                return;
+        if (!confirm(tCurrencies.delete_confirm || 'Are you sure you want to delete this currency?')) {
+            return;
             }
             performDeleteCurrency(id);
         }
     };
-    
+        
     function performDeleteCurrency(id) {
         fetch(`${API_BASE}?action=currency&id=${id}`, {
             method: 'DELETE'

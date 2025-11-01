@@ -66,53 +66,125 @@ select.error:focus {
     display: block;
 }
 
-/* Table Styles */
+/* Table Styles - Matching currencies.php */
 .positions-table-container {
     background: white;
-    border-radius: 12px;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-    overflow: hidden;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    padding: 30px;
+    margin-bottom: 30px;
 }
 
 .positions-table-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 20px;
-    border-bottom: 1px solid #e5e7eb;
+    margin-bottom: 20px;
+    gap: 16px;
+    flex-wrap: wrap;
 }
 
 .positions-table-title {
-    font-size: 18px;
+    font-size: 20px;
     font-weight: 600;
     color: #1f2937;
+    margin: 0;
 }
 
 .btn-add {
-    background: #151A2D;
-    color: white;
-    border: none;
-    padding: 10px 20px;
-    border-radius: 8px;
-    font-size: 14px;
-    font-weight: 500;
-    cursor: pointer;
-    display: flex;
+    display: inline-flex;
     align-items: center;
     gap: 8px;
-    transition: all 0.3s ease;
+    padding: 10px 20px;
+    background: #6b7280;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 500;
+    transition: all 0.2s;
+    text-decoration: none;
+    white-space: nowrap;
 }
 
 .btn-add:hover {
-    background: #1e2435;
+    background: #4b5563;
     transform: translateY(-1px);
-    box-shadow: 0 4px 12px rgba(21, 26, 45, 0.15);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
 }
 
 .btn-add .material-symbols-rounded {
     font-size: 20px;
 }
 
+.currencies-table-section {
+    overflow-x: auto;
+    margin-bottom: 30px;
+}
+
+.currencies-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.currencies-table thead {
+    background: #f9fafb;
+}
+
+.currencies-table th {
+    padding: 12px;
+    text-align: left;
+    font-weight: 600;
+    font-size: 14px;
+    color: #374151;
+    border-bottom: 2px solid #e5e7eb;
+}
+
+.currencies-table td {
+    padding: 12px;
+    border-bottom: 1px solid #e5e7eb;
+    font-size: 14px;
+    color: #1f2937;
+}
+
+.currencies-table tbody tr:hover {
+    background: #f9fafb;
+}
+
+.table-actions {
+    display: flex;
+    gap: 8px;
+}
+
+.btn-icon {
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    padding: 6px;
+    border-radius: 4px;
+    transition: background 0.2s;
+    margin-right: 4px;
+}
+
+.btn-icon:hover {
+    background: #f3f4f6;
+}
+
+.btn-icon .material-symbols-rounded {
+    font-size: 20px;
+    color: #6b7280;
+}
+
+.btn-icon.btn-danger:hover {
+    background: #fee2e2;
+}
+
+.btn-icon.btn-danger .material-symbols-rounded {
+    color: #dc2626;
+}
+
+/* Legacy support - map old classes to new */
 .table {
     width: 100%;
     border-collapse: collapse;
@@ -123,56 +195,50 @@ select.error:focus {
 }
 
 .table thead th {
-    padding: 16px;
+    padding: 12px;
     text-align: left;
-    font-size: 13px;
     font-weight: 600;
-    color: #6b7280;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
+    font-size: 14px;
+    color: #374151;
+    border-bottom: 2px solid #e5e7eb;
 }
 
 .table tbody td {
-    padding: 16px;
-    border-bottom: 1px solid #f3f4f6;
-    color: #374151;
+    padding: 12px;
+    border-bottom: 1px solid #e5e7eb;
     font-size: 14px;
+    color: #1f2937;
 }
 
 .table tbody tr:hover {
     background: #f9fafb;
 }
 
-.table-actions {
-    display: flex;
-    gap: 8px;
-}
-
 .btn-action {
-    width: 32px;
-    height: 32px;
+    background: transparent;
     border: none;
-    border-radius: 6px;
     cursor: pointer;
+    padding: 6px;
+    border-radius: 4px;
+    transition: background 0.2s;
+    margin-right: 4px;
     display: flex;
     align-items: center;
     justify-content: center;
-    transition: all 0.2s ease;
 }
 
 .btn-edit {
-    background: #f3f4f6;
-    color: #4b5563;
+    background: transparent;
+    color: #6b7280;
 }
 
 .btn-edit:hover {
-    background: #e5e7eb;
-    color: #151A2D;
+    background: #f3f4f6;
 }
 
 .btn-delete {
-    background: #fef2f2;
-    color: #ef4444;
+    background: transparent;
+    color: #dc2626;
 }
 
 .btn-delete:hover {

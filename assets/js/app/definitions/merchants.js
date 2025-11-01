@@ -116,8 +116,8 @@
                     ${tMerchants.add_merchant || 'Add Merchant'}
                  </button>`;
         html += '</div>';
-        html += '<div class="table-wrapper">';
-        html += '<table class="table">';
+        html += '<div class="currencies-table-section">';
+        html += '<table class="currencies-table">';
         html += '<thead><tr>';
         html += `<th>${tMerchants.merchant_name || 'Name'}</th>`;
         html += `<th>${t.locations.country || 'Country'}</th>`;
@@ -143,14 +143,12 @@
                         </button>` : '-'}
                     </td>
                     <td>
-                        <div class="table-actions">
-                            <button class="btn-action btn-edit" data-item-id="${item.id}">
-                                <span class="material-symbols-rounded">edit</span>
-                            </button>
-                            <button class="btn-action btn-delete" data-item-id="${item.id}">
-                                <span class="material-symbols-rounded">delete</span>
-                            </button>
-                        </div>
+                        <button class="btn-icon" onclick="editItem(${item.id})" title="${tCommon.edit || 'Edit'}">
+                            <span class="material-symbols-rounded">edit</span>
+                        </button>
+                        <button class="btn-icon btn-danger" onclick="deleteItem(${item.id})" title="${tCommon.delete || 'Delete'}">
+                            <span class="material-symbols-rounded">delete</span>
+                        </button>
                     </td>
                 </tr>
             `;

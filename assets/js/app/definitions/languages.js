@@ -96,8 +96,8 @@
                     <div style="display: flex; justify-content: space-between; align-items: center;">
                         <div style="display: flex; align-items: center; gap: 8px; flex: 1;">
                             <span class="drag-handle material-symbols-rounded" style="cursor: move; color: #6b7280; font-size: 20px;">drag_handle</span>
-                            <div onclick="selectLanguage('${lang.code}')" style="flex: 1; cursor: pointer;">
-                                <strong>${lang.code.toUpperCase()}</strong> - ${lang.name}
+                        <div onclick="selectLanguage('${lang.code}')" style="flex: 1; cursor: pointer;">
+                            <strong>${lang.code.toUpperCase()}</strong> - ${lang.name}
                             </div>
                         </div>
                         <div style="display: flex; gap: 5px;">
@@ -262,10 +262,10 @@
                         ${tLangMgmt.auto_translate_all || 'Auto Translate All'}
                     </button>
                     ` : ''}
-                    <button class="btn-primary" onclick="saveTranslations()" style="padding: 10px 20px;">
-                        <span class="material-symbols-rounded">save</span>
-                        ${tLangMgmt.save_translations || 'Save Translations'}
-                    </button>
+                <button class="btn-primary" onclick="saveTranslations()" style="padding: 10px 20px;">
+                    <span class="material-symbols-rounded">save</span>
+                    ${tLangMgmt.save_translations || 'Save Translations'}
+                </button>
                 </div>
             </div>
         `;

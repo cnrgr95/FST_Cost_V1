@@ -170,8 +170,8 @@
                     ${tLoc.add_new || 'Add New'}
                  </button>`;
         html += '</div>';
-        html += '<div class="table-wrapper">';
-        html += '<table class="table">';
+        html += '<div class="currencies-table-section">';
+        html += '<table class="currencies-table">';
         
         // Table headers
         if (type === 'countries') {
@@ -201,24 +201,9 @@
     }
     
     // Attach event listeners to action buttons
+    // Note: Buttons now use onclick handlers directly, so this function is kept for compatibility
     function attachActionListeners() {
-        // Find all edit buttons and attach click handlers
-        document.querySelectorAll('.btn-edit[data-item-type][data-item-id]').forEach(btn => {
-            btn.addEventListener('click', function() {
-                const type = this.getAttribute('data-item-type');
-                const id = parseInt(this.getAttribute('data-item-id'));
-                window.editItem(type, id);
-            });
-        });
-        
-        // Find all delete buttons and attach click handlers
-        document.querySelectorAll('.btn-delete[data-item-type][data-item-id]').forEach(btn => {
-            btn.addEventListener('click', function() {
-                const type = this.getAttribute('data-item-type');
-                const id = parseInt(this.getAttribute('data-item-id'));
-                window.deleteItem(type, id);
-            });
-        });
+        // Event listeners are now inline via onclick handlers
     }
     
     // Build table row
@@ -243,14 +228,12 @@
         }
         
         html += '<td>';
-        html += '<div class="table-actions">';
-        html += `<button class="btn-action btn-edit" data-item-type="${type}" data-item-id="${item.id}">
+        html += `<button class="btn-icon" onclick="window.editItem('${type}', ${item.id})" title="${tCommon.edit || 'Edit'}">
                     <span class="material-symbols-rounded">edit</span>
                  </button>`;
-        html += `<button class="btn-action btn-delete" data-item-type="${type}" data-item-id="${item.id}">
+        html += `<button class="btn-icon btn-danger" onclick="window.deleteItem('${type}', ${item.id})" title="${tCommon.delete || 'Delete'}">
                     <span class="material-symbols-rounded">delete</span>
                  </button>`;
-        html += '</div>';
         html += '</td>';
         html += '</tr>';
         

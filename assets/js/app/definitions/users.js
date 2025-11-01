@@ -382,8 +382,8 @@
         html += '<div class="users-table-header">';
         html += `<div class="users-table-title">${tUsers.title}</div>`;
         html += '</div>';
-        html += '<div class="table-wrapper">';
-        html += '<table class="table">';
+        html += '<div class="currencies-table-section">';
+        html += '<table class="currencies-table">';
         html += '<thead><tr>';
         html += `<th>${tUsers.username}</th>`;
         html += `<th>${tUsers.full_name}</th>`;
@@ -407,16 +407,14 @@
                     <td>${escapeHtml(item.email || '-')}</td>
                     <td><span class="status-badge ${item.status === 'active' ? 'active' : 'inactive'}">${item.status === 'active' ? tUsers.active : tUsers.inactive}</span></td>
                     <td>
-                        <div class="table-actions">
-                            <button class="btn-action btn-edit" data-item-id="${item.id}">
-                                <span class="material-symbols-rounded">edit</span>
-                            </button>
-                            ${item.id === currentUserId ? '' : (item.status === 'active' ? `<button class="btn-action btn-deactivate" data-item-id="${item.id}">
-                                <span class="material-symbols-rounded">block</span>
-                            </button>` : `<button class="btn-action btn-activate" data-item-id="${item.id}">
-                                <span class="material-symbols-rounded">check_circle</span>
-                            </button>`)}
-                        </div>
+                        <button class="btn-icon" onclick="editUser(${item.id})" title="${tCommon.edit || 'Edit'}">
+                            <span class="material-symbols-rounded">edit</span>
+                        </button>
+                        ${item.id === currentUserId ? '' : (item.status === 'active' ? `<button class="btn-icon btn-danger" onclick="toggleUserStatus(${item.id}, 'inactive')" title="${tUsers.deactivate || 'Deactivate'}">
+                            <span class="material-symbols-rounded">block</span>
+                        </button>` : `<button class="btn-icon btn-success" onclick="toggleUserStatus(${item.id}, 'active')" title="${tUsers.activate || 'Activate'}">
+                            <span class="material-symbols-rounded">check_circle</span>
+                        </button>`)}
                     </td>
                 </tr>
             `;
@@ -430,27 +428,14 @@
     }
     
     // Attach event listeners
+    // Note: Buttons now use onclick handlers directly, so this function is kept for compatibility
     function attachActionListeners() {
-        document.querySelectorAll('.btn-edit[data-item-id]').forEach(btn => {
-            btn.addEventListener('click', function() {
-                const id = parseInt(this.getAttribute('data-item-id'));
-                editUser(id);
-            });
-        });
-        
-        document.querySelectorAll('.btn-deactivate[data-item-id]').forEach(btn => {
-            btn.addEventListener('click', function() {
-                const id = parseInt(this.getAttribute('data-item-id'));
-                toggleUserStatus(id, 'inactive');
-            });
-        });
-        
-        document.querySelectorAll('.btn-activate[data-item-id]').forEach(btn => {
-            btn.addEventListener('click', function() {
-                const id = parseInt(this.getAttribute('data-item-id'));
-                toggleUserStatus(id, 'active');
-            });
-        });
+        // Event listeners are now inline via onclick handlers
+    }
+    
+    // Toggle user status - wrapper function
+    window.toggleUserStatus = function(userId, newStatus) {
+        toggleUserStatus(userId, newStatus);
     }
     
     // Show loading state
