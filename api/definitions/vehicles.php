@@ -32,6 +32,9 @@ if (!isset($_SESSION['user_id'])) {
 // Load central configuration
 require_once __DIR__ . '/../../config.php';
 
+// Load security helpers for CSRF protection
+require_once __DIR__ . '/../../includes/security.php';
+
 // Clear any output that might have been generated
 ob_end_clean();
 
@@ -46,6 +49,11 @@ try {
 // Get request method
 $method = $_SERVER['REQUEST_METHOD'];
 $action = $_GET['action'] ?? '';
+
+// Require CSRF token for state-changing requests
+if ($method === 'POST' || $method === 'PUT' || $method === 'DELETE') {
+    requireCsrfToken();
+}
 
 try {
     switch ($method) {

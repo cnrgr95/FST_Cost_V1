@@ -5,8 +5,11 @@
 -- DATABASE CREATION
 -- ============================================
 -- Note: Run this as PostgreSQL superuser (postgres)
--- CREATE DATABASE fst_cost_db;
+-- CREATE DATABASE fst_cost_db WITH ENCODING 'UTF8' LC_COLLATE='en_US.UTF-8' LC_CTYPE='en_US.UTF-8';
 -- \c fst_cost_db;
+-- 
+-- Set client encoding for this session
+SET client_encoding = 'UTF8';
 
 -- ============================================
 -- TABLES CREATION

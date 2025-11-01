@@ -61,14 +61,15 @@ try {
     
     // Create database if it doesn't exist
     if (pg_num_rows($checkDb) === 0 || strtolower($line) === 'yes') {
-        echo $YELLOW . "Creating database '" . DB_NAME . "'...\n" . $NC;
-        $createDb = pg_query($postgresConn, "CREATE DATABASE " . DB_NAME);
+        echo $YELLOW . "Creating database '" . DB_NAME . "' with UTF-8 encoding...\n" . $NC;
+        // Create database with UTF-8 encoding
+        $createDb = pg_query($postgresConn, "CREATE DATABASE " . DB_NAME . " WITH ENCODING 'UTF8' LC_COLLATE='en_US.UTF-8' LC_CTYPE='en_US.UTF-8'");
         
         if (!$createDb) {
             throw new Exception("Failed to create database: " . pg_last_error($postgresConn));
         }
         
-        echo $GREEN . "✓ Database '" . DB_NAME . "' created successfully\n\n" . $NC;
+        echo $GREEN . "✓ Database '" . DB_NAME . "' created successfully with UTF-8 encoding\n\n" . $NC;
     }
     
     pg_close($postgresConn);
@@ -81,7 +82,20 @@ try {
         throw new Exception("Failed to connect to database");
     }
     
-    echo $GREEN . "✓ Connected to database\n\n" . $NC;
+    // Verify client encoding
+    $encodingResult = pg_query($conn, "SHOW client_encoding");
+    if ($encodingResult) {
+        $encodingRow = pg_fetch_assoc($encodingResult);
+        $clientEncoding = $encodingRow['client_encoding'] ?? 'unknown';
+        if (strtoupper($clientEncoding) === 'UTF8') {
+            echo $GREEN . "✓ Connected to database (encoding: UTF8)\n\n" . $NC;
+        } else {
+            echo $YELLOW . "⚠ Warning: Client encoding is '{$clientEncoding}', expected 'UTF8'\n" . $NC;
+            echo $GREEN . "✓ Connected to database\n\n" . $NC;
+        }
+    } else {
+        echo $GREEN . "✓ Connected to database\n\n" . $NC;
+    }
     
     // Read SQL file
     echo $YELLOW . "Step 4: Reading SQL schema file...\n" . $NC;

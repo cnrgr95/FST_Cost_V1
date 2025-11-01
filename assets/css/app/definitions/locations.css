@@ -81,19 +81,12 @@ select:invalid {
     display: block;
 }
 
-/* Table Styles - Matching currencies.php */
+/* Table Styles - Matching positions.php */
 .locations-table-container {
     background: white;
-<<<<<<< HEAD
-    border-radius: 8px;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-    padding: 30px;
-    margin-bottom: 30px;
-=======
     border-radius: 12px;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
     overflow: visible; /* Changed from hidden to visible for responsive scrolling */
->>>>>>> a0307c1e3314e49827492687374a3c6c8e5841c8
 }
 
 .locations-table-header {
@@ -139,7 +132,7 @@ select:invalid {
     font-size: 20px;
 }
 
-<<<<<<< HEAD
+/* Table styles matching positions.php */
 .currencies-table-section {
     overflow-x: auto;
     margin-bottom: 30px;
@@ -155,7 +148,7 @@ select:invalid {
 }
 
 .currencies-table th {
-    padding: 12px;
+    padding: 12px 16px;
     text-align: left;
     font-weight: 600;
     font-size: 14px;
@@ -164,7 +157,7 @@ select:invalid {
 }
 
 .currencies-table td {
-    padding: 12px;
+    padding: 12px 16px;
     border-bottom: 1px solid #e5e7eb;
     font-size: 14px;
     color: #1f2937;
@@ -206,8 +199,6 @@ select:invalid {
     color: #dc2626;
 }
 
-/* Legacy support - map old classes to new */
-=======
 /* Table wrapper for responsive scrolling */
 .locations-table-wrapper,
 .table-wrapper {
@@ -218,7 +209,7 @@ select:invalid {
     position: relative;
 }
 
->>>>>>> a0307c1e3314e49827492687374a3c6c8e5841c8
+/* Legacy support - map old classes to new */
 .table {
     width: 100%;
     border-collapse: collapse;
@@ -231,31 +222,21 @@ select:invalid {
 }
 
 .table thead th {
-    padding: 12px;
+    padding: 12px 16px;
     text-align: left;
     font-weight: 600;
-<<<<<<< HEAD
     font-size: 14px;
     color: #374151;
     border-bottom: 2px solid #e5e7eb;
-=======
-    color: #6b7280;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    white-space: nowrap;
->>>>>>> a0307c1e3314e49827492687374a3c6c8e5841c8
 }
 
 .table tbody td {
-    padding: 12px;
+    padding: 12px 16px;
     border-bottom: 1px solid #e5e7eb;
     font-size: 14px;
-<<<<<<< HEAD
     color: #1f2937;
-=======
     word-wrap: break-word;
     max-width: 300px;
->>>>>>> a0307c1e3314e49827492687374a3c6c8e5841c8
 }
 
 .table tbody tr:hover {

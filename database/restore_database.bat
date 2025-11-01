@@ -8,14 +8,38 @@ set "DB_HOST=localhost"
 set "DB_PORT=5432"
 set "DB_NAME=fst_cost_db"
 set "DB_USER=postgres"
-set "PGPASSWORD=123456789"
 
 REM Resolve script directory (database folder)
 set "SCRIPT_DIR=%~dp0"
 pushd "%SCRIPT_DIR%"
 
-REM SQL dump file to restore
-set "DUMP_FILE=fst_cost_db_backup_20251101_010400.sql"
+REM Try to read password from .env file
+set "PGPASSWORD="
+set "ENV_FILE=%~dp0..\.env"
+if exist "%ENV_FILE%" (
+    for /f "tokens=2 delims==" %%a in ('findstr /b "DB_PASS=" "%ENV_FILE%"') do set "PGPASSWORD=%%a"
+)
+
+REM If password not found, prompt user
+if "%PGPASSWORD%"=="" (
+    set /p "PGPASSWORD=Enter PostgreSQL password for user '%DB_USER%': "
+)
+
+REM SQL dump file to restore - accept as parameter or use latest
+set "DUMP_FILE=%~1"
+if "%DUMP_FILE%"=="" (
+    REM Find latest backup file
+    for /f "delims=" %%F in ('dir /b /o-d "fst_cost_db_backup_*.sql" 2^>nul') do (
+        set "DUMP_FILE=%%F"
+        goto :FOUND_FILE
+    )
+    echo ERROR: No backup files found matching pattern 'fst_cost_db_backup_*.sql'
+    echo Usage: restore_database.bat [filename.sql]
+    popd
+    exit /b 1
+    :FOUND_FILE
+    echo Using latest backup: %DUMP_FILE%
+)
 
 REM Check if dump file exists
 if not exist "%DUMP_FILE%" (

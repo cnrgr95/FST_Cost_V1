@@ -15,7 +15,7 @@ ini_set('display_errors', 0);
 error_reporting(E_ALL);
 
 session_start();
-header('Content-Type: application/json');
+header('Content-Type: application/json; charset=utf-8');
 
 // Check if user is logged in
 if (!isset($_SESSION['user_id'])) {
@@ -26,6 +26,9 @@ if (!isset($_SESSION['user_id'])) {
 
 // Load central configuration
 require_once __DIR__ . '/../../config.php';
+
+// Load security helpers for CSRF protection
+require_once __DIR__ . '/../../includes/security.php';
 
 // Clear any output that might have been generated
 ob_end_clean();
@@ -46,6 +49,11 @@ try {
 // Get request method
 $method = $_SERVER['REQUEST_METHOD'];
 $action = $_GET['action'] ?? '';
+
+// Require CSRF token for state-changing requests
+if ($method === 'POST' || $method === 'PUT' || $method === 'DELETE') {
+    requireCsrfToken();
+}
 
 try {
     switch ($method) {
@@ -287,9 +295,10 @@ function createManualRates($conn, $data) {
     }
     $inserted = 0; $skipped = 0;
     foreach ($dates as $d) {
-        $dEsc = pg_escape_string($conn, $d);
-        $query = "INSERT INTO exchange_rates (country_id, currency_code, rate_date, rate, source, created_at) VALUES ($country_id, '$currency_code', '$dEsc', $rate, 'manual', NOW())";
-        $res = @pg_query($conn, $query);
+        // Use prepared statements to prevent SQL injection
+        $query = "INSERT INTO exchange_rates (country_id, currency_code, rate_date, rate, source, created_at) VALUES ($1, $2, $3, $4, 'manual', NOW())";
+        $params = [$country_id, $currency_code, $d, $rate];
+        $res = @pg_query_params($conn, $query, $params);
         if ($res) { $inserted++; } else { $skipped++; }
     }
     echo json_encode(['success' => true, 'inserted' => $inserted, 'skipped' => $skipped]);
@@ -356,8 +365,9 @@ function updateRate($conn, $data) {
         echo json_encode(['success'=>false,'message'=>'Valid id and rate > 0 required']);
         return;
     }
-    $q = "UPDATE exchange_rates SET rate = $rate, updated_at = NOW() WHERE id = $id";
-    $r = pg_query($conn, $q);
+    // Use prepared statement to prevent SQL injection
+    $q = "UPDATE exchange_rates SET rate = $1, updated_at = NOW() WHERE id = $2";
+    $r = pg_query_params($conn, $q, [$rate, $id]);
     if ($r) echo json_encode(['success'=>true]); else echo json_encode(['success'=>false,'message'=>getDbErrorMessage($conn)]);
 }
 

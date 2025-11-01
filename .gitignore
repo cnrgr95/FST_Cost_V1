@@ -28,3 +28,8 @@ cache/
 tmp/
 temp/
 
+# Database backups
+database/*backup*.sql
+database/*.dump
+database/globals_*.sql
+

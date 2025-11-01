@@ -1,0 +1,10 @@
+# Ignore backup files
+fst_cost_db_backup_*.sql
+*.dump
+globals_*.sql
+fst_cost_db_full_*.sql
+
+# Ignore other temporary files
+*.tmp
+*.log
+

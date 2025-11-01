@@ -38,12 +38,34 @@ if (-not $pgDump) {
     }
 }
 
-# Database credentials
+# Database credentials - Read from .env file or use defaults
 $DB_HOST = "localhost"
 $DB_PORT = "5432"
 $DB_NAME = "fst_cost_db"
 $DB_USER = "postgres"
-$env:PGPASSWORD = "123456789"
+
+# Try to read password from .env file in project root
+$envFile = Join-Path (Split-Path $PSScriptRoot -Parent) ".env"
+$PGPASSWORD = ""
+
+if (Test-Path $envFile) {
+    $envContent = Get-Content $envFile
+    foreach ($line in $envContent) {
+        if ($line -match "^\s*DB_PASS\s*=\s*(.+)$") {
+            $PGPASSWORD = $matches[1].Trim()
+            break
+        }
+    }
+}
+
+# If not found in .env, prompt user
+if ([string]::IsNullOrEmpty($PGPASSWORD)) {
+    $securePassword = Read-Host "Enter PostgreSQL password for user '$DB_USER'" -AsSecureString
+    $BSTR = [System.Runtime.InteropServices.Marshal]::SecureStringToBSTR($securePassword)
+    $PGPASSWORD = [System.Runtime.InteropServices.Marshal]::PtrToStringAuto($BSTR)
+}
+
+$env:PGPASSWORD = $PGPASSWORD
 
 # Check if pg_dump exists
 if (-not (Test-Path $pgDump)) {

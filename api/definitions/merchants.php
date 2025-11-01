@@ -21,7 +21,7 @@ if (session_status() === PHP_SESSION_NONE) {
 }
 
 // Set JSON header early
-header('Content-Type: application/json');
+header('Content-Type: application/json; charset=utf-8');
 
 // Check if user is logged in
 if (!isset($_SESSION['user_id'])) {
@@ -35,11 +35,13 @@ if (!isset($_SESSION['user_id'])) {
 // Load central configuration with error handling
 try {
     require_once __DIR__ . '/../../config.php';
+    // Load security helpers for CSRF protection
+    require_once __DIR__ . '/../../includes/security.php';
 } catch (Throwable $e) {
     if (ob_get_level() > 0) {
         ob_end_clean();
     }
-    header('Content-Type: application/json');
+    header('Content-Type: application/json; charset=utf-8');
     $msg = defined('APP_DEBUG') && APP_DEBUG ? $e->getMessage() . ' in ' . $e->getFile() . ':' . $e->getLine() : 'Configuration error';
     echo json_encode(['success' => false, 'message' => $msg]);
     exit;
@@ -51,7 +53,7 @@ if (ob_get_level() > 0) {
 }
 
 // Ensure JSON header is set
-header('Content-Type: application/json');
+header('Content-Type: application/json; charset=utf-8');
 
 // Get database connection
 try {
@@ -66,7 +68,7 @@ try {
     if (ob_get_level() > 0) {
         ob_end_clean();
     }
-    header('Content-Type: application/json');
+    header('Content-Type: application/json; charset=utf-8');
     $msg = defined('APP_DEBUG') && APP_DEBUG ? $e->getMessage() : 'Database connection failed';
     echo json_encode(['success' => false, 'message' => $msg]);
     exit;
@@ -75,6 +77,11 @@ try {
 // Get request method
 $method = $_SERVER['REQUEST_METHOD'];
 $action = $_GET['action'] ?? '';
+
+// Require CSRF token for state-changing requests
+if ($method === 'POST' || $method === 'PUT' || $method === 'DELETE') {
+    requireCsrfToken();
+}
 
 try {
     switch ($method) {
@@ -97,7 +104,7 @@ try {
     if (ob_get_level() > 0) {
         ob_end_clean();
     }
-    header('Content-Type: application/json');
+    header('Content-Type: application/json; charset=utf-8');
     $errorMsg = APP_DEBUG ? $e->getMessage() : 'An error occurred';
     echo json_encode(['success' => false, 'message' => $errorMsg]);
     exit;
@@ -105,7 +112,7 @@ try {
     if (ob_get_level() > 0) {
         ob_end_clean();
     }
-    header('Content-Type: application/json');
+    header('Content-Type: application/json; charset=utf-8');
     $errorMsg = APP_DEBUG ? $e->getMessage() : 'An error occurred';
     echo json_encode(['success' => false, 'message' => $errorMsg]);
     exit;

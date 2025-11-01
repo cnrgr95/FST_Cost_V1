@@ -1,16 +1,26 @@
-# Database Setup Instructions
+# Database Setup & Management Guide
 
-## PostgreSQL Database Setup for FST Cost Management
+PostgreSQL veritabanı kurulum, yönetim ve taşıma rehberi.
 
-### Prerequisites
-- PostgreSQL installed and running
-- PostgreSQL superuser credentials (usually `postgres`)
-- PHP with `pgsql` extension enabled
+---
 
-### Method 1: Using PHP Script (Recommended)
+## 📋 İÇİNDEKİLER
 
-1. **Update database credentials** in `config.php` or `.env` file:
-   ```
+1. [Kurulum](#kurulum)
+2. [Backup & Restore](#backup--restore)
+3. [UTF-8 Encoding](#utf-8-encoding)
+4. [Migration & Taşıma](#migration--taşıma)
+5. [Sample Data](#sample-data)
+6. [Troubleshooting](#troubleshooting)
+
+---
+
+## KURULUM
+
+### Yöntem 1: PHP Script ile (Önerilen)
+
+1. **Database credentials ayarlayın** (`config.php` veya `.env` dosyasında):
+   ```env
    DB_HOST=localhost
    DB_PORT=5432
    DB_NAME=fst_cost_db
@@ -18,162 +28,280 @@
    DB_PASS=your_password
    ```
 
-2. **Run the PHP setup script**:
+2. **Script'i çalıştırın**:
    ```bash
    php database/create_database.php
    ```
 
-   The script will:
-   - Check if the database exists
-   - Create the database if it doesn't exist
-   - Create all tables, indexes, functions, and triggers
-   - Verify the setup
+   Script otomatik olarak:
+   - Veritabanının var olup olmadığını kontrol eder
+   - Yoksa oluşturur (UTF-8 encoding ile)
+   - Tüm tabloları, index'leri, trigger'ları oluşturur
+   - Encoding'i doğrular
 
-### Method 2: Using SQL File Directly
+### Yöntem 2: SQL Dosyası ile
 
-1. **Connect to PostgreSQL**:
+1. **PostgreSQL'e bağlanın**:
    ```bash
    psql -U postgres
    ```
 
-2. **Create the database**:
+2. **Veritabanını oluşturun**:
    ```sql
-   CREATE DATABASE fst_cost_db;
+   CREATE DATABASE fst_cost_db WITH ENCODING 'UTF8' LC_COLLATE='en_US.UTF-8' LC_CTYPE='en_US.UTF-8';
    \c fst_cost_db
    ```
 
-3. **Run the SQL file**:
+3. **SQL dosyasını çalıştırın**:
    ```bash
    psql -U postgres -d fst_cost_db -f database/create_database.sql
    ```
 
-### Method 3: Using Batch Script (Windows)
+### Yöntem 3: Batch Script ile (Windows)
 
-1. **Run the batch script**:
-   ```bash
-   database\create_database.bat
+```bash
+database\create_database.bat
+```
+
+Script PostgreSQL şifresini soracaktır.
+
+---
+
+## BACKUP & RESTORE
+
+### Backup Alma
+
+#### PowerShell (Windows)
+```powershell
+cd database
+.\backup_database.ps1
+```
+
+**Özellikler:**
+- Otomatik PostgreSQL path bulma
+- `.env` dosyasından şifre okuma (yoksa prompt)
+- Timestamp'li backup dosyası: `fst_cost_db_backup_YYYYMMDD_HHMMSS.sql`
+
+#### Batch (Windows)
+```batch
+database\backup_database.bat
+```
+
+#### Manuel (Linux/Mac)
+```bash
+pg_dump -U postgres -d fst_cost_db --create --clean --if-exists -f backup.sql
+```
+
+### Restore Etme
+
+#### PowerShell (Windows)
+```powershell
+cd database
+.\restore_database.ps1
+# Veya spesifik dosya ile:
+.\restore_database.ps1 -DUMP_FILE "fst_cost_db_backup_20251101_010400.sql"
+```
+
+**Özellikler:**
+- Parametre verilmezse en son backup'ı bulur
+- `.env` dosyasından şifre okur (yoksa prompt)
+
+#### Batch (Windows)
+```batch
+database\restore_database.bat
+# Veya spesifik dosya ile:
+database\restore_database.bat "fst_cost_db_backup_20251101_010400.sql"
+```
+
+#### Manuel (Linux/Mac)
+```bash
+psql -U postgres -d fst_cost_db < database/fst_cost_db_backup_YYYYMMDD_HHMMSS.sql
+```
+
+---
+
+## UTF-8 ENCODING
+
+### Sorun
+Sunucu değiştiğinde Türkçe karakterler (ğ, ü, ş, ı, ö, ç) bozuluyor.
+
+### Çözüm
+Sistem UTF-8 encoding ile yapılandırılmıştır:
+
+1. **Veritabanı oluşturma** - UTF-8 ile:
+   ```sql
+   CREATE DATABASE fst_cost_db 
+   WITH ENCODING 'UTF8' 
+   LC_COLLATE='en_US.UTF-8' 
+   LC_CTYPE='en_US.UTF-8';
    ```
 
-   The script will prompt for PostgreSQL password and create the database automatically.
-
-### Migrations
-
-If you're upgrading from an older version of the database, you may need to run migration scripts:
-
-1. **Dynamic Pricing Migration** (for vehicle_contract_routes table):
+2. **Encoding kontrolü**:
    ```bash
-   psql -U postgres -d fst_cost_db -f database/migrate_to_dynamic_prices.sql
+   psql -U postgres -d fst_cost_db -f database/fix_encoding.sql
    ```
-   This migration converts fixed price columns to JSONB format for dynamic vehicle type pricing.
 
-2. **Cleanup Unused Columns** (optional, after migration):
-   ```bash
-   psql -U postgres -d fst_cost_db -f database/cleanup_unused_columns.sql
+3. **Detaylı bilgi**: `UTF8_ENCODING_FIX.md` dosyasına bakın.
+
+---
+
+## MIGRATION & TAŞIMA
+
+### Sunucu Değişikliği
+
+Sistem taşınmaya hazırdır (dinamik path'ler kullanıyor).
+
+**Yapılması gerekenler:**
+
+1. **Database ayarları** (`.env` dosyası):
+   ```env
+   DB_HOST=new_host
+   DB_PORT=5432
+   DB_NAME=fst_cost_db
+   DB_USER=postgres
+   DB_PASS=new_password
    ```
-   This script removes unused columns from previous database versions.
 
-### Sample Data
+2. **Backup alın** (eski sunucudan):
+   ```powershell
+   .\backup_database.ps1
+   ```
 
-After creating the database, you can insert sample data:
+3. **Restore edin** (yeni sunucuda):
+   ```powershell
+   .\restore_database.ps1
+   ```
+
+4. **Encoding kontrolü**:
+   ```sql
+   SHOW client_encoding;
+   -- UTF8 olmalı
+   ```
+
+**Detaylı rehber**: `MIGRATION_GUIDE.md` dosyasına bakın.
+
+---
+
+## SAMPLE DATA
+
+Test için örnek veri ekleme:
 
 ```bash
 psql -U postgres -d fst_cost_db -f database/insert_sample_data.sql
 ```
 
-This will insert:
-- Sample countries (Turkey, Germany, France)
-- Sample regions and cities
-- Sample sub regions
-- Sample departments and positions
-- Sample merchants (restaurants, hotels, shops, etc.)
-- Sample vehicle companies (13 companies across all cities)
-- Sample vehicle types (28 types across all companies)
-- Sample vehicle contracts (14 contracts with FST-001 to FST-014 codes)
-- 4 sample users (john.doe, jane.smith, ahmet.yilmaz, anna.mueller)
+**Eklenen veriler:**
+- 3 ülke (Türkiye, Almanya, Fransa)
+- Bölge ve şehirler
+- Alt bölgeler
+- Departman ve pozisyonlar
+- Merchant'lar (restoran, otel, mağaza vb.)
+- 13 araç firması
+- 28 araç tipi
+- 14 araç kontratı (FST-001 to FST-014)
+- 4 kullanıcı (john.doe, jane.smith, ahmet.yilmaz, anna.mueller)
 
-### Database Schema
+---
 
-The database includes the following tables:
+## TROUBLESHOOTING
 
-- **countries** - Country master data
-- **regions** - Regional divisions within countries
-- **cities** - Cities within regions
-- **sub_regions** - Sub regions within cities
-- **departments** - Departments within cities
-- **positions** - Positions within departments
-- **merchants** - Merchants within sub regions
-- **vehicle_companies** - Vehicle companies within cities
-- **vehicle_types** - Vehicle types within vehicle companies
-- **vehicle_contracts** - Vehicle contracts within vehicle companies
-- **vehicle_contract_routes** - Route-based pricing with dynamic vehicle type prices (JSONB)
-- **currencies** - Currency master data
-- **country_currencies** - Country-currency relationships
-- **exchange_rates** - Exchange rates per country and currency
-- **users** - User accounts (LDAP authentication)
+### Bağlantı Hatası
+- PostgreSQL servisinin çalıştığını kontrol edin
+- `config.php` veya `.env` dosyasındaki credentials'ı kontrol edin
+- Port 5432'in açık olduğunu kontrol edin
 
-### Table Relationships
+### Permission Hatası
+- PostgreSQL kullanıcısının `CREATE DATABASE` yetkisi olmalı
+- Production için dedicated user oluşturun
+
+### Encoding Sorunu
+- Veritabanının UTF-8 ile oluşturulduğunu kontrol edin
+- `fix_encoding.sql` script'ini çalıştırın
+- Client encoding'i kontrol edin: `SHOW client_encoding;`
+
+### Backup/Restore Hatası
+- PostgreSQL path'inin doğru olduğunu kontrol edin
+- Script'ler otomatik path bulma yapıyor, ama manuel path de ayarlanabilir
+- Şifre `.env` dosyasında veya prompt ile verilmeli (hardcoded değil)
+
+---
+
+## 📁 DOSYA YAPISI
 
 ```
-countries (1) ────> (N) regions
-regions (1) ────> (N) cities
-cities (1) ────> (N) sub_regions
-cities (1) ────> (N) departments
-cities (1) ────> (N) users
-departments (1) ────> (N) positions
-departments (1) ────> (N) users
-positions (1) ────> (N) users
-sub_regions (1) ────> (N) merchants
-cities (1) ────> (N) vehicle_companies
-vehicle_companies (1) ────> (N) vehicle_types
-vehicle_companies (1) ────> (N) vehicle_contracts
+database/
+├── create_database.sql      # Ana şema (tüm tablolar, index'ler, trigger'lar)
+├── create_database.php      # PHP kurulum script'i
+├── create_database.bat      # Windows batch kurulum script'i
+├── insert_sample_data.sql  # Örnek veri
+├── fix_encoding.sql        # UTF-8 encoding kontrol ve düzeltme
+├── backup_database.ps1     # PowerShell backup script (.env desteği)
+├── backup_database.bat     # Batch backup script (.env desteği)
+├── restore_database.ps1    # PowerShell restore script (.env desteği, otomatik dosya bulma)
+├── restore_database.bat    # Batch restore script (.env desteği, otomatik dosya bulma)
+├── README.md               # Bu dosya (tüm dokümantasyon)
+├── MIGRATION_GUIDE.md      # Taşıma rehberi
+├── UTF8_ENCODING_FIX.md    # UTF-8 encoding detayları
+└── .gitignore              # Backup dosyalarını ignore eder
 ```
 
-### Verification
+---
 
-To verify the database was created correctly:
+## ⚠️ GÜVENLİK NOTLARI
 
-```sql
--- List all tables
-SELECT table_name FROM information_schema.tables 
-WHERE table_schema = 'public' 
-ORDER BY table_name;
+### Production İçin
 
--- Check users table structure
-\d users
+1. **Şifreler:**
+   - ✅ Script'ler artık `.env` dosyasından şifre okuyor
+   - ✅ Hardcoded password'ler kaldırıldı
+   - ✅ `.env` dosyasını `.gitignore`'a ekleyin
 
--- Check foreign key constraints
-SELECT 
-    tc.table_name, 
-    kcu.column_name, 
-    ccu.table_name AS foreign_table_name,
-    ccu.column_name AS foreign_column_name 
-FROM information_schema.table_constraints AS tc 
-JOIN information_schema.key_column_usage AS kcu
-  ON tc.constraint_name = kcu.constraint_name
-JOIN information_schema.constraint_column_usage AS ccu
-  ON ccu.constraint_name = tc.constraint_name
-WHERE tc.constraint_type = 'FOREIGN KEY';
+2. **Backup:**
+   - Backup dosyalarını güvenli bir yerde saklayın
+   - Offsite backup yapın
+   - Backup retention policy oluşturun
+
+3. **Permissions:**
+   - Script dosyalarını yalnızca yetkili kullanıcılar çalıştırabilmeli
+   - Database credentials güvenli tutulmalı
+
+---
+
+## 🔧 GELİŞMİŞ KULLANIM
+
+### Custom Backup Format
+
+```bash
+# Custom format (compressed, restore edilebilir)
+pg_dump -U postgres -d fst_cost_db -F c -f backup.dump
+
+# Restore
+pg_restore -U postgres -d fst_cost_db backup.dump
 ```
 
-### Troubleshooting
+### Scheduled Backups
 
-#### Connection Errors
-- Verify PostgreSQL is running: `sudo service postgresql status`
-- Check credentials in `config.php`
-- Verify PostgreSQL user has CREATE DATABASE privilege
+**Windows Task Scheduler:**
+```powershell
+# Günde bir kez backup al
+schtasks /create /tn "FST DB Backup" /tr "powershell.exe -File C:\path\to\backup_database.ps1" /sc daily /st 02:00
+```
 
-#### Permission Errors
-- Ensure the PostgreSQL user has superuser privileges or CREATE DATABASE privilege
-- For production, create a dedicated user with appropriate privileges
+**Linux Cron:**
+```bash
+# Her gün saat 02:00'de backup al
+0 2 * * * /usr/bin/pg_dump -U postgres fst_cost_db > /backups/db_backup_$(date +\%Y\%m\%d).sql
+```
 
-#### Port Issues
-- Default PostgreSQL port is 5432
-- Check if port is correct in configuration
+---
 
-### Notes
+## 📞 DESTEK
 
-- All tables have `created_at` and `updated_at` timestamps
-- `updated_at` is automatically updated via triggers
-- Foreign keys use CASCADE or SET NULL depending on relationships
-- Status fields have CHECK constraints for data integrity
+Sorunlar için:
+1. Troubleshooting bölümünü kontrol edin
+2. Log dosyalarını inceleyin (`logs/` klasörü)
+3. Database encoding'i kontrol edin
 
+---
+
+**Son Güncelleme:** 2025-11-01

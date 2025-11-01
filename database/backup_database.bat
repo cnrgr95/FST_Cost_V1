@@ -8,7 +8,18 @@ set "DB_HOST=localhost"
 set "DB_PORT=5432"
 set "DB_NAME=fst_cost_db"
 set "DB_USER=postgres"
-set "PGPASSWORD=123456789"
+
+REM Try to read password from .env file
+set "PGPASSWORD="
+set "ENV_FILE=%~dp0..\.env"
+if exist "%ENV_FILE%" (
+    for /f "tokens=2 delims==" %%a in ('findstr /b "DB_PASS=" "%ENV_FILE%"') do set "PGPASSWORD=%%a"
+)
+
+REM If password not found, prompt user
+if "%PGPASSWORD%"=="" (
+    set /p "PGPASSWORD=Enter PostgreSQL password for user '%DB_USER%': "
+)
 
 REM Resolve script directory (database folder)
 set "SCRIPT_DIR=%~dp0"
@@ -34,34 +45,25 @@ for %%V in (16 15 14 13 12 11 10) do (
 REM If PostgreSQL found, add to PATH; otherwise assume it's already in PATH
 if defined PGBIN set "PATH=%PGBIN%;%PATH%"
 
-REM Timestamp for file names
-for /f "tokens=1-3 delims=/ " %%a in ("%date%") do set D=%%c%%a%%b
-for /f "tokens=1-2 delims=:" %%a in ("%time%") do set T=%%a%%b
-set "TS=%D%_%T%"
-set "TS=%TS: =0%"
-set "TS=%TS:.=%"
+REM Timestamp for file names (YYYYMMDD_HHMMSS format to match PowerShell script)
+for /f "tokens=2 delims==" %%I in ('wmic os get localdatetime /value') do set datetime=%%I
+set "TS=%datetime:~0,4%%datetime:~4,2%%datetime:~6,2%_%datetime:~8,2%%datetime:~10,2%%datetime:~12,2%"
 
-set "DUMP_CUSTOM=fst_cost_db_full_%TS%.dump"
-set "DUMP_SQL=fst_cost_db_full_%TS%.sql"
-set "GLOBALS_SQL=globals_%TS%.sql"
+set "DUMP_SQL=fst_cost_db_backup_%TS%.sql"
 
-REM Create custom-format dump (compressed, with schema+data+blobs) including CREATE/CLEAN
-pg_dump -h %DB_HOST% -p %DB_PORT% -U %DB_USER% -F c -b --create --clean --if-exists -v -d %DB_NAME% -f "%DUMP_CUSTOM%"
-if errorlevel 1 goto :ERR
+echo.
+echo Starting database backup...
+echo Database: %DB_NAME%
+echo Backup file: %DUMP_SQL%
+echo.
 
-REM Create plain SQL dump (with INSERTs) including CREATE/CLEAN
-pg_dump -h %DB_HOST% -p %DB_PORT% -U %DB_USER% -F p --inserts --column-inserts --create --clean --if-exists -v -d %DB_NAME% > "%DUMP_SQL%"
-if errorlevel 1 goto :ERR
-
-REM Dump global objects (roles, privileges)
-pg_dumpall -h %DB_HOST% -p %DB_PORT% -U %DB_USER% -g -v > "%GLOBALS_SQL%"
+REM Create plain SQL dump (same format as PowerShell script)
+pg_dump -h %DB_HOST% -p %DB_PORT% -U %DB_USER% -F p --create --clean --if-exists -v -d %DB_NAME% > "%DUMP_SQL%"
 if errorlevel 1 goto :ERR
 
 echo.
-echo ✓ Backups created in %SCRIPT_DIR%
-echo    %DUMP_CUSTOM%
+echo ✓ Backup created in %SCRIPT_DIR%
 echo    %DUMP_SQL%
-echo    %GLOBALS_SQL%
 popd
 endlocal
 exit /b 0

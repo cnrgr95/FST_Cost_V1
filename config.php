@@ -10,8 +10,14 @@ if (!defined('APP_INIT')) {
 }
 
 // Environment Configuration
-define('APP_ENV', 'development'); // development, production, testing
-define('APP_DEBUG', true); // Set to false in production
+// Environment configuration - can be overridden by .env file
+define('APP_ENV', $_ENV['APP_ENV'] ?? 'development'); // development, production, testing
+define('APP_DEBUG', isset($_ENV['APP_DEBUG']) ? ($_ENV['APP_DEBUG'] === 'true' || $_ENV['APP_DEBUG'] === '1') : (APP_ENV === 'development')); // Auto-disable in production
+
+// UTF-8 Encoding Configuration
+mb_internal_encoding('UTF-8');
+mb_http_output('UTF-8');
+mb_regex_encoding('UTF-8');
 
 // Base Path Configuration
 if (!defined('BASE_PATH')) {
@@ -39,10 +45,19 @@ define('DB_HOST', $_ENV['DB_HOST'] ?? 'localhost');
 define('DB_PORT', $_ENV['DB_PORT'] ?? '5432');
 define('DB_NAME', $_ENV['DB_NAME'] ?? 'fst_cost_db');
 define('DB_USER', $_ENV['DB_USER'] ?? 'postgres');
-define('DB_PASS', $_ENV['DB_PASS'] ?? '123456789'); // Fallback to original password if .env not found
+// Database password - must be set in .env file for production
+$dbPass = $_ENV['DB_PASS'] ?? null;
+if ($dbPass === null) {
+    if (APP_ENV === 'production') {
+        throw new Exception('DB_PASS must be set in .env file for production environment');
+    }
+    // Development fallback - should be removed or set in .env
+    $dbPass = '123456789';
+}
+define('DB_PASS', $dbPass);
 
-// Database Connection String
-define('DB_CONNECTION_STRING', "host=" . DB_HOST . " port=" . DB_PORT . " dbname=" . DB_NAME . " user=" . DB_USER . " password=" . DB_PASS);
+// Database Connection String with UTF-8 encoding
+define('DB_CONNECTION_STRING', "host=" . DB_HOST . " port=" . DB_PORT . " dbname=" . DB_NAME . " user=" . DB_USER . " password=" . DB_PASS . " options='--client_encoding=UTF8'");
 
 // Application Settings
 define('APP_NAME', 'FST Cost Management');
@@ -137,6 +152,12 @@ function getDbConnection() {
             throw new Exception("Database connection failed: " . pg_last_error());
         }
         
+        // Set client encoding to UTF-8 to prevent character encoding issues
+        $encoding_result = pg_set_client_encoding($conn, 'UTF8');
+        if ($encoding_result !== 0) {
+            error_log("Warning: Failed to set client encoding to UTF8. Error code: " . $encoding_result);
+        }
+        
         return $conn;
     } catch (Exception $e) {
         error_log("Database connection error: " . $e->getMessage());
@@ -191,6 +212,17 @@ function h($string) {
  */
 function getBasePath() {
     return str_replace($_SERVER['DOCUMENT_ROOT'], '', BASE_PATH);
+}
+
+/**
+ * JSON encode with UTF-8 support for Turkish characters
+ * Ensures proper encoding for all characters including Turkish (ğ, ü, ş, ı, ö, ç)
+ */
+function jsonEncode($data, $options = 0) {
+    // JSON_UNESCAPED_UNICODE ensures Turkish characters are not escaped
+    // JSON_UNESCAPED_SLASHES for cleaner output
+    $defaultOptions = JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES;
+    return json_encode($data, $defaultOptions | $options);
 }
 
 /**

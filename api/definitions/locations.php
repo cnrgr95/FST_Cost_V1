@@ -15,7 +15,7 @@ ini_set('display_errors', 0);
 error_reporting(E_ALL); // Still log errors but don't display
 
 session_start();
-header('Content-Type: application/json');
+header('Content-Type: application/json; charset=utf-8');
 
 // Check if user is logged in
 if (!isset($_SESSION['user_id'])) {
@@ -26,6 +26,9 @@ if (!isset($_SESSION['user_id'])) {
 
 // Load central configuration
 require_once __DIR__ . '/../../config.php';
+
+// Load security helpers for CSRF protection
+require_once __DIR__ . '/../../includes/security.php';
 
 // Clear any output that might have been generated
 ob_end_clean();
@@ -41,6 +44,11 @@ try {
 // Get request method
 $method = $_SERVER['REQUEST_METHOD'];
 $action = $_GET['action'] ?? '';
+
+// Require CSRF token for state-changing requests
+if ($method === 'POST' || $method === 'PUT' || $method === 'DELETE') {
+    requireCsrfToken();
+}
 
 try {
     switch ($method) {

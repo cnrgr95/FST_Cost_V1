@@ -133,7 +133,7 @@ select.error:focus {
 }
 
 .currencies-table th {
-    padding: 12px;
+    padding: 12px 16px;
     text-align: left;
     font-weight: 600;
     font-size: 14px;
@@ -142,7 +142,7 @@ select.error:focus {
 }
 
 .currencies-table td {
-    padding: 12px;
+    padding: 12px 16px;
     border-bottom: 1px solid #e5e7eb;
     font-size: 14px;
     color: #1f2937;

@@ -1,18 +1,53 @@
 # Restore PostgreSQL database from SQL dump file
 # Defaults are taken from config.php: host=localhost, port=5432, db=fst_cost_db, user=postgres
 
+# SQL dump file to restore - accept as parameter or use latest
+param(
+    [string]$DUMP_FILE = ""
+)
+
 $DB_HOST = "localhost"
 $DB_PORT = "5432"
 $DB_NAME = "fst_cost_db"
 $DB_USER = "postgres"
-$PGPASSWORD = "123456789"
 
 # Resolve script directory (database folder)
 $SCRIPT_DIR = Split-Path -Parent $MyInvocation.MyCommand.Path
 Set-Location $SCRIPT_DIR
 
-# SQL dump file to restore
-$DUMP_FILE = "fst_cost_db_backup_20251101_010400.sql"
+# Try to read password from .env file in project root
+$envFile = Join-Path (Split-Path $SCRIPT_DIR -Parent) ".env"
+$PGPASSWORD = ""
+
+if (Test-Path $envFile) {
+    $envContent = Get-Content $envFile
+    foreach ($line in $envContent) {
+        if ($line -match "^\s*DB_PASS\s*=\s*(.+)$") {
+            $PGPASSWORD = $matches[1].Trim()
+            break
+        }
+    }
+}
+
+# If not found in .env, prompt user
+if ([string]::IsNullOrEmpty($PGPASSWORD)) {
+    $securePassword = Read-Host "Enter PostgreSQL password for user '$DB_USER'" -AsSecureString
+    $BSTR = [System.Runtime.InteropServices.Marshal]::SecureStringToBSTR($securePassword)
+    $PGPASSWORD = [System.Runtime.InteropServices.Marshal]::PtrToStringAuto($BSTR)
+}
+
+if ([string]::IsNullOrEmpty($DUMP_FILE)) {
+    # Find latest backup file
+    $backupFiles = Get-ChildItem -Path $SCRIPT_DIR -Filter "fst_cost_db_backup_*.sql" | Sort-Object LastWriteTime -Descending
+    if ($backupFiles.Count -gt 0) {
+        $DUMP_FILE = $backupFiles[0].Name
+        Write-Host "Using latest backup: $DUMP_FILE" -ForegroundColor Yellow
+    } else {
+        Write-Host "ERROR: No backup files found matching pattern 'fst_cost_db_backup_*.sql'" -ForegroundColor Red
+        Write-Host "Usage: .\restore_database.ps1 [-DUMP_FILE 'filename.sql']" -ForegroundColor Yellow
+        exit 1
+    }
+}
 
 # Check if dump file exists
 if (-not (Test-Path $DUMP_FILE)) {
