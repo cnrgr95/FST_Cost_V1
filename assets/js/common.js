@@ -24,6 +24,86 @@
     }
     
     // ============================================
+    // UNIVERSAL TRANSLATION HELPER
+    // ============================================
+    /**
+     * Universal translation function that works on all platforms
+     * Supports multiple fallback mechanisms for maximum compatibility
+     * @param {string} section - Translation section (e.g., 'common', 'login')
+     * @param {string} key - Translation key
+     * @param {string} defaultValue - Default value if translation not found
+     * @returns {string} Translated string or default value
+     */
+    window.getTranslation = function(section, key, defaultValue) {
+        // Ensure we have a default value
+        if (typeof defaultValue === 'undefined' || defaultValue === null) {
+            defaultValue = key;
+        }
+        
+        try {
+            // Try multiple sources in order of preference
+            const sources = [];
+            
+            // 1. window.pageConfig.translations (most common, loaded via page-config script tag)
+            if (window.pageConfig && window.pageConfig.translations) {
+                sources.push(window.pageConfig.translations);
+            }
+            
+            // 2. window.Translations (legacy support, some pages set this directly)
+            if (typeof window.Translations !== 'undefined' && window.Translations) {
+                sources.push(window.Translations);
+            }
+            
+            // 3. window[section] (legacy support for direct section objects like window.tCommon)
+            const sectionVar = 't' + section.charAt(0).toUpperCase() + section.slice(1);
+            if (typeof window[sectionVar] !== 'undefined' && window[sectionVar]) {
+                const legacyObj = {};
+                legacyObj[section] = window[sectionVar];
+                sources.push(legacyObj);
+            }
+            
+            // Try each source
+            for (let i = 0; i < sources.length; i++) {
+                const source = sources[i];
+                if (source && typeof source === 'object') {
+                    const sectionData = source[section];
+                    if (sectionData && typeof sectionData === 'object') {
+                        const value = sectionData[key];
+                        if (value !== undefined && value !== null && value !== '') {
+                            return String(value);
+                        }
+                    }
+                }
+            }
+            
+            // Fallback to default
+            return String(defaultValue);
+        } catch (error) {
+            // If anything fails, return default value
+            return String(defaultValue);
+        }
+    };
+    
+    /**
+     * Get translation section object (for compatibility with existing code)
+     * Works on all browsers including old ones (no Proxy dependency)
+     * @param {string} section - Translation section
+     * @returns {object} Translation section object
+     */
+    window.getTranslationSection = function(section) {
+        const sectionObj = {};
+        
+        // Return object with get method (no Proxy needed for compatibility)
+        sectionObj.getTranslation = function(key, defaultValue) {
+            return window.getTranslation(section, key, defaultValue);
+        };
+        
+        // For direct property access, return translation helper function
+        // This creates properties on-demand when accessed
+        return sectionObj;
+    };
+    
+    // ============================================
     // MODAL FUNCTIONS
     // ============================================
     
@@ -110,8 +190,11 @@
             onError
         } = options;
         
-        const tCommon = window.Translations?.common || {};
-        const confirmMessage = message || tCommon.delete_confirm || 'Are you sure you want to delete this item?';
+        const getT = typeof window.getTranslation === 'function' ? window.getTranslation : function(s, k, d) {
+            const t = window.Translations || {};
+            return (t[s] && t[s][k]) || d || k;
+        };
+        const confirmMessage = message || getT('common', 'delete_confirm', 'Are you sure you want to delete this item?');
         
         showConfirmDialog(confirmMessage, async function() {
             try {
@@ -130,20 +213,20 @@
                     if (onSuccess) {
                         onSuccess(result);
                     } else {
-                        showToast('success', tCommon.item_deleted_successfully || 'Item deleted successfully');
+                        showToast('success', getT('common', 'item_deleted_successfully', 'Item deleted successfully'));
                         // Reload page data if loadData function exists
                         if (typeof window.loadData === 'function') {
                             window.loadData();
                         }
                     }
                 } else {
-                    const errorMsg = result.message || tCommon.delete_failed || 'Failed to delete item';
+                    const errorMsg = result.message || getT('common', 'delete_failed', 'Failed to delete item');
                     showToast('error', errorMsg);
                     if (onError) onError(result);
                 }
             } catch (error) {
                 console.error('Error deleting item:', error);
-                showToast('error', tCommon.delete_failed || 'Failed to delete item');
+                showToast('error', getT('common', 'delete_failed', 'Failed to delete item'));
                 if (onError) onError(error);
             }
         });
@@ -276,15 +359,21 @@
                     onSuccess(result);
                 }
             } else {
-                const tCommon = window.Translations?.common || {};
-                const errorMsg = result.message || tCommon.an_error_occurred || 'An error occurred';
+                const getT = typeof window.getTranslation === 'function' ? window.getTranslation : function(s, k, d) {
+                    const t = window.Translations || {};
+                    return (t[s] && t[s][k]) || d || k;
+                };
+                const errorMsg = result.message || getT('common', 'an_error_occurred', 'An error occurred');
                 showToast('error', errorMsg);
                 if (onError) onError(result);
             }
         } catch (error) {
             console.error('Error submitting form:', error);
-            const tCommon = window.Translations?.common || {};
-            showToast('error', tCommon.an_error_occurred || 'An error occurred');
+            const getT = typeof window.getTranslation === 'function' ? window.getTranslation : function(s, k, d) {
+                const t = window.Translations || {};
+                return (t[s] && t[s][k]) || d || k;
+            };
+            showToast('error', getT('common', 'an_error_occurred', 'An error occurred'));
             if (onError) onError(error);
         }
     };

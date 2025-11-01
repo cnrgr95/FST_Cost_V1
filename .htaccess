@@ -53,6 +53,20 @@
     Deny from all
 </FilesMatch>
 
+# Specifically block .env file
+<Files ".env">
+    Order allow,deny
+    Deny from all
+</Files>
+
+# Block access to setup scripts in production
+<FilesMatch "^(setup_env|check_requirements)\.php$">
+    <If "%{ENV:APP_ENV} == 'production'">
+        Order allow,deny
+        Deny from all
+    </If>
+</FilesMatch>
+
 # Block access to hidden files
 <FilesMatch "^\.">
     Order allow,deny

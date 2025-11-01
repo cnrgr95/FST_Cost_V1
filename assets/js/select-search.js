@@ -17,9 +17,9 @@
         }
         // Fallback: close all visible dropdowns
         document.querySelectorAll('.select-search-dropdown').forEach(dd => {
-            if (dd.style.display !== 'none' && dd !== excludeInstance?.dropdown) {
+            if (dd.style.display !== 'none' && dd !== (excludeInstance && excludeInstance.dropdown ? excludeInstance.dropdown : null)) {
                 dd.style.display = 'none';
-                const trigger = dd.parentElement?.querySelector('.select-search-trigger');
+                const trigger = dd.parentElement ? dd.parentElement.querySelector('.select-search-trigger') : null;
                 if (trigger) {
                     const icon = trigger.querySelector('.select-search-arrow');
                     if (icon) {
@@ -53,17 +53,18 @@
         // Already initialized
         if (select.dataset.searchInitialized === 'true') return;
 
-        // Try to get translation from page or use default
-        let defaultPlaceholder = 'Search...';
-        const pageConfig = window.pageConfig || {};
-        const translations = pageConfig.translations || {};
-        const tCommon = translations.common || (typeof window.Translations !== 'undefined' ? window.Translations.common : {}) || (typeof window.tCommon !== 'undefined' ? window.tCommon : {});
-        
-        if (tCommon && tCommon.search) {
-            defaultPlaceholder = tCommon.search;
-        } else if (translations && translations.common && translations.common.search) {
-            defaultPlaceholder = translations.common.search;
-        }
+        // Try to get translation from page or use default (universal method)
+        const getT = typeof window.getTranslation === 'function' ? window.getTranslation : function(section, key, defaultValue) {
+            try {
+                const pageConfig = window.pageConfig || {};
+                const translations = pageConfig.translations || {};
+                const sectionData = translations[section] || (typeof window.Translations !== 'undefined' ? window.Translations[section] : {}) || {};
+                return sectionData[key] || defaultValue || key;
+            } catch (e) {
+                return defaultValue || key;
+            }
+        };
+        const defaultPlaceholder = getT('common', 'search', 'Search...');
 
         const config = {
             searchPlaceholder: options.searchPlaceholder || defaultPlaceholder,
@@ -278,21 +279,17 @@
             if (hasLoadingInSelect && filteredOptions.length === 0) {
                 const loadingMsg = document.createElement('div');
                 loadingMsg.className = 'select-search-loading';
-                // Try to get translation
-                const pageConfig = window.pageConfig || {};
-                const translations = pageConfig.translations || {};
-                const tCommon = translations.common || (typeof window.Translations !== 'undefined' ? window.Translations.common : {}) || (typeof window.tCommon !== 'undefined' ? window.tCommon : {});
-                const loadingText = (tCommon && tCommon.loading) || 'Loading...';
+                // Try to get translation (universal method)
+                const getT = typeof window.getTranslation === 'function' ? window.getTranslation : function(s, k, d) { return d || k; };
+                const loadingText = getT('common', 'loading', 'Loading...');
                 loadingMsg.textContent = loadingText;
                 optionsContainer.appendChild(loadingMsg);
             } else {
                 const noResult = document.createElement('div');
                 noResult.className = 'select-search-no-result';
-                // Try to get translation
-                const pageConfig = window.pageConfig || {};
-                const translations = pageConfig.translations || {};
-                const tCommon = translations.common || (typeof window.Translations !== 'undefined' ? window.Translations.common : {}) || (typeof window.tCommon !== 'undefined' ? window.tCommon : {});
-                const noResultText = (tCommon && tCommon.no_results) || (tCommon && tCommon.not_found) || 'No results found';
+                // Try to get translation (universal method)
+                const getT = typeof window.getTranslation === 'function' ? window.getTranslation : function(s, k, d) { return d || k; };
+                const noResultText = getT('common', 'no_results', getT('common', 'not_found', 'No results found'));
                 noResult.textContent = noResultText;
                 optionsContainer.appendChild(noResult);
             }
@@ -357,11 +354,10 @@
                 triggerText.textContent = selectedOption.textContent;
                 triggerText.style.color = '#1f2937';
             } else {
-                const pageConfig = window.pageConfig || {};
-                const translations = pageConfig.translations || {};
-                const tCommon = translations.common || (typeof window.Translations !== 'undefined' ? window.Translations.common : {}) || (typeof window.tCommon !== 'undefined' ? window.tCommon : {});
-                const defaultSelect = (tCommon && tCommon.select) || 'Select...';
-                const placeholder = select.dataset.placeholder || select.options[0]?.textContent || defaultSelect;
+                // Try to get translation (universal method)
+                const getT = typeof window.getTranslation === 'function' ? window.getTranslation : function(s, k, d) { return d || k; };
+                const defaultSelect = getT('common', 'select', 'Select...');
+                const placeholder = select.dataset.placeholder || (select.options && select.options[0] ? select.options[0].textContent : null) || defaultSelect;
                 triggerText.textContent = placeholder;
                 triggerText.style.color = '#9ca3af';
             }
@@ -536,12 +532,9 @@
                 const minSpace = 100;
                 
                 if (spaceBelow < minSpace) {
-                    // Still not enough - show message
-                    const pageConfig = window.pageConfig || {};
-                    const translations = pageConfig.translations || {};
-                    const tCommon = translations.common || (typeof window.Translations !== 'undefined' ? window.Translations.common : {}) || (typeof window.tCommon !== 'undefined' ? window.tCommon : {});
-                    const tLangMgmt = translations.language_mgmt || (typeof window.Translations !== 'undefined' ? window.Translations.language_mgmt : {}) || {};
-                    const errorMsg = (tLangMgmt && tLangMgmt.not_enough_space) || (tCommon && tCommon.not_enough_space) || 'Not enough space. Please scroll the page and try again.';
+                    // Still not enough - show message (universal translation method)
+                    const getT = typeof window.getTranslation === 'function' ? window.getTranslation : function(s, k, d) { return d || k; };
+                    const errorMsg = getT('language_mgmt', 'not_enough_space', getT('common', 'not_enough_space', 'Not enough space. Please scroll the page and try again.'));
                     if (typeof showToast !== 'undefined') {
                         showToast('warning', errorMsg);
                     }
