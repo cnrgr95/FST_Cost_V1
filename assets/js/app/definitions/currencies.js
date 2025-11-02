@@ -544,7 +544,7 @@
 
     async function deleteCountryCurrency(id) {
         try {
-            const resp = await fetch(`${API_BASE}?action=country_currency&id=${id}`, { method: 'DELETE' });
+            const resp = await window.apiFetch(`${API_BASE}?action=country_currency&id=${id}`, { method: 'DELETE' });
             const res = await resp.json();
             if (res.success) {
                 showToast('success', tCommon.deleted_successfully || 'Deleted');
@@ -630,7 +630,7 @@
     };
         
     function performDeleteCurrency(id) {
-        fetch(`${API_BASE}?action=currency&id=${id}`, {
+        window.apiFetch(`${API_BASE}?action=currency&id=${id}`, {
             method: 'DELETE'
         })
         .then(response => response.json())

@@ -57,7 +57,13 @@ select.error:focus {
     border-bottom-color: #151A2D;
 }
 
-/* Content always visible - no tabs */
+.tours-content {
+    display: none;
+}
+
+.tours-content.active {
+    display: block;
+}
 
 /* Table Styles - Matching positions.css */
 .tours-table-container {
@@ -267,16 +273,28 @@ select.error:focus {
 
 .modal-content {
     background: white;
-    border-radius: 12px;
-    padding: 30px;
+    border-radius: 16px;
+    padding: 0;
     width: 100%;
     max-width: 700px;
     max-height: 90vh;
-    overflow-y: auto;
-    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-    animation: modalSlideIn 0.3s ease;
+    overflow: hidden;
+    box-shadow: 0 25px 50px rgba(0, 0, 0, 0.25);
+    animation: modalSlideIn 0.3s cubic-bezier(0.16, 1, 0.3, 1);
     display: flex;
     flex-direction: column;
+    position: relative;
+}
+
+/* Tour Group Modal wider */
+.modal-content[style*="max-width: 800px"] {
+    max-width: 850px;
+}
+
+.modal-content .modal-body {
+    padding: 30px;
+    overflow-y: auto;
+    flex: 1;
 }
 
 .modal-content form {
@@ -310,14 +328,23 @@ select.error:focus {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 24px;
+    padding: 24px 30px;
+    border-bottom: 1px solid #e5e7eb;
+    background: #f9fafb;
+    border-radius: 16px 16px 0 0;
+    position: sticky;
+    top: 0;
+    z-index: 10;
 }
 
 .modal-header h2 {
-    font-size: 20px;
+    font-size: 22px;
     font-weight: 600;
     color: #1f2937;
     margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 10px;
 }
 
 .btn-close {
@@ -340,7 +367,31 @@ select.error:focus {
 }
 
 .form-group {
-    margin-bottom: 20px;
+    margin-bottom: 24px;
+}
+
+.form-group:last-child {
+    margin-bottom: 0;
+}
+
+/* Required field indicator */
+.form-group label {
+    position: relative;
+}
+
+.form-group label:has(+ input[required]):not(:has(+ select[required])),
+.form-group label:has(+ select[required]) {
+    padding-left: 16px;
+}
+
+.form-group label:has(+ input[required])::before,
+.form-group label:has(+ select[required])::before {
+    content: '*';
+    position: absolute;
+    left: 0;
+    color: #dc2626;
+    font-weight: 700;
+    font-size: 16px;
 }
 
 .form-group h3 {
@@ -397,17 +448,145 @@ select.error:focus {
 }
 
 .form-group select:focus,
-.form-group input:focus {
+.form-group input:focus,
+.form-group textarea:focus {
     outline: none;
     border-color: #151A2D;
     box-shadow: 0 0 0 3px rgba(21, 26, 45, 0.1);
+}
+
+/* Invalid state - kırmızı border ve arka plan - MAXIMUM SPECIFICITY */
+.modal .form-group select.invalid,
+.modal .form-group input.invalid,
+.modal .form-group select.error,
+.modal .form-group input.error,
+.modal .form-group select.has-error,
+.modal .form-group input.has-error,
+.form-group select.invalid,
+.form-group input.invalid,
+.form-group select.error,
+.form-group input.error,
+.form-group select.has-error,
+.form-group input.has-error {
+    border-color: #dc2626 !important;
+    background-color: #fef2f2 !important;
+    box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.1) !important;
+}
+
+.modal .form-group select.invalid:focus,
+.modal .form-group input.invalid:focus,
+.modal .form-group select.error:focus,
+.modal .form-group input.error:focus,
+.modal .form-group select.has-error:focus,
+.modal .form-group input.has-error:focus,
+.form-group select.invalid:focus,
+.form-group input.invalid:focus,
+.form-group select.error:focus,
+.form-group input.error:focus,
+.form-group select.has-error:focus,
+.form-group input.has-error:focus {
+    border-color: #dc2626 !important;
+    background-color: #fff !important;
+    box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.2) !important;
+}
+
+/* HTML5 invalid state - ONLY when explicitly invalid (not on page load) */
+.modal form[novalidate] select:invalid:not(:placeholder-shown),
+.modal form[novalidate] input:invalid:not(:placeholder-shown),
+form[novalidate] select:invalid:not(:placeholder-shown),
+form[novalidate] input:invalid:not(:placeholder-shown) {
+    /* Don't show invalid state unless user has interacted */
+}
+
+.modal form[novalidate] select:invalid:focus:not(:placeholder-shown),
+.modal form[novalidate] input:invalid:focus:not(:placeholder-shown),
+form[novalidate] select:invalid:focus:not(:placeholder-shown),
+form[novalidate] input:invalid:focus:not(:placeholder-shown) {
+    /* Only show on focus after interaction */
+}
+
+/* Error message display - MAXIMUM SPECIFICITY */
+.modal .form-group select.invalid + .input-error-message,
+.modal .form-group input.invalid + .input-error-message,
+.modal .form-group select.error + .input-error-message,
+.modal .form-group input.error + .input-error-message,
+.modal .form-group select.has-error + .input-error-message,
+.modal .form-group input.has-error + .input-error-message,
+.modal .input-error-message.show,
+.modal .input-error-message.has-error,
+.form-group select.invalid + .input-error-message,
+.form-group input.invalid + .input-error-message,
+.form-group select.error + .input-error-message,
+.form-group input.error + .input-error-message,
+.form-group select.has-error + .input-error-message,
+.form-group input.has-error + .input-error-message,
+.input-error-message.show,
+.input-error-message.has-error {
+    display: block !important;
+    color: #dc2626 !important;
+    font-size: 12px !important;
+    margin-top: 4px !important;
+    font-weight: 500;
+}
+
+/* HTML5 invalid backup */
+.modal .form-group select:invalid + .input-error-message,
+.modal .form-group input:invalid + .input-error-message,
+.form-group select:invalid + .input-error-message,
+.form-group input:invalid + .input-error-message {
+    display: block !important;
+    color: #dc2626 !important;
+}
+
+.input-error-message {
+    display: none;
+    color: #dc2626;
+    font-size: 12px;
+    margin-top: 4px;
+}
+
+/* Label color when error - MAXIMUM SPECIFICITY */
+.modal .form-group:has(input.error) label,
+.modal .form-group:has(select.error) label,
+.modal .form-group:has(input.invalid) label,
+.modal .form-group:has(select.invalid) label,
+.modal .form-group:has(input.has-error) label,
+.modal .form-group:has(select.has-error) label,
+.form-group:has(input.error) label,
+.form-group:has(select.error) label,
+.form-group:has(input.invalid) label,
+.form-group:has(select.invalid) label,
+.form-group:has(input.has-error) label,
+.form-group:has(select.has-error) label {
+    color: #dc2626 !important;
+}
+
+/* Textarea styling */
+.form-group textarea {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px solid #d1d5db;
+    border-radius: 8px;
+    font-size: 14px;
+    color: #1f2937;
+    transition: all 0.3s ease;
+    font-family: inherit;
+    resize: vertical;
+    min-height: 80px;
 }
 
 .modal-footer {
     display: flex;
     gap: 12px;
     justify-content: flex-end;
-    margin-top: 24px;
+    padding: 20px 30px;
+    border-top: 1px solid #e5e7eb;
+    background: #f9fafb;
+    border-radius: 0 0 16px 16px;
+    position: sticky;
+    bottom: 0;
+    z-index: 10;
+    margin-top: auto;
 }
 
 .btn-secondary {
@@ -922,5 +1101,433 @@ select.error:focus {
 .price-link:hover {
     color: #2563eb;
     text-decoration: underline;
+}
+
+/* Search Box Styles */
+.table-actions-group {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.search-box {
+    position: relative;
+    display: flex;
+    align-items: center;
+    width: 300px;
+    max-width: 100%;
+}
+
+.search-icon {
+    position: absolute;
+    left: 12px;
+    color: #9ca3af;
+    font-size: 20px;
+    pointer-events: none;
+    z-index: 1;
+}
+
+.search-input {
+    width: 100%;
+    padding: 10px 40px 10px 40px;
+    border: 1px solid #d1d5db;
+    border-radius: 8px;
+    font-size: 14px;
+    transition: all 0.2s ease;
+    background: white;
+}
+
+.search-input:focus {
+    outline: none;
+    border-color: #151A2D;
+    box-shadow: 0 0 0 3px rgba(21, 26, 45, 0.1);
+}
+
+.search-clear {
+    position: absolute;
+    right: 8px;
+    width: 24px;
+    height: 24px;
+    border: none;
+    background: #f3f4f6;
+    border-radius: 50%;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    transition: all 0.2s ease;
+    z-index: 2;
+}
+
+.search-clear:hover {
+    background: #e5e7eb;
+}
+
+.search-clear .material-symbols-rounded {
+    font-size: 16px;
+    color: #6b7280;
+}
+
+/* Table Count Badge */
+.table-count-badge {
+    display: inline-block;
+    margin-left: 8px;
+    padding: 2px 8px;
+    background: #e5e7eb;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: 600;
+    color: #374151;
+}
+
+/* Sortable Table Headers */
+.sortable {
+    cursor: pointer;
+    user-select: none;
+    position: relative;
+    transition: background 0.2s ease;
+}
+
+.sortable:hover {
+    background: #f9fafb;
+}
+
+.sort-icon {
+    display: inline-block;
+    margin-left: 6px;
+    font-size: 14px;
+    color: #9ca3af;
+    transition: color 0.2s ease;
+}
+
+.sortable:hover .sort-icon {
+    color: #151A2D;
+}
+
+/* Table Badges */
+.code-badge {
+    display: inline-block;
+    padding: 4px 10px;
+    background: #eff6ff;
+    color: #1e40af;
+    border-radius: 6px;
+    font-size: 13px;
+    font-weight: 600;
+    font-family: 'Courier New', monospace;
+}
+
+.location-badge {
+    display: inline-block;
+    padding: 4px 8px;
+    background: #f0fdf4;
+    color: #166534;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 500;
+}
+
+.tour-name {
+    color: #1f2937;
+    font-size: 14px;
+}
+
+.group-name {
+    color: #151A2D;
+    font-size: 15px;
+}
+
+.group-description {
+    color: #6b7280;
+    font-size: 13px;
+    max-width: 400px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    display: inline-block;
+}
+
+/* Tour Priority Badges */
+.tour-priority-badge {
+    display: inline-block;
+    margin: 4px 6px 4px 0;
+    padding: 6px 10px;
+    background: #f3f4f6;
+    border-radius: 6px;
+    font-size: 12px;
+    color: #374151;
+    transition: all 0.2s ease;
+}
+
+.tour-priority-badge:hover {
+    background: #e5e7eb;
+    transform: translateY(-1px);
+}
+
+.priority-number {
+    color: #2563eb;
+    font-weight: 700;
+    margin-left: 6px;
+}
+
+.tours-in-group {
+    max-width: 500px;
+    margin-top: 8px;
+    line-height: 1.8;
+}
+
+.tour-count-badge {
+    display: inline-block;
+    padding: 4px 10px;
+    background: #dbeafe;
+    color: #1e40af;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.tour-count-info {
+    margin-bottom: 8px;
+}
+
+.no-tours-text {
+    color: #9ca3af;
+    font-style: italic;
+    font-size: 13px;
+}
+
+/* Action Buttons Group */
+.action-buttons {
+    display: flex;
+    gap: 4px;
+    align-items: center;
+}
+
+/* Table Footer */
+.table-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 16px 0 0 0;
+    margin-top: 16px;
+    border-top: 1px solid #e5e7eb;
+}
+
+.table-info {
+    color: #6b7280;
+    font-size: 13px;
+}
+
+.table-info strong {
+    color: #374151;
+    font-weight: 600;
+}
+
+/* Loading State Improvements */
+.loading {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 60px 20px;
+    color: #6b7280;
+}
+
+.loading .material-symbols-rounded {
+    font-size: 48px;
+    animation: spin 1s linear infinite;
+    margin-bottom: 16px;
+    color: #151A2D;
+}
+
+.loading p {
+    font-size: 14px;
+    margin: 0;
+    font-weight: 500;
+}
+
+@keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+/* Empty State Improvements */
+.empty-state {
+    text-align: center;
+    padding: 80px 20px;
+    color: #6b7280;
+}
+
+.empty-state .material-symbols-rounded {
+    font-size: 72px;
+    margin-bottom: 20px;
+    opacity: 0.4;
+    color: #9ca3af;
+}
+
+.empty-state h3 {
+    font-size: 20px;
+    font-weight: 600;
+    margin-bottom: 12px;
+    color: #374151;
+}
+
+.empty-state p {
+    font-size: 15px;
+    color: #6b7280;
+    margin-bottom: 24px;
+    line-height: 1.5;
+}
+
+/* Tour Group Tours Container */
+.tour-group-tours-wrapper {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.tour-group-search-wrapper {
+    width: 100%;
+    flex-shrink: 0;
+}
+
+.search-box-inline {
+    position: relative;
+    display: flex;
+    align-items: center;
+    width: 100%;
+}
+
+.search-box-inline .search-icon {
+    position: absolute;
+    left: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #9ca3af;
+    font-size: 20px;
+    pointer-events: none;
+    z-index: 1;
+    line-height: 1;
+}
+
+.search-input-inline {
+    width: 100%;
+    padding: 10px 40px 10px 40px;
+    border: 1px solid #d1d5db;
+    border-radius: 8px;
+    font-size: 14px;
+    transition: all 0.2s ease;
+    background: white;
+}
+
+.search-input-inline:focus {
+    outline: none;
+    border-color: #151A2D;
+    box-shadow: 0 0 0 3px rgba(21, 26, 45, 0.1);
+}
+
+.search-clear-inline {
+    position: absolute;
+    right: 8px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 24px;
+    height: 24px;
+    border: none;
+    background: #f3f4f6;
+    border-radius: 50%;
+    cursor: pointer;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    transition: all 0.2s ease;
+    z-index: 2;
+    line-height: 1;
+}
+
+.search-clear-inline[style*="flex"] {
+    display: flex !important;
+}
+
+.search-clear-inline:hover {
+    background: #e5e7eb;
+}
+
+.search-clear-inline .material-symbols-rounded {
+    font-size: 16px;
+    color: #6b7280;
+}
+
+.tour-group-tours-container {
+    width: 100%;
+    max-height: 400px;
+    overflow-y: auto;
+    overflow-x: hidden;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    padding: 10px;
+    background: #f9fafb;
+    flex-shrink: 0;
+}
+
+.tour-group-tours-container::-webkit-scrollbar {
+    width: 8px;
+}
+
+.tour-group-tours-container::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 4px;
+}
+
+.tour-group-tours-container::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+    border-radius: 4px;
+}
+
+.tour-group-tours-container::-webkit-scrollbar-thumb:hover {
+    background: #94a3b8;
+}
+
+.tour-group-item {
+    min-width: 0;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.tour-group-item .priority-input-wrapper {
+    flex-shrink: 0;
+}
+
+.tour-group-empty-message {
+    text-align: center;
+    padding: 20px;
+    color: #6b7280;
+    font-style: italic;
+}
+
+/* Responsive Search */
+@media (max-width: 768px) {
+    .search-box {
+        width: 100%;
+        order: -1;
+    }
+    
+    .table-actions-group {
+        flex-direction: column;
+        align-items: stretch;
+        width: 100%;
+    }
+    
+    .btn-add {
+        width: 100%;
+        justify-content: center;
+    }
+    
+    .tour-group-tours-container {
+        max-height: 300px;
+    }
 }
   

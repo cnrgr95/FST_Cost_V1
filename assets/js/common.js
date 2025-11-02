@@ -199,7 +199,7 @@
         showConfirmDialog(confirmMessage, async function() {
             try {
                 const url = `${apiUrl}?action=${action}&id=${id}`;
-                const response = await fetch(url, {
+                const response = await window.apiFetch(url, {
                     method: 'DELETE'
                 });
                 
@@ -271,10 +271,29 @@
         
         // Only add token for state-changing methods
         if (method === 'POST' || method === 'PUT' || method === 'DELETE' || method === 'PATCH') {
-            const token = getCsrfToken();
+            let token = getCsrfToken();
             
+            // If token not found, try to refresh from page-config
             if (!token) {
-                console.warn('CSRF token not found. Request may fail validation.');
+                const configElement = document.getElementById('page-config');
+                if (configElement) {
+                    try {
+                        const config = JSON.parse(configElement.textContent);
+                        if (config.csrfToken) {
+                            token = config.csrfToken;
+                            // Update window.pageConfig
+                            if (window.pageConfig) {
+                                window.pageConfig.csrfToken = token;
+                            }
+                        }
+                    } catch (e) {
+                        console.error('Failed to refresh CSRF token:', e);
+                    }
+                }
+                
+                if (!token) {
+                    console.warn('CSRF token not found. Request may fail validation.');
+                }
             }
             
             // Set headers if not provided
@@ -287,9 +306,20 @@
                 options.headers['Content-Type'] = 'application/json';
             }
             
-            // Parse existing body if it's a string (JSON)
-            let bodyData = {};
-            if (options.body) {
+            // For DELETE requests without body, add token to body as JSON
+            if (method === 'DELETE' && !options.body) {
+                if (token) {
+                    options.body = JSON.stringify({ csrf_token: token });
+                    if (!options.headers) {
+                        options.headers = {};
+                    }
+                    if (!options.headers['Content-Type'] && !options.headers['content-type']) {
+                        options.headers['Content-Type'] = 'application/json';
+                    }
+                }
+            } else if (options.body) {
+                // Parse existing body if it's a string (JSON)
+                let bodyData = {};
                 if (typeof options.body === 'string') {
                     try {
                         bodyData = JSON.parse(options.body);
@@ -298,22 +328,101 @@
                         bodyData = options.body;
                     }
                 } else if (options.body instanceof FormData) {
-                    // For FormData, append token
-                    options.body.append('csrf_token', token);
-                    return fetch(url, options);
+                    // For FormData, append token directly
+                    if (token) {
+                        options.body.append('csrf_token', token);
+                    }
+                    const response = await fetch(url, options);
+                    // Check for CSRF errors and retry once
+                    if (!response.ok && response.status === 400) {
+                        try {
+                            const result = await response.clone().json();
+                            if (result.message && result.message.toLowerCase().includes('csrf')) {
+                                // Try to refresh token and retry
+                                const configElement = document.getElementById('page-config');
+                                if (configElement) {
+                                    try {
+                                        const config = JSON.parse(configElement.textContent);
+                                        if (config.csrfToken && config.csrfToken !== token && !options._retried) {
+                                            options.body.set('csrf_token', config.csrfToken);
+                                            if (window.pageConfig) {
+                                                window.pageConfig.csrfToken = config.csrfToken;
+                                            }
+                                            options._retried = true;
+                                            return fetch(url, options);
+                                        }
+                                    } catch (e) {
+                                        // Return original response
+                                        return response;
+                                    }
+                                }
+                            }
+                        } catch (e) {
+                            // Not JSON, return as-is
+                        }
+                    }
+                    return response;
                 } else {
                     bodyData = options.body;
                 }
-            }
-            
-            // Add CSRF token to JSON body
-            if (token && typeof bodyData === 'object' && !(bodyData instanceof FormData)) {
-                bodyData.csrf_token = token;
-                options.body = JSON.stringify(bodyData);
+                
+                // Add CSRF token to body
+                if (token && typeof bodyData === 'object' && !(bodyData instanceof FormData)) {
+                    bodyData.csrf_token = token;
+                    options.body = JSON.stringify(bodyData);
+                }
             }
         }
         
-        return fetch(url, options);
+        const response = await fetch(url, options);
+        
+        // Check if response indicates CSRF token error
+        if (!response.ok && (method === 'POST' || method === 'PUT' || method === 'DELETE' || method === 'PATCH')) {
+            try {
+                const result = await response.clone().json();
+                if (result.message && result.message.toLowerCase().includes('csrf')) {
+                    // Try to refresh token and retry once
+                    const configElement = document.getElementById('page-config');
+                    if (configElement) {
+                        try {
+                            const config = JSON.parse(configElement.textContent);
+                            if (config.csrfToken) {
+                                const newToken = config.csrfToken;
+                                if (window.pageConfig) {
+                                    window.pageConfig.csrfToken = newToken;
+                                }
+                                
+                                                // Retry request with new token (only once to prevent infinite loop)
+                                if (!options._retried) {
+                                    const retryOptions = { ...options, _retried: true };
+                                    if (retryOptions.body) {
+                                        if (typeof retryOptions.body === 'string') {
+                                            try {
+                                                const retryBodyData = JSON.parse(retryOptions.body);
+                                                retryBodyData.csrf_token = newToken;
+                                                retryOptions.body = JSON.stringify(retryBodyData);
+                                            } catch (e) {
+                                                // If parse fails, return original response
+                                                return response;
+                                            }
+                                        } else if (retryOptions.body instanceof FormData) {
+                                            retryOptions.body.set('csrf_token', newToken);
+                                        }
+                                    }
+                                    return fetch(url, retryOptions);
+                                }
+                            }
+                        } catch (e) {
+                            console.error('Failed to refresh CSRF token:', e);
+                        }
+                    }
+                }
+            } catch (e) {
+                // If response is not JSON, just return it
+            }
+        }
+        
+        return response;
     };
     
     // ============================================

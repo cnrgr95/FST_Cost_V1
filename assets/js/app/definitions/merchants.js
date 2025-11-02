@@ -295,7 +295,7 @@
         
         showConfirmDialog(deleteConfirmMessage, async function() {
             try {
-                const response = await fetch(`${API_BASE}?action=merchant&id=${id}`, {
+                const response = await window.apiFetch(`${API_BASE}?action=merchant&id=${id}`, {
                     method: 'DELETE'
                 });
                 const result = await response.json();

@@ -75,8 +75,11 @@ $method = $_SERVER['REQUEST_METHOD'];
 $action = $_GET['action'] ?? '';
 
 // Require CSRF token for state-changing requests
-if ($method === 'POST' || $method === 'PUT' || $method === 'DELETE') {
+if ($method === 'POST' || $method === 'PUT' || $method === 'DELETE' || $method === 'PATCH') {
+    // Always regenerate token after validation to prevent expiration
     requireCsrfToken();
+    // Regenerate token for next request
+    generateCsrfToken();
 }
 
 try {
@@ -143,6 +146,13 @@ function handleGet($conn, $action) {
             $tour_id = isset($_GET['tour_id']) ? (int)$_GET['tour_id'] : null;
             getTourRoutes($conn, $tour_id);
             break;
+        case 'tour_groups':
+            getTourGroups($conn);
+            break;
+        case 'tour_group':
+            $id = isset($_GET['id']) ? (int)$_GET['id'] : null;
+            getTourGroup($conn, $id);
+            break;
         default:
             echo json_encode(['success' => false, 'message' => 'Invalid action']);
     }
@@ -155,6 +165,9 @@ function handlePost($conn, $action) {
     switch ($action) {
         case 'tour':
             createTour($conn, $data);
+            break;
+        case 'tour_group':
+            createTourGroup($conn, $data);
             break;
         default:
             echo json_encode(['success' => false, 'message' => 'Invalid action']);
@@ -175,6 +188,9 @@ function handlePut($conn, $action) {
         case 'save_tour_routes':
             saveTourRoutes($conn, $data['tour_id'], $data['routes'] ?? []);
             break;
+        case 'tour_group':
+            updateTourGroup($conn, $data);
+            break;
         default:
             echo json_encode(['success' => false, 'message' => 'Invalid action']);
     }
@@ -192,6 +208,9 @@ function handleDelete($conn, $action) {
     switch ($action) {
         case 'tour':
             deleteTour($conn, $id);
+            break;
+        case 'tour_group':
+            deleteTourGroup($conn, $id);
             break;
         default:
             echo json_encode(['success' => false, 'message' => 'Invalid action']);
@@ -317,13 +336,15 @@ function getMerchantsBySubRegion($conn, $sub_region_id) {
 
 // Get tours
 function getTours($conn) {
-    $query = "SELECT t.*, t.vehicle_contract_id, m.name as merchant_name, sr.name as sub_region_name, c.name as city_name, r.name as region_name, co.name as country_name
+    $query = "SELECT t.*, 
+                     t.country_id, t.region_id, t.city_id,
+                     co.name as country_name, 
+                     r.name as region_name, 
+                     c.name as city_name
               FROM tours t 
-              LEFT JOIN merchants m ON t.merchant_id = m.id 
-              LEFT JOIN sub_regions sr ON m.sub_region_id = sr.id 
-              LEFT JOIN cities c ON sr.city_id = c.id 
-              LEFT JOIN regions r ON c.region_id = r.id 
-              LEFT JOIN countries co ON r.country_id = co.id
+              LEFT JOIN countries co ON t.country_id = co.id 
+              LEFT JOIN regions r ON t.region_id = r.id 
+              LEFT JOIN cities c ON t.city_id = c.id
               ORDER BY t.sejour_tour_code, t.name ASC";
     
     $result = pg_query($conn, $query);
@@ -340,55 +361,14 @@ function getTours($conn) {
                               WHERE tsr.tour_id = $tour_id";
             $subRegionsResult = pg_query($conn, $subRegionsQuery);
             if ($subRegionsResult) {
-                $tour['sub_regions'] = pg_fetch_all($subRegionsResult) ?: [];
+                $subRegions = pg_fetch_all($subRegionsResult) ?: [];
+                $tour['sub_region_ids'] = array_column($subRegions, 'sub_region_id');
             } else {
-                $tour['sub_regions'] = [];
-            }
-            
-            // Get contract routes prices for this tour by region
-            $tour['region_routes'] = [];
-            // Check if tour_contract_routes table exists
-            $tableCheck = "SELECT EXISTS (
-                SELECT FROM information_schema.tables 
-                WHERE table_schema = 'public' 
-                AND table_name = 'tour_contract_routes'
-            )";
-            $tableExists = pg_query($conn, $tableCheck);
-            if ($tableExists) {
-                $exists = pg_fetch_result($tableExists, 0, 0);
-                if ($exists === 't') {
-                    $routesQuery = "SELECT tcr.sub_region_id, tcr.vehicle_contract_route_id, 
-                                          vcr.vehicle_type_prices, vcr.currency_code,
-                                          vcr.from_location, vcr.to_location, sr.name as sub_region_name
-                                   FROM tour_contract_routes tcr
-                                   LEFT JOIN vehicle_contract_routes vcr ON tcr.vehicle_contract_route_id = vcr.id
-                                   LEFT JOIN sub_regions sr ON tcr.sub_region_id = sr.id
-                                   WHERE tcr.tour_id = $tour_id";
-                    $routesResult = pg_query($conn, $routesQuery);
-                    if ($routesResult) {
-                        $tour['region_routes'] = pg_fetch_all($routesResult) ?: [];
-                    }
-                }
-            }
-            
-            // For backward compatibility, also get vehicle_contract_id routes
-            $tour['contract_routes'] = [];
-            if (!empty($tour['vehicle_contract_id'])) {
-                $contract_id = (int)$tour['vehicle_contract_id'];
-                $contractRoutesQuery = "SELECT vcr.*, vc.contract_code
-                              FROM vehicle_contract_routes vcr
-                              INNER JOIN vehicle_contracts vc ON vcr.vehicle_contract_id = vc.id
-                              WHERE vcr.vehicle_contract_id = $contract_id
-                              ORDER BY vcr.from_location, vcr.to_location
-                              LIMIT 1";
-                $contractRoutesResult = pg_query($conn, $contractRoutesQuery);
-                if ($contractRoutesResult) {
-                    $tour['contract_routes'] = pg_fetch_all($contractRoutesResult) ?: [];
-                }
+                $tour['sub_region_ids'] = [];
             }
         }
         
-        echo json_encode(['success' => true, 'data' => $tours]);
+        echo json_encode(['success' => true, 'data' => $tours ?: []]);
     } else {
         echo json_encode(['success' => false, 'message' => getDbErrorMessage($conn)]);
     }
@@ -396,41 +376,67 @@ function getTours($conn) {
 
 // Create tour
 function createTour($conn, $data) {
-    $sejour_tour_code = strtoupper(pg_escape_string($conn, $data['sejour_tour_code'] ?? ''));
-    $name = pg_escape_string($conn, $data['name']);
+    $sejour_tour_code = !empty($data['sejour_tour_code']) ? strtoupper(trim($data['sejour_tour_code'])) : null;
+    $name = trim($data['name'] ?? '');
     
-    // Check if sejour tour code already exists - use parameterized query
-    if (!empty($sejour_tour_code)) {
-        $checkQuery = "SELECT id FROM tours WHERE sejour_tour_code = $1";
-        $checkResult = pg_query_params($conn, $checkQuery, [$sejour_tour_code]);
-        if ($checkResult && pg_num_rows($checkResult) > 0) {
-            echo json_encode(['success' => false, 'message' => 'This Sejour Tour Code already exists']);
-            return;
-        }
+    // Validate required fields
+    if (empty($name)) {
+        echo json_encode(['success' => false, 'message' => 'Tour name is required']);
+        return;
     }
     
-    $sub_region_id = (int)$data['sub_region_id'];
-    $merchant_id = (int)$data['merchant_id'];
+    if (empty($sejour_tour_code)) {
+        echo json_encode(['success' => false, 'message' => 'Sejour Tour Code is required']);
+        return;
+    }
+    
+    // Check if sejour tour code already exists
+    $checkCodeQuery = "SELECT id FROM tours WHERE sejour_tour_code = $1";
+    $checkCodeResult = pg_query_params($conn, $checkCodeQuery, [$sejour_tour_code]);
+    if ($checkCodeResult && pg_num_rows($checkCodeResult) > 0) {
+        echo json_encode(['success' => false, 'message' => 'A tour with this Sejour Tour Code already exists']);
+        return;
+    }
+    
+    // Check if tour name already exists
+    $checkNameQuery = "SELECT id FROM tours WHERE LOWER(name) = LOWER($1)";
+    $checkNameResult = pg_query_params($conn, $checkNameQuery, [$name]);
+    if ($checkNameResult && pg_num_rows($checkNameResult) > 0) {
+        echo json_encode(['success' => false, 'message' => 'A tour with this name already exists']);
+        return;
+    }
+    
+    // Get location IDs
+    $country_id = isset($data['country_id']) && !empty($data['country_id']) ? (int)$data['country_id'] : null;
+    $region_id = isset($data['region_id']) && !empty($data['region_id']) ? (int)$data['region_id'] : null;
+    $city_id = isset($data['city_id']) && !empty($data['city_id']) ? (int)$data['city_id'] : null;
+    
+    // Validate required fields
+    if (empty($name)) {
+        echo json_encode(['success' => false, 'message' => 'Tour name is required']);
+        return;
+    }
+    
+    if (!$country_id || !$region_id || !$city_id) {
+        echo json_encode(['success' => false, 'message' => 'Country, Region, and City are required']);
+        return;
+    }
     
     // Use parameterized query to prevent SQL injection
-    $query = "INSERT INTO tours (sejour_tour_code, name, sub_region_id, merchant_id, created_at) 
-              VALUES ($1, $2, $3, $4, NOW()) 
+    $query = "INSERT INTO tours (sejour_tour_code, name, country_id, region_id, city_id, created_at) 
+              VALUES ($1, $2, $3, $4, $5, NOW()) 
               RETURNING id";
     $result = pg_query_params($conn, $query, [
-        !empty($sejour_tour_code) ? $sejour_tour_code : null,
+        $sejour_tour_code,
         $name,
-        $sub_region_id,
-        $merchant_id
+        $country_id,
+        $region_id,
+        $city_id
     ]);
     
     if ($result) {
         $row = pg_fetch_assoc($result);
         $tour_id = $row['id'];
-        
-        // Save tour sub regions
-        if (isset($data['sub_region_ids']) && is_array($data['sub_region_ids'])) {
-            saveTourSubRegions($conn, $tour_id, $data['sub_region_ids']);
-        }
         
         echo json_encode(['success' => true, 'id' => $tour_id]);
     } else {
@@ -441,39 +447,72 @@ function createTour($conn, $data) {
 // Update tour
 function updateTour($conn, $data) {
     $id = (int)$data['id'];
-    $sejour_tour_code = strtoupper(pg_escape_string($conn, $data['sejour_tour_code'] ?? ''));
-    $name = pg_escape_string($conn, $data['name']);
-    $sub_region_id = (int)$data['sub_region_id'];
-    $merchant_id = (int)$data['merchant_id'];
+    $sejour_tour_code = !empty($data['sejour_tour_code']) ? strtoupper(trim($data['sejour_tour_code'])) : null;
+    $name = trim($data['name'] ?? '');
     
-    // Check if sejour tour code already exists for another tour - use parameterized query
-    if (!empty($sejour_tour_code)) {
-        $checkQuery = "SELECT id FROM tours WHERE sejour_tour_code = $1 AND id != $2";
-        $checkResult = pg_query_params($conn, $checkQuery, [$sejour_tour_code, $id]);
-        if ($checkResult && pg_num_rows($checkResult) > 0) {
-            echo json_encode(['success' => false, 'message' => 'This Sejour Tour Code already exists']);
-            return;
-        }
+    // Validate required fields
+    if (empty($name)) {
+        echo json_encode(['success' => false, 'message' => 'Tour name is required']);
+        return;
+    }
+    
+    if (empty($sejour_tour_code)) {
+        echo json_encode(['success' => false, 'message' => 'Sejour Tour Code is required']);
+        return;
+    }
+    
+    // Check if sejour tour code already exists for another tour
+    $checkCodeQuery = "SELECT id FROM tours WHERE sejour_tour_code = $1 AND id != $2";
+    $checkCodeResult = pg_query_params($conn, $checkCodeQuery, [$sejour_tour_code, $id]);
+    if ($checkCodeResult && pg_num_rows($checkCodeResult) > 0) {
+        echo json_encode(['success' => false, 'message' => 'A tour with this Sejour Tour Code already exists']);
+        return;
+    }
+    
+    // Check if tour name already exists for another tour
+    $checkNameQuery = "SELECT id FROM tours WHERE LOWER(name) = LOWER($1) AND id != $2";
+    $checkNameResult = pg_query_params($conn, $checkNameQuery, [$name, $id]);
+    if ($checkNameResult && pg_num_rows($checkNameResult) > 0) {
+        echo json_encode(['success' => false, 'message' => 'A tour with this name already exists']);
+        return;
+    }
+    
+    // Get location IDs
+    $country_id = isset($data['country_id']) && !empty($data['country_id']) ? (int)$data['country_id'] : null;
+    $region_id = isset($data['region_id']) && !empty($data['region_id']) ? (int)$data['region_id'] : null;
+    $city_id = isset($data['city_id']) && !empty($data['city_id']) ? (int)$data['city_id'] : null;
+    
+    // Validate required fields
+    if (empty($name)) {
+        echo json_encode(['success' => false, 'message' => 'Tour name is required']);
+        return;
+    }
+    
+    if (!$country_id || !$region_id || !$city_id) {
+        echo json_encode(['success' => false, 'message' => 'Country, Region, and City are required']);
+        return;
     }
     
     // Use parameterized query to prevent SQL injection
     $query = "UPDATE tours SET 
                 sejour_tour_code = $1,
                 name = $2, 
-                sub_region_id = $3, 
-                merchant_id = $4, 
+                country_id = $3,
+                region_id = $4,
+                city_id = $5,
                 updated_at = NOW() 
-              WHERE id = $5";
+              WHERE id = $6";
     $result = pg_query_params($conn, $query, [
-        !empty($sejour_tour_code) ? $sejour_tour_code : null,
+        $sejour_tour_code,
         $name,
-        $sub_region_id,
-        $merchant_id,
+        $country_id,
+        $region_id,
+        $city_id,
         $id
     ]);
     
     if ($result) {
-        // Update tour sub regions
+        // Update tour sub regions if provided
         if (isset($data['sub_region_ids']) && is_array($data['sub_region_ids'])) {
             saveTourSubRegions($conn, $id, $data['sub_region_ids']);
         }
@@ -505,8 +544,31 @@ function saveTourSubRegions($conn, $tour_id, $sub_region_ids) {
 // Delete tour
 function deleteTour($conn, $id) {
     $id = (int)$id;
-    $query = "DELETE FROM tours WHERE id = $id";
-    $result = pg_query($conn, $query);
+    
+    // Check if tour is in any tour groups
+    $checkGroupsQuery = "SELECT COUNT(*) as count FROM tour_group_members WHERE tour_id = $1";
+    $checkGroupsResult = pg_query_params($conn, $checkGroupsQuery, [$id]);
+    if ($checkGroupsResult) {
+        $row = pg_fetch_assoc($checkGroupsResult);
+        if ($row && (int)$row['count'] > 0) {
+            echo json_encode(['success' => false, 'message' => 'Cannot delete tour because it is assigned to one or more tour groups']);
+            return;
+        }
+    }
+    
+    // Check if tour has any contract routes
+    $checkRoutesQuery = "SELECT COUNT(*) as count FROM tour_contract_routes WHERE tour_id = $1";
+    $checkRoutesResult = pg_query_params($conn, $checkRoutesQuery, [$id]);
+    if ($checkRoutesResult) {
+        $row = pg_fetch_assoc($checkRoutesResult);
+        if ($row && (int)$row['count'] > 0) {
+            echo json_encode(['success' => false, 'message' => 'Cannot delete tour because it has associated contract routes']);
+            return;
+        }
+    }
+    
+    $query = "DELETE FROM tours WHERE id = $1";
+    $result = pg_query_params($conn, $query, [$id]);
     
     if ($result) {
         echo json_encode(['success' => true]);
@@ -689,6 +751,206 @@ function saveTourRoutes($conn, $tour_id, $routes) {
     }
     
     echo json_encode(['success' => true]);
+}
+
+// Get tour groups
+function getTourGroups($conn) {
+    $query = "SELECT tg.*, COUNT(tgm.tour_id) as tour_count
+              FROM tour_groups tg
+              LEFT JOIN tour_group_members tgm ON tg.id = tgm.tour_group_id
+              GROUP BY tg.id
+              ORDER BY tg.name ASC";
+    
+    $result = pg_query($conn, $query);
+    
+    if ($result) {
+        $tourGroups = pg_fetch_all($result) ?: [];
+        
+        // Get tours for each group with priorities
+        foreach ($tourGroups as &$group) {
+            $group_id = $group['id'];
+            $toursQuery = "SELECT t.id, t.sejour_tour_code, t.name, tgm.priority
+                          FROM tour_group_members tgm
+                          INNER JOIN tours t ON tgm.tour_id = t.id
+                          WHERE tgm.tour_group_id = $group_id
+                          ORDER BY tgm.priority ASC, t.sejour_tour_code ASC";
+            $toursResult = pg_query($conn, $toursQuery);
+            if ($toursResult) {
+                $group['tours'] = pg_fetch_all($toursResult) ?: [];
+            } else {
+                $group['tours'] = [];
+            }
+        }
+        
+        echo json_encode(['success' => true, 'data' => $tourGroups]);
+    } else {
+        echo json_encode(['success' => false, 'message' => getDbErrorMessage($conn)]);
+    }
+}
+
+// Get single tour group
+function getTourGroup($conn, $id) {
+    if (!$id) {
+        echo json_encode(['success' => false, 'message' => 'ID is required']);
+        return;
+    }
+    
+    $id = (int)$id;
+    
+    // Get tour group info
+    $query = "SELECT * FROM tour_groups WHERE id = $id";
+    $result = pg_query($conn, $query);
+    
+    if ($result) {
+        $tourGroup = pg_fetch_assoc($result);
+        if ($tourGroup) {
+            // Get tour members with priority
+            $membersQuery = "SELECT tour_id, priority FROM tour_group_members WHERE tour_group_id = $id ORDER BY priority ASC, tour_id ASC";
+            $membersResult = pg_query($conn, $membersQuery);
+            $tour_ids = [];
+            $tour_priorities = [];
+            if ($membersResult) {
+                while ($row = pg_fetch_assoc($membersResult)) {
+                    $tour_ids[] = (int)$row['tour_id'];
+                    $tour_priorities[(int)$row['tour_id']] = (int)($row['priority'] ?? 0);
+                }
+            }
+            $tourGroup['tour_ids'] = $tour_ids;
+            $tourGroup['tour_priorities'] = $tour_priorities;
+            
+            echo json_encode(['success' => true, 'data' => $tourGroup]);
+        } else {
+            echo json_encode(['success' => false, 'message' => 'Tour group not found']);
+        }
+    } else {
+        echo json_encode(['success' => false, 'message' => getDbErrorMessage($conn)]);
+    }
+}
+
+// Create tour group
+function createTourGroup($conn, $data) {
+    $name = trim($data['name'] ?? '');
+    $description = pg_escape_string($conn, $data['description'] ?? '');
+    
+    if (empty($name)) {
+        echo json_encode(['success' => false, 'message' => 'Tour group name is required']);
+        return;
+    }
+    
+    // Check if tour group name already exists
+    $checkQuery = "SELECT id FROM tour_groups WHERE LOWER(name) = LOWER($1)";
+    $checkResult = pg_query_params($conn, $checkQuery, [$name]);
+    if ($checkResult && pg_num_rows($checkResult) > 0) {
+        echo json_encode(['success' => false, 'message' => 'A tour group with this name already exists']);
+        return;
+    }
+    
+    $query = "INSERT INTO tour_groups (name, description, created_at) 
+              VALUES ($1, $2, NOW()) 
+              RETURNING id";
+    $result = pg_query_params($conn, $query, [$name, !empty($description) ? $description : null]);
+    
+    if ($result) {
+        $row = pg_fetch_assoc($result);
+        $tour_group_id = $row['id'];
+        
+        // Save tour members if provided (with priorities)
+        if (isset($data['tour_ids']) && is_array($data['tour_ids']) && count($data['tour_ids']) > 0) {
+            $tour_priorities = $data['tour_priorities'] ?? [];
+            saveTourGroupMembers($conn, $tour_group_id, $data['tour_ids'], $tour_priorities);
+        }
+        
+        echo json_encode(['success' => true, 'id' => $tour_group_id]);
+    } else {
+        echo json_encode(['success' => false, 'message' => getDbErrorMessage($conn)]);
+    }
+}
+
+// Update tour group
+function updateTourGroup($conn, $data) {
+    $id = (int)$data['id'];
+    $name = trim($data['name'] ?? '');
+    $description = pg_escape_string($conn, $data['description'] ?? '');
+    
+    if (empty($name)) {
+        echo json_encode(['success' => false, 'message' => 'Tour group name is required']);
+        return;
+    }
+    
+    // Check if tour group name already exists for another tour group
+    $checkQuery = "SELECT id FROM tour_groups WHERE LOWER(name) = LOWER($1) AND id != $2";
+    $checkResult = pg_query_params($conn, $checkQuery, [$name, $id]);
+    if ($checkResult && pg_num_rows($checkResult) > 0) {
+        echo json_encode(['success' => false, 'message' => 'A tour group with this name already exists']);
+        return;
+    }
+    
+    $query = "UPDATE tour_groups SET 
+                name = $1,
+                description = $2,
+                updated_at = NOW() 
+              WHERE id = $3";
+    $result = pg_query_params($conn, $query, [
+        $name,
+        !empty($description) ? $description : null,
+        $id
+    ]);
+    
+    if ($result) {
+        // Update tour members if provided (with priorities)
+        if (isset($data['tour_ids']) && is_array($data['tour_ids'])) {
+            $tour_priorities = $data['tour_priorities'] ?? [];
+            saveTourGroupMembers($conn, $id, $data['tour_ids'], $tour_priorities);
+        }
+        
+        echo json_encode(['success' => true]);
+    } else {
+        echo json_encode(['success' => false, 'message' => getDbErrorMessage($conn)]);
+    }
+}
+
+// Delete tour group
+function deleteTourGroup($conn, $id) {
+    $id = (int)$id;
+    
+    // Check if tour group has any tours
+    $checkQuery = "SELECT COUNT(*) as count FROM tour_group_members WHERE tour_group_id = $1";
+    $checkResult = pg_query_params($conn, $checkQuery, [$id]);
+    if ($checkResult) {
+        $row = pg_fetch_assoc($checkResult);
+        if ($row && (int)$row['count'] > 0) {
+            echo json_encode(['success' => false, 'message' => 'Cannot delete tour group because it contains tours. Please remove all tours first.']);
+            return;
+        }
+    }
+    
+    $query = "DELETE FROM tour_groups WHERE id = $1";
+    $result = pg_query_params($conn, $query, [$id]);
+    
+    if ($result) {
+        echo json_encode(['success' => true]);
+    } else {
+        echo json_encode(['success' => false, 'message' => getDbErrorMessage($conn)]);
+    }
+}
+
+// Save tour group members
+function saveTourGroupMembers($conn, $tour_group_id, $tour_ids, $tour_priorities = []) {
+    // Delete existing members
+    $deleteQuery = "DELETE FROM tour_group_members WHERE tour_group_id = $1";
+    pg_query_params($conn, $deleteQuery, [$tour_group_id]);
+    
+    // Insert new members with priorities
+    if (!empty($tour_ids)) {
+        foreach ($tour_ids as $tour_id) {
+            $tour_id = (int)$tour_id;
+            if ($tour_id > 0) {
+                $priority = isset($tour_priorities[$tour_id]) ? (int)$tour_priorities[$tour_id] : 0;
+                $insertQuery = "INSERT INTO tour_group_members (tour_group_id, tour_id, priority) VALUES ($1, $2, $3) ON CONFLICT (tour_group_id, tour_id) DO UPDATE SET priority = $3";
+                pg_query_params($conn, $insertQuery, [$tour_group_id, $tour_id, $priority]);
+            }
+        }
+    }
 }
 ?>
 

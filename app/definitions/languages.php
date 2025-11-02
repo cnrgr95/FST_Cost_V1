@@ -18,6 +18,9 @@ if (!isset($_SESSION['user_id'])) {
 // Load translation helper
 require_once $basePath . 'includes/translations.php';
 
+// Load security helper for CSRF token
+require_once $basePath . 'includes/security.php';
+
 // Get translations
 $t_sidebar = $all_translations['sidebar'] ?? [];
 $t_common = $all_translations['common'] ?? [];
@@ -154,6 +157,7 @@ $t_lang_mgmt = $all_translations['language_mgmt'] ?? [];
     echo json_encode([
         'basePath' => $basePath,
         'apiBase' => $basePath . 'api/definitions/languages.php',
+        'csrfToken' => csrfToken(),
         'translations' => [
             'common' => $t_common,
             'language_mgmt' => $t_lang_mgmt

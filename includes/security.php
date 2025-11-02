@@ -70,11 +70,13 @@ function requireCsrfToken() {
         $token = $_GET[CSRF_TOKEN_NAME];
     }
     // Check JSON body
-    elseif ($_SERVER['REQUEST_METHOD'] === 'POST' || $_SERVER['REQUEST_METHOD'] === 'PUT') {
+    elseif ($_SERVER['REQUEST_METHOD'] === 'POST' || $_SERVER['REQUEST_METHOD'] === 'PUT' || $_SERVER['REQUEST_METHOD'] === 'DELETE' || $_SERVER['REQUEST_METHOD'] === 'PATCH') {
         $input = file_get_contents('php://input');
-        $data = json_decode($input, true);
-        if (isset($data[CSRF_TOKEN_NAME])) {
-            $token = $data[CSRF_TOKEN_NAME];
+        if (!empty($input)) {
+            $data = json_decode($input, true);
+            if ($data && isset($data[CSRF_TOKEN_NAME])) {
+                $token = $data[CSRF_TOKEN_NAME];
+            }
         }
     }
     

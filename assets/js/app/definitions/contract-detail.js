@@ -557,7 +557,7 @@
     
     async function performDeleteRoute(routeId) {
         try {
-            const resp = await fetch(`${API_BASE}?action=contract_route&id=${routeId}`, {
+            const resp = await window.apiFetch(`${API_BASE}?action=contract_route&id=${routeId}`, {
                 method: 'DELETE'
             });
             const res = await resp.json();

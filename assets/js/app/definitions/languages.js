@@ -637,7 +637,7 @@
         
         showConfirmDialog(confirmMessage, async function() {
             try {
-                const response = await fetch(`${API_BASE}?action=language&code=${code}`, {
+                const response = await window.apiFetch(`${API_BASE}?action=language&code=${code}`, {
                     method: 'DELETE'
                 });
                 const result = await response.json();

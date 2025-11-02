@@ -19,6 +19,9 @@ if (!isset($_SESSION['user_id'])) {
 // Load translation helper
 require_once $basePath . 'includes/translations.php';
 
+// Load security helper for CSRF token
+require_once $basePath . 'includes/security.php';
+
 // Get translations
 $t_sidebar = $all_translations['sidebar'] ?? [];
 $t_common = $all_translations['common'] ?? [];
@@ -150,16 +153,19 @@ $t_dependencies = $all_translations['dependencies'] ?? [];
     
     <!-- Data attributes for JavaScript configuration -->
     <script type="application/json" id="page-config">
-    {
-        "basePath": "<?php echo htmlspecialchars($basePath, ENT_QUOTES, 'UTF-8'); ?>",
-        "apiBase": "<?php echo htmlspecialchars($basePath, ENT_QUOTES, 'UTF-8'); ?>api/definitions/positions.php",
-        "translations": <?php echo json_encode([
+    <?php
+    echo json_encode([
+        'basePath' => $basePath,
+        'apiBase' => $basePath . 'api/definitions/positions.php',
+        'csrfToken' => csrfToken(),
+        'translations' => [
             'positions' => $t_positions,
             'common' => $t_common,
             'sidebar' => $t_sidebar,
             'dependencies' => $t_dependencies
-        ], JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT); ?>
-    }
+        ]
+    ], JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_PRETTY_PRINT);
+    ?>
     </script>
     
     <!-- Toast Notification Container -->

@@ -19,6 +19,9 @@ if (!isset($_SESSION['user_id'])) {
 // Load translation helper
 require_once $basePath . 'includes/translations.php';
 
+// Load security helpers for CSRF token
+require_once $basePath . 'includes/security.php';
+
 // Get translations
 $t_sidebar = $all_translations['sidebar'] ?? [];
 $t_common = $all_translations['common'] ?? [];
@@ -30,7 +33,7 @@ $t_vehicles = $all_translations['vehicles'] ?? [];
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title><?php echo $t_tours['title'] ?? 'Tours'; ?> - <?php echo $all_translations['app']['name'] ?? 'FST Cost Management'; ?></title>
+    <title><?php echo $t_tours['tours'] ?? 'Tours'; ?> - <?php echo $all_translations['app']['name'] ?? 'FST Cost Management'; ?></title>
     
     <!-- Google Fonts for Icons -->
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@24,400,0,0" />
@@ -59,11 +62,25 @@ $t_vehicles = $all_translations['vehicles'] ?? [];
             <div class="tours-container">
                 <!-- Page Header -->
                 <div class="tours-header">
-                    <h1><?php echo $t_tours['title'] ?? 'Tours'; ?></h1>
+                    <h1 id="toursPageTitle"><?php echo $t_tours['tours'] ?? 'Tours'; ?></h1>
                 </div>
                 
-                <!-- Content -->
+                <!-- Tabs -->
+                <div class="tours-tabs">
+                    <button class="tours-tab active" data-tab="tours">
+                        <?php echo $t_tours['tours'] ?? 'Tours'; ?>
+                    </button>
+                    <button class="tours-tab" data-tab="tour_groups">
+                        <?php echo $t_tours['tour_groups'] ?? 'Tour Groups'; ?>
+                    </button>
+                </div>
+                
+                <!-- Tab Content -->
                 <div class="tours-content" id="tours-content">
+                    <!-- Content will be loaded by JavaScript -->
+                </div>
+                
+                <div class="tours-content" id="tour_groups-content">
                     <!-- Content will be loaded by JavaScript -->
                 </div>
             </div>
@@ -79,78 +96,132 @@ $t_vehicles = $all_translations['vehicles'] ?? [];
                     <span class="material-symbols-rounded">close</span>
                 </button>
             </div>
-            <form id="tourForm" style="display: block;">
-                <div class="form-group">
-                    <label><?php echo $t_tours['sejour_tour_code'] ?? 'Sejour Tour Code'; ?> *</label>
-                    <input type="text" name="sejour_tour_code" placeholder="<?php echo $t_tours['sejour_tour_code'] ?? 'Sejour Tour Code'; ?>" required style="text-transform: uppercase; width: 100%; padding: 10px 12px; border: 1px solid #d1d5db; border-radius: 8px; font-size: 14px;">
-                </div>
+            <form id="tourForm" novalidate>
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label><?php echo $t_tours['sejour_tour_code'] ?? 'Sejour Tour Code'; ?> *</label>
+                        <input type="text" name="sejour_tour_code" placeholder="<?php echo $t_tours['sejour_tour_code'] ?? 'Sejour Tour Code'; ?>" required data-error="<?php echo ($t_tours['sejour_tour_code'] ?? 'Sejour Tour Code') . ' ' . ($t_common['is_required'] ?? 'is required'); ?>">
+                        <span class="input-error-message"></span>
+                    </div>
                 
-                <div class="form-group">
-                    <label><?php echo $t_tours['tour_name'] ?? 'Tour Name'; ?> *</label>
-                    <input type="text" name="name" required style="width: 100%; padding: 10px 12px; border: 1px solid #d1d5db; border-radius: 8px; font-size: 14px;">
-                </div>
-                
-                <div class="form-group">
-                    <label><?php echo $t_sidebar['sub_region'] ?? 'Sub Region'; ?> *</label>
-                    <select name="sub_region_id" required style="width: 100%; padding: 10px 12px; border: 1px solid #d1d5db; border-radius: 8px; font-size: 14px;">
-                        <option value=""><?php echo $t_tours['loading_data'] ?? 'Loading...'; ?></option>
-                    </select>
-                </div>
-                
-                <div class="form-group">
-                    <label><?php echo $t_sidebar['merchant'] ?? 'Merchant'; ?> *</label>
-                    <select name="merchant_id" required style="width: 100%; padding: 10px 12px; border: 1px solid #d1d5db; border-radius: 8px; font-size: 14px;">
-                        <option value=""><?php echo $t_tours['select_merchant'] ?? 'Select Merchant'; ?></option>
-                    </select>
-                </div>
-                
-                <div class="form-group">
-                    <label><?php echo $t_sidebar['country'] ?? 'Country'; ?></label>
-                    <select id="filter_country_id" name="filter_country_id" style="width: 100%; padding: 10px 12px; border: 1px solid #d1d5db; border-radius: 8px; font-size: 14px;">
-                        <option value=""><?php echo $t_common['select'] ?? 'Select...'; ?></option>
-                    </select>
-                </div>
-                
-                <div class="form-group">
-                    <label><?php echo $t_sidebar['region'] ?? 'Region'; ?></label>
-                    <select id="filter_region_id" name="filter_region_id" style="width: 100%; padding: 10px 12px; border: 1px solid #d1d5db; border-radius: 8px; font-size: 14px;">
-                        <option value=""><?php echo $t_common['select'] ?? 'Select...'; ?></option>
-                    </select>
-                </div>
-                
-                <div class="form-group">
-                    <label><?php echo $t_sidebar['city'] ?? 'City'; ?></label>
-                    <select id="filter_city_id" name="filter_city_id" style="width: 100%; padding: 10px 12px; border: 1px solid #d1d5db; border-radius: 8px; font-size: 14px;">
-                        <option value=""><?php echo $t_common['select'] ?? 'Select...'; ?></option>
-                    </select>
-                </div>
-                
-                <div class="form-group">
-                    <div class="checkbox-group-header">
-                        <label><?php echo $t_tours['tour_regions'] ?? 'Bu Turun Gerçekleştiği Bölgeler'; ?></label>
-                        <div class="checkbox-actions">
-                            <button type="button" class="btn-select-all" onclick="selectAllRegions()" style="display: none;">
-                                <span class="material-symbols-rounded">check_box</span>
-                                <?php echo $t_tours['select_all'] ?? 'Tümünü Seç'; ?>
-                            </button>
-                            <button type="button" class="btn-deselect-all" onclick="deselectAllRegions()" style="display: none;">
-                                <span class="material-symbols-rounded">check_box_outline_blank</span>
-                                <?php echo $t_tours['deselect_all'] ?? 'Tümünü Temizle'; ?>
-                            </button>
-                            <span class="selected-count" id="selected_count" style="display: none;"></span>
+                    <div class="form-group">
+                        <label><?php echo $t_tours['tour_name'] ?? 'Sejour Tour Name'; ?> *</label>
+                        <input type="text" name="name" placeholder="<?php echo $t_tours['tour_name'] ?? 'Tour Name'; ?>" required data-error="<?php echo ($t_tours['tour_name'] ?? 'Tour Name') . ' ' . ($t_common['is_required'] ?? 'is required'); ?>">
+                        <span class="input-error-message"></span>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label><?php echo $t_sidebar['country'] ?? 'Country'; ?> *</label>
+                        <select name="country_id" id="countrySelect" required data-error="<?php echo ($t_sidebar['country'] ?? 'Country') . ' ' . ($t_common['is_required'] ?? 'is required'); ?>">
+                            <option value=""><?php echo $t_tours['select_country'] ?? 'Select Country'; ?></option>
+                        </select>
+                        <span class="input-error-message"></span>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label><?php echo $t_sidebar['region'] ?? 'Region'; ?> *</label>
+                        <select name="region_id" id="regionSelect" required disabled data-error="<?php echo ($t_sidebar['region'] ?? 'Region') . ' ' . ($t_common['is_required'] ?? 'is required'); ?>">
+                            <option value=""><?php echo $t_tours['select_region'] ?? 'Select Region'; ?></option>
+                        </select>
+                        <span class="input-error-message"></span>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label><?php echo $t_sidebar['city'] ?? 'City'; ?> *</label>
+                        <select name="city_id" id="citySelect" required disabled data-error="<?php echo ($t_sidebar['city'] ?? 'City') . ' ' . ($t_common['is_required'] ?? 'is required'); ?>">
+                            <option value=""><?php echo $t_tours['select_city'] ?? 'Select City'; ?></option>
+                        </select>
+                        <span class="input-error-message"></span>
+                    </div>
+                    
+                    <div class="form-group" id="subRegionsGroup" style="display: none;">
+                        <label><?php echo $t_tours['sub_regions'] ?? 'Sub Regions'; ?></label>
+                        <div class="checkbox-group-header">
+                            <label><?php echo $t_tours['select_sub_regions'] ?? 'Select Sub Regions'; ?></label>
+                            <div class="checkbox-actions">
+                                <button type="button" class="btn-select-all" onclick="selectAllSubRegions()" style="display: none;">
+                                    <span class="material-symbols-rounded">check_box</span>
+                                    <?php echo $t_tours['select_all'] ?? 'Select All'; ?>
+                                </button>
+                                <button type="button" class="btn-deselect-all" onclick="deselectAllSubRegions()" style="display: none;">
+                                    <span class="material-symbols-rounded">check_box_outline_blank</span>
+                                    <?php echo $t_tours['deselect_all'] ?? 'Deselect All'; ?>
+                                </button>
+                            </div>
                         </div>
-                    </div>
-                    <div class="checkbox-search" style="display: none;">
-                        <input type="text" id="region_search" placeholder="<?php echo $t_tours['search_regions'] ?? 'Bölge ara...'; ?>" onkeyup="filterRegions(this.value)">
-                        <span class="material-symbols-rounded">search</span>
-                    </div>
-                    <div id="sub_regions_checkbox_container" class="checkbox-container" style="min-height: 100px; padding: 10px; border: 1px solid #e5e7eb; border-radius: 8px; background: #f9fafb;">
-                        <div class="checkbox-message"><?php echo $t_tours['select_regions_first'] ?? 'Önce ülke, bölge ve şehir seçin'; ?></div>
+                        <div class="checkbox-search" style="display: none;">
+                            <input type="text" id="sub_region_search" placeholder="<?php echo $t_tours['search_sub_regions'] ?? 'Search sub regions...'; ?>" onkeyup="filterSubRegions(this.value)">
+                            <span class="material-symbols-rounded">search</span>
+                        </div>
+                        <div id="sub_regions_checkbox_container" class="checkbox-container">
+                            <div class="checkbox-message"><?php echo $t_tours['select_city_first'] ?? 'Please select city first'; ?></div>
+                        </div>
                     </div>
                 </div>
                 
                 <div class="modal-footer">
                     <button type="button" class="btn-secondary" onclick="closeModal()">
+                        <?php echo $t_common['cancel'] ?? 'Cancel'; ?>
+                    </button>
+                    <button type="submit" class="btn-primary">
+                        <?php echo $t_common['save'] ?? 'Save'; ?>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <!-- Tour Group Modal -->
+    <div class="modal" id="tourGroupModal">
+        <div class="modal-content" style="max-width: 800px;">
+            <div class="modal-header">
+                <h2 id="tourGroupModalTitle"><?php echo $t_tours['add_tour_group'] ?? 'Add Tour Group'; ?></h2>
+                <button class="btn-close">
+                    <span class="material-symbols-rounded">close</span>
+                </button>
+            </div>
+            <form id="tourGroupForm" novalidate>
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label><?php echo $t_tours['tour_group_name'] ?? 'Tour Group Name'; ?> *</label>
+                        <input type="text" name="name" placeholder="<?php echo $t_tours['tour_group_name'] ?? 'Tour Group Name'; ?>" required data-error="<?php echo ($t_tours['tour_group_name'] ?? 'Tour Group Name') . ' ' . ($t_common['is_required'] ?? 'is required'); ?>">
+                        <span class="input-error-message"></span>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label><?php echo $t_tours['tour_group_description'] ?? 'Description'; ?></label>
+                        <textarea name="description" rows="3" placeholder="<?php echo $t_tours['tour_group_description'] ?? 'Description'; ?>"></textarea>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label><?php echo $t_tours['tours'] ?? 'Tours'; ?></label>
+                        <div class="tour-group-tours-wrapper">
+                            <div class="tour-group-search-wrapper">
+                                <div class="search-box-inline">
+                                    <span class="material-symbols-rounded search-icon">search</span>
+                                    <input type="text" 
+                                           id="tourGroupToursSearch" 
+                                           placeholder="<?php echo $t_common['search'] ?? 'Search tours...'; ?>" 
+                                           class="search-input-inline"
+                                           onkeyup="filterTourGroupTours(this.value)">
+                                    <button class="search-clear-inline" id="tourGroupToursSearchClear" onclick="clearTourGroupToursSearch()" style="display: none;">
+                                        <span class="material-symbols-rounded">close</span>
+                                    </button>
+                                </div>
+                            </div>
+                            <div id="tourGroupToursContainer" class="tour-group-tours-container">
+                                <div class="checkbox-message"><?php echo $t_tours['loading_tours'] ?? $t_common['loading'] ?? 'Loading...'; ?></div>
+                            </div>
+                        </div>
+                        <small style="color: #6b7280; margin-top: 8px; display: block; font-size: 13px;">
+                            <span class="material-symbols-rounded" style="vertical-align: middle; font-size: 16px;">info</span>
+                            <?php echo $t_tours['priority_help'] ?? 'Select tours and assign priority (lower number = higher priority)'; ?>
+                        </small>
+                    </div>
+                </div>
+                
+                <div class="modal-footer">
+                    <button type="button" class="btn-secondary" onclick="closeTourGroupModal()">
                         <?php echo $t_common['cancel'] ?? 'Cancel'; ?>
                     </button>
                     <button type="submit" class="btn-primary">
@@ -167,6 +238,7 @@ $t_vehicles = $all_translations['vehicles'] ?? [];
     echo json_encode([
         'basePath' => $basePath,
         'apiBase' => $basePath . 'api/definitions/tours.php',
+        'csrfToken' => csrfToken(),
         'translations' => [
             'tours' => $t_tours,
             'common' => $t_common,

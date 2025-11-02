@@ -568,7 +568,7 @@
                 // Use showConfirmDialog instead of confirm()
                 const confirmMsg = tCommon.delete_confirm || 'Bu kaydı silmek istediğinizden emin misiniz?';
                 showConfirmDialog(confirmMsg, async function() {
-                    const resp = await fetch(`${API_BASE}?action=rates_by_date&country_id=${COUNTRY_ID}&date=${encodeURIComponent(d)}`, { method:'DELETE' });
+                    const resp = await window.apiFetch(`${API_BASE}?action=rates_by_date&country_id=${COUNTRY_ID}&date=${encodeURIComponent(d)}`, { method:'DELETE' });
                     const res = await resp.json();
                     if (!res.success) { showToast('error', res.message || (tCommon.delete_failed||'Delete failed')); return; }
                     const loadingMsg = tCurrencies.loading_rates || tCurrencies.loading_exchange_rates || 'Loading exchange rates...';

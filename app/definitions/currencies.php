@@ -18,6 +18,9 @@ if (!isset($_SESSION['user_id'])) {
 // Load translation helper
 require_once $basePath . 'includes/translations.php';
 
+// Load security helper for CSRF token
+require_once $basePath . 'includes/security.php';
+
 // Get translations
 $t_sidebar = $all_translations['sidebar'] ?? [];
 $t_common = $all_translations['common'] ?? [];
@@ -239,6 +242,7 @@ $t_currencies = $all_translations['currencies'] ?? [];
     echo json_encode([
         'basePath' => $basePath,
         'apiBase' => $basePath . 'api/definitions/currencies.php',
+        'csrfToken' => csrfToken(),
         'translations' => [
             'currencies' => $t_currencies,
             'common' => $t_common,
