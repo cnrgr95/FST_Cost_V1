@@ -414,7 +414,23 @@
         if (!sel || !currentCountryId) return;
         const code = sel.value || '';
         try {
-            const resp = await fetch(`${API_BASE}?action=country`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id: currentCountryId, local_currency_code: code }) });
+            // Get CSRF token
+            let token = null;
+            if (typeof window.getCsrfToken === 'function') {
+                token = window.getCsrfToken();
+            } else if (window.pageConfig && window.pageConfig.csrfToken) {
+                token = window.pageConfig.csrfToken;
+            } else if (pageConfig && pageConfig.csrfToken) {
+                token = pageConfig.csrfToken;
+            }
+            
+            if (!token) {
+                console.error('CSRF token not found');
+                showToast('error', tCommon.security_token_expired || 'Security token expired. Please refresh the page and try again.');
+                return;
+            }
+            
+            const resp = await fetch(`${API_BASE}?action=country`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id: currentCountryId, local_currency_code: code, csrf_token: token }) });
             const res = await resp.json();
             if (res.success) {
                 showToast('success', tCommon.saved_successfully || 'Saved');
@@ -611,6 +627,23 @@
 
     async function createCountryCurrency(payload) {
         try {
+            // Get CSRF token
+            let token = null;
+            if (typeof window.getCsrfToken === 'function') {
+                token = window.getCsrfToken();
+            } else if (window.pageConfig && window.pageConfig.csrfToken) {
+                token = window.pageConfig.csrfToken;
+            } else if (pageConfig && pageConfig.csrfToken) {
+                token = pageConfig.csrfToken;
+            }
+            
+            if (!token) {
+                console.error('CSRF token not found');
+                showToast('error', tCommon.security_token_expired || 'Security token expired. Please refresh the page and try again.');
+                return;
+            }
+            
+            payload.csrf_token = token;
             const resp = await fetch(`${API_BASE}?action=country_currency`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
             const res = await resp.json();
             if (res.success) {
@@ -626,6 +659,23 @@
 
     async function updateCountryCurrency(payload) {
         try {
+            // Get CSRF token
+            let token = null;
+            if (typeof window.getCsrfToken === 'function') {
+                token = window.getCsrfToken();
+            } else if (window.pageConfig && window.pageConfig.csrfToken) {
+                token = window.pageConfig.csrfToken;
+            } else if (pageConfig && pageConfig.csrfToken) {
+                token = pageConfig.csrfToken;
+            }
+            
+            if (!token) {
+                console.error('CSRF token not found');
+                showToast('error', tCommon.security_token_expired || 'Security token expired. Please refresh the page and try again.');
+                return;
+            }
+            
+            payload.csrf_token = token;
             const resp = await fetch(`${API_BASE}?action=country_currency`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
             const res = await resp.json();
             if (res.success) {

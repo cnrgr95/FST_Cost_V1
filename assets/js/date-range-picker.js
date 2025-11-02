@@ -181,6 +181,8 @@
             rpOpen = true;
             if (!rpBaseMonth) rpBaseMonth = new Date();
             renderRangePicker();
+            // Remove hidden class to ensure picker is visible
+            picker.classList.remove('hidden');
             picker.style.display = 'block';
             const rect = anchor.getBoundingClientRect();
             picker.style.top = `${rect.bottom + 6}px`;
@@ -195,6 +197,7 @@
             if (!picker) return;
             rpOpen = false;
             picker.style.display = 'none';
+            // Optionally add hidden class back (but inline style should override it)
             document.removeEventListener('click', outsideClose, true);
             document.removeEventListener('keydown', escClose, true);
         }

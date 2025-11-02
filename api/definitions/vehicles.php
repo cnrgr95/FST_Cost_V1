@@ -337,7 +337,7 @@ function createCompany($conn, $data) {
     $checkQuery = "SELECT id FROM vehicle_companies WHERE name = $1 AND city_id = $2";
     $checkResult = pg_query_params($conn, $checkQuery, [$name, $city_id]);
     if ($checkResult && pg_num_rows($checkResult) > 0) {
-        echo json_encode(['success' => false, 'message' => 'A vehicle company with this name already exists in this city']);
+        echo json_encode(['success' => false, 'message' => 'A vehicle company with this name already exists in this city.']);
         return;
     }
     
@@ -367,6 +367,14 @@ function updateCompany($conn, $data) {
     $contact_person = isset($data['contact_person']) ? pg_escape_string($conn, $data['contact_person']) : null;
     $contact_email = isset($data['contact_email']) ? pg_escape_string($conn, $data['contact_email']) : null;
     $contact_phone = isset($data['contact_phone']) ? pg_escape_string($conn, $data['contact_phone']) : null;
+    
+    // Check if company name already exists in the same city for another company - use parameterized query
+    $checkQuery = "SELECT id FROM vehicle_companies WHERE name = $1 AND city_id = $2 AND id != $3";
+    $checkResult = pg_query_params($conn, $checkQuery, [$name, $city_id, $id]);
+    if ($checkResult && pg_num_rows($checkResult) > 0) {
+        echo json_encode(['success' => false, 'message' => 'A vehicle company with this name already exists in this city.']);
+        return;
+    }
     
     // Use parameterized query to prevent SQL injection
     $query = "UPDATE vehicle_companies SET name = $1, city_id = $2, 
@@ -481,7 +489,7 @@ function createType($conn, $data) {
     $checkQuery = "SELECT id FROM vehicle_types WHERE name = $1 AND vehicle_company_id = $2";
     $checkResult = pg_query_params($conn, $checkQuery, [$name, $company_id]);
     if ($checkResult && pg_num_rows($checkResult) > 0) {
-        echo json_encode(['success' => false, 'message' => 'A vehicle type with this name already exists in this company']);
+        echo json_encode(['success' => false, 'message' => 'A vehicle type with this name already exists in this vehicle company. Vehicle type names must be unique within a company.']);
         return;
     }
     
@@ -510,8 +518,13 @@ function updateType($conn, $data) {
     $min_pax = isset($data['min_pax']) && $data['min_pax'] !== '' ? (int)$data['min_pax'] : null;
     $max_pax = isset($data['max_pax']) && $data['max_pax'] !== '' ? (int)$data['max_pax'] : null;
     
-    $minPaxValue = $min_pax !== null ? $min_pax : 'NULL';
-    $maxPaxValue = $max_pax !== null ? $max_pax : 'NULL';
+    // Check if type name already exists in the same company for another type - use parameterized query
+    $checkQuery = "SELECT id FROM vehicle_types WHERE name = $1 AND vehicle_company_id = $2 AND id != $3";
+    $checkResult = pg_query_params($conn, $checkQuery, [$name, $company_id, $id]);
+    if ($checkResult && pg_num_rows($checkResult) > 0) {
+        echo json_encode(['success' => false, 'message' => 'A vehicle type with this name already exists in this vehicle company. Vehicle type names must be unique within a company.']);
+        return;
+    }
     
     // Use parameterized query to prevent SQL injection
     $query = "UPDATE vehicle_types SET name = $1, vehicle_company_id = $2, 
@@ -677,6 +690,28 @@ function createContract($conn, $data) {
             return;
         }
         
+        // Check for overlapping date ranges for the same company
+        // Overlap occurs when: new_start <= existing_end AND new_end >= existing_start
+        $overlapQuery = "SELECT id, contract_code, start_date, end_date 
+                         FROM vehicle_contracts 
+                         WHERE vehicle_company_id = $1 
+                         AND (start_date <= $2 AND end_date >= $3)";
+        $overlapResult = pg_query_params($conn, $overlapQuery, [
+            $vehicle_company_id,
+            $end_date,  // new_start <= existing_end
+            $start_date // new_end >= existing_start
+        ]);
+        
+        if ($overlapResult && pg_num_rows($overlapResult) > 0) {
+            $overlapping = pg_fetch_assoc($overlapResult);
+            echo json_encode([
+                'success' => false, 
+                'message' => 'A contract with overlapping date range already exists. Existing contract: ' . 
+                           $overlapping['contract_code'] . ' (' . $overlapping['start_date'] . ' - ' . $overlapping['end_date'] . ')'
+            ]);
+            return;
+        }
+        
         // Use parameterized query to prevent SQL injection
         $query = "INSERT INTO vehicle_contracts (vehicle_company_id, contract_code, start_date, end_date, created_at)
                   VALUES ($1, $2, $3, $4, NOW()) RETURNING id";
@@ -716,6 +751,30 @@ function updateContract($conn, $data) {
         // Validate dates
         if (strtotime($start_date) > strtotime($end_date)) {
             echo json_encode(['success' => false, 'message' => 'End date must be after start date']);
+            return;
+        }
+        
+        // Check for overlapping date ranges for the same company (excluding current contract)
+        // Overlap occurs when: new_start <= existing_end AND new_end >= existing_start
+        $overlapQuery = "SELECT id, contract_code, start_date, end_date 
+                         FROM vehicle_contracts 
+                         WHERE vehicle_company_id = $1 
+                         AND id != $2
+                         AND (start_date <= $3 AND end_date >= $4)";
+        $overlapResult = pg_query_params($conn, $overlapQuery, [
+            $vehicle_company_id,
+            $id,
+            $end_date,  // new_start <= existing_end
+            $start_date // new_end >= existing_start
+        ]);
+        
+        if ($overlapResult && pg_num_rows($overlapResult) > 0) {
+            $overlapping = pg_fetch_assoc($overlapResult);
+            echo json_encode([
+                'success' => false, 
+                'message' => 'A contract with overlapping date range already exists. Existing contract: ' . 
+                           $overlapping['contract_code'] . ' (' . $overlapping['start_date'] . ' - ' . $overlapping['end_date'] . ')'
+            ]);
             return;
         }
         

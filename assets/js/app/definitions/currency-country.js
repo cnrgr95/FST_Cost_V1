@@ -255,6 +255,23 @@
         if (new Date(start) > new Date(end)) { showToast('warning', (tCurrencies.invalid_date_range||'Start date cannot be after end date')); return; }
         const payload = addRatePayload(null, start, end);
         try {
+            // Get CSRF token
+            let token = null;
+            if (typeof window.getCsrfToken === 'function') {
+                token = window.getCsrfToken();
+            } else if (window.pageConfig && window.pageConfig.csrfToken) {
+                token = window.pageConfig.csrfToken;
+            } else if (pageConfig && pageConfig.csrfToken) {
+                token = pageConfig.csrfToken;
+            }
+            
+            if (!token) {
+                console.error('CSRF token not found');
+                showToast('error', tCommon.security_token_expired || 'Security token expired. Please refresh the page and try again.');
+                return;
+            }
+            
+            payload.csrf_token = token;
             const resp = await fetch(`${API_BASE}?action=rate_manual`, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(payload) });
             const res = await resp.json();
             if (!res.success) { showToast('error', res.message || (tCommon.save_failed||'Save failed')); return; }
@@ -298,6 +315,23 @@
         }
         
         try {
+            // Get CSRF token
+            let token = null;
+            if (typeof window.getCsrfToken === 'function') {
+                token = window.getCsrfToken();
+            } else if (window.pageConfig && window.pageConfig.csrfToken) {
+                token = window.pageConfig.csrfToken;
+            } else if (pageConfig && pageConfig.csrfToken) {
+                token = pageConfig.csrfToken;
+            }
+            
+            if (!token) {
+                console.error('CSRF token not found');
+                showToast('error', tCommon.security_token_expired || 'Security token expired. Please refresh the page and try again.');
+                return;
+            }
+            
+            payload.csrf_token = token;
             const resp = await fetch(`${API_BASE}?action=rate_cbrt`, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(payload) });
             const res = await resp.json();
             if (!res.success) { 
@@ -408,6 +442,18 @@
                     const payload = useSingleDate 
                         ? { country_id: COUNTRY_ID, currency_code: code, rate_date: start }
                         : { country_id: COUNTRY_ID, currency_code: code, start_date: start, end_date: end };
+                    // Get CSRF token for retry
+                    let token = null;
+                    if (typeof window.getCsrfToken === 'function') {
+                        token = window.getCsrfToken();
+                    } else if (window.pageConfig && window.pageConfig.csrfToken) {
+                        token = window.pageConfig.csrfToken;
+                    } else if (pageConfig && pageConfig.csrfToken) {
+                        token = pageConfig.csrfToken;
+                    }
+                    if (token) {
+                        payload.csrf_token = token;
+                    }
                     return fetch(`${API_BASE}?action=rate_cbrt`, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(payload) })
                         .then(r=>r.json()).catch(()=>({success:false}));
                 });
@@ -608,7 +654,23 @@
         const num = parseFloat(valStr);
         if (!(num>0)) { showToast('warning', tCurrencies.rate_must_be_positive||'Rate must be > 0'); return; }
         try {
-            const resp = await fetch(`${API_BASE}?action=rate`, { method:'PUT', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ id, rate: num }) });
+            // Get CSRF token
+            let token = null;
+            if (typeof window.getCsrfToken === 'function') {
+                token = window.getCsrfToken();
+            } else if (window.pageConfig && window.pageConfig.csrfToken) {
+                token = window.pageConfig.csrfToken;
+            } else if (pageConfig && pageConfig.csrfToken) {
+                token = pageConfig.csrfToken;
+            }
+            
+            if (!token) {
+                console.error('CSRF token not found');
+                showToast('error', tCommon.security_token_expired || 'Security token expired. Please refresh the page and try again.');
+                return;
+            }
+            
+            const resp = await fetch(`${API_BASE}?action=rate`, { method:'PUT', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ id, rate: num, csrf_token: token }) });
             const res = await resp.json();
             if (!res.success) { showToast('error', res.message || (tCommon.update_failed||'Update failed')); return; }
             closeEditModal();
@@ -664,10 +726,26 @@
             if (valStr === '') continue;
             const num = parseFloat(valStr);
             if (!(num>0)) { showToast('warning', tCurrencies.rate_must_be_positive||'Rate must be > 0'); return; }
+            // Get CSRF token
+            let token = null;
+            if (typeof window.getCsrfToken === 'function') {
+                token = window.getCsrfToken();
+            } else if (window.pageConfig && window.pageConfig.csrfToken) {
+                token = window.pageConfig.csrfToken;
+            } else if (pageConfig && pageConfig.csrfToken) {
+                token = pageConfig.csrfToken;
+            }
+            
+            if (!token) {
+                console.error('CSRF token not found');
+                showToast('error', tCommon.security_token_expired || 'Security token expired. Please refresh the page and try again.');
+                return;
+            }
+            
             if (id>0){
-                updates.push(fetch(`${API_BASE}?action=rate`, { method:'PUT', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ id, rate: num }) }));
+                updates.push(fetch(`${API_BASE}?action=rate`, { method:'PUT', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ id, rate: num, csrf_token: token }) }));
             } else {
-                updates.push(fetch(`${API_BASE}?action=rate_manual`, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ country_id: COUNTRY_ID, currency_code: code, rate: num, rate_date: currentEditDate }) }));
+                updates.push(fetch(`${API_BASE}?action=rate_manual`, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ country_id: COUNTRY_ID, currency_code: code, rate: num, rate_date: currentEditDate, csrf_token: token }) }));
             }
         }
         try {
@@ -688,7 +766,23 @@
         if (!sel || !COUNTRY_ID) return;
         const code = sel.value || '';
         try {
-            const resp = await fetch(`${API_BASE}?action=country`, { method:'PUT', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ id: COUNTRY_ID, local_currency_code: code }) });
+            // Get CSRF token
+            let token = null;
+            if (typeof window.getCsrfToken === 'function') {
+                token = window.getCsrfToken();
+            } else if (window.pageConfig && window.pageConfig.csrfToken) {
+                token = window.pageConfig.csrfToken;
+            } else if (pageConfig && pageConfig.csrfToken) {
+                token = pageConfig.csrfToken;
+            }
+            
+            if (!token) {
+                console.error('CSRF token not found');
+                showToast('error', tCommon.security_token_expired || 'Security token expired. Please refresh the page and try again.');
+                return;
+            }
+            
+            const resp = await fetch(`${API_BASE}?action=country`, { method:'PUT', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ id: COUNTRY_ID, local_currency_code: code, csrf_token: token }) });
             const res = await resp.json();
             if (res.success) showToast('success', tCommon.saved_successfully||'Saved'); else showToast('error', res.message || (tCommon.update_failed||'Update failed'));
         } catch(e){ console.error(e); showToast('error', tCommon.update_failed||'Update failed'); }
@@ -701,7 +795,23 @@
         const code = sel && sel.value ? sel.value : '';
         if (!code) { showToast('warning', tCurrencies.select_currency_first||'Please select a currency'); return; }
         try {
-            const resp = await fetch(`${API_BASE}?action=country_currency`, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ country_id: COUNTRY_ID, currency_code: code, unit_name: unit?.value || '', is_active: !!(isActive && isActive.checked) }) });
+            // Get CSRF token
+            let token = null;
+            if (typeof window.getCsrfToken === 'function') {
+                token = window.getCsrfToken();
+            } else if (window.pageConfig && window.pageConfig.csrfToken) {
+                token = window.pageConfig.csrfToken;
+            } else if (pageConfig && pageConfig.csrfToken) {
+                token = pageConfig.csrfToken;
+            }
+            
+            if (!token) {
+                console.error('CSRF token not found');
+                showToast('error', tCommon.security_token_expired || 'Security token expired. Please refresh the page and try again.');
+                return;
+            }
+            
+            const resp = await fetch(`${API_BASE}?action=country_currency`, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ country_id: COUNTRY_ID, currency_code: code, unit_name: unit?.value || '', is_active: !!(isActive && isActive.checked), csrf_token: token }) });
             const res = await resp.json();
             if (!res.success) { showToast('error', res.message || (tCommon.save_failed||'Save failed')); return; }
             unit && (unit.value = ''); sel && (sel.value = '');
@@ -745,7 +855,22 @@
                 if (!row) return;
                 if (action==='toggle') {
                     const active = (row.is_active===true)||(row.is_active==='t')||(row.is_active===1)||(row.is_active==='1');
-                    await fetch(`${API_BASE}?action=country_currency`, { method:'PUT', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ id, is_active: !active }) });
+                    // Get CSRF token
+                    let token = null;
+                    if (typeof window.getCsrfToken === 'function') {
+                        token = window.getCsrfToken();
+                    } else if (window.pageConfig && window.pageConfig.csrfToken) {
+                        token = window.pageConfig.csrfToken;
+                    } else if (pageConfig && pageConfig.csrfToken) {
+                        token = pageConfig.csrfToken;
+                    }
+                    if (token) {
+                        await fetch(`${API_BASE}?action=country_currency`, { method:'PUT', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ id, is_active: !active, csrf_token: token }) });
+                    } else {
+                        console.error('CSRF token not found');
+                        showToast('error', tCommon.security_token_expired || 'Security token expired. Please refresh the page and try again.');
+                        return;
+                    }
                 } else if (action==='edit') {
                     // Use modal for unit name editing (already implemented in currencies.js)
                     // For currency-country.js, create a simple modal inline
@@ -786,7 +911,22 @@
                         document.getElementById('ccSaveUnitNameModal').addEventListener('click', async () => {
                             const input = document.getElementById('ccUnitNameInput');
                             const newUnit = input.value.trim();
-                            await fetch(`${API_BASE}?action=country_currency`, { method:'PUT', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ id, unit_name: newUnit }) });
+                            // Get CSRF token
+                            let token = null;
+                            if (typeof window.getCsrfToken === 'function') {
+                                token = window.getCsrfToken();
+                            } else if (window.pageConfig && window.pageConfig.csrfToken) {
+                                token = window.pageConfig.csrfToken;
+                            } else if (pageConfig && pageConfig.csrfToken) {
+                                token = pageConfig.csrfToken;
+                            }
+                            if (token) {
+                                await fetch(`${API_BASE}?action=country_currency`, { method:'PUT', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ id, unit_name: newUnit, csrf_token: token }) });
+                            } else {
+                                console.error('CSRF token not found');
+                                showToast('error', tCommon.security_token_expired || 'Security token expired. Please refresh the page and try again.');
+                                return;
+                            }
                             closeModal(modalId);
                             await loadCountryCurrencies(COUNTRY_ID);
                             renderCountryCurrencies();

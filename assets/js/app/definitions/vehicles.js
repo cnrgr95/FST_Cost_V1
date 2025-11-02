@@ -585,6 +585,17 @@
             await loadCompaniesForContractSelect();
             // Generate and set contract code automatically
             await generateAndSetContractCode();
+            // Initialize date range picker when modal opens (important for contract modal)
+            // Use setTimeout to ensure DOM is ready after modal opens
+            setTimeout(() => {
+                if (typeof window.initializeDateRangePicker === 'function') {
+                    const translations = {
+                        common: tCommon
+                    };
+                    // Re-initialize date range picker when contract modal opens
+                    window.initializeDateRangePicker('contract_date_range', 'contract_start_date', 'contract_end_date', 'contractRangePicker', translations);
+                }
+            }, 100);
         }
     };
     
@@ -796,11 +807,36 @@
         
         showConfirmDialog(deleteConfirmMessage, async function() {
             try {
+                // Get CSRF token from multiple sources
+                let token = null;
+                if (typeof window.getCsrfToken === 'function') {
+                    token = window.getCsrfToken();
+                } else if (window.pageConfig && window.pageConfig.csrfToken) {
+                    token = window.pageConfig.csrfToken;
+                } else if (pageConfig && pageConfig.csrfToken) {
+                    token = pageConfig.csrfToken;
+                }
+                
+                if (!token) {
+                    console.error('CSRF token not found');
+                    showToast('error', tCommon.security_token_expired || 'Security token expired. Please refresh the page and try again.');
+                    return;
+                }
+                
                 const action = getApiAction(type);
                 const response = await window.apiFetch(`${API_BASE}?action=${action}&id=${id}`, {
-                    method: 'DELETE'
+                    method: 'DELETE',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ csrf_token: token })
                 });
                 const result = await response.json();
+                
+                // Handle CSRF token errors
+                if (!result.success && result.message && result.message.toLowerCase().includes('csrf')) {
+                    showToast('error', tCommon.security_token_expired || 'Security token expired. Please refresh the page and try again.');
+                    console.error('CSRF token error:', result.message);
+                    return;
+                }
                 
                 if (result.success) {
                     currentData[type] = [];
@@ -851,6 +887,10 @@
      function handleCompanySubmit(e) {
          e.preventDefault();
          const form = e.target;
+         
+         // Clear previous errors
+         clearFormErrors(form);
+         
          const formData = new FormData(form);
          const data = {
              name: formData.get('name'),
@@ -871,6 +911,10 @@
     function handleTypeSubmit(e) {
         e.preventDefault();
         const form = e.target;
+        
+        // Clear previous errors
+        clearFormErrors(form);
+        
         const formData = new FormData(form);
         const data = {
             name: formData.get('name'),
@@ -897,11 +941,34 @@
     function handleContractSubmit(e) {
         e.preventDefault();
         const form = e.target;
+        
+        // Clear previous errors
+        clearFormErrors(form);
+        
+        // Validate date range input
+        const dateRangeInput = document.getElementById('contract_date_range');
+        const startDateInput = document.getElementById('contract_start_date');
+        const endDateInput = document.getElementById('contract_end_date');
+        
+        // Check if date range is filled
+        if (!dateRangeInput || !dateRangeInput.value || !dateRangeInput.value.trim()) {
+            highlightFieldError('contract_date_range');
+            showToast('error', tCommon.fill_required_fields || 'Please fill all required fields');
+            return;
+        }
+        
+        // Validate that hidden date inputs have values (set by date range picker)
+        if (!startDateInput || !startDateInput.value || !endDateInput || !endDateInput.value) {
+            highlightFieldError('contract_date_range');
+            showToast('error', tCommon.fill_required_fields || 'Please select a date range');
+            return;
+        }
+        
         const data = {
             vehicle_company_id: document.getElementById('contract_vehicle_company_id').value,
             contract_code: document.getElementById('contract_code').value,
-            start_date: document.getElementById('contract_start_date').value,
-            end_date: document.getElementById('contract_end_date').value
+            start_date: startDateInput.value,
+            end_date: endDateInput.value
         };
         
         const contractId = document.getElementById('contractId').value;
@@ -918,6 +985,24 @@
     // Create operations
     async function createCompany(data) {
         try {
+            // Get CSRF token from multiple sources
+            let token = null;
+            if (typeof window.getCsrfToken === 'function') {
+                token = window.getCsrfToken();
+            } else if (window.pageConfig && window.pageConfig.csrfToken) {
+                token = window.pageConfig.csrfToken;
+            } else if (pageConfig && pageConfig.csrfToken) {
+                token = pageConfig.csrfToken;
+            }
+            
+            if (!token) {
+                console.error('CSRF token not found');
+                showToast('error', tCommon.security_token_expired || 'Security token expired. Please refresh the page and try again.');
+                return;
+            }
+            
+            data.csrf_token = token;
+            
             const response = await fetch(`${API_BASE}?action=company`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -925,13 +1010,21 @@
             });
             const result = await response.json();
             
+            // Handle CSRF token errors
+            if (!result.success && result.message && result.message.toLowerCase().includes('csrf')) {
+                showToast('error', tCommon.security_token_expired || 'Security token expired. Please refresh the page and try again.');
+                console.error('CSRF token error:', result.message);
+                return;
+            }
+            
             if (result.success) {
                 currentData.companies = [];
                 loadData('companies');
                 closeModal();
                 showToast('success', tVehicles.company_added || 'Vehicle company created successfully');
             } else {
-                showToast('error', result.message);
+                // Parse error message and show on appropriate field
+                handleApiError('companyForm', result.message);
             }
         } catch (error) {
             console.error('Error creating company:', error);
@@ -941,6 +1034,24 @@
     
     async function createType(data) {
         try {
+            // Get CSRF token from multiple sources
+            let token = null;
+            if (typeof window.getCsrfToken === 'function') {
+                token = window.getCsrfToken();
+            } else if (window.pageConfig && window.pageConfig.csrfToken) {
+                token = window.pageConfig.csrfToken;
+            } else if (pageConfig && pageConfig.csrfToken) {
+                token = pageConfig.csrfToken;
+            }
+            
+            if (!token) {
+                console.error('CSRF token not found');
+                showToast('error', tCommon.security_token_expired || 'Security token expired. Please refresh the page and try again.');
+                return;
+            }
+            
+            data.csrf_token = token;
+            
             const response = await fetch(`${API_BASE}?action=type`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -948,13 +1059,21 @@
             });
             const result = await response.json();
             
+            // Handle CSRF token errors
+            if (!result.success && result.message && result.message.toLowerCase().includes('csrf')) {
+                showToast('error', tCommon.security_token_expired || 'Security token expired. Please refresh the page and try again.');
+                console.error('CSRF token error:', result.message);
+                return;
+            }
+            
             if (result.success) {
                 currentData.types = [];
                 loadData('types');
                 closeModal();
                 showToast('success', tVehicles.type_added || 'Vehicle type created successfully');
             } else {
-                showToast('error', result.message);
+                // Parse error message and show on appropriate field
+                handleApiError('typeForm', result.message);
             }
         } catch (error) {
             console.error('Error creating type:', error);
@@ -965,6 +1084,24 @@
     // Update operations
     async function updateCompany(data) {
         try {
+            // Get CSRF token from multiple sources
+            let token = null;
+            if (typeof window.getCsrfToken === 'function') {
+                token = window.getCsrfToken();
+            } else if (window.pageConfig && window.pageConfig.csrfToken) {
+                token = window.pageConfig.csrfToken;
+            } else if (pageConfig && pageConfig.csrfToken) {
+                token = pageConfig.csrfToken;
+            }
+            
+            if (!token) {
+                console.error('CSRF token not found');
+                showToast('error', tCommon.security_token_expired || 'Security token expired. Please refresh the page and try again.');
+                return;
+            }
+            
+            data.csrf_token = token;
+            
             const response = await fetch(`${API_BASE}?action=company`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
@@ -972,13 +1109,21 @@
             });
             const result = await response.json();
             
+            // Handle CSRF token errors
+            if (!result.success && result.message && result.message.toLowerCase().includes('csrf')) {
+                showToast('error', tCommon.security_token_expired || 'Security token expired. Please refresh the page and try again.');
+                console.error('CSRF token error:', result.message);
+                return;
+            }
+            
             if (result.success) {
                 currentData.companies = [];
                 loadData('companies');
                 closeModal();
                 showToast('success', tVehicles.company_updated || 'Vehicle company updated successfully');
             } else {
-                showToast('error', result.message);
+                // Parse error message and show on appropriate field
+                handleApiError('companyForm', result.message);
             }
         } catch (error) {
             console.error('Error updating company:', error);
@@ -988,6 +1133,24 @@
     
     async function updateType(data) {
         try {
+            // Get CSRF token from multiple sources
+            let token = null;
+            if (typeof window.getCsrfToken === 'function') {
+                token = window.getCsrfToken();
+            } else if (window.pageConfig && window.pageConfig.csrfToken) {
+                token = window.pageConfig.csrfToken;
+            } else if (pageConfig && pageConfig.csrfToken) {
+                token = pageConfig.csrfToken;
+            }
+            
+            if (!token) {
+                console.error('CSRF token not found');
+                showToast('error', tCommon.security_token_expired || 'Security token expired. Please refresh the page and try again.');
+                return;
+            }
+            
+            data.csrf_token = token;
+            
             const response = await fetch(`${API_BASE}?action=type`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
@@ -995,13 +1158,21 @@
             });
             const result = await response.json();
             
+            // Handle CSRF token errors
+            if (!result.success && result.message && result.message.toLowerCase().includes('csrf')) {
+                showToast('error', tCommon.security_token_expired || 'Security token expired. Please refresh the page and try again.');
+                console.error('CSRF token error:', result.message);
+                return;
+            }
+            
             if (result.success) {
                 currentData.types = [];
                 loadData('types');
                 closeModal();
                 showToast('success', tVehicles.type_updated || 'Vehicle type updated successfully');
             } else {
-                showToast('error', result.message);
+                // Parse error message and show on appropriate field
+                handleApiError('typeForm', result.message);
             }
         } catch (error) {
             console.error('Error updating type:', error);
@@ -1012,6 +1183,24 @@
     // Contract operations
     async function createContract(data) {
         try {
+            // Get CSRF token from multiple sources
+            let token = null;
+            if (typeof window.getCsrfToken === 'function') {
+                token = window.getCsrfToken();
+            } else if (window.pageConfig && window.pageConfig.csrfToken) {
+                token = window.pageConfig.csrfToken;
+            } else if (pageConfig && pageConfig.csrfToken) {
+                token = pageConfig.csrfToken;
+            }
+            
+            if (!token) {
+                console.error('CSRF token not found');
+                showToast('error', tCommon.security_token_expired || 'Security token expired. Please refresh the page and try again.');
+                return;
+            }
+            
+            data.csrf_token = token;
+            
             const response = await fetch(`${API_BASE}?action=contract`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -1019,13 +1208,21 @@
             });
             const result = await response.json();
             
+            // Handle CSRF token errors
+            if (!result.success && result.message && result.message.toLowerCase().includes('csrf')) {
+                showToast('error', tCommon.security_token_expired || 'Security token expired. Please refresh the page and try again.');
+                console.error('CSRF token error:', result.message);
+                return;
+            }
+            
             if (result.success) {
                 currentData.contracts = [];
                 loadData('contracts');
                 closeModal();
                 showToast('success', tVehicles.contract_added || 'Contract created successfully');
             } else {
-                showToast('error', result.message);
+                // Parse error message and show on appropriate field
+                handleApiError('contractForm', result.message);
             }
         } catch (error) {
             console.error('Error creating contract:', error);
@@ -1035,6 +1232,24 @@
     
     async function updateContract(data) {
         try {
+            // Get CSRF token from multiple sources
+            let token = null;
+            if (typeof window.getCsrfToken === 'function') {
+                token = window.getCsrfToken();
+            } else if (window.pageConfig && window.pageConfig.csrfToken) {
+                token = window.pageConfig.csrfToken;
+            } else if (pageConfig && pageConfig.csrfToken) {
+                token = pageConfig.csrfToken;
+            }
+            
+            if (!token) {
+                console.error('CSRF token not found');
+                showToast('error', tCommon.security_token_expired || 'Security token expired. Please refresh the page and try again.');
+                return;
+            }
+            
+            data.csrf_token = token;
+            
             const response = await fetch(`${API_BASE}?action=contract`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
@@ -1042,13 +1257,21 @@
             });
             const result = await response.json();
             
+            // Handle CSRF token errors
+            if (!result.success && result.message && result.message.toLowerCase().includes('csrf')) {
+                showToast('error', tCommon.security_token_expired || 'Security token expired. Please refresh the page and try again.');
+                console.error('CSRF token error:', result.message);
+                return;
+            }
+            
             if (result.success) {
                 currentData.contracts = [];
                 loadData('contracts');
                 closeModal();
                 showToast('success', tVehicles.contract_updated || 'Contract updated successfully');
             } else {
-                showToast('error', result.message);
+                // Parse error message and show on appropriate field
+                handleApiError('contractForm', result.message);
             }
         } catch (error) {
             console.error('Error updating contract:', error);
@@ -1134,6 +1357,246 @@
     }
     
     // showToast is from toast.js
+    
+    // ============================================
+    // ERROR HANDLING FUNCTIONS (from tours.js pattern)
+    // ============================================
+    
+    // Clear form errors
+    function clearFormErrors(form) {
+        if (!form) return;
+        
+        // Remove error classes from all form fields
+        const errorFields = form.querySelectorAll('input.error, select.error, textarea.error, input.invalid, select.invalid, textarea.invalid, input.has-error, select.has-error, textarea.has-error');
+        errorFields.forEach(field => {
+            field.classList.remove('error', 'invalid', 'has-error');
+            field.removeAttribute('aria-invalid');
+            field.setCustomValidity('');
+            field.style.borderColor = '';
+            field.style.backgroundColor = '';
+        });
+        
+        // Clear error messages
+        const errorMessages = form.querySelectorAll('.input-error-message');
+        errorMessages.forEach(msg => {
+            msg.textContent = '';
+            msg.classList.remove('show', 'has-error');
+            msg.style.display = '';
+        });
+    }
+    
+    // Show field error - IMMEDIATE VISUAL FEEDBACK
+    function showFieldError(fieldName, message) {
+        // Try to find field in active modal first
+        const activeModal = document.querySelector('.modal.active');
+        let field = null;
+        
+        if (activeModal) {
+            field = activeModal.querySelector(`[name="${fieldName}"]`);
+        }
+        
+        // Fallback to global search
+        if (!field) {
+            field = document.querySelector(`[name="${fieldName}"]`);
+        }
+        
+        if (!field) {
+            console.warn('Field not found:', fieldName);
+            return;
+        }
+        
+        // Apply error IMMEDIATELY
+        applyFieldError(field, message);
+    }
+    
+    // Highlight field error (only red border/background, no message below)
+    function highlightFieldError(fieldName) {
+        // Try to find field by ID first (for date-range-input)
+        let field = document.getElementById(fieldName);
+        
+        // If not found by ID, try by name attribute
+        if (!field) {
+            const activeModal = document.querySelector('.modal.active');
+            if (activeModal) {
+                field = activeModal.querySelector(`[name="${fieldName}"]`);
+            }
+        }
+        
+        // Fallback to global search
+        if (!field) {
+            field = document.querySelector(`[name="${fieldName}"]`);
+        }
+        
+        // If still not found, try by ID
+        if (!field) {
+            field = document.getElementById(fieldName);
+        }
+        
+        if (!field) {
+            console.warn('Field not found:', fieldName);
+            return;
+        }
+        
+        // Add error classes for red border/background
+        field.classList.add('error');
+        field.classList.add('invalid');
+        field.classList.add('has-error');
+        field.setAttribute('aria-invalid', 'true');
+        
+        // Force redraw with inline styles
+        field.style.borderColor = '#dc2626';
+        field.style.backgroundColor = '#fef2f2';
+        field.offsetHeight; // Force reflow
+        
+        // Scroll to error field
+        setTimeout(() => {
+            field.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            setTimeout(() => {
+                field.focus();
+            }, 200);
+        }, 50);
+    }
+    
+    // Apply field error with immediate visual feedback
+    function applyFieldError(field, message) {
+        if (!field) return;
+        
+        // Add multiple error classes IMMEDIATELY
+        field.classList.add('error');
+        field.classList.add('invalid');
+        field.classList.add('has-error');
+        field.setAttribute('aria-invalid', 'true');
+        field.setCustomValidity(message);
+        
+        // Force validation report
+        try {
+            field.reportValidity();
+        } catch (e) {
+            // Ignore if not supported
+        }
+        
+        // Show custom error message IMMEDIATELY
+        const errorMsg = field.parentElement.querySelector('.input-error-message');
+        if (errorMsg) {
+            errorMsg.textContent = message;
+            errorMsg.classList.add('show');
+            errorMsg.classList.add('has-error');
+            errorMsg.setAttribute('role', 'alert');
+            errorMsg.style.display = 'block';
+        }
+        
+        // Force redraw with inline styles
+        field.style.borderColor = '#dc2626';
+        field.style.backgroundColor = '#fef2f2';
+        field.offsetHeight; // Force reflow
+        
+        // Scroll to error field
+        setTimeout(() => {
+            field.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            setTimeout(() => {
+                field.focus();
+            }, 200);
+        }, 50);
+    }
+    
+    // Handle API errors and show on appropriate field
+    function handleApiError(formId, errorMessage) {
+        if (!errorMessage) return;
+        
+        const lowerMessage = errorMessage.toLowerCase();
+        const form = document.getElementById(formId);
+        
+        if (!form) {
+            // Fallback to toast if form not found
+            showToast('error', errorMessage);
+            return;
+        }
+        
+        // Clear previous errors first
+        clearFormErrors(form);
+        
+        if (formId === 'companyForm') {
+            // Company name errors (duplicate names - only red field + toast popup, no field message)
+            if (lowerMessage.includes('company') && lowerMessage.includes('name') && lowerMessage.includes('already exists') ||
+                lowerMessage.includes('name') && lowerMessage.includes('already exists') && lowerMessage.includes('company') ||
+                (lowerMessage.includes('already exists') && !lowerMessage.includes('contract') && !lowerMessage.includes('date'))) {
+                // Show red field (no message below) and toast notification
+                highlightFieldError('name');
+                showToast('error', errorMessage);
+            }
+            // City errors
+            else if (lowerMessage.includes('city') && (lowerMessage.includes('required') || lowerMessage.includes('invalid'))) {
+                showFieldError('city_id', errorMessage);
+                showToast('error', errorMessage);
+            }
+            // Generic name error (fallback)
+            else if (lowerMessage.includes('name') && (lowerMessage.includes('required') || lowerMessage.includes('invalid'))) {
+                showFieldError('name', errorMessage);
+                showToast('error', errorMessage);
+            }
+            // Show toast as fallback
+            else {
+                showToast('error', errorMessage);
+            }
+        }
+        else if (formId === 'typeForm') {
+            // Type name errors (duplicate names - only red field + toast popup, no field message)
+            // Check for "vehicle type" or "type" with "already exists" in the same company
+            if ((lowerMessage.includes('vehicle type') || lowerMessage.includes('type')) && 
+                (lowerMessage.includes('name') || lowerMessage.includes('already exists')) && 
+                lowerMessage.includes('already exists') && 
+                !lowerMessage.includes('contract')) {
+                // Show red field (no message below) and toast notification
+                highlightFieldError('name');
+                showToast('error', errorMessage);
+            }
+            // Vehicle company errors
+            else if (lowerMessage.includes('vehicle company') && (lowerMessage.includes('required') || lowerMessage.includes('invalid'))) {
+                showFieldError('vehicle_company_id', errorMessage);
+                showToast('error', errorMessage);
+            }
+            // Generic name error (fallback)
+            else if (lowerMessage.includes('name') && (lowerMessage.includes('required') || lowerMessage.includes('invalid'))) {
+                showFieldError('name', errorMessage);
+                showToast('error', errorMessage);
+            }
+            // Show toast as fallback
+            else {
+                showToast('error', errorMessage);
+            }
+        }
+        else if (formId === 'contractForm') {
+            // Contract code errors
+            if (lowerMessage.includes('contract code') && lowerMessage.includes('already exists')) {
+                showFieldError('contract_code', errorMessage);
+                showToast('error', errorMessage);
+            }
+            // Date range overlap errors
+            else if (lowerMessage.includes('overlapping') || lowerMessage.includes('date range') || lowerMessage.includes('date')) {
+                // Highlight date range input field
+                highlightFieldError('contract_date_range');
+                showToast('error', errorMessage);
+            }
+            // Vehicle company errors
+            else if (lowerMessage.includes('vehicle company') && (lowerMessage.includes('required') || lowerMessage.includes('invalid'))) {
+                showFieldError('vehicle_company_id', errorMessage);
+                showToast('error', errorMessage);
+            }
+            // Date required errors
+            else if (lowerMessage.includes('date') && (lowerMessage.includes('required') || lowerMessage.includes('invalid'))) {
+                highlightFieldError('contract_date_range');
+                showToast('error', errorMessage);
+            }
+            // Show toast as fallback
+            else {
+                showToast('error', errorMessage);
+            }
+        }
+        else {
+            // Fallback to toast for unknown forms
+            showToast('error', errorMessage);
+        }
+    }
     
     // ============================================
     // TABLE SEARCH AND SORT FUNCTIONS

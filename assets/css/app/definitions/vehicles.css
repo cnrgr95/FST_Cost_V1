@@ -473,6 +473,11 @@ select.error:focus {
     gap: 20px;
 }
 
+/* Contract form row - 3 columns */
+.form-row-contract {
+    grid-template-columns: 1fr 1fr 1fr;
+}
+
 .form-section-title {
     font-size: 16px;
     font-weight: 600;
@@ -484,6 +489,10 @@ select.error:focus {
 
 @media (max-width: 768px) {
     .form-row {
+        grid-template-columns: 1fr;
+    }
+    
+    .form-row-contract {
         grid-template-columns: 1fr;
     }
 }

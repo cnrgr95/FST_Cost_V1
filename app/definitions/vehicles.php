@@ -108,12 +108,14 @@ $t_dependencies = $all_translations['dependencies'] ?? [];
                 <div class="form-group">
                     <label><?php echo $t_vehicles['company_name'] ?? 'Company Name'; ?> *</label>
                     <input type="text" name="name" required>
+                    <span class="input-error-message"></span>
                 </div>
                 <div class="form-group">
                     <label><?php echo $t_vehicles['city'] ?? 'City'; ?> *</label>
                     <select name="city_id" required>
                         <option value=""><?php echo $t_vehicles['loading_data'] ?? 'Loading...'; ?></option>
                     </select>
+                    <span class="input-error-message"></span>
                 </div>
                 <div class="form-group">
                     <label><?php echo $t_vehicles['contact_person'] ?? 'Contact Person'; ?></label>
@@ -154,20 +156,24 @@ $t_dependencies = $all_translations['dependencies'] ?? [];
                 <div class="form-group">
                     <label><?php echo $t_vehicles['type_name'] ?? 'Vehicle Type Name'; ?> *</label>
                     <input type="text" name="name" required>
+                    <span class="input-error-message"></span>
                 </div>
                 <div class="form-group">
                     <label><?php echo $t_vehicles['vehicle_company'] ?? 'Vehicle Company'; ?> *</label>
                     <select name="vehicle_company_id" required>
                         <option value=""><?php echo $t_vehicles['loading_data'] ?? 'Loading...'; ?></option>
                     </select>
+                    <span class="input-error-message"></span>
                 </div>
-                <div class="form-group">
-                    <label><?php echo $t_vehicles['min_pax'] ?? 'Min Pax'; ?></label>
-                    <input type="number" name="min_pax" min="0" step="1" placeholder="<?php echo $t_vehicles['min_pax'] ?? 'Min Pax'; ?>">
-                </div>
-                <div class="form-group">
-                    <label><?php echo $t_vehicles['max_pax'] ?? 'Max Pax'; ?></label>
-                    <input type="number" name="max_pax" min="0" step="1" placeholder="<?php echo $t_vehicles['max_pax'] ?? 'Max Pax'; ?>">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label><?php echo $t_vehicles['min_pax'] ?? 'Min Pax'; ?></label>
+                        <input type="number" name="min_pax" min="0" step="1" placeholder="<?php echo $t_vehicles['min_pax'] ?? 'Min Pax'; ?>">
+                    </div>
+                    <div class="form-group">
+                        <label><?php echo $t_vehicles['max_pax'] ?? 'Max Pax'; ?></label>
+                        <input type="number" name="max_pax" min="0" step="1" placeholder="<?php echo $t_vehicles['max_pax'] ?? 'Max Pax'; ?>">
+                    </div>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn-secondary" id="cancelTypeBtn">
@@ -195,7 +201,12 @@ $t_dependencies = $all_translations['dependencies'] ?? [];
             <form id="contractForm">
                 <input type="hidden" id="contractId" name="id">
                 
-                <div class="form-row">
+                <div class="form-row form-row-contract">
+                    <div class="form-group">
+                        <label><?php echo $t_vehicles['contract_code'] ?? 'Contract Code'; ?> *</label>
+                        <input type="text" id="contract_code" name="contract_code" required readonly class="input-readonly">
+                    </div>
+                    
                     <div class="form-group">
                         <label><?php echo $t_vehicles['vehicle_company'] ?? 'Vehicle Company'; ?> *</label>
                         <select id="contract_vehicle_company_id" name="vehicle_company_id" required>
@@ -204,19 +215,13 @@ $t_dependencies = $all_translations['dependencies'] ?? [];
                     </div>
                     
                     <div class="form-group">
-                        <label><?php echo $t_vehicles['contract_code'] ?? 'Contract Code'; ?> *</label>
-                        <input type="text" id="contract_code" name="contract_code" required readonly class="input-readonly">
-                    </div>
-                </div>
-                
-                <div class="form-row">
-                    <div class="form-group form-group-flex">
                         <label><?php echo ($t_vehicles['start_date'] ?? 'Start Date') . ' - ' . ($t_vehicles['end_date'] ?? 'End Date'); ?> *</label>
                         <div class="date-range-wrapper">
                             <input type="text" id="contract_date_range" placeholder="<?php echo $t_common['date_range_placeholder'] ?? 'Tarih seçin'; ?>" required class="date-range-input" />
-                            <input type="date" id="contract_start_date" name="start_date" required class="hidden" />
-                            <input type="date" id="contract_end_date" name="end_date" required class="hidden" />
+                            <input type="date" id="contract_start_date" name="start_date" class="hidden" />
+                            <input type="date" id="contract_end_date" name="end_date" class="hidden" />
                             <div id="contractRangePicker" class="range-picker hidden"></div>
+                            <span class="input-error-message"></span>
                         </div>
                     </div>
                 </div>
