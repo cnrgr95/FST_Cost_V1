@@ -188,7 +188,7 @@
                 <div class="locations-table-container">
                     <div class="locations-table-header">
                         <div class="locations-table-title">${typeText}</div>
-                        <button class="btn-add" onclick="openModal('${type}')">
+                        <button class="btn-add" id="addLocationBtnEmpty_${type}">
                             <span class="material-symbols-rounded">add</span>
                             ${tLoc.add_new || 'Add New'}
                         </button>
@@ -210,9 +210,15 @@
         
         let html = '<div class="locations-table-container">';
         html += '<div class="locations-table-header">';
+        const iconMap = {
+            'countries': 'public',
+            'regions': 'place',
+            'cities': 'location_city',
+            'sub_regions': 'map'
+        };
         html += `<div class="locations-table-title">
-                    <span class="material-symbols-rounded" style="vertical-align: middle; margin-right: 8px; font-size: 24px;">${type === 'countries' ? 'public' : (type === 'regions' ? 'place' : (type === 'cities' ? 'location_city' : 'map'))}</span>
-                    ${typeText} 
+                    <span class="material-symbols-rounded locations-title-icon">${iconMap[type] || 'list'}</span>
+                    <span class="locations-title-text">${typeText}</span>
                     <span class="table-count-badge">${totalCount}</span>
                  </div>`;
         html += '<div class="table-actions-group">';
@@ -223,11 +229,11 @@
                            placeholder="${tCommon.search || 'Search...'}" 
                            class="search-input"
                            onkeyup="filterLocationsTable('${type}', this.value)">
-                    <button class="search-clear" id="${type}SearchClear" onclick="clearLocationsSearch('${type}')" style="display: none;">
+                    <button class="search-clear search-clear-hidden" id="${type}SearchClear" onclick="clearLocationsSearch('${type}')">
                         <span class="material-symbols-rounded">close</span>
                     </button>
                  </div>`;
-        html += `<button class="btn-add" onclick="openModal('${type}')" title="${tLoc.add_new || 'Add New'}">
+        html += `<button class="btn-add" id="addLocationBtn_${type}" title="${tLoc.add_new || 'Add New'}">
                     <span class="material-symbols-rounded">add</span>
                     ${tLoc.add_new || 'Add New'}
                  </button>`;
@@ -319,9 +325,34 @@
     }
     
     // Attach event listeners to action buttons
-    // Note: Buttons now use onclick handlers directly, so this function is kept for compatibility
     function attachActionListeners() {
-        // Event listeners are now inline via onclick handlers
+        // Add button listeners
+        document.querySelectorAll('[id^="addLocationBtn_"]').forEach(btn => {
+            const type = btn.id.replace('addLocationBtn_', '');
+            btn.addEventListener('click', () => window.openModal(type));
+        });
+        
+        document.querySelectorAll('[id^="addLocationBtnEmpty_"]').forEach(btn => {
+            const type = btn.id.replace('addLocationBtnEmpty_', '');
+            btn.addEventListener('click', () => window.openModal(type));
+        });
+        
+        // Action button listeners
+        document.querySelectorAll('[data-action="edit"]').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const type = this.getAttribute('data-type');
+                const id = parseInt(this.getAttribute('data-id'));
+                if (type && id) window.editItem(type, id);
+            });
+        });
+        
+        document.querySelectorAll('[data-action="delete"]').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const type = this.getAttribute('data-type');
+                const id = parseInt(this.getAttribute('data-id'));
+                if (type && id) window.deleteItem(type, id);
+            });
+        });
     }
     
     // Build table row with data attributes for filtering
@@ -332,36 +363,38 @@
         let html = `<tr data-index="${index}" 
                      data-name="${(item.name || '').toLowerCase()}"`;
         
+        const escapeFunc = window.escapeHtml || ((text) => text ? String(text).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;') : '');
+        
         if (type === 'countries') {
             html += ` data-code="${((item.code || '') + '').toLowerCase()}">`;
-            html += `<td><strong>${escapedName}</strong></td>`;
-            html += `<td><span class="code-badge">${escapedCode}</span></td>`;
+            html += `<td class="locations-name-cell"><strong>${escapedName}</strong></td>`;
+            html += `<td class="locations-code-cell">${item.code ? `<span class="code-badge">${escapeFunc(item.code)}</span>` : '<span class="text-muted">-</span>'}</td>`;
         } else if (type === 'regions') {
             html += ` data-country="${(item.country_name || '').toLowerCase()}">`;
-            html += `<td><strong>${escapedName}</strong></td>`;
-            html += `<td><span class="location-badge">${window.escapeHtml ? window.escapeHtml(item.country_name || '-') : (item.country_name || '-')}</span></td>`;
+            html += `<td class="locations-name-cell"><strong>${escapedName}</strong></td>`;
+            html += `<td class="locations-location-cell">${item.country_name ? `<span class="location-badge">${escapeFunc(item.country_name)}</span>` : '<span class="text-muted">-</span>'}</td>`;
         } else if (type === 'cities') {
             html += ` data-region="${(item.region_name || '').toLowerCase()}" 
                      data-country="${(item.country_name || '').toLowerCase()}">`;
-            html += `<td><strong>${escapedName}</strong></td>`;
-            html += `<td>${window.escapeHtml ? window.escapeHtml(item.region_name || '-') : (item.region_name || '-')}</td>`;
-            html += `<td><span class="location-badge">${window.escapeHtml ? window.escapeHtml(item.country_name || '-') : (item.country_name || '-')}</span></td>`;
+            html += `<td class="locations-name-cell"><strong>${escapedName}</strong></td>`;
+            html += `<td class="locations-location-cell">${item.region_name ? escapeFunc(item.region_name) : '<span class="text-muted">-</span>'}</td>`;
+            html += `<td class="locations-location-cell">${item.country_name ? `<span class="location-badge">${escapeFunc(item.country_name)}</span>` : '<span class="text-muted">-</span>'}</td>`;
         } else {
             html += ` data-city="${(item.city_name || '').toLowerCase()}" 
                      data-region="${(item.region_name || '').toLowerCase()}" 
                      data-country="${(item.country_name || '').toLowerCase()}">`;
-            html += `<td><strong>${escapedName}</strong></td>`;
-            html += `<td>${window.escapeHtml ? window.escapeHtml(item.city_name || '-') : (item.city_name || '-')}</td>`;
-            html += `<td>${window.escapeHtml ? window.escapeHtml(item.region_name || '-') : (item.region_name || '-')}</td>`;
-            html += `<td><span class="location-badge">${window.escapeHtml ? window.escapeHtml(item.country_name || '-') : (item.country_name || '-')}</span></td>`;
+            html += `<td class="locations-name-cell"><strong>${escapedName}</strong></td>`;
+            html += `<td class="locations-location-cell">${item.city_name ? escapeFunc(item.city_name) : '<span class="text-muted">-</span>'}</td>`;
+            html += `<td class="locations-location-cell">${item.region_name ? escapeFunc(item.region_name) : '<span class="text-muted">-</span>'}</td>`;
+            html += `<td class="locations-location-cell">${item.country_name ? `<span class="location-badge">${escapeFunc(item.country_name)}</span>` : '<span class="text-muted">-</span>'}</td>`;
         }
         
-        html += '<td>';
+        html += '<td class="locations-actions-cell">';
         html += `<div class="action-buttons">`;
-        html += `<button class="btn-icon" onclick="window.editItem('${type}', ${item.id})" title="${tCommon.edit || 'Edit'} ${escapedName}">
+        html += `<button class="btn-icon" data-action="edit" data-type="${type}" data-id="${item.id}" title="${tCommon.edit || 'Edit'} ${escapedName}">
                     <span class="material-symbols-rounded">edit</span>
                  </button>`;
-        html += `<button class="btn-icon btn-danger" onclick="window.deleteItem('${type}', ${item.id})" title="${tCommon.delete || 'Delete'} ${escapedName}">
+        html += `<button class="btn-icon btn-danger" data-action="delete" data-type="${type}" data-id="${item.id}" title="${tCommon.delete || 'Delete'} ${escapedName}">
                     <span class="material-symbols-rounded">delete</span>
                  </button>`;
         html += `</div>`;
@@ -1189,7 +1222,7 @@
             filterLocationsTable(type, '');
         }
         if (clearBtn) {
-            clearBtn.style.display = 'none';
+            clearBtn.classList.add('search-clear-hidden');
         }
     };
     

@@ -174,8 +174,8 @@
                 <div class="guide-table-container">
                     <div class="guide-table-header">
                         <div class="guide-table-title">
-                            <span class="material-symbols-rounded" style="vertical-align: middle; margin-right: 8px; font-size: 24px;">${iconMap[type] || 'list'}</span>
-                            ${typeText}
+                            <span class="material-symbols-rounded guide-title-icon">${iconMap[type] || 'list'}</span>
+                            <span class="guide-title-text">${typeText}</span>
                         </div>
                     </div>
                     <div class="empty-state">
@@ -200,8 +200,8 @@
         let html = '<div class="guide-table-container">';
         html += '<div class="guide-table-header">';
         html += `<div class="guide-table-title">
-                    <span class="material-symbols-rounded" style="vertical-align: middle; margin-right: 8px; font-size: 24px;">${iconMap[type] || 'list'}</span>
-                    ${typeText} 
+                    <span class="material-symbols-rounded guide-title-icon">${iconMap[type] || 'list'}</span>
+                    <span class="guide-title-text">${typeText}</span>
                     <span class="table-count-badge">${totalCount}</span>
                  </div>`;
         html += '<div class="table-actions-group">';
@@ -212,7 +212,7 @@
                            placeholder="${tCommon.search || 'Search...'}" 
                            class="search-input"
                            onkeyup="filterGuideTable('${type}', this.value)">
-                    <button class="search-clear" id="${type}SearchClear" onclick="clearGuideSearch('${type}')" style="display: none;">
+                    <button class="search-clear search-clear-hidden" id="${type}SearchClear" onclick="clearGuideSearch('${type}')">
                         <span class="material-symbols-rounded">close</span>
                     </button>
                  </div>`;
@@ -345,17 +345,17 @@
                      data-operasyon-name="${((item.operasyon_name || '') + '').toLowerCase()}" 
                      data-operasyon-email="${((item.operasyon_email || '') + '').toLowerCase()}" 
                      data-operasyon-phone="${((item.operasyon_phone || '') + '').toLowerCase()}">`;
-            html += `<td><span class="type-badge merchant">${tGuide.merchant || 'Merchant'}</span></td>`;
-            html += `<td><strong>${escapedHtml(item.name || '-')}</strong></td>`;
-            html += `<td>${escapedHtml(item.city_name || '-')}</td>`;
-            html += `<td>${escapedHtml(item.authorized_person || '-')}</td>`;
-            html += `<td>${item.authorized_email ? '<a href="mailto:' + encodeURIComponent(item.authorized_email) + '">' + escapedHtml(item.authorized_email) + '</a>' : '-'}</td>`;
-            html += `<td>${escapedHtml(item.authorized_phone || '-')}</td>`;
+            html += `<td class="guide-type-column"><span class="type-badge merchant">${tGuide.merchant || 'Merchant'}</span></td>`;
+            html += `<td class="guide-name-cell"><strong>${escapedHtml(item.name || '-')}</strong></td>`;
+            html += `<td class="guide-city-cell">${escapedHtml(item.city_name || '-')}</td>`;
+            html += `<td class="guide-contact-cell">${escapedHtml(item.authorized_person || '-')}</td>`;
+            html += `<td class="guide-contact-cell">${item.authorized_email ? '<a href="mailto:' + encodeURIComponent(item.authorized_email) + '" class="contact-link">' + escapedHtml(item.authorized_email) + '</a>' : '<span class="text-muted">-</span>'}</td>`;
+            html += `<td class="guide-contact-cell">${escapedHtml(item.authorized_phone || '-') || '<span class="text-muted">-</span>'}</td>`;
             html += `<td class="separator-column"></td>`;
-            html += `<td>${escapedHtml(item.operasyon_name || '-')}</td>`;
-            html += `<td>${item.operasyon_email ? '<a href="mailto:' + encodeURIComponent(item.operasyon_email) + '">' + escapedHtml(item.operasyon_email) + '</a>' : '-'}</td>`;
-            html += `<td>${escapedHtml(item.operasyon_phone || '-')}</td>`;
-            html += `<td>${item.location_url ? '<a href="' + encodeURI(item.location_url) + '" target="_blank" rel="noopener noreferrer" class="location-link" title="' + (tGuide.view_on_map || 'View on Map') + '"><span class="material-symbols-rounded">location_on</span></a>' : '-'}</td>`;
+            html += `<td class="guide-contact-cell">${escapedHtml(item.operasyon_name || '-') || '<span class="text-muted">-</span>'}</td>`;
+            html += `<td class="guide-contact-cell">${item.operasyon_email ? '<a href="mailto:' + encodeURIComponent(item.operasyon_email) + '" class="contact-link">' + escapedHtml(item.operasyon_email) + '</a>' : '<span class="text-muted">-</span>'}</td>`;
+            html += `<td class="guide-contact-cell">${escapedHtml(item.operasyon_phone || '-') || '<span class="text-muted">-</span>'}</td>`;
+            html += `<td class="guide-location-cell">${item.location_url ? '<a href="' + encodeURI(item.location_url) + '" target="_blank" rel="noopener noreferrer" class="location-link" title="' + (tGuide.view_on_map || 'View on Map') + '"><span class="material-symbols-rounded">location_on</span></a>' : '<span class="text-muted">-</span>'}</td>`;
         } else if (type === 'companies') {
             html += ` data-index="${index}" 
                      data-name="${((item.name || '') + '').toLowerCase()}" 
@@ -363,12 +363,12 @@
                      data-contact-person="${((item.contact_person || '') + '').toLowerCase()}" 
                      data-contact-email="${((item.contact_email || '') + '').toLowerCase()}" 
                      data-contact-phone="${((item.contact_phone || '') + '').toLowerCase()}">`;
-            html += `<td><span class="type-badge company">${tGuide.vehicle_company || 'Company'}</span></td>`;
-            html += `<td><strong>${escapedHtml(item.name || '-')}</strong></td>`;
-            html += `<td>${escapedHtml(item.city_name || '-')}</td>`;
-            html += `<td>${escapedHtml(item.contact_person || '-')}</td>`;
-            html += `<td>${item.contact_email ? '<a href="mailto:' + encodeURIComponent(item.contact_email) + '">' + escapedHtml(item.contact_email) + '</a>' : '-'}</td>`;
-            html += `<td>${escapedHtml(item.contact_phone || '-')}</td>`;
+            html += `<td class="guide-type-column"><span class="type-badge company">${tGuide.vehicle_company || 'Company'}</span></td>`;
+            html += `<td class="guide-name-cell"><strong>${escapedHtml(item.name || '-')}</strong></td>`;
+            html += `<td class="guide-city-cell">${escapedHtml(item.city_name || '-')}</td>`;
+            html += `<td class="guide-contact-cell">${escapedHtml(item.contact_person || '-') || '<span class="text-muted">-</span>'}</td>`;
+            html += `<td class="guide-contact-cell">${item.contact_email ? '<a href="mailto:' + encodeURIComponent(item.contact_email) + '" class="contact-link">' + escapedHtml(item.contact_email) + '</a>' : '<span class="text-muted">-</span>'}</td>`;
+            html += `<td class="guide-contact-cell">${escapedHtml(item.contact_phone || '-') || '<span class="text-muted">-</span>'}</td>`;
         } else if (type === 'users') {
             html += ` data-index="${index}" 
                      data-username="${((item.username || '') + '').toLowerCase()}" 
@@ -377,13 +377,13 @@
                      data-city="${((item.city_name || '') + '').toLowerCase()}" 
                      data-email="${((item.email || '') + '').toLowerCase()}" 
                      data-phone="${((item.phone || '') + '').toLowerCase()}">`;
-            html += `<td><span class="type-badge user">${tGuide.user || 'User'}</span></td>`;
-            html += `<td><strong>${escapedHtml(item.username || '-')}</strong></td>`;
-            html += `<td>${escapedHtml(item.full_name || '-')}</td>`;
-            html += `<td>${escapedHtml(item.department_name || '-')}</td>`;
-            html += `<td>${escapedHtml(item.city_name || '-')}</td>`;
-            html += `<td>${item.email ? '<a href="mailto:' + encodeURIComponent(item.email) + '">' + escapedHtml(item.email) + '</a>' : '-'}</td>`;
-            html += `<td>${escapedHtml(item.phone || '-')}</td>`;
+            html += `<td class="guide-type-column"><span class="type-badge user">${tGuide.user || 'User'}</span></td>`;
+            html += `<td class="guide-name-cell"><strong>${escapedHtml(item.username || '-')}</strong></td>`;
+            html += `<td class="guide-info-cell">${escapedHtml(item.full_name || '-') || '<span class="text-muted">-</span>'}</td>`;
+            html += `<td class="guide-info-cell">${escapedHtml(item.department_name || '-') || '<span class="text-muted">-</span>'}</td>`;
+            html += `<td class="guide-city-cell">${escapedHtml(item.city_name || '-') || '<span class="text-muted">-</span>'}</td>`;
+            html += `<td class="guide-contact-cell">${item.email ? '<a href="mailto:' + encodeURIComponent(item.email) + '" class="contact-link">' + escapedHtml(item.email) + '</a>' : '<span class="text-muted">-</span>'}</td>`;
+            html += `<td class="guide-contact-cell">${escapedHtml(item.phone || '-') || '<span class="text-muted">-</span>'}</td>`;
         }
         
         html += '</tr>';
@@ -441,6 +441,15 @@
                 footer.innerHTML = `${tCommon.showing || 'Showing'} <strong>${visibleCount}</strong> ${visibleCount === 1 ? 'item' : 'items'}`;
             }
         });
+        
+        // Update clear button class instead of inline style
+        if (clearBtn) {
+            if (searchTerm && searchTerm.trim()) {
+                clearBtn.classList.remove('search-clear-hidden');
+            } else {
+                clearBtn.classList.add('search-clear-hidden');
+            }
+        }
     };
     
     // Clear Guide search
@@ -453,7 +462,7 @@
             filterGuideTable(type, '');
         }
         if (clearBtn) {
-            clearBtn.style.display = 'none';
+            clearBtn.classList.add('search-clear-hidden');
         }
     };
     

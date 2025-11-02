@@ -119,6 +119,7 @@
 
 .btn-add .material-symbols-rounded {
     font-size: 20px;
+    color: white;
 }
 
 .section-header {
@@ -200,15 +201,17 @@
     border-radius: 4px;
     transition: background 0.2s;
     margin-right: 4px;
+    color: #6b7280;
 }
 
 .btn-icon:hover {
     background: #f3f4f6;
+    color: #151A2D;
 }
 
 .btn-icon .material-symbols-rounded {
     font-size: 20px;
-    color: #6b7280;
+    color: inherit;
 }
 
 .btn-icon.btn-danger:hover {

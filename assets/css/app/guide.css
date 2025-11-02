@@ -95,6 +95,34 @@
     font-size: 16px;
     font-weight: 600;
     color: #1f2937;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.guide-title-icon {
+    font-size: 24px;
+    vertical-align: middle;
+    color: #3b82f6;
+}
+
+.guide-title-text {
+    flex: 1;
+}
+
+.table-count-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 4px 10px;
+    background: #e0e7ff;
+    color: #3730a3;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: 600;
+    min-width: 24px;
+    height: 24px;
 }
 
 /* Force table to expand beyond container on smaller screens */
@@ -120,6 +148,97 @@
     letter-spacing: 0.5px;
     white-space: nowrap;
     border-bottom: 2px solid #e5e7eb;
+    background: #f9fafb;
+    vertical-align: middle;
+}
+
+/* Contact group header */
+.guide-contact-group-header {
+    text-align: center;
+    background: #e0e7ff !important;
+    color: #3730a3 !important;
+    font-size: 12px !important;
+    font-weight: 600 !important;
+    border-bottom: 2px solid #c7d2fe !important;
+}
+
+/* Sub-header row for grouped columns */
+.guide-table thead tr.guide-sub-header th {
+    background: #f3f4f6 !important;
+    font-size: 13px !important;
+    padding: 10px 16px !important;
+    border-bottom: 1px solid #e5e7eb !important;
+    font-weight: 500 !important;
+    text-transform: capitalize !important;
+    letter-spacing: 0 !important;
+}
+
+.guide-table thead tr.guide-sub-header th.sortable {
+    cursor: pointer;
+}
+
+.guide-table thead tr.guide-sub-header th.sortable:hover {
+    background: #e5e7eb !important;
+}
+
+/* Type column */
+.guide-type-column {
+    width: 120px;
+    min-width: 120px;
+}
+
+/* Name cell */
+.guide-name-cell {
+    min-width: 180px;
+    font-weight: 500;
+}
+
+.guide-name-cell strong {
+    color: #1f2937;
+}
+
+/* City cell */
+.guide-city-cell {
+    min-width: 120px;
+}
+
+/* Contact cells */
+.guide-contact-cell {
+    min-width: 150px;
+}
+
+.contact-link {
+    color: #3b82f6;
+    text-decoration: none;
+    transition: color 0.2s;
+    word-break: break-all;
+}
+
+.contact-link:hover {
+    color: #2563eb;
+    text-decoration: underline;
+}
+
+.text-muted {
+    color: #9ca3af;
+    font-style: italic;
+}
+
+/* Location cell */
+.guide-location-cell {
+    text-align: center;
+    width: 60px;
+    min-width: 60px;
+}
+
+/* Info cell */
+.guide-info-cell {
+    min-width: 140px;
+}
+
+/* Search clear button */
+.search-clear-hidden {
+    display: none !important;
 }
 
 /* Separator column for merchants */
@@ -496,6 +615,18 @@
     
     .guide-table-title {
         font-size: 14px;
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 6px;
+    }
+    
+    .guide-title-icon {
+        font-size: 18px;
+    }
+    
+    .table-count-badge {
+        font-size: 11px;
+        padding: 3px 8px;
     }
     
     .type-badge {

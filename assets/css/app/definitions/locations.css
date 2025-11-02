@@ -102,6 +102,45 @@ select:invalid {
     font-weight: 600;
     color: #1f2937;
     margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.locations-title-icon {
+    font-size: 24px;
+    vertical-align: middle;
+    color: #3b82f6;
+}
+
+.locations-title-text {
+    flex: 1;
+}
+
+/* Table cell styles */
+.locations-name-cell {
+    min-width: 180px;
+    font-weight: 500;
+}
+
+.locations-code-cell {
+    min-width: 100px;
+}
+
+.locations-location-cell {
+    min-width: 120px;
+}
+
+.locations-actions-cell {
+    width: auto;
+    min-width: 120px;
+}
+
+/* Text muted */
+.text-muted {
+    color: #9ca3af;
+    font-style: italic;
 }
 
 .btn-add {
@@ -129,6 +168,7 @@ select:invalid {
 
 .btn-add .material-symbols-rounded {
     font-size: 20px;
+    color: white;
 }
 
 /* Table styles matching positions.php */
@@ -179,15 +219,17 @@ select:invalid {
     border-radius: 4px;
     transition: background 0.2s;
     margin-right: 4px;
+    color: #6b7280;
 }
 
 .btn-icon:hover {
     background: #f3f4f6;
+    color: #151A2D;
 }
 
 .btn-icon .material-symbols-rounded {
     font-size: 20px;
-    color: #6b7280;
+    color: inherit;
 }
 
 .btn-icon.btn-danger:hover {

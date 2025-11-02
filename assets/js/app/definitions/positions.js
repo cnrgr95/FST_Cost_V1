@@ -209,8 +209,8 @@
         let html = '<div class="positions-table-container">';
         html += '<div class="positions-table-header">';
         html += `<div class="positions-table-title">
-                    <span class="material-symbols-rounded" style="vertical-align: middle; margin-right: 8px; font-size: 24px;">${iconMap[type] || 'list'}</span>
-                    ${typeText} 
+                    <span class="material-symbols-rounded positions-title-icon">${iconMap[type] || 'list'}</span>
+                    <span class="positions-title-text">${typeText}</span>
                     <span class="table-count-badge">${totalCount}</span>
                  </div>`;
         html += '<div class="table-actions-group">';
@@ -221,11 +221,11 @@
                            placeholder="${tCommon.search || 'Search...'}" 
                            class="search-input"
                            onkeyup="filterPositionsTable('${type}', this.value)">
-                    <button class="search-clear" id="${type}SearchClear" onclick="clearPositionsSearch('${type}')" style="display: none;">
+                    <button class="search-clear search-clear-hidden" id="${type}SearchClear" onclick="clearPositionsSearch('${type}')">
                         <span class="material-symbols-rounded">close</span>
                     </button>
                  </div>`;
-        html += `<button class="btn-add" onclick="window.openModal('${type}')" title="${tPos.add_new_dept || 'Add New'}">
+        html += `<button class="btn-add" id="addPositionBtn_${type}" title="${tPos.add_new_dept || 'Add New'}">
                     <span class="material-symbols-rounded">add</span>
                     ${tPos.add_new_dept || 'Add New'}
                  </button>`;
@@ -301,9 +301,29 @@
     }
     
     // Attach event listeners to action buttons
-    // Note: Buttons now use onclick handlers directly, so this function is kept for compatibility
     function attachActionListeners() {
-        // Event listeners are now inline via onclick handlers
+        // Add button listeners
+        document.querySelectorAll('[id^="addPositionBtn_"]').forEach(btn => {
+            const type = btn.id.replace('addPositionBtn_', '');
+            btn.addEventListener('click', () => window.openModal(type));
+        });
+        
+        // Action button listeners
+        document.querySelectorAll('[data-action="edit"]').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const type = this.getAttribute('data-type');
+                const id = parseInt(this.getAttribute('data-id'));
+                if (type && id) window.editItem(type, id);
+            });
+        });
+        
+        document.querySelectorAll('[data-action="delete"]').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const type = this.getAttribute('data-type');
+                const id = parseInt(this.getAttribute('data-id'));
+                if (type && id) window.deleteItem(type, id);
+            });
+        });
     }
     
     // Build table row with data attributes for filtering
@@ -317,28 +337,28 @@
             html += ` data-city="${(item.city_name || '').toLowerCase()}" 
                      data-region="${(item.region_name || '').toLowerCase()}" 
                      data-country="${(item.country_name || '').toLowerCase()}">`;
-            html += `<td><strong>${escapedName}</strong></td>`;
-            html += `<td>${window.escapeHtml ? window.escapeHtml(item.city_name || '-') : escapeHtml(item.city_name || '-')}</td>`;
-            html += `<td>${window.escapeHtml ? window.escapeHtml(item.region_name || '-') : escapeHtml(item.region_name || '-')}</td>`;
-            html += `<td><span class="location-badge">${window.escapeHtml ? window.escapeHtml(item.country_name || '-') : escapeHtml(item.country_name || '-')}</span></td>`;
+            html += `<td class="positions-name-cell"><strong>${escapedName}</strong></td>`;
+            html += `<td class="positions-location-cell">${item.city_name ? (window.escapeHtml ? window.escapeHtml(item.city_name) : escapeHtml(item.city_name)) : '<span class="text-muted">-</span>'}</td>`;
+            html += `<td class="positions-location-cell">${item.region_name ? (window.escapeHtml ? window.escapeHtml(item.region_name) : escapeHtml(item.region_name)) : '<span class="text-muted">-</span>'}</td>`;
+            html += `<td class="positions-location-cell">${item.country_name ? `<span class="location-badge">${window.escapeHtml ? window.escapeHtml(item.country_name) : escapeHtml(item.country_name)}</span>` : '<span class="text-muted">-</span>'}</td>`;
         } else {
             html += ` data-department="${(item.department_name || '').toLowerCase()}" 
                      data-city="${(item.city_name || '').toLowerCase()}" 
                      data-region="${(item.region_name || '').toLowerCase()}" 
                      data-country="${(item.country_name || '').toLowerCase()}">`;
-            html += `<td><strong>${escapedName}</strong></td>`;
-            html += `<td>${window.escapeHtml ? window.escapeHtml(item.department_name || '-') : escapeHtml(item.department_name || '-')}</td>`;
-            html += `<td>${window.escapeHtml ? window.escapeHtml(item.city_name || '-') : escapeHtml(item.city_name || '-')}</td>`;
-            html += `<td>${window.escapeHtml ? window.escapeHtml(item.region_name || '-') : escapeHtml(item.region_name || '-')}</td>`;
-            html += `<td><span class="location-badge">${window.escapeHtml ? window.escapeHtml(item.country_name || '-') : escapeHtml(item.country_name || '-')}</span></td>`;
+            html += `<td class="positions-name-cell"><strong>${escapedName}</strong></td>`;
+            html += `<td class="positions-info-cell">${item.department_name ? (window.escapeHtml ? window.escapeHtml(item.department_name) : escapeHtml(item.department_name)) : '<span class="text-muted">-</span>'}</td>`;
+            html += `<td class="positions-location-cell">${item.city_name ? (window.escapeHtml ? window.escapeHtml(item.city_name) : escapeHtml(item.city_name)) : '<span class="text-muted">-</span>'}</td>`;
+            html += `<td class="positions-location-cell">${item.region_name ? (window.escapeHtml ? window.escapeHtml(item.region_name) : escapeHtml(item.region_name)) : '<span class="text-muted">-</span>'}</td>`;
+            html += `<td class="positions-location-cell">${item.country_name ? `<span class="location-badge">${window.escapeHtml ? window.escapeHtml(item.country_name) : escapeHtml(item.country_name)}</span>` : '<span class="text-muted">-</span>'}</td>`;
         }
         
-        html += '<td>';
+        html += '<td class="positions-actions-cell">';
         html += `<div class="action-buttons">`;
-        html += `<button class="btn-icon" onclick="window.editItem('${type}', ${item.id})" title="${tCommon.edit || 'Edit'} ${escapedName}">
+        html += `<button class="btn-icon" data-action="edit" data-type="${type}" data-id="${item.id}" title="${tCommon.edit || 'Edit'} ${escapedName}">
                     <span class="material-symbols-rounded">edit</span>
                  </button>`;
-        html += `<button class="btn-icon btn-danger" onclick="window.deleteItem('${type}', ${item.id})" title="${tCommon.delete || 'Delete'} ${escapedName}">
+        html += `<button class="btn-icon btn-danger" data-action="delete" data-type="${type}" data-id="${item.id}" title="${tCommon.delete || 'Delete'} ${escapedName}">
                     <span class="material-symbols-rounded">delete</span>
                  </button>`;
         html += `</div>`;
@@ -742,5 +762,53 @@
         div.textContent = text;
         return div.innerHTML;
     }
+    
+    // Filter Positions table
+    window.filterPositionsTable = function(type, searchTerm) {
+        const tbody = document.getElementById(`${type}TableBody`);
+        const clearBtn = document.getElementById(`${type}SearchClear`);
+        
+        if (!tbody) return;
+        
+        // Get data attributes based on type
+        let dataAttributes = ['name'];
+        if (type === 'departments') {
+            dataAttributes.push('city', 'region', 'country');
+        } else {
+            dataAttributes.push('department', 'city', 'region', 'country');
+        }
+        
+        // Use generic filterTable function
+        window.filterTable(`${type}TableBody`, searchTerm, dataAttributes, `${type}SearchClear`, function(visibleCount) {
+            // Update footer count
+            const footer = document.querySelector(`#${type}-content .table-info`);
+            if (footer) {
+                footer.innerHTML = `${tCommon.showing || 'Showing'} <strong>${visibleCount}</strong> ${visibleCount === 1 ? 'item' : 'items'}`;
+            }
+        });
+        
+        // Update clear button using classList
+        if (clearBtn) {
+            if (searchTerm && searchTerm.trim()) {
+                clearBtn.classList.remove('search-clear-hidden');
+            } else {
+                clearBtn.classList.add('search-clear-hidden');
+            }
+        }
+    };
+    
+    // Clear Positions search
+    window.clearPositionsSearch = function(type) {
+        const input = document.getElementById(`${type}SearchInput`);
+        const clearBtn = document.getElementById(`${type}SearchClear`);
+        
+        if (input) {
+            input.value = '';
+            filterPositionsTable(type, '');
+        }
+        if (clearBtn) {
+            clearBtn.classList.add('search-clear-hidden');
+        }
+    };
 })();
 

@@ -202,10 +202,10 @@
                 <div class="costs-table-container">
                     <div class="costs-table-header">
                         <div class="costs-table-title">
-                            <span class="material-symbols-rounded" style="vertical-align: middle; margin-right: 8px; font-size: 24px;">payments</span>
-                            ${tCosts.costs || 'Costs'}
+                            <span class="material-symbols-rounded costs-title-icon">payments</span>
+                            <span class="costs-title-text">${tCosts.costs || 'Costs'}</span>
                         </div>
-                        <button class="btn-add" onclick="openModal()">
+                        <button class="btn-add" id="addCostBtnEmpty">
                             <span class="material-symbols-rounded">add</span>
                             ${tCosts.add_cost || 'Add Cost'}
                         </button>
@@ -214,7 +214,7 @@
                         <span class="material-symbols-rounded">payments</span>
                         <h3>${tCosts.no_costs || 'No costs found'}</h3>
                         <p>${tCosts.add_cost || 'Add your first cost to get started'}</p>
-                        <button class="btn-add" onclick="openModal()" style="margin-top: 20px;">
+                        <button class="btn-add btn-add-empty-state" id="addCostBtnEmptyState">
                             <span class="material-symbols-rounded">add</span>
                             ${tCosts.add_cost || 'Add Cost'}
                         </button>
@@ -227,8 +227,8 @@
         let html = '<div class="costs-table-container">';
         html += '<div class="costs-table-header">';
         html += `<div class="costs-table-title">
-                    <span class="material-symbols-rounded" style="vertical-align: middle; margin-right: 8px; font-size: 24px;">payments</span>
-                    ${tCosts.costs || 'Costs'} 
+                    <span class="material-symbols-rounded costs-title-icon">payments</span>
+                    <span class="costs-title-text">${tCosts.costs || 'Costs'}</span>
                     <span class="table-count-badge">${totalCount}</span>
                  </div>`;
         html += '<div class="table-actions-group">';
@@ -239,11 +239,11 @@
                            placeholder="${tCommon.search || 'Search costs...'}" 
                            class="search-input"
                            onkeyup="filterCostsTable(this.value)">
-                    <button class="search-clear" id="costsSearchClear" onclick="clearCostsSearch()" style="display: none;">
+                    <button class="search-clear search-clear-hidden" id="costsSearchClear" onclick="clearCostsSearch()">
                         <span class="material-symbols-rounded">close</span>
                     </button>
                  </div>`;
-        html += `<button class="btn-add" onclick="openModal()" title="${tCosts.add_cost || 'Add Cost'}">
+        html += `<button class="btn-add" id="addCostBtn" title="${tCosts.add_cost || 'Add Cost'}">
                     <span class="material-symbols-rounded">add</span>
                     ${tCosts.add_cost || 'Add Cost'}
                  </button>`;
@@ -284,23 +284,23 @@
                      data-country="${escapeHtml((item.country_name || '').toLowerCase())}"
                      data-region="${escapeHtml((item.region_name || '').toLowerCase())}"
                      data-city="${escapeHtml((item.city_name || '').toLowerCase())}">
-                    <td>
-                        <span class="code-badge">${escapeHtml(item.cost_code || '-')}</span>
+                    <td class="costs-code-cell">
+                        <span class="code-badge">${escapeHtml(item.cost_code || '') || '<span class="text-muted">-</span>'}</span>
                     </td>
-                    <td>
+                    <td class="costs-name-cell">
                         <strong class="cost-name">${escapeHtml(item.name)}</strong>
                     </td>
-                    <td>
-                        <span class="location-badge">${escapeHtml(item.country_name || '-')}</span>
+                    <td class="costs-location-cell">
+                        ${item.country_name ? `<span class="location-badge">${escapeHtml(item.country_name)}</span>` : '<span class="text-muted">-</span>'}
                     </td>
-                    <td>${escapeHtml(item.region_name || '-')}</td>
-                    <td>${escapeHtml(item.city_name || '-')}</td>
-                    <td>
+                    <td class="costs-location-cell">${item.region_name ? escapeHtml(item.region_name) : '<span class="text-muted">-</span>'}</td>
+                    <td class="costs-location-cell">${item.city_name ? escapeHtml(item.city_name) : '<span class="text-muted">-</span>'}</td>
+                    <td class="costs-actions-cell">
                         <div class="action-buttons">
-                            <button class="btn-icon" onclick="editItem(${item.id})" title="${tCommon.edit || 'Edit'} ${escapeHtml(item.name)}">
+                            <button class="btn-icon" data-action="edit" data-id="${item.id}" title="${tCommon.edit || 'Edit'} ${escapeHtml(item.name)}">
                                 <span class="material-symbols-rounded">edit</span>
                             </button>
-                            <button class="btn-icon btn-danger" onclick="deleteItem(${item.id})" title="${tCommon.delete || 'Delete'} ${escapeHtml(item.name)}">
+                            <button class="btn-icon btn-danger" data-action="delete" data-id="${item.id}" title="${tCommon.delete || 'Delete'} ${escapeHtml(item.name)}">
                                 <span class="material-symbols-rounded">delete</span>
                             </button>
                         </div>
@@ -316,8 +316,45 @@
         html += '</div></div>';
         container.innerHTML = html;
         
+        // Attach event listeners
+        attachActionListeners();
+        
         // Store original data for filtering
         window.costsTableData = data;
+    }
+    
+    // Attach event listeners to action buttons
+    function attachActionListeners() {
+        // Add button listeners
+        const addBtn = document.getElementById('addCostBtn');
+        if (addBtn) {
+            addBtn.addEventListener('click', openModal);
+        }
+        
+        const addBtnEmpty = document.getElementById('addCostBtnEmpty');
+        if (addBtnEmpty) {
+            addBtnEmpty.addEventListener('click', openModal);
+        }
+        
+        const addBtnEmptyState = document.getElementById('addCostBtnEmptyState');
+        if (addBtnEmptyState) {
+            addBtnEmptyState.addEventListener('click', openModal);
+        }
+        
+        // Action button listeners
+        document.querySelectorAll('[data-action="edit"]').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const id = parseInt(this.getAttribute('data-id'));
+                if (id) editItem(id);
+            });
+        });
+        
+        document.querySelectorAll('[data-action="delete"]').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const id = parseInt(this.getAttribute('data-id'));
+                if (id) deleteItem(id);
+            });
+        });
     }
     
     // Close modal
@@ -1928,7 +1965,7 @@
             filterCostsTable('');
         }
         if (clearBtn) {
-            clearBtn.style.display = 'none';
+            clearBtn.classList.add('search-clear-hidden');
         }
     };
     

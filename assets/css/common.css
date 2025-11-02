@@ -1134,6 +1134,96 @@ body.modal-open .modal.active .modal-content * {
     color: #6b7280;
 }
 
+/* ============================================
+   MATERIAL SYMBOLS ICON COLOR STANDARDIZATION
+   ============================================ */
+
+/* Default icon color - apply to all icons unless overridden */
+.material-symbols-rounded {
+    color: inherit;
+}
+
+/* Base icon colors - standardize across all pages */
+.icon-default {
+    color: #6b7280;
+}
+
+.icon-primary {
+    color: #3b82f6;
+}
+
+.icon-success {
+    color: #10b981;
+}
+
+.icon-warning {
+    color: #f59e0b;
+}
+
+.icon-danger {
+    color: #ef4444;
+}
+
+.icon-info {
+    color: #3b82f6;
+}
+
+/* Button icons inherit button color */
+.btn-icon .material-symbols-rounded,
+.btn-primary .material-symbols-rounded,
+.btn-secondary .material-symbols-rounded {
+    color: inherit;
+}
+
+/* Add button icons - ensure they have white color on dark backgrounds */
+.btn-add {
+    color: white;
+}
+
+.btn-add .material-symbols-rounded {
+    color: white;
+}
+
+/* Search icon default color */
+.search-icon.material-symbols-rounded {
+    color: #9ca3af;
+}
+
+/* Empty state icons */
+.empty-state .material-symbols-rounded {
+    color: #9ca3af;
+    opacity: 0.5;
+}
+
+/* Loading icons */
+.loading .material-symbols-rounded {
+    color: #6b7280;
+}
+
+/* Table action icons - standardize */
+.action-buttons .material-symbols-rounded {
+    color: inherit;
+}
+
+/* Modal close icons */
+.modal-header .btn-close .material-symbols-rounded {
+    color: #6b7280;
+}
+
+.modal-header .btn-close:hover .material-symbols-rounded {
+    color: #1f2937;
+}
+
+/* Title icons - consistent color */
+[class*="-title-icon"] {
+    color: #3b82f6;
+}
+
+/* Ensure all icons have proper color inheritance */
+.material-symbols-rounded:not(.icon-primary):not(.icon-success):not(.icon-warning):not(.icon-danger):not(.icon-info) {
+    color: inherit;
+}
+
 /* Table Count Badge */
 .table-count-badge {
     display: inline-block;

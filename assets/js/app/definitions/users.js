@@ -367,8 +367,8 @@
                 <div class="users-table-container">
                     <div class="users-table-header">
                         <div class="users-table-title">
-                            <span class="material-symbols-rounded" style="vertical-align: middle; margin-right: 8px; font-size: 24px;">people</span>
-                            ${tUsers.title || 'Users'}
+                            <span class="material-symbols-rounded users-title-icon">people</span>
+                            <span class="users-title-text">${tUsers.title || 'Users'}</span>
                         </div>
                     </div>
                     <div class="empty-state">
@@ -386,8 +386,8 @@
         let html = '<div class="users-table-container">';
         html += '<div class="users-table-header">';
         html += `<div class="users-table-title">
-                    <span class="material-symbols-rounded" style="vertical-align: middle; margin-right: 8px; font-size: 24px;">people</span>
-                    ${tUsers.title || 'Users'} 
+                    <span class="material-symbols-rounded users-title-icon">people</span>
+                    <span class="users-title-text">${tUsers.title || 'Users'}</span>
                     <span class="table-count-badge">${totalCount}</span>
                  </div>`;
         html += '<div class="table-actions-group">';
@@ -398,7 +398,7 @@
                            placeholder="${tCommon.search || 'Search...'}" 
                            class="search-input"
                            onkeyup="filterUsersTable(this.value)">
-                    <button class="search-clear" id="usersSearchClear" onclick="clearUsersSearch()" style="display: none;">
+                    <button class="search-clear search-clear-hidden" id="usersSearchClear" onclick="clearUsersSearch()">
                         <span class="material-symbols-rounded">close</span>
                     </button>
                  </div>`;
@@ -452,21 +452,21 @@
                      data-city="${((item.city_name || '') + '').toLowerCase()}" 
                      data-email="${((item.email || '') + '').toLowerCase()}" 
                      data-status="${((item.status || '') + '').toLowerCase()}">
-                    <td><strong>${escapedUsername}</strong></td>
-                    <td>${escapedFullName}</td>
-                    <td>${escapedHtml(item.department_name || '-')}</td>
-                    <td>${escapedHtml(item.position_name || '-')}</td>
-                    <td>${escapedHtml(item.city_name || '-')}</td>
-                    <td>${escapedEmail}</td>
-                    <td><span class="status-badge ${item.status === 'active' ? 'active' : 'inactive'}">${item.status === 'active' ? tUsers.active : tUsers.inactive}</span></td>
-                    <td>
+                    <td class="users-username-cell"><strong>${escapedUsername}</strong></td>
+                    <td class="users-info-cell">${escapedFullName || '<span class="text-muted">-</span>'}</td>
+                    <td class="users-info-cell">${item.department_name ? escapedHtml(item.department_name) : '<span class="text-muted">-</span>'}</td>
+                    <td class="users-info-cell">${item.position_name ? escapedHtml(item.position_name) : '<span class="text-muted">-</span>'}</td>
+                    <td class="users-location-cell">${item.city_name ? escapedHtml(item.city_name) : '<span class="text-muted">-</span>'}</td>
+                    <td class="users-contact-cell">${escapedEmail ? `<a href="mailto:${encodeURIComponent(escapedEmail)}" class="contact-link">${escapedEmail}</a>` : '<span class="text-muted">-</span>'}</td>
+                    <td class="users-status-cell"><span class="status-badge ${item.status === 'active' ? 'active' : 'inactive'}">${item.status === 'active' ? tUsers.active : tUsers.inactive}</span></td>
+                    <td class="users-actions-cell">
                         <div class="action-buttons">
-                            <button class="btn-icon" onclick="editUser(${item.id})" title="${tCommon.edit || 'Edit'} ${escapedUsername}">
+                            <button class="btn-icon" data-action="edit" data-id="${item.id}" title="${tCommon.edit || 'Edit'} ${escapedUsername}">
                                 <span class="material-symbols-rounded">edit</span>
                             </button>
-                            ${item.id === currentUserId ? '' : (item.status === 'active' ? `<button class="btn-icon btn-danger" onclick="toggleUserStatus(${item.id}, 'inactive')" title="${tUsers.deactivate || 'Deactivate'} ${escapedUsername}">
+                            ${item.id === currentUserId ? '' : (item.status === 'active' ? `<button class="btn-icon btn-danger" data-action="deactivate" data-id="${item.id}" title="${tUsers.deactivate || 'Deactivate'} ${escapedUsername}">
                                 <span class="material-symbols-rounded">block</span>
-                            </button>` : `<button class="btn-icon btn-success" onclick="toggleUserStatus(${item.id}, 'active')" title="${tUsers.activate || 'Activate'} ${escapedUsername}">
+                            </button>` : `<button class="btn-icon btn-success" data-action="activate" data-id="${item.id}" title="${tUsers.activate || 'Activate'} ${escapedUsername}">
                                 <span class="material-symbols-rounded">check_circle</span>
                             </button>`)}
                         </div>
@@ -490,9 +490,28 @@
     }
     
     // Attach event listeners
-    // Note: Buttons now use onclick handlers directly, so this function is kept for compatibility
     function attachActionListeners() {
-        // Event listeners are now inline via onclick handlers
+        // Action button listeners
+        document.querySelectorAll('[data-action="edit"]').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const id = parseInt(this.getAttribute('data-id'));
+                if (id) editUser(id);
+            });
+        });
+        
+        document.querySelectorAll('[data-action="activate"]').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const id = parseInt(this.getAttribute('data-id'));
+                if (id) toggleUserStatus(id, 'active');
+            });
+        });
+        
+        document.querySelectorAll('[data-action="deactivate"]').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const id = parseInt(this.getAttribute('data-id'));
+                if (id) toggleUserStatus(id, 'inactive');
+            });
+        });
     }
     
     // Toggle user status - wrapper function
@@ -1041,6 +1060,15 @@
                 footer.innerHTML = `${tCommon.showing || 'Showing'} <strong>${visibleCount}</strong> ${visibleCount === 1 ? 'user' : 'users'}`;
             }
         });
+        
+        // Update clear button using classList
+        if (clearBtn) {
+            if (searchTerm && searchTerm.trim()) {
+                clearBtn.classList.remove('search-clear-hidden');
+            } else {
+                clearBtn.classList.add('search-clear-hidden');
+            }
+        }
     };
     
     // Clear Users search
@@ -1053,7 +1081,7 @@
             filterUsersTable('');
         }
         if (clearBtn) {
-            clearBtn.style.display = 'none';
+            clearBtn.classList.add('search-clear-hidden');
         }
     };
     

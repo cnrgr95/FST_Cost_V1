@@ -16,6 +16,11 @@
     flex-shrink: 0;
 }
 
+.modal-icon .material-symbols-rounded {
+    color: #3b82f6;
+    font-size: 28px;
+}
+
 .form-hint {
     display: flex;
     align-items: center;
@@ -29,6 +34,7 @@
 .form-hint .material-symbols-rounded {
     font-size: 16px;
     flex-shrink: 0;
+    color: #6b7280;
 }
 
 .info-icon {
@@ -40,6 +46,7 @@
 
 .info-icon .material-symbols-rounded {
     transition: color 0.2s;
+    color: #6b7280;
 }
 
 .info-icon:hover .material-symbols-rounded {
@@ -279,6 +286,54 @@
     font-weight: 500;
 }
 
+/* Table title styles */
+.costs-table-title {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.costs-title-icon {
+    font-size: 24px;
+    vertical-align: middle;
+    color: #3b82f6;
+}
+
+.costs-title-text {
+    flex: 1;
+}
+
+/* Table cell styles */
+.costs-code-cell {
+    min-width: 120px;
+}
+
+.costs-name-cell {
+    min-width: 200px;
+    font-weight: 500;
+}
+
+.costs-location-cell {
+    min-width: 120px;
+}
+
+.costs-actions-cell {
+    width: auto;
+    min-width: 120px;
+}
+
+/* Empty state button */
+.btn-add-empty-state {
+    margin-top: 20px;
+}
+
+/* Text muted */
+.text-muted {
+    color: #9ca3af;
+    font-style: italic;
+}
+
 .location-badge {
     display: inline-block;
     padding: 4px 8px;
@@ -316,6 +371,7 @@
 
 .btn-icon .material-symbols-rounded {
     font-size: 18px;
+    color: inherit;
 }
 
 .btn-icon.btn-danger {
@@ -411,6 +467,7 @@
 
 .btn-add .material-symbols-rounded {
     font-size: 18px;
+    color: white;
 }
 
 /* Period Styles - Enhanced Visibility */
