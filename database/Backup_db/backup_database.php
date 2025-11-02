@@ -105,52 +105,31 @@ $translations = [
         'no_backups_yet' => 'Henüz yedek bulunmuyor',
         'compressed' => 'Sıkıştırılmış',
         'backup_files' => 'Yedek dosyaları',
-        'files' => 'dosya'
-    ],
-    'en' => [
-        'title' => 'Database Backup',
-        'starting' => 'Starting database backup...',
-        'reading_config' => 'Reading configuration...',
-        'database' => 'Database',
-        'backup_file' => 'Backup file',
-        'backup_success' => '✓ Backup successful!',
-        'backup_failed' => '✗ Backup failed!',
-        'creating_directory' => 'Creating backup directory...',
-        'executing_dump' => 'Executing database dump...',
-        'compressing' => 'Compressing...',
-        'completed' => 'Completed',
-        'error' => 'Error',
-        'file_size' => 'File size',
-        'location' => 'Location',
-        'backup_info' => 'Backup information',
-        'timestamp' => 'Timestamp',
-        'format' => 'Format',
-        'missing_pg_dump' => 'pg_dump not found. PostgreSQL client tools must be installed.',
-        'missing_config' => 'Configuration file not found.',
-        'connection_failed' => 'Database connection failed',
-        'directory_creation_failed' => 'Failed to create backup directory',
-        'dump_failed' => 'Database dump failed',
-        'compression_failed' => 'Compression failed',
-        'bytes' => 'bytes',
-        'kb' => 'KB',
-        'mb' => 'MB',
-        'gb' => 'GB',
-        'back' => 'Back',
-        'download_backup' => 'Download Backup',
-        'create_new_backup' => 'Create New Backup',
-        'existing_backups' => 'Existing Backups',
-        'download' => 'Download',
-        'actions' => 'Actions',
-        'no_backups_yet' => 'No backups yet',
-        'compressed' => 'Compressed',
-        'backup_files' => 'Backup files',
-        'files' => 'files'
+        'files' => 'dosya',
+        'tables_count' => 'Toplam Tablo',
+        'rows_count' => 'Toplam Satır',
+        'table_stats' => 'Tablo İstatistikleri',
+        'table_name' => 'Tablo Adı',
+        'row_count' => 'Satır Sayısı',
+        'size_estimate' => 'Tahmini Boyut',
+        'backup_details' => 'Yedek Detayları',
+        'total_data' => 'Toplam Veri',
+        'empty_tables' => 'Boş Tablolar'
     ],
     'de' => [
         'title' => 'Datenbanksicherung',
         'starting' => 'Datenbanksicherung wird gestartet...',
         'reading_config' => 'Konfiguration wird gelesen...',
         'database' => 'Datenbank',
+        'tables_count' => 'Tabellen gesamt',
+        'rows_count' => 'Zeilen gesamt',
+        'table_stats' => 'Tabellenstatistiken',
+        'table_name' => 'Tabellenname',
+        'row_count' => 'Anzahl Zeilen',
+        'size_estimate' => 'Geschätzte Größe',
+        'backup_details' => 'Sicherungsdetails',
+        'total_data' => 'Gesamtdaten',
+        'empty_tables' => 'Leere Tabellen',
         'backup_file' => 'Sicherungsdatei',
         'backup_success' => '✓ Sicherung erfolgreich!',
         'backup_failed' => '✗ Sicherung fehlgeschlagen!',
@@ -173,7 +152,17 @@ $translations = [
         'bytes' => 'Bytes',
         'kb' => 'KB',
         'mb' => 'MB',
-        'gb' => 'GB'
+        'gb' => 'GB',
+        'back' => 'Zurück',
+        'download_backup' => 'Backup herunterladen',
+        'create_new_backup' => 'Neues Backup erstellen',
+        'existing_backups' => 'Vorhandene Backups',
+        'download' => 'Herunterladen',
+        'actions' => 'Aktionen',
+        'no_backups_yet' => 'Noch keine Backups',
+        'compressed' => 'Komprimiert',
+        'backup_files' => 'Backup-Dateien',
+        'files' => 'Dateien'
     ],
     'fr' => [
         'title' => 'Sauvegarde de la base de données',
@@ -195,6 +184,15 @@ $translations = [
         'format' => 'Format',
         'missing_pg_dump' => 'pg_dump introuvable. Les outils client PostgreSQL doivent être installés.',
         'missing_config' => 'Fichier de configuration introuvable.',
+        'tables_count' => 'Tables totales',
+        'rows_count' => 'Lignes totales',
+        'table_stats' => 'Statistiques des tables',
+        'table_name' => 'Nom de la table',
+        'row_count' => 'Nombre de lignes',
+        'size_estimate' => 'Taille estimée',
+        'backup_details' => 'Détails de la sauvegarde',
+        'total_data' => 'Données totales',
+        'empty_tables' => 'Tables vides',
         'connection_failed' => 'Échec de la connexion à la base de données',
         'directory_creation_failed' => 'Impossible de créer le répertoire de sauvegarde',
         'dump_failed' => 'Échec du dump de la base de données',
@@ -202,7 +200,17 @@ $translations = [
         'bytes' => 'octets',
         'kb' => 'Ko',
         'mb' => 'Mo',
-        'gb' => 'Go'
+        'gb' => 'Go',
+        'back' => 'Retour',
+        'download_backup' => 'Télécharger la sauvegarde',
+        'create_new_backup' => 'Créer une nouvelle sauvegarde',
+        'existing_backups' => 'Sauvegardes existantes',
+        'download' => 'Télécharger',
+        'actions' => 'Actions',
+        'no_backups_yet' => 'Aucune sauvegarde pour le moment',
+        'compressed' => 'Compressé',
+        'backup_files' => 'Fichiers de sauvegarde',
+        'files' => 'fichiers'
     ],
     'es' => [
         'title' => 'Respaldo de base de datos',
@@ -224,6 +232,15 @@ $translations = [
         'format' => 'Formato',
         'missing_pg_dump' => 'pg_dump no encontrado. Las herramientas cliente de PostgreSQL deben estar instaladas.',
         'missing_config' => 'Archivo de configuración no encontrado.',
+        'tables_count' => 'Total de tablas',
+        'rows_count' => 'Total de filas',
+        'table_stats' => 'Estadísticas de tablas',
+        'table_name' => 'Nombre de tabla',
+        'row_count' => 'Cantidad de filas',
+        'size_estimate' => 'Tamaño estimado',
+        'backup_details' => 'Detalles de la copia',
+        'total_data' => 'Datos totales',
+        'empty_tables' => 'Tablas vacías',
         'connection_failed' => 'Falló la conexión a la base de datos',
         'directory_creation_failed' => 'No se pudo crear el directorio de respaldo',
         'dump_failed' => 'Falló el volcado de la base de datos',
@@ -231,13 +248,32 @@ $translations = [
         'bytes' => 'bytes',
         'kb' => 'KB',
         'mb' => 'MB',
-        'gb' => 'GB'
+        'gb' => 'GB',
+        'back' => 'Atrás',
+        'download_backup' => 'Descargar respaldo',
+        'create_new_backup' => 'Crear nuevo respaldo',
+        'existing_backups' => 'Respaldos existentes',
+        'download' => 'Descargar',
+        'actions' => 'Acciones',
+        'no_backups_yet' => 'Aún no hay respaldos',
+        'compressed' => 'Comprimido',
+        'backup_files' => 'Archivos de respaldo',
+        'files' => 'archivos'
     ],
     'it' => [
         'title' => 'Backup del database',
         'starting' => 'Avvio backup del database...',
         'reading_config' => 'Lettura configurazione...',
         'database' => 'Database',
+        'tables_count' => 'Tabelle totali',
+        'rows_count' => 'Righe totali',
+        'table_stats' => 'Statistiche tabelle',
+        'table_name' => 'Nome tabella',
+        'row_count' => 'Numero di righe',
+        'size_estimate' => 'Dimensione stimata',
+        'backup_details' => 'Dettagli backup',
+        'total_data' => 'Dati totali',
+        'empty_tables' => 'Tabelle vuote',
         'backup_file' => 'File di backup',
         'backup_success' => '✓ Backup completato!',
         'backup_failed' => '✗ Backup fallito!',
@@ -260,7 +296,17 @@ $translations = [
         'bytes' => 'bytes',
         'kb' => 'KB',
         'mb' => 'MB',
-        'gb' => 'GB'
+        'gb' => 'GB',
+        'back' => 'Indietro',
+        'download_backup' => 'Scarica backup',
+        'create_new_backup' => 'Crea nuovo backup',
+        'existing_backups' => 'Backup esistenti',
+        'download' => 'Scarica',
+        'actions' => 'Azioni',
+        'no_backups_yet' => 'Nessun backup ancora',
+        'compressed' => 'Compresso',
+        'backup_files' => 'File di backup',
+        'files' => 'file'
     ]
 ];
 
@@ -276,17 +322,24 @@ function t($key) {
 function formatBytes($bytes, $decimals = 2) {
     global $t;
     $size = (int)$bytes;
-    $unit = $t['bytes'];
+    
+    // Safe fallback for translation keys
+    $unitBytes = $t['bytes'] ?? 'bytes';
+    $unitKB = $t['kb'] ?? 'KB';
+    $unitMB = $t['mb'] ?? 'MB';
+    $unitGB = $t['gb'] ?? 'GB';
+    
+    $unit = $unitBytes;
     
     if ($size >= 1073741824) {
         $size = number_format($size / 1073741824, $decimals);
-        $unit = $t['gb'];
+        $unit = $unitGB;
     } elseif ($size >= 1048576) {
         $size = number_format($size / 1048576, $decimals);
-        $unit = $t['mb'];
+        $unit = $unitMB;
     } elseif ($size >= 1024) {
         $size = number_format($size / 1024, $decimals);
-        $unit = $t['kb'];
+        $unit = $unitKB;
     } else {
         $size = number_format($size, $decimals);
     }
@@ -383,6 +436,82 @@ function findPgDump() {
     }
     
     return $pgDump; // Return default (hopefully in PATH)
+}
+
+/**
+ * Get database statistics (tables and row counts)
+ * @return array|false Statistics array or false on error
+ */
+function getDatabaseStats() {
+    if (!defined('DB_HOST') || !defined('DB_NAME')) {
+        return false;
+    }
+    
+    try {
+        $conn = getDbConnection();
+        if (!$conn) {
+            return false;
+        }
+        
+        // Get all tables
+        $query = "SELECT table_name 
+                  FROM information_schema.tables 
+                  WHERE table_schema = 'public' 
+                  AND table_type = 'BASE TABLE'
+                  ORDER BY table_name";
+        $result = pg_query($conn, $query);
+        
+        if (!$result) {
+            closeDbConnection($conn);
+            return false;
+        }
+        
+        $tables = [];
+        $totalRows = 0;
+        
+        while ($row = pg_fetch_assoc($result)) {
+            $tableName = $row['table_name'];
+            
+            // Get row count for this table
+            $countQuery = "SELECT COUNT(*) as count FROM " . pg_escape_identifier($conn, $tableName);
+            $countResult = pg_query($conn, $countQuery);
+            
+            $rowCount = 0;
+            if ($countResult) {
+                $countRow = pg_fetch_assoc($countResult);
+                $rowCount = (int)($countRow['count'] ?? 0);
+            }
+            
+            // Get estimated size
+            $sizeQuery = "SELECT pg_total_relation_size(" . pg_escape_literal($conn, 'public.' . $tableName) . ") as size";
+            $sizeResult = pg_query($conn, $sizeQuery);
+            $size = 0;
+            if ($sizeResult) {
+                $sizeRow = pg_fetch_assoc($sizeResult);
+                $size = (int)($sizeRow['size'] ?? 0);
+            }
+            
+            $tables[] = [
+                'name' => $tableName,
+                'rows' => $rowCount,
+                'size' => $size
+            ];
+            
+            $totalRows += $rowCount;
+        }
+        
+        closeDbConnection($conn);
+        
+        return [
+            'tables' => $tables,
+            'total_tables' => count($tables),
+            'total_rows' => $totalRows,
+            'empty_tables' => array_filter($tables, function($t) { return $t['rows'] === 0; })
+        ];
+    } catch (Exception $e) {
+        error_log("Database stats error: " . $e->getMessage());
+        return false;
+    }
 }
 
 // Main backup function
@@ -670,6 +799,9 @@ function runBackup($format = 'custom', $compress = true) {
         putenv('LC_CTYPE=');
     }
     
+    // Get database statistics
+    $stats = getDatabaseStats();
+    
     // Calculate elapsed time
     $elapsed = number_format(microtime(true) - $startTime, 2);
     
@@ -706,10 +838,45 @@ function runBackup($format = 'custom', $compress = true) {
     }
     echo PHP_EOL;
     echo t('completed') . ' in ' . $elapsed . ' seconds' . PHP_EOL;
+    
+    // Display detailed statistics if available
+    if ($stats !== false) {
+        echo str_repeat('-', 60) . PHP_EOL;
+        echo t('backup_details') . ':' . PHP_EOL;
+        echo '  ' . t('tables_count') . ': ' . $stats['total_tables'] . PHP_EOL;
+        echo '  ' . t('rows_count') . ': ' . number_format($stats['total_rows'], 0, '.', ',') . PHP_EOL;
+        
+        if (count($stats['empty_tables']) > 0) {
+            echo '  ' . t('empty_tables') . ': ' . count($stats['empty_tables']) . PHP_EOL;
+        }
+        
+        // Show table details in CLI
+        if (php_sapi_name() === 'cli' && $stats['total_tables'] > 0) {
+            echo PHP_EOL;
+            echo t('table_stats') . ':' . PHP_EOL;
+            echo sprintf("%-30s %12s %15s", t('table_name'), t('row_count'), t('size_estimate')) . PHP_EOL;
+            echo str_repeat('-', 60) . PHP_EOL;
+            
+            foreach ($stats['tables'] as $table) {
+                $sizeStr = formatBytes($table['size']);
+                echo sprintf("%-30s %12s %15s", 
+                    substr($table['name'], 0, 30),
+                    number_format($table['rows'], 0, '.', ','),
+                    $sizeStr
+                ) . PHP_EOL;
+            }
+        }
+    }
+    
     echo str_repeat('=', 60) . PHP_EOL;
     
-    // Return array of files for web interface
-    return $finalFiles;
+    // Return array with files and statistics for web interface
+    return [
+        'files' => $finalFiles,
+        'stats' => $stats,
+        'elapsed' => $elapsed,
+        'file_size' => $fileSize
+    ];
 }
 
 // Parse command line arguments
@@ -819,11 +986,22 @@ if (php_sapi_name() === 'cli') {
                 echo '</div>';
                 
                 if ($result && !empty($result)) {
+                    // Handle new format with stats
+                    if (is_array($result) && isset($result['files'])) {
+                        $files = $result['files'];
+                        $stats = $result['stats'] ?? false;
+                        $elapsed = $result['elapsed'] ?? '0';
+                        $fileSize = $result['file_size'] ?? 0;
+                    } else {
+                        // Legacy format: just files array
+                        $files = is_array($result) ? $result : [$result];
+                        $stats = false;
+                        $elapsed = '0';
+                        $fileSize = file_exists($files[0]) ? filesize($files[0]) : 0;
+                    }
+                    
                     echo '<div class="alert alert-success">';
                     echo '<strong>✓ ' . htmlspecialchars(t('backup_success')) . '</strong><br>';
-                    
-                    // Handle both single file and array of files
-                    $files = is_array($result) ? $result : [$result];
                     
                     if (count($files) > 1) {
                         echo htmlspecialchars(t('backup_files')) . ':<br>';
@@ -837,11 +1015,56 @@ if (php_sapi_name() === 'cli') {
                     } else {
                         $file = $files[0];
                         echo htmlspecialchars(t('backup_file')) . ': <code>' . basename($file) . '</code><br>';
-                        $filesize = file_exists($file) ? filesize($file) : 0;
-                        echo htmlspecialchars(t('file_size')) . ': ' . formatBytes($filesize) . '<br>';
+                        echo htmlspecialchars(t('file_size')) . ': ' . formatBytes($fileSize) . '<br>';
                     }
-                    echo '<small>' . htmlspecialchars(t('location')) . ': <code>' . htmlspecialchars(dirname($files[0])) . '</code></small>';
+                    echo '<small>' . htmlspecialchars(t('location')) . ': <code>' . htmlspecialchars(dirname($files[0])) . '</code></small><br>';
+                    echo '<small>' . htmlspecialchars(t('completed')) . ' in ' . htmlspecialchars($elapsed) . ' seconds</small>';
                     echo '</div>';
+                    
+                    // Display detailed statistics
+                    if ($stats !== false && is_array($stats) && isset($stats['tables'])) {
+                        echo '<div class="alert alert-info" style="margin-top: 20px;">';
+                        echo '<strong>📊 ' . htmlspecialchars(t('backup_details')) . '</strong><br><br>';
+                        
+                        echo '<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 15px;">';
+                        echo '<div><strong>' . htmlspecialchars(t('tables_count')) . ':</strong> <span style="font-size: 1.2em; color: #059669;">' . $stats['total_tables'] . '</span></div>';
+                        echo '<div><strong>' . htmlspecialchars(t('rows_count')) . ':</strong> <span style="font-size: 1.2em; color: #059669;">' . number_format($stats['total_rows'], 0, '.', ',') . '</span></div>';
+                        echo '</div>';
+                        
+                        if (count($stats['empty_tables']) > 0) {
+                            echo '<div style="color: #f59e0b; margin-bottom: 15px;">';
+                            echo '<strong>⚠ ' . htmlspecialchars(t('empty_tables')) . ':</strong> ' . count($stats['empty_tables']);
+                            echo '</div>';
+                        }
+                        
+                        // Table statistics table
+                        echo '<details style="margin-top: 15px;">';
+                        echo '<summary style="cursor: pointer; font-weight: bold; padding: 10px; background: #f3f4f6; border-radius: 5px;">📋 ' . htmlspecialchars(t('table_stats')) . ' (' . $stats['total_tables'] . ' ' . htmlspecialchars(t('tables_count')) . ')</summary>';
+                        echo '<div style="margin-top: 10px; max-height: 400px; overflow-y: auto;">';
+                        echo '<table style="width: 100%; border-collapse: collapse; margin-top: 10px; background: white;">';
+                        echo '<thead><tr style="background: #151A2D; color: white;">';
+                        echo '<th style="padding: 10px; text-align: left;">' . htmlspecialchars(t('table_name')) . '</th>';
+                        echo '<th style="padding: 10px; text-align: right;">' . htmlspecialchars(t('row_count')) . '</th>';
+                        echo '<th style="padding: 10px; text-align: right;">' . htmlspecialchars(t('size_estimate')) . '</th>';
+                        echo '</tr></thead><tbody>';
+                        
+                        foreach ($stats['tables'] as $table) {
+                            $rowCount = number_format($table['rows'], 0, '.', ',');
+                            $size = formatBytes($table['size']);
+                            $rowStyle = $table['rows'] === 0 ? 'background: #fef2f2; color: #991b1b;' : '';
+                            
+                            echo '<tr style="border-bottom: 1px solid #e5e7eb; ' . $rowStyle . '">';
+                            echo '<td style="padding: 8px;"><code>' . htmlspecialchars($table['name']) . '</code></td>';
+                            echo '<td style="padding: 8px; text-align: right; font-weight: ' . ($table['rows'] > 0 ? 'bold' : 'normal') . ';">' . htmlspecialchars($rowCount) . '</td>';
+                            echo '<td style="padding: 8px; text-align: right;">' . htmlspecialchars($size) . '</td>';
+                            echo '</tr>';
+                        }
+                        
+                        echo '</tbody></table>';
+                        echo '</div>';
+                        echo '</details>';
+                        echo '</div>';
+                    }
                     
                     // Show download links for all files
                     echo '<p>';
