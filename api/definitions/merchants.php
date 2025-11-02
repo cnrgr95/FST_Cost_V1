@@ -250,17 +250,16 @@ function getMerchants($conn, $sub_region_id = null) {
 
 function createMerchant($conn, $data) {
     $name = pg_escape_string($conn, $data['name']);
-    
-    // Check if merchant name already exists - use parameterized query
-    $checkQuery = "SELECT id FROM merchants WHERE name = $1";
-    $checkResult = pg_query_params($conn, $checkQuery, [$name]);
-    if ($checkResult && pg_num_rows($checkResult) > 0) {
-        echo json_encode(['success' => false, 'message' => 'A merchant with this name already exists']);
-        return;
-    }
-    
     $official_title = pg_escape_string($conn, $data['official_title'] ?? '');
     $sub_region_id = (int)$data['sub_region_id'];
+    
+    // Check if merchant name already exists in the same sub region - use parameterized query
+    $checkQuery = "SELECT id FROM merchants WHERE name = $1 AND sub_region_id = $2";
+    $checkResult = pg_query_params($conn, $checkQuery, [$name, $sub_region_id]);
+    if ($checkResult && pg_num_rows($checkResult) > 0) {
+        echo json_encode(['success' => false, 'message' => 'A merchant with this name already exists in this sub region. Merchant names must be unique within a sub region.']);
+        return;
+    }
     $authorized_person = pg_escape_string($conn, $data['authorized_person'] ?? '');
     $authorized_email = pg_escape_string($conn, $data['authorized_email'] ?? '');
     $authorized_phone = pg_escape_string($conn, $data['authorized_phone'] ?? '');
@@ -306,6 +305,14 @@ function updateMerchant($conn, $data) {
     $operasyon_email = pg_escape_string($conn, $data['operasyon_email'] ?? '');
     $operasyon_phone = pg_escape_string($conn, $data['operasyon_phone'] ?? '');
     $location_url = pg_escape_string($conn, $data['location_url'] ?? '');
+    
+    // Check if merchant name already exists in the same sub region for another merchant - use parameterized query
+    $checkQuery = "SELECT id FROM merchants WHERE name = $1 AND sub_region_id = $2 AND id != $3";
+    $checkResult = pg_query_params($conn, $checkQuery, [$name, $sub_region_id, $id]);
+    if ($checkResult && pg_num_rows($checkResult) > 0) {
+        echo json_encode(['success' => false, 'message' => 'A merchant with this name already exists in this sub region. Merchant names must be unique within a sub region.']);
+        return;
+    }
     
     // Use parameterized query to prevent SQL injection
     $query = "UPDATE merchants SET 

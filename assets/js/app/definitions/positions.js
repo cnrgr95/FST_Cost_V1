@@ -14,6 +14,11 @@
             if (pageConfig.translations) {
                 window.Translations = pageConfig.translations;
             }
+            // Store CSRF token in page config for easy access
+            if (pageConfig.csrfToken) {
+                window.pageConfig = window.pageConfig || {};
+                window.pageConfig.csrfToken = pageConfig.csrfToken;
+            }
         } catch (e) {
             console.error('Failed to parse page config:', e);
         }
@@ -580,6 +585,10 @@
     function handleDepartmentSubmit(e) {
         e.preventDefault();
         const form = e.target;
+        
+        // Clear previous errors
+        clearFormErrors(form);
+        
         const formData = new FormData(form);
         const data = {
             name: formData.get('name'),
@@ -597,6 +606,10 @@
     function handlePositionSubmit(e) {
         e.preventDefault();
         const form = e.target;
+        
+        // Clear previous errors
+        clearFormErrors(form);
+        
         const formData = new FormData(form);
         const data = {
             name: formData.get('name'),
@@ -614,6 +627,24 @@
     // Create operations
     async function createDepartment(data) {
         try {
+            // Get CSRF token from multiple sources
+            let token = null;
+            if (typeof window.getCsrfToken === 'function') {
+                token = window.getCsrfToken();
+            } else if (window.pageConfig && window.pageConfig.csrfToken) {
+                token = window.pageConfig.csrfToken;
+            } else if (pageConfig && pageConfig.csrfToken) {
+                token = pageConfig.csrfToken;
+            }
+            
+            if (!token) {
+                console.error('CSRF token not found');
+                showToast('error', tCommon.security_token_expired || 'Security token expired. Please refresh the page and try again.');
+                return;
+            }
+            
+            data.csrf_token = token;
+            
             const response = await fetch(`${API_BASE}?action=department`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -621,13 +652,20 @@
             });
             const result = await response.json();
             
+            // Handle CSRF token errors
+            if (!result.success && result.message && result.message.toLowerCase().includes('csrf')) {
+                showToast('error', tCommon.security_token_expired || 'Security token expired. Please refresh the page and try again.');
+                console.error('CSRF token error:', result.message);
+                return;
+            }
+            
             if (result.success) {
                 currentData.departments = [];
                 loadData('departments');
                 closeModal();
                 showToast('success', tPos.dept_added || 'Department created successfully');
             } else {
-                showToast('error', result.message);
+                handleApiError('departmentForm', result.message);
             }
         } catch (error) {
             console.error('Error creating department:', error);
@@ -637,6 +675,24 @@
     
     async function createPosition(data) {
         try {
+            // Get CSRF token from multiple sources
+            let token = null;
+            if (typeof window.getCsrfToken === 'function') {
+                token = window.getCsrfToken();
+            } else if (window.pageConfig && window.pageConfig.csrfToken) {
+                token = window.pageConfig.csrfToken;
+            } else if (pageConfig && pageConfig.csrfToken) {
+                token = pageConfig.csrfToken;
+            }
+            
+            if (!token) {
+                console.error('CSRF token not found');
+                showToast('error', tCommon.security_token_expired || 'Security token expired. Please refresh the page and try again.');
+                return;
+            }
+            
+            data.csrf_token = token;
+            
             const response = await fetch(`${API_BASE}?action=position`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -644,13 +700,20 @@
             });
             const result = await response.json();
             
+            // Handle CSRF token errors
+            if (!result.success && result.message && result.message.toLowerCase().includes('csrf')) {
+                showToast('error', tCommon.security_token_expired || 'Security token expired. Please refresh the page and try again.');
+                console.error('CSRF token error:', result.message);
+                return;
+            }
+            
             if (result.success) {
                 currentData.positions = [];
                 loadData('positions');
                 closeModal();
                 showToast('success', tPos.pos_added || 'Position created successfully');
             } else {
-                showToast('error', result.message);
+                handleApiError('positionForm', result.message);
             }
         } catch (error) {
             console.error('Error creating position:', error);
@@ -661,6 +724,24 @@
     // Update operations
     async function updateDepartment(data) {
         try {
+            // Get CSRF token from multiple sources
+            let token = null;
+            if (typeof window.getCsrfToken === 'function') {
+                token = window.getCsrfToken();
+            } else if (window.pageConfig && window.pageConfig.csrfToken) {
+                token = window.pageConfig.csrfToken;
+            } else if (pageConfig && pageConfig.csrfToken) {
+                token = pageConfig.csrfToken;
+            }
+            
+            if (!token) {
+                console.error('CSRF token not found');
+                showToast('error', tCommon.security_token_expired || 'Security token expired. Please refresh the page and try again.');
+                return;
+            }
+            
+            data.csrf_token = token;
+            
             const response = await fetch(`${API_BASE}?action=department`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
@@ -668,13 +749,20 @@
             });
             const result = await response.json();
             
+            // Handle CSRF token errors
+            if (!result.success && result.message && result.message.toLowerCase().includes('csrf')) {
+                showToast('error', tCommon.security_token_expired || 'Security token expired. Please refresh the page and try again.');
+                console.error('CSRF token error:', result.message);
+                return;
+            }
+            
             if (result.success) {
                 currentData.departments = [];
                 loadData('departments');
                 closeModal();
                 showToast('success', tPos.dept_updated || 'Department updated successfully');
             } else {
-                showToast('error', result.message);
+                handleApiError('departmentForm', result.message);
             }
         } catch (error) {
             console.error('Error updating department:', error);
@@ -684,6 +772,24 @@
     
     async function updatePosition(data) {
         try {
+            // Get CSRF token from multiple sources
+            let token = null;
+            if (typeof window.getCsrfToken === 'function') {
+                token = window.getCsrfToken();
+            } else if (window.pageConfig && window.pageConfig.csrfToken) {
+                token = window.pageConfig.csrfToken;
+            } else if (pageConfig && pageConfig.csrfToken) {
+                token = pageConfig.csrfToken;
+            }
+            
+            if (!token) {
+                console.error('CSRF token not found');
+                showToast('error', tCommon.security_token_expired || 'Security token expired. Please refresh the page and try again.');
+                return;
+            }
+            
+            data.csrf_token = token;
+            
             const response = await fetch(`${API_BASE}?action=position`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
@@ -691,17 +797,141 @@
             });
             const result = await response.json();
             
+            // Handle CSRF token errors
+            if (!result.success && result.message && result.message.toLowerCase().includes('csrf')) {
+                showToast('error', tCommon.security_token_expired || 'Security token expired. Please refresh the page and try again.');
+                console.error('CSRF token error:', result.message);
+                return;
+            }
+            
             if (result.success) {
                 currentData.positions = [];
                 loadData('positions');
                 closeModal();
                 showToast('success', tPos.pos_updated || 'Position updated successfully');
             } else {
-                showToast('error', result.message);
+                handleApiError('positionForm', result.message);
             }
         } catch (error) {
             console.error('Error updating position:', error);
             showToast('error', tCommon.update_failed || 'Failed to update position');
+        }
+    }
+    
+    // Error handling functions
+    function clearFormErrors(form) {
+        if (!form) return;
+        
+        const errorFields = form.querySelectorAll('input.error, select.error, textarea.error, input.invalid, select.invalid, textarea.invalid, input.has-error, select.has-error, textarea.has-error');
+        errorFields.forEach(field => {
+            field.classList.remove('error', 'invalid', 'has-error');
+            field.removeAttribute('aria-invalid');
+            field.setCustomValidity('');
+            field.style.borderColor = '';
+            field.style.backgroundColor = '';
+        });
+        
+        const errorMessages = form.querySelectorAll('.input-error-message');
+        errorMessages.forEach(msg => {
+            msg.textContent = '';
+            msg.classList.remove('show', 'has-error');
+            msg.style.display = '';
+        });
+    }
+    
+    function highlightFieldError(fieldName) {
+        let field = document.getElementById(fieldName);
+        
+        if (!field) {
+            const activeModal = document.querySelector('.modal.active');
+            if (activeModal) {
+                field = activeModal.querySelector(`[name="${fieldName}"]`);
+            }
+        }
+        
+        if (!field) {
+            field = document.querySelector(`[name="${fieldName}"]`);
+        }
+        
+        if (!field) {
+            console.warn('Field not found:', fieldName);
+            return;
+        }
+        
+        field.classList.add('error', 'invalid', 'has-error');
+        field.setAttribute('aria-invalid', 'true');
+        field.style.borderColor = '#dc2626';
+        field.style.backgroundColor = '#fef2f2';
+        field.offsetHeight; // Force reflow
+        
+        setTimeout(() => {
+            field.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            setTimeout(() => {
+                field.focus();
+            }, 200);
+        }, 50);
+    }
+    
+    function handleApiError(formId, errorMessage) {
+        if (!errorMessage) return;
+        
+        const lowerMessage = errorMessage.toLowerCase();
+        const form = document.getElementById(formId);
+        
+        if (!form) {
+            showToast('error', errorMessage);
+            return;
+        }
+        
+        clearFormErrors(form);
+        
+        if (formId === 'departmentForm') {
+            // Department name errors (duplicate names in same city - only red field + toast popup)
+            if ((lowerMessage.includes('department') && lowerMessage.includes('name') && lowerMessage.includes('already exists')) ||
+                (lowerMessage.includes('name') && lowerMessage.includes('already exists') && lowerMessage.includes('department'))) {
+                highlightFieldError('name');
+                showToast('error', errorMessage);
+            }
+            // City errors
+            else if (lowerMessage.includes('city') && (lowerMessage.includes('required') || lowerMessage.includes('invalid'))) {
+                highlightFieldError('city_id');
+                showToast('error', errorMessage);
+            }
+            // Generic name error (fallback)
+            else if (lowerMessage.includes('name') && (lowerMessage.includes('required') || lowerMessage.includes('invalid'))) {
+                highlightFieldError('name');
+                showToast('error', errorMessage);
+            }
+            // Show toast as fallback
+            else {
+                showToast('error', errorMessage);
+            }
+        }
+        else if (formId === 'positionForm') {
+            // Position name errors (duplicate names in same department - only red field + toast popup)
+            if ((lowerMessage.includes('position') && lowerMessage.includes('name') && lowerMessage.includes('already exists')) ||
+                (lowerMessage.includes('name') && lowerMessage.includes('already exists') && lowerMessage.includes('position'))) {
+                highlightFieldError('name');
+                showToast('error', errorMessage);
+            }
+            // Department errors
+            else if (lowerMessage.includes('department') && (lowerMessage.includes('required') || lowerMessage.includes('invalid'))) {
+                highlightFieldError('department_id');
+                showToast('error', errorMessage);
+            }
+            // Generic name error (fallback)
+            else if (lowerMessage.includes('name') && (lowerMessage.includes('required') || lowerMessage.includes('invalid'))) {
+                highlightFieldError('name');
+                showToast('error', errorMessage);
+            }
+            // Show toast as fallback
+            else {
+                showToast('error', errorMessage);
+            }
+        }
+        else {
+            // Fallback to toast for unknown forms
+            showToast('error', errorMessage);
         }
     }
     

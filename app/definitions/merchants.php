@@ -86,6 +86,7 @@ $t_dependencies = $all_translations['dependencies'] ?? [];
                 <div class="form-group">
                     <label><?php echo $t_merchants['merchant_name'] ?? 'Merchant Name'; ?> *</label>
                     <input type="text" name="name" required>
+                    <span class="input-error-message"></span>
                 </div>
                 <div class="form-group">
                     <label><?php echo $t_merchants['official_title'] ?? 'Official Title'; ?></label>
@@ -96,6 +97,7 @@ $t_dependencies = $all_translations['dependencies'] ?? [];
                     <select name="sub_region_id" required>
                         <option value=""><?php echo $t_merchants['loading_data'] ?? 'Loading...'; ?></option>
                     </select>
+                    <span class="input-error-message"></span>
                 </div>
                 
                 <h3 class="form-section-title"><?php echo $t_merchants['authorized_person'] ?? 'Authorized Person'; ?></h3>

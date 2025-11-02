@@ -232,6 +232,14 @@ function updateDepartment($conn, $data) {
     $name = pg_escape_string($conn, $data['name']);
     $city_id = (int)$data['city_id'];
     
+    // Check if department name already exists in the same city for another department - use parameterized query
+    $checkQuery = "SELECT id FROM departments WHERE name = $1 AND city_id = $2 AND id != $3";
+    $checkResult = pg_query_params($conn, $checkQuery, [$name, $city_id, $id]);
+    if ($checkResult && pg_num_rows($checkResult) > 0) {
+        echo json_encode(['success' => false, 'message' => 'A department with this name already exists in this city. Department names must be unique within a city.']);
+        return;
+    }
+    
     // Use parameterized query to prevent SQL injection
     $query = "UPDATE departments SET name = $1, city_id = $2, updated_at = NOW() WHERE id = $3";
     $result = pg_query_params($conn, $query, [$name, $city_id, $id]);
@@ -310,7 +318,7 @@ function createPosition($conn, $data) {
     $checkQuery = "SELECT id FROM positions WHERE name = $1 AND department_id = $2";
     $checkResult = pg_query_params($conn, $checkQuery, [$name, $department_id]);
     if ($checkResult && pg_num_rows($checkResult) > 0) {
-        echo json_encode(['success' => false, 'message' => 'A position with this name already exists in this department']);
+        echo json_encode(['success' => false, 'message' => 'A position with this name already exists in this department. Position names must be unique within a department.']);
         return;
     }
     
@@ -330,6 +338,14 @@ function updatePosition($conn, $data) {
     $id = (int)$data['id'];
     $name = pg_escape_string($conn, $data['name']);
     $department_id = (int)$data['department_id'];
+    
+    // Check if position name already exists in the same department for another position - use parameterized query
+    $checkQuery = "SELECT id FROM positions WHERE name = $1 AND department_id = $2 AND id != $3";
+    $checkResult = pg_query_params($conn, $checkQuery, [$name, $department_id, $id]);
+    if ($checkResult && pg_num_rows($checkResult) > 0) {
+        echo json_encode(['success' => false, 'message' => 'A position with this name already exists in this department. Position names must be unique within a department.']);
+        return;
+    }
     
     // Use parameterized query to prevent SQL injection
     $query = "UPDATE positions SET name = $1, department_id = $2, updated_at = NOW() WHERE id = $3";

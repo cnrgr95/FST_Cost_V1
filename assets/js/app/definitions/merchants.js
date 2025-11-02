@@ -14,6 +14,11 @@
             if (pageConfig.translations) {
                 window.Translations = pageConfig.translations;
             }
+            // Store CSRF token in page config for easy access
+            if (pageConfig.csrfToken) {
+                window.pageConfig = window.pageConfig || {};
+                window.pageConfig.csrfToken = pageConfig.csrfToken;
+            }
         } catch (e) {
             console.error('Failed to parse page config:', e);
         }
@@ -405,6 +410,10 @@
     function handleMerchantSubmit(e) {
         e.preventDefault();
         const form = e.target;
+        
+        // Clear previous errors
+        clearFormErrors(form);
+        
         const formData = new FormData(form);
         const data = {
             name: formData.get('name'),
@@ -430,6 +439,24 @@
     // Create merchant
     async function createMerchant(data) {
         try {
+            // Get CSRF token from multiple sources
+            let token = null;
+            if (typeof window.getCsrfToken === 'function') {
+                token = window.getCsrfToken();
+            } else if (window.pageConfig && window.pageConfig.csrfToken) {
+                token = window.pageConfig.csrfToken;
+            } else if (pageConfig && pageConfig.csrfToken) {
+                token = pageConfig.csrfToken;
+            }
+            
+            if (!token) {
+                console.error('CSRF token not found');
+                showToast('error', tCommon.security_token_expired || 'Security token expired. Please refresh the page and try again.');
+                return;
+            }
+            
+            data.csrf_token = token;
+            
             const response = await fetch(`${API_BASE}?action=merchant`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -437,13 +464,20 @@
             });
             const result = await response.json();
             
+            // Handle CSRF token errors
+            if (!result.success && result.message && result.message.toLowerCase().includes('csrf')) {
+                showToast('error', tCommon.security_token_expired || 'Security token expired. Please refresh the page and try again.');
+                console.error('CSRF token error:', result.message);
+                return;
+            }
+            
             if (result.success) {
                 currentData.merchants = [];
                 loadData();
                 closeModal();
                 showToast('success', tMerchants.merchant_added || 'Merchant created successfully');
             } else {
-                showToast('error', result.message);
+                handleApiError('merchantForm', result.message);
             }
         } catch (error) {
             console.error('Error creating merchant:', error);
@@ -454,6 +488,24 @@
     // Update merchant
     async function updateMerchant(data) {
         try {
+            // Get CSRF token from multiple sources
+            let token = null;
+            if (typeof window.getCsrfToken === 'function') {
+                token = window.getCsrfToken();
+            } else if (window.pageConfig && window.pageConfig.csrfToken) {
+                token = window.pageConfig.csrfToken;
+            } else if (pageConfig && pageConfig.csrfToken) {
+                token = pageConfig.csrfToken;
+            }
+            
+            if (!token) {
+                console.error('CSRF token not found');
+                showToast('error', tCommon.security_token_expired || 'Security token expired. Please refresh the page and try again.');
+                return;
+            }
+            
+            data.csrf_token = token;
+            
             const response = await fetch(`${API_BASE}?action=merchant`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
@@ -461,17 +513,113 @@
             });
             const result = await response.json();
             
+            // Handle CSRF token errors
+            if (!result.success && result.message && result.message.toLowerCase().includes('csrf')) {
+                showToast('error', tCommon.security_token_expired || 'Security token expired. Please refresh the page and try again.');
+                console.error('CSRF token error:', result.message);
+                return;
+            }
+            
             if (result.success) {
                 currentData.merchants = [];
                 loadData();
                 closeModal();
                 showToast('success', tMerchants.merchant_updated || 'Merchant updated successfully');
             } else {
-                showToast('error', result.message);
+                handleApiError('merchantForm', result.message);
             }
         } catch (error) {
             console.error('Error updating merchant:', error);
             showToast('error', tCommon.update_failed || 'Failed to update merchant');
+        }
+    }
+    
+    // Error handling functions
+    function clearFormErrors(form) {
+        if (!form) return;
+        
+        const errorFields = form.querySelectorAll('input.error, select.error, textarea.error, input.invalid, select.invalid, textarea.invalid, input.has-error, select.has-error, textarea.has-error');
+        errorFields.forEach(field => {
+            field.classList.remove('error', 'invalid', 'has-error');
+            field.removeAttribute('aria-invalid');
+            field.setCustomValidity('');
+            field.style.borderColor = '';
+            field.style.backgroundColor = '';
+        });
+        
+        const errorMessages = form.querySelectorAll('.input-error-message');
+        errorMessages.forEach(msg => {
+            msg.textContent = '';
+            msg.classList.remove('show', 'has-error');
+            msg.style.display = '';
+        });
+    }
+    
+    function highlightFieldError(fieldName) {
+        let field = document.getElementById(fieldName);
+        
+        if (!field) {
+            const activeModal = document.querySelector('.modal.active');
+            if (activeModal) {
+                field = activeModal.querySelector(`[name="${fieldName}"]`);
+            }
+        }
+        
+        if (!field) {
+            field = document.querySelector(`[name="${fieldName}"]`);
+        }
+        
+        if (!field) {
+            console.warn('Field not found:', fieldName);
+            return;
+        }
+        
+        field.classList.add('error', 'invalid', 'has-error');
+        field.setAttribute('aria-invalid', 'true');
+        field.style.borderColor = '#dc2626';
+        field.style.backgroundColor = '#fef2f2';
+        field.offsetHeight; // Force reflow
+        
+        setTimeout(() => {
+            field.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            setTimeout(() => {
+                field.focus();
+            }, 200);
+        }, 50);
+    }
+    
+    function handleApiError(formId, errorMessage) {
+        if (!errorMessage) return;
+        
+        const lowerMessage = errorMessage.toLowerCase();
+        const form = document.getElementById(formId);
+        
+        if (!form) {
+            showToast('error', errorMessage);
+            return;
+        }
+        
+        clearFormErrors(form);
+        
+        // Merchant name errors (duplicate names in same sub region - only red field + toast popup)
+        if ((lowerMessage.includes('merchant') && lowerMessage.includes('name') && lowerMessage.includes('already exists')) ||
+            (lowerMessage.includes('name') && lowerMessage.includes('already exists') && lowerMessage.includes('merchant'))) {
+            highlightFieldError('name');
+            showToast('error', errorMessage);
+        }
+        // Sub region errors
+        else if (lowerMessage.includes('sub region') && (lowerMessage.includes('required') || lowerMessage.includes('invalid'))) {
+            highlightFieldError('sub_region_id');
+            showToast('error', errorMessage);
+        }
+        // Generic name error (fallback)
+        else if (lowerMessage.includes('name') && (lowerMessage.includes('required') || lowerMessage.includes('invalid'))) {
+            highlightFieldError('name');
+            showToast('error', errorMessage);
+        }
+        // Show toast as fallback
+        else {
+            showToast('error', errorMessage);
         }
     }
     

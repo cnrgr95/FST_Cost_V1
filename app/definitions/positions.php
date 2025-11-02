@@ -100,12 +100,14 @@ $t_dependencies = $all_translations['dependencies'] ?? [];
                 <div class="form-group">
                     <label><?php echo $t_positions['department_name'] ?? 'Department Name'; ?> *</label>
                     <input type="text" name="name" required>
+                    <span class="input-error-message"></span>
                 </div>
                 <div class="form-group">
                     <label><?php echo $t_positions['city'] ?? 'City'; ?> *</label>
                     <select name="city_id" required>
                         <option value=""><?php echo $t_common['loading'] ?? 'Loading...'; ?></option>
                     </select>
+                    <span class="input-error-message"></span>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn-secondary" id="cancelDepartmentBtn">
@@ -134,12 +136,14 @@ $t_dependencies = $all_translations['dependencies'] ?? [];
                 <div class="form-group">
                     <label><?php echo $t_positions['position_name'] ?? 'Position Name'; ?> *</label>
                     <input type="text" name="name" required>
+                    <span class="input-error-message"></span>
                 </div>
                 <div class="form-group">
                     <label><?php echo $t_sidebar['department'] ?? 'Department'; ?> *</label>
                     <select name="department_id" required>
                         <option value=""><?php echo $t_common['loading'] ?? 'Loading...'; ?></option>
                     </select>
+                    <span class="input-error-message"></span>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn-secondary" id="cancelPositionBtn">
