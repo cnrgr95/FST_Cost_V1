@@ -386,7 +386,10 @@
             if (saveBtn) {
                 saveBtn.disabled = false;
                 const spinner = saveBtn.querySelector('.btn-loading-spinner');
-                if (spinner) spinner.style.display = 'none';
+                if (spinner) {
+                    spinner.style.display = 'none';
+                    spinner.style.visibility = 'hidden';
+                }
                 const saveIcon = saveBtn.querySelector('.material-symbols-rounded:not(.btn-loading-spinner .material-symbols-rounded)');
                 if (saveIcon) saveIcon.style.display = 'inline-flex';
             }
@@ -762,20 +765,12 @@
            const periodHtml = `
                <div class="period-item" data-period-id="${periodId}">
                    <div class="period-header" onclick="togglePeriod('${periodId}')">
-                       <div class="period-header-content">
-                           <div class="period-header-left">
-                               <button type="button" class="btn-icon period-toggle" title="${tCommon.expand || 'Expand'}/${tCommon.collapse || 'Collapse'}">
-                                   <span class="material-symbols-rounded period-toggle-icon">expand_more</span>
-                               </button>
-                               <h4 class="period-title">${escapeHtml(periodTitle)}</h4>
-                           </div>
-                           <div class="period-header-right">
-                               ${periodDateRange ? `<span class="period-dates">${escapeHtml(periodDateRange)}</span>` : ''}
-                               <button type="button" class="btn-icon btn-danger period-delete-btn" onclick="event.stopPropagation(); removePeriod('${periodId}')" title="${tCommon.remove || 'Remove'}">
-                                   <span class="material-symbols-rounded">delete</span>
-                               </button>
-                           </div>
-                       </div>
+                       <span class="material-symbols-rounded period-toggle-icon">expand_more</span>
+                       <span class="period-title">${escapeHtml(periodTitle)}</span>
+                       ${periodDateRange ? `<span class="period-dates">${escapeHtml(periodDateRange)}</span>` : ''}
+                       <button type="button" class="period-delete-btn" onclick="event.stopPropagation(); removePeriod('${periodId}')" title="${tCommon.remove || 'Remove'}">
+                           <span class="material-symbols-rounded">delete</span>
+                       </button>
                    </div>
                    <div class="period-body" style="display: none;">
                     <div class="form-row">
@@ -801,15 +796,15 @@
                                        value="${period.end_date ? (period.end_date.split(' ')[0] || '') : ''}" 
                                        style="display: none;" />
                                 <div id="periodRangePicker_${periodCounter}" class="range-picker" 
-                                     style="display: none; position: absolute; top: 100%; left: 0; z-index: 2000; background: white; border: 1px solid #d1d5db; border-radius: 8px; padding: 16px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); margin-top: 4px;"></div>
+                                     style="display: none; position: absolute; top: 100%; left: 0; z-index: 2000; background: white; border: 1px solid #d1d5db; border-radius: 8px; padding: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); margin-top: 4px;"></div>
                             </div>
                         </div>
                     </div>
                     <div class="period-items-container" id="items_${periodId}">
                         ${itemsHtml}
                     </div>
-                    <button type="button" class="btn-secondary btn-sm" id="addItemBtn_${periodId}" onclick="addItem('${periodId}')" ${period.items && period.items.length >= 1 ? 'style="display: none;"' : ''}>
-                        <span class="material-symbols-rounded" style="font-size: 18px;">add</span>
+                    <button type="button" class="btn-secondary btn-sm" id="addItemBtn_${periodId}" onclick="addItem('${periodId}')" style="margin-top: 8px; ${period.items && period.items.length >= 1 ? 'display: none;' : ''}">
+                        <span class="material-symbols-rounded" style="font-size: 16px;">add</span>
                         ${tCosts.add_item || 'Add Item'}
                     </button>
                 </div>
@@ -899,10 +894,10 @@
         if (periodBody && toggleIcon) {
             if (periodBody.style.display === 'none') {
                 periodBody.style.display = 'block';
-                toggleIcon.textContent = 'expand_less';
+                toggleIcon.style.transform = 'rotate(180deg)';
             } else {
                 periodBody.style.display = 'none';
-                toggleIcon.textContent = 'expand_more';
+                toggleIcon.style.transform = 'rotate(0deg)';
             }
         }
     };
@@ -1651,7 +1646,10 @@
             saveBtn.disabled = true;
             const spinner = saveBtn.querySelector('.btn-loading-spinner');
             const saveIcon = saveBtn.querySelector('.material-symbols-rounded:not(.btn-loading-spinner .material-symbols-rounded)');
-            if (spinner) spinner.style.display = 'inline-flex';
+            if (spinner) {
+                spinner.style.display = 'inline-flex';
+                spinner.style.visibility = 'visible';
+            }
             if (saveIcon) saveIcon.style.display = 'none';
         }
         if (cancelBtn) {
@@ -1689,7 +1687,10 @@
                 saveBtn.disabled = false;
                 const spinner = saveBtn.querySelector('.btn-loading-spinner');
                 const saveIcon = saveBtn.querySelector('.material-symbols-rounded:not(.btn-loading-spinner .material-symbols-rounded)');
-                if (spinner) spinner.style.display = 'none';
+                if (spinner) {
+                    spinner.style.display = 'none';
+                    spinner.style.visibility = 'hidden';
+                }
                 if (saveIcon) saveIcon.style.display = 'inline-flex';
             }
             if (cancelBtn) {

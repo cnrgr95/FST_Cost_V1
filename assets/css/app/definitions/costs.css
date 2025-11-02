@@ -63,11 +63,19 @@
     display: none;
     margin-left: 8px;
     align-items: center;
+    justify-content: center;
+}
+
+.btn-loading-spinner[style*="display: inline-flex"] {
+    display: inline-flex !important;
 }
 
 .btn-loading-spinner .loading-spinner {
     animation: spin 1s linear infinite;
     font-size: 18px;
+    display: inline-flex;
+    width: 18px;
+    height: 18px;
 }
 
 @keyframes spin {
@@ -375,34 +383,33 @@
     color: white;
 }
 
-/* Period Styles - Enhanced Visibility */
+/* Period Styles - Ultra Compact when closed */
 .period-item {
-    border: 2px solid #d1d5db !important;
-    border-radius: 12px !important;
-    margin-bottom: 8px !important;
+    border: 1px solid #d1d5db !important;
+    border-radius: 6px !important;
+    margin-bottom: 6px !important;
     background: white;
     overflow: hidden;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
     transition: all 0.2s ease;
 }
 
 .period-item:hover {
     border-color: #9ca3af !important;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
 }
 
 .period-header {
     display: flex;
-    justify-content: flex-start;
     align-items: center;
-    padding: 4px 12px;
+    gap: 6px;
+    padding: 4px 8px;
     background: #f9fafb;
     cursor: pointer;
     transition: all 0.2s ease;
     user-select: none;
     border-bottom: 1px solid #e5e7eb;
-    min-height: 27px;
-    line-height: 1.1;
+    line-height: 1.2;
     flex-shrink: 0;
 }
 
@@ -411,63 +418,20 @@
     border-bottom-color: #d1d5db;
 }
 
-.period-header-content {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 8px;
-    flex: 1;
-    width: 100%;
-    min-width: 0;
-}
-
-.period-header-left {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    flex: 0 1 auto;
-    min-width: 0;
-    overflow: hidden;
-}
-
-.period-header-right {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    flex: 0 0 auto;
-    margin-left: auto;
-    flex-shrink: 0;
-}
-
-.period-toggle {
-    background: transparent;
-    border: none;
-    padding: 0;
-    margin: 0;
-    cursor: pointer;
+.period-toggle-icon {
+    font-size: 16px;
     color: #6b7280;
-    display: flex;
+    transition: transform 0.2s ease;
+    flex-shrink: 0;
+    width: 16px;
+    height: 16px;
+    display: inline-flex;
     align-items: center;
     justify-content: center;
-    width: 20px;
-    height: 20px;
-    border-radius: 4px;
-    transition: all 0.2s ease;
-    flex-shrink: 0;
 }
 
-.period-toggle:hover {
+.period-header:hover .period-toggle-icon {
     color: #151A2D;
-    background: rgba(21, 26, 45, 0.1);
-}
-
-.period-toggle-icon {
-    font-size: 18px;
-    transition: transform 0.2s ease;
-    font-weight: normal;
-    line-height: 1;
-    margin: 0;
-    padding: 0;
 }
 
 .period-title {
@@ -475,9 +439,9 @@
     font-size: 14px !important;
     font-weight: 600 !important;
     color: #151A2D !important;
-    flex: 0 1 auto;
+    flex: 1;
     letter-spacing: -0.1px;
-    line-height: 1.3 !important;
+    line-height: 1.4 !important;
     padding: 0 !important;
     white-space: nowrap;
     overflow: hidden;
@@ -486,45 +450,51 @@
 }
 
 .period-dates {
-    font-size: 13px !important;
-    color: #4b5563 !important;
+    font-size: 12px !important;
+    color: #6b7280 !important;
     font-weight: 500 !important;
-    padding: 4px 10px;
+    padding: 3px 8px;
     margin: 0;
-    background: rgba(21, 26, 45, 0.06);
-    border-radius: 6px;
+    background: rgba(21, 26, 45, 0.05);
+    border-radius: 4px;
     display: inline-flex;
     align-items: center;
     line-height: 1.3 !important;
-    flex: 0 0 auto;
     white-space: nowrap;
     flex-shrink: 0;
 }
 
 .period-delete-btn {
-    padding: 4px;
-    margin: 0;
+    padding: 2px;
+    margin: 0 0 0 auto;
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    width: 24px;
-    height: 24px;
-    min-height: 24px;
-    line-height: 1;
-    flex: 0 0 auto;
+    width: 18px;
+    height: 18px;
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    border-radius: 3px;
     flex-shrink: 0;
-    border-radius: 4px;
+    color: #ef4444;
+    transition: all 0.2s ease;
+}
+
+.period-delete-btn:hover {
+    background: #fee2e2;
+    color: #dc2626;
 }
 
 .period-delete-btn .material-symbols-rounded {
-    font-size: 18px;
+    font-size: 14px;
     line-height: 1;
     margin: 0;
     padding: 0;
 }
 
 .period-body {
-    padding: 12px;
+    padding: 10px 12px;
     border-top: 1px solid #e5e7eb;
     background: #ffffff;
     flex: 1;
@@ -533,12 +503,16 @@
 }
 
 .period-items-container {
-    margin-top: 12px;
+    margin-top: 10px;
 }
 
-/* Reduce spacing in period body forms */
+.period-items-container .item-block:last-child {
+    margin-bottom: 0;
+}
+
+/* Compact spacing in period body forms */
 .period-body .form-group {
-    margin-bottom: 8px !important;
+    margin-bottom: 10px !important;
 }
 
 .period-body .form-group:last-child {
@@ -546,41 +520,55 @@
 }
 
 .period-body .form-row {
-    margin-bottom: 8px !important;
+    margin-bottom: 10px !important;
+    gap: 10px !important;
 }
 
 .period-body .form-row:last-child {
     margin-bottom: 0 !important;
 }
 
-/* Reduce input/select padding in period body */
+/* Compact input/select in period body */
 .period-body input,
 .period-body select,
 .period-body textarea {
-    padding: 6px 10px !important;
+    padding: 8px 12px !important;
     font-size: 14px;
 }
 
-/* Reduce label margin in period body */
+/* Compact label margin in period body */
 .period-body label {
-    margin-bottom: 4px !important;
+    margin-bottom: 6px !important;
     font-size: 13px;
 }
 
-/* Item Styles */
+/* Item Styles - Compact */
 .item-block {
     border: 1px solid #d1d5db;
-    border-radius: 8px;
-    margin-bottom: 16px;
+    border-radius: 6px;
+    margin-bottom: 10px;
     background: white;
+}
+
+.item-block .form-row {
+    margin-bottom: 10px !important;
+    gap: 10px !important;
+}
+
+.item-block .form-row:last-child {
+    margin-bottom: 0 !important;
+}
+
+.item-block .form-group {
+    margin-bottom: 0 !important;
 }
 
 .item-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 12px 16px;
-    background: #f3f4f6;
+    padding: 8px 12px;
+    background: #f9fafb;
     border-bottom: 1px solid #e5e7eb;
     border-radius: 8px 8px 0 0;
 }
@@ -593,74 +581,93 @@
 }
 
 .item-body {
-    padding: 16px;
+    padding: 12px;
 }
 
 .item-prices {
     margin-top: 16px;
 }
 
-/* Price Block Styles */
+/* Price Block Styles - Compact */
 .price-block {
-    margin-top: 16px;
-    padding: 16px;
+    margin-top: 12px;
+    padding: 12px;
     background: #f9fafb;
     border-radius: 6px;
     border: 1px solid #e5e7eb;
 }
 
+.price-block .form-row {
+    margin-bottom: 10px !important;
+    gap: 10px !important;
+}
+
+.price-block .form-row:last-child {
+    margin-bottom: 0 !important;
+}
+
+.price-block .form-group {
+    margin-bottom: 0 !important;
+}
+
 .person-prices {
     display: flex;
     flex-direction: column;
-    gap: 12px;
+    gap: 10px;
 }
 
 .person-price-row {
     display: flex;
     align-items: center;
-    gap: 12px;
+    gap: 10px;
+    padding: 8px;
+    background: white;
+    border-radius: 6px;
+    border: 1px solid #e5e7eb;
 }
 
 .age-group-label {
-    min-width: 80px;
+    min-width: 70px;
     font-weight: 500;
     color: #374151;
     font-size: 13px;
+    flex-shrink: 0;
 }
 
 .regional-prices-list {
     display: flex;
     flex-direction: column;
-    gap: 12px;
-    margin-top: 12px;
+    gap: 8px;
+    margin-top: 10px;
 }
 
 .regional-price-row {
     display: flex;
     align-items: center;
-    gap: 12px;
-    padding: 12px;
+    gap: 10px;
+    padding: 8px;
     background: white;
     border-radius: 6px;
     border: 1px solid #e5e7eb;
 }
 
 .regional-price-row label {
-    min-width: 150px;
+    min-width: 120px;
     font-weight: 500;
     color: #374151;
     font-size: 13px;
+    flex-shrink: 0;
 }
 
 .regional-person-prices-list {
     display: flex;
     flex-direction: column;
-    gap: 16px;
-    margin-top: 12px;
+    gap: 10px;
+    margin-top: 10px;
 }
 
 .regional-person-price-group {
-    padding: 16px;
+    padding: 12px;
     background: white;
     border-radius: 6px;
     border: 1px solid #e5e7eb;
@@ -709,22 +716,50 @@
     cursor: pointer;
 }
 
-/* Form Row */
-/* Form-row is now defined in common.css, but we can override for specific layouts if needed */
-.costs-container .form-row {
+/* Form Row - Compact */
+#costsModal .modal-body {
+    padding: 20px;
+    max-height: calc(100vh - 200px);
+    overflow-y: auto;
+}
+
+#costsModal .form-row {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-    gap: 20px;
+    gap: 16px;
+    margin-bottom: 16px;
+}
+
+#costsModal .form-row:last-child {
+    margin-bottom: 0;
 }
 
 /* For Cost Code and Cost Name - 2 columns */
-.modal-body .form-row:first-of-type {
+#costsModal .modal-body .form-row:first-of-type {
     grid-template-columns: 1fr 1fr;
+    gap: 16px;
 }
 
 /* For Country, Region, City - 3 columns */
-.modal-body .form-row:nth-of-type(2) {
+#costsModal .modal-body .form-row:nth-of-type(2) {
     grid-template-columns: 1fr 1fr 1fr;
+    gap: 16px;
+}
+
+#costsModal .form-group {
+    margin-bottom: 0;
+}
+
+#costsModal .form-group label {
+    margin-bottom: 6px;
+    font-size: 13px;
+    font-weight: 500;
+}
+
+#costsModal .form-group input,
+#costsModal .form-group select {
+    padding: 8px 12px;
+    font-size: 14px;
 }
 
 /* For Period Name and Date Range - 2 columns */
@@ -746,11 +781,21 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 12px;
+    margin-bottom: 10px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid #e5e7eb;
 }
 
 .form-group-header label {
     margin-bottom: 0;
+    font-size: 14px;
+    font-weight: 600;
+    color: #374151;
+}
+
+.form-group-header .btn-secondary.btn-sm {
+    padding: 6px 12px;
+    font-size: 13px;
 }
 
 .btn-sm {
