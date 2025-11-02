@@ -7,6 +7,11 @@
 
 header('Content-Type: text/html; charset=utf-8');
 
+// Load platform helper if available
+if (file_exists(__DIR__ . DIRECTORY_SEPARATOR . 'includes' . DIRECTORY_SEPARATOR . 'platform_helper.php')) {
+    require_once __DIR__ . DIRECTORY_SEPARATOR . 'includes' . DIRECTORY_SEPARATOR . 'platform_helper.php';
+}
+
 ?>
 <!DOCTYPE html>
 <html lang="tr">
@@ -149,13 +154,13 @@ header('Content-Type: text/html; charset=utf-8');
             'required' => true
         ],
         'Uploads Directory' => [
-            'path' => __DIR__ . '/uploads',
+            'path' => __DIR__ . DIRECTORY_SEPARATOR . 'uploads',
             'check' => 'is_dir',
             'required' => true,
             'writable' => true
         ],
         'Logs Directory' => [
-            'path' => __DIR__ . '/logs',
+            'path' => __DIR__ . DIRECTORY_SEPARATOR . 'logs',
             'check' => 'is_dir',
             'required' => true,
             'writable' => true
@@ -164,7 +169,12 @@ header('Content-Type: text/html; charset=utf-8');
     
     foreach ($directories as $name => $dir) {
         $exists = $dir['check']($dir['path']);
-        $writable = isset($dir['writable']) ? is_writable($dir['path']) : null;
+        // Use platform helper for writable check if available
+        if (function_exists('isDirectoryWritable')) {
+            $writable = isset($dir['writable']) ? isDirectoryWritable($dir['path']) : null;
+        } else {
+            $writable = isset($dir['writable']) ? is_writable($dir['path']) : null;
+        }
         
         $requirements[$name] = [
             'status' => $exists && ($writable === null || $writable),

@@ -34,9 +34,14 @@ mb_internal_encoding('UTF-8');
 mb_http_output('UTF-8');
 mb_regex_encoding('UTF-8');
 
-// Base Path Configuration
+// Base Path Configuration - Platform independent
 if (!defined('BASE_PATH')) {
-    $basePath = __DIR__ . DIRECTORY_SEPARATOR;
+    // Use realpath to resolve symlinks and normalize path
+    $basePath = realpath(__DIR__);
+    if ($basePath === false) {
+        $basePath = __DIR__;
+    }
+    $basePath = $basePath . DIRECTORY_SEPARATOR;
     define('BASE_PATH', $basePath);
 }
 
@@ -86,8 +91,34 @@ ini_set('session.use_strict_mode', 1);
 ini_set('session.cookie_samesite', 'Strict');
 ini_set('session.cookie_secure', isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? 1 : 0);
 
-// Timezone
-date_default_timezone_set('Europe/Istanbul'); // Change as needed
+// Load platform helper early for timezone function
+if (file_exists(__DIR__ . DIRECTORY_SEPARATOR . 'includes' . DIRECTORY_SEPARATOR . 'platform_helper.php')) {
+    require_once __DIR__ . DIRECTORY_SEPARATOR . 'includes' . DIRECTORY_SEPARATOR . 'platform_helper.php';
+}
+
+// Timezone - Load from .env or use system default
+$timezone = $_ENV['APP_TIMEZONE'] ?? null;
+if (empty($timezone)) {
+    // Use platform helper if available, otherwise fallback
+    if (function_exists('getSystemTimezone')) {
+        $timezone = getSystemTimezone('Europe/Istanbul');
+    } else {
+        // Fallback: try PHP ini or use default
+        $tz = ini_get('date.timezone');
+        $timezone = !empty($tz) ? $tz : 'Europe/Istanbul';
+    }
+}
+if (!empty($timezone)) {
+    try {
+        date_default_timezone_set($timezone);
+    } catch (Exception $e) {
+        // Fallback to UTC if invalid timezone
+        error_log("Invalid timezone '{$timezone}', using UTC");
+        date_default_timezone_set('UTC');
+        $timezone = 'UTC';
+    }
+}
+define('APP_TIMEZONE', $timezone);
 
 // Error Reporting
 // In production, always disable error reporting regardless of APP_DEBUG
@@ -109,16 +140,18 @@ if (APP_ENV === 'production') {
     ini_set('log_errors', 1);
 }
 
+// Platform helper already loaded above for timezone support
+
 // Logging
 define('LOG_PATH', BASE_PATH . 'logs' . DIRECTORY_SEPARATOR);
 if (!file_exists(LOG_PATH)) {
-    mkdir(LOG_PATH, 0755, true);
+    createDirectory(LOG_PATH, getDefaultDirMode(), true);
 }
 
 // Upload Configuration
 define('UPLOAD_PATH', BASE_PATH . 'uploads' . DIRECTORY_SEPARATOR);
 if (!file_exists(UPLOAD_PATH)) {
-    mkdir(UPLOAD_PATH, 0755, true);
+    createDirectory(UPLOAD_PATH, getDefaultDirMode(), true);
 }
 define('UPLOAD_MAX_SIZE', 5242880); // 5 MB
 define('UPLOAD_ALLOWED_TYPES', ['jpg', 'jpeg', 'png', 'gif', 'pdf']);
@@ -166,36 +199,66 @@ if (!defined('API_REQUEST')) {
 /**
  * Get database connection
  */
-function getDbConnection() {
-    try {
-        $conn = pg_connect(DB_CONNECTION_STRING);
-        
-        if (!$conn) {
-            throw new Exception("Database connection failed: " . pg_last_error());
+/**
+ * Get database connection with retry logic
+ * @param int $maxRetries Maximum retry attempts (default: 3)
+ * @param int $retryDelay Delay between retries in seconds (default: 1)
+ * @return resource|false Database connection or false on failure
+ */
+function getDbConnection($maxRetries = 3, $retryDelay = 1) {
+    $attempt = 0;
+    
+    while ($attempt < $maxRetries) {
+        try {
+            // Add connection timeout (5 seconds)
+            $connString = DB_CONNECTION_STRING . ' connect_timeout=5';
+            $conn = @pg_connect($connString, PGSQL_CONNECT_FORCE_NEW);
+            
+            if (!$conn) {
+                $error = pg_last_error();
+                $attempt++;
+                
+                if ($attempt < $maxRetries) {
+                    error_log("Database connection attempt {$attempt} failed: {$error}. Retrying in {$retryDelay} seconds...");
+                    sleep($retryDelay);
+                    continue;
+                }
+                
+                throw new Exception("Database connection failed after {$maxRetries} attempts: " . ($error ?: 'Unknown error'));
+            }
+            
+            // Set client encoding to UTF-8 to prevent character encoding issues
+            $encoding_result = pg_set_client_encoding($conn, 'UTF8');
+            if ($encoding_result !== 0) {
+                error_log("Warning: Failed to set client encoding to UTF8. Error code: " . $encoding_result);
+            }
+            
+            return $conn;
+            
+        } catch (Exception $e) {
+            $attempt++;
+            
+            if ($attempt >= $maxRetries) {
+                error_log("Database connection error after {$maxRetries} attempts: " . $e->getMessage());
+                
+                // Don't use die() in API requests, let the caller handle the error
+                if (APP_DEBUG && !defined('API_REQUEST')) {
+                    die("Database connection failed: " . $e->getMessage());
+                }
+                
+                // For API requests, throw exception so it can be caught and returned as JSON
+                if (defined('API_REQUEST')) {
+                    throw $e;
+                }
+                
+                return null;
+            }
+            
+            sleep($retryDelay);
         }
-        
-        // Set client encoding to UTF-8 to prevent character encoding issues
-        $encoding_result = pg_set_client_encoding($conn, 'UTF8');
-        if ($encoding_result !== 0) {
-            error_log("Warning: Failed to set client encoding to UTF8. Error code: " . $encoding_result);
-        }
-        
-        return $conn;
-    } catch (Exception $e) {
-        error_log("Database connection error: " . $e->getMessage());
-        
-        // Don't use die() in API requests, let the caller handle the error
-        if (APP_DEBUG && !defined('API_REQUEST')) {
-            die("Database connection failed: " . $e->getMessage());
-        }
-        
-        // For API requests, throw exception so it can be caught and returned as JSON
-        if (defined('API_REQUEST')) {
-            throw $e;
-        }
-        
-        return null;
     }
+    
+    return null;
 }
 
 /**

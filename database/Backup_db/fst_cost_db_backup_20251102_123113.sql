@@ -1,13 +1,13 @@
-﻿--
+﻿﻿--
 -- PostgreSQL database dump
 --
 
-\restrict N9fRdcCmNH6EAvKO4OV4dSth7nWR1adudgGl7M81NndufeUmv9bdwtEmKXEtrwO
+\restrict HP8IjBVaPkLONqJWdgJiscY5isxG37bTd8SSGEk760O1JmTYQhev4i8vqjnBuei
 
 -- Dumped from database version 18.0
 -- Dumped by pg_dump version 18.0
 
--- Started on 2025-11-02 01:39:14
+-- Started on 2025-11-02 15:31:13
 
 SET statement_timeout = 0;
 SET lock_timeout = 0;
@@ -23,7 +23,7 @@ SET row_security = off;
 
 DROP DATABASE IF EXISTS fst_cost_db;
 --
--- TOC entry 5365 (class 1262 OID 26952)
+-- TOC entry 5380 (class 1262 OID 90679)
 -- Name: fst_cost_db; Type: DATABASE; Schema: -; Owner: postgres
 --
 
@@ -32,9 +32,9 @@ CREATE DATABASE fst_cost_db WITH TEMPLATE = template0 ENCODING = 'UTF8' LOCALE_P
 
 ALTER DATABASE fst_cost_db OWNER TO postgres;
 
-\unrestrict N9fRdcCmNH6EAvKO4OV4dSth7nWR1adudgGl7M81NndufeUmv9bdwtEmKXEtrwO
+\unrestrict HP8IjBVaPkLONqJWdgJiscY5isxG37bTd8SSGEk760O1JmTYQhev4i8vqjnBuei
 \connect fst_cost_db
-\restrict N9fRdcCmNH6EAvKO4OV4dSth7nWR1adudgGl7M81NndufeUmv9bdwtEmKXEtrwO
+\restrict HP8IjBVaPkLONqJWdgJiscY5isxG37bTd8SSGEk760O1JmTYQhev4i8vqjnBuei
 
 SET statement_timeout = 0;
 SET lock_timeout = 0;
@@ -49,7 +49,7 @@ SET client_min_messages = warning;
 SET row_security = off;
 
 --
--- TOC entry 256 (class 1255 OID 27271)
+-- TOC entry 257 (class 1255 OID 90680)
 -- Name: update_updated_at_column(); Type: FUNCTION; Schema: public; Owner: postgres
 --
 
@@ -70,7 +70,7 @@ SET default_tablespace = '';
 SET default_table_access_method = heap;
 
 --
--- TOC entry 224 (class 1259 OID 26986)
+-- TOC entry 219 (class 1259 OID 90681)
 -- Name: cities; Type: TABLE; Schema: public; Owner: postgres
 --
 
@@ -86,7 +86,7 @@ CREATE TABLE public.cities (
 ALTER TABLE public.cities OWNER TO postgres;
 
 --
--- TOC entry 223 (class 1259 OID 26985)
+-- TOC entry 220 (class 1259 OID 90688)
 -- Name: cities_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
 --
 
@@ -102,8 +102,8 @@ CREATE SEQUENCE public.cities_id_seq
 ALTER SEQUENCE public.cities_id_seq OWNER TO postgres;
 
 --
--- TOC entry 5366 (class 0 OID 0)
--- Dependencies: 223
+-- TOC entry 5381 (class 0 OID 0)
+-- Dependencies: 220
 -- Name: cities_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
 --
 
@@ -111,48 +111,7 @@ ALTER SEQUENCE public.cities_id_seq OWNED BY public.cities.id;
 
 
 --
--- TOC entry 255 (class 1259 OID 27493)
--- Name: costs; Type: TABLE; Schema: public; Owner: postgres
---
-
-CREATE TABLE public.costs (
-    id integer NOT NULL,
-    cost_code character varying(50) NOT NULL,
-    cost_name character varying(255) NOT NULL,
-    created_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP,
-    updated_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP
-);
-
-
-ALTER TABLE public.costs OWNER TO postgres;
-
---
--- TOC entry 254 (class 1259 OID 27492)
--- Name: costs_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
---
-
-CREATE SEQUENCE public.costs_id_seq
-    AS integer
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
-ALTER SEQUENCE public.costs_id_seq OWNER TO postgres;
-
---
--- TOC entry 5367 (class 0 OID 0)
--- Dependencies: 254
--- Name: costs_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
---
-
-ALTER SEQUENCE public.costs_id_seq OWNED BY public.costs.id;
-
-
---
--- TOC entry 220 (class 1259 OID 26954)
+-- TOC entry 221 (class 1259 OID 90698)
 -- Name: countries; Type: TABLE; Schema: public; Owner: postgres
 --
 
@@ -169,7 +128,7 @@ CREATE TABLE public.countries (
 ALTER TABLE public.countries OWNER TO postgres;
 
 --
--- TOC entry 219 (class 1259 OID 26953)
+-- TOC entry 222 (class 1259 OID 90705)
 -- Name: countries_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
 --
 
@@ -185,8 +144,8 @@ CREATE SEQUENCE public.countries_id_seq
 ALTER SEQUENCE public.countries_id_seq OWNER TO postgres;
 
 --
--- TOC entry 5368 (class 0 OID 0)
--- Dependencies: 219
+-- TOC entry 5382 (class 0 OID 0)
+-- Dependencies: 222
 -- Name: countries_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
 --
 
@@ -194,7 +153,7 @@ ALTER SEQUENCE public.countries_id_seq OWNED BY public.countries.id;
 
 
 --
--- TOC entry 244 (class 1259 OID 27183)
+-- TOC entry 223 (class 1259 OID 90706)
 -- Name: country_currencies; Type: TABLE; Schema: public; Owner: postgres
 --
 
@@ -212,7 +171,7 @@ CREATE TABLE public.country_currencies (
 ALTER TABLE public.country_currencies OWNER TO postgres;
 
 --
--- TOC entry 243 (class 1259 OID 27182)
+-- TOC entry 224 (class 1259 OID 90715)
 -- Name: country_currencies_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
 --
 
@@ -228,8 +187,8 @@ CREATE SEQUENCE public.country_currencies_id_seq
 ALTER SEQUENCE public.country_currencies_id_seq OWNER TO postgres;
 
 --
--- TOC entry 5369 (class 0 OID 0)
--- Dependencies: 243
+-- TOC entry 5383 (class 0 OID 0)
+-- Dependencies: 224
 -- Name: country_currencies_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
 --
 
@@ -237,7 +196,7 @@ ALTER SEQUENCE public.country_currencies_id_seq OWNED BY public.country_currenci
 
 
 --
--- TOC entry 242 (class 1259 OID 27168)
+-- TOC entry 225 (class 1259 OID 90716)
 -- Name: currencies; Type: TABLE; Schema: public; Owner: postgres
 --
 
@@ -255,7 +214,7 @@ CREATE TABLE public.currencies (
 ALTER TABLE public.currencies OWNER TO postgres;
 
 --
--- TOC entry 241 (class 1259 OID 27167)
+-- TOC entry 226 (class 1259 OID 90725)
 -- Name: currencies_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
 --
 
@@ -271,8 +230,8 @@ CREATE SEQUENCE public.currencies_id_seq
 ALTER SEQUENCE public.currencies_id_seq OWNER TO postgres;
 
 --
--- TOC entry 5370 (class 0 OID 0)
--- Dependencies: 241
+-- TOC entry 5384 (class 0 OID 0)
+-- Dependencies: 226
 -- Name: currencies_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
 --
 
@@ -280,7 +239,7 @@ ALTER SEQUENCE public.currencies_id_seq OWNED BY public.currencies.id;
 
 
 --
--- TOC entry 228 (class 1259 OID 27022)
+-- TOC entry 227 (class 1259 OID 90726)
 -- Name: departments; Type: TABLE; Schema: public; Owner: postgres
 --
 
@@ -296,7 +255,7 @@ CREATE TABLE public.departments (
 ALTER TABLE public.departments OWNER TO postgres;
 
 --
--- TOC entry 227 (class 1259 OID 27021)
+-- TOC entry 228 (class 1259 OID 90733)
 -- Name: departments_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
 --
 
@@ -312,8 +271,8 @@ CREATE SEQUENCE public.departments_id_seq
 ALTER SEQUENCE public.departments_id_seq OWNER TO postgres;
 
 --
--- TOC entry 5371 (class 0 OID 0)
--- Dependencies: 227
+-- TOC entry 5385 (class 0 OID 0)
+-- Dependencies: 228
 -- Name: departments_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
 --
 
@@ -321,7 +280,7 @@ ALTER SEQUENCE public.departments_id_seq OWNED BY public.departments.id;
 
 
 --
--- TOC entry 246 (class 1259 OID 27208)
+-- TOC entry 229 (class 1259 OID 90734)
 -- Name: exchange_rates; Type: TABLE; Schema: public; Owner: postgres
 --
 
@@ -336,14 +295,14 @@ CREATE TABLE public.exchange_rates (
     created_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP,
     updated_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP,
     CONSTRAINT exchange_rates_rate_check CHECK ((rate > (0)::numeric)),
-    CONSTRAINT exchange_rates_source_check CHECK (((source)::text = ANY ((ARRAY['manual'::character varying, 'cbrt'::character varying])::text[])))
+    CONSTRAINT exchange_rates_source_check CHECK (((source)::text = ANY (ARRAY[('manual'::character varying)::text, ('cbrt'::character varying)::text])))
 );
 
 
 ALTER TABLE public.exchange_rates OWNER TO postgres;
 
 --
--- TOC entry 245 (class 1259 OID 27207)
+-- TOC entry 230 (class 1259 OID 90748)
 -- Name: exchange_rates_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
 --
 
@@ -359,8 +318,8 @@ CREATE SEQUENCE public.exchange_rates_id_seq
 ALTER SEQUENCE public.exchange_rates_id_seq OWNER TO postgres;
 
 --
--- TOC entry 5372 (class 0 OID 0)
--- Dependencies: 245
+-- TOC entry 5386 (class 0 OID 0)
+-- Dependencies: 230
 -- Name: exchange_rates_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
 --
 
@@ -368,7 +327,7 @@ ALTER SEQUENCE public.exchange_rates_id_seq OWNED BY public.exchange_rates.id;
 
 
 --
--- TOC entry 232 (class 1259 OID 27058)
+-- TOC entry 231 (class 1259 OID 90749)
 -- Name: merchants; Type: TABLE; Schema: public; Owner: postgres
 --
 
@@ -392,7 +351,7 @@ CREATE TABLE public.merchants (
 ALTER TABLE public.merchants OWNER TO postgres;
 
 --
--- TOC entry 231 (class 1259 OID 27057)
+-- TOC entry 232 (class 1259 OID 90758)
 -- Name: merchants_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
 --
 
@@ -408,8 +367,8 @@ CREATE SEQUENCE public.merchants_id_seq
 ALTER SEQUENCE public.merchants_id_seq OWNER TO postgres;
 
 --
--- TOC entry 5373 (class 0 OID 0)
--- Dependencies: 231
+-- TOC entry 5387 (class 0 OID 0)
+-- Dependencies: 232
 -- Name: merchants_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
 --
 
@@ -417,7 +376,7 @@ ALTER SEQUENCE public.merchants_id_seq OWNED BY public.merchants.id;
 
 
 --
--- TOC entry 230 (class 1259 OID 27040)
+-- TOC entry 233 (class 1259 OID 90759)
 -- Name: positions; Type: TABLE; Schema: public; Owner: postgres
 --
 
@@ -433,7 +392,7 @@ CREATE TABLE public.positions (
 ALTER TABLE public.positions OWNER TO postgres;
 
 --
--- TOC entry 229 (class 1259 OID 27039)
+-- TOC entry 234 (class 1259 OID 90766)
 -- Name: positions_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
 --
 
@@ -449,8 +408,8 @@ CREATE SEQUENCE public.positions_id_seq
 ALTER SEQUENCE public.positions_id_seq OWNER TO postgres;
 
 --
--- TOC entry 5374 (class 0 OID 0)
--- Dependencies: 229
+-- TOC entry 5388 (class 0 OID 0)
+-- Dependencies: 234
 -- Name: positions_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
 --
 
@@ -458,7 +417,7 @@ ALTER SEQUENCE public.positions_id_seq OWNED BY public.positions.id;
 
 
 --
--- TOC entry 222 (class 1259 OID 26968)
+-- TOC entry 235 (class 1259 OID 90767)
 -- Name: regions; Type: TABLE; Schema: public; Owner: postgres
 --
 
@@ -474,7 +433,7 @@ CREATE TABLE public.regions (
 ALTER TABLE public.regions OWNER TO postgres;
 
 --
--- TOC entry 221 (class 1259 OID 26967)
+-- TOC entry 236 (class 1259 OID 90774)
 -- Name: regions_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
 --
 
@@ -490,8 +449,8 @@ CREATE SEQUENCE public.regions_id_seq
 ALTER SEQUENCE public.regions_id_seq OWNER TO postgres;
 
 --
--- TOC entry 5375 (class 0 OID 0)
--- Dependencies: 221
+-- TOC entry 5389 (class 0 OID 0)
+-- Dependencies: 236
 -- Name: regions_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
 --
 
@@ -499,7 +458,7 @@ ALTER SEQUENCE public.regions_id_seq OWNED BY public.regions.id;
 
 
 --
--- TOC entry 226 (class 1259 OID 27004)
+-- TOC entry 237 (class 1259 OID 90775)
 -- Name: sub_regions; Type: TABLE; Schema: public; Owner: postgres
 --
 
@@ -515,7 +474,7 @@ CREATE TABLE public.sub_regions (
 ALTER TABLE public.sub_regions OWNER TO postgres;
 
 --
--- TOC entry 225 (class 1259 OID 27003)
+-- TOC entry 238 (class 1259 OID 90782)
 -- Name: sub_regions_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
 --
 
@@ -531,8 +490,8 @@ CREATE SEQUENCE public.sub_regions_id_seq
 ALTER SEQUENCE public.sub_regions_id_seq OWNER TO postgres;
 
 --
--- TOC entry 5376 (class 0 OID 0)
--- Dependencies: 225
+-- TOC entry 5390 (class 0 OID 0)
+-- Dependencies: 238
 -- Name: sub_regions_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
 --
 
@@ -540,7 +499,7 @@ ALTER SEQUENCE public.sub_regions_id_seq OWNED BY public.sub_regions.id;
 
 
 --
--- TOC entry 253 (class 1259 OID 27463)
+-- TOC entry 239 (class 1259 OID 90783)
 -- Name: tour_contract_routes; Type: TABLE; Schema: public; Owner: postgres
 --
 
@@ -557,7 +516,7 @@ CREATE TABLE public.tour_contract_routes (
 ALTER TABLE public.tour_contract_routes OWNER TO postgres;
 
 --
--- TOC entry 252 (class 1259 OID 27462)
+-- TOC entry 240 (class 1259 OID 90792)
 -- Name: tour_contract_routes_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
 --
 
@@ -573,8 +532,8 @@ CREATE SEQUENCE public.tour_contract_routes_id_seq
 ALTER SEQUENCE public.tour_contract_routes_id_seq OWNER TO postgres;
 
 --
--- TOC entry 5377 (class 0 OID 0)
--- Dependencies: 252
+-- TOC entry 5391 (class 0 OID 0)
+-- Dependencies: 240
 -- Name: tour_contract_routes_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
 --
 
@@ -582,7 +541,72 @@ ALTER SEQUENCE public.tour_contract_routes_id_seq OWNED BY public.tour_contract_
 
 
 --
--- TOC entry 251 (class 1259 OID 27445)
+-- TOC entry 256 (class 1259 OID 91350)
+-- Name: tour_group_members; Type: TABLE; Schema: public; Owner: postgres
+--
+
+CREATE TABLE public.tour_group_members (
+    tour_group_id integer NOT NULL,
+    tour_id integer NOT NULL,
+    created_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP,
+    priority integer DEFAULT 0
+);
+
+
+ALTER TABLE public.tour_group_members OWNER TO postgres;
+
+--
+-- TOC entry 5392 (class 0 OID 0)
+-- Dependencies: 256
+-- Name: COLUMN tour_group_members.priority; Type: COMMENT; Schema: public; Owner: postgres
+--
+
+COMMENT ON COLUMN public.tour_group_members.priority IS 'Önem sırası (0 = en önemli, yüksek sayı = daha az önemli)';
+
+
+--
+-- TOC entry 255 (class 1259 OID 91338)
+-- Name: tour_groups; Type: TABLE; Schema: public; Owner: postgres
+--
+
+CREATE TABLE public.tour_groups (
+    id integer NOT NULL,
+    name character varying(255) NOT NULL,
+    description text,
+    created_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP,
+    updated_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP
+);
+
+
+ALTER TABLE public.tour_groups OWNER TO postgres;
+
+--
+-- TOC entry 254 (class 1259 OID 91337)
+-- Name: tour_groups_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
+--
+
+CREATE SEQUENCE public.tour_groups_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER SEQUENCE public.tour_groups_id_seq OWNER TO postgres;
+
+--
+-- TOC entry 5393 (class 0 OID 0)
+-- Dependencies: 254
+-- Name: tour_groups_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
+--
+
+ALTER SEQUENCE public.tour_groups_id_seq OWNED BY public.tour_groups.id;
+
+
+--
+-- TOC entry 241 (class 1259 OID 90793)
 -- Name: tour_sub_regions; Type: TABLE; Schema: public; Owner: postgres
 --
 
@@ -595,7 +619,7 @@ CREATE TABLE public.tour_sub_regions (
 ALTER TABLE public.tour_sub_regions OWNER TO postgres;
 
 --
--- TOC entry 250 (class 1259 OID 27418)
+-- TOC entry 242 (class 1259 OID 90798)
 -- Name: tours; Type: TABLE; Schema: public; Owner: postgres
 --
 
@@ -607,14 +631,17 @@ CREATE TABLE public.tours (
     merchant_id integer,
     vehicle_contract_id integer,
     created_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP,
-    updated_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP
+    updated_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP,
+    country_id integer,
+    region_id integer,
+    city_id integer
 );
 
 
 ALTER TABLE public.tours OWNER TO postgres;
 
 --
--- TOC entry 249 (class 1259 OID 27417)
+-- TOC entry 243 (class 1259 OID 90805)
 -- Name: tours_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
 --
 
@@ -630,8 +657,8 @@ CREATE SEQUENCE public.tours_id_seq
 ALTER SEQUENCE public.tours_id_seq OWNER TO postgres;
 
 --
--- TOC entry 5378 (class 0 OID 0)
--- Dependencies: 249
+-- TOC entry 5394 (class 0 OID 0)
+-- Dependencies: 243
 -- Name: tours_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
 --
 
@@ -639,7 +666,7 @@ ALTER SEQUENCE public.tours_id_seq OWNED BY public.tours.id;
 
 
 --
--- TOC entry 240 (class 1259 OID 27136)
+-- TOC entry 244 (class 1259 OID 90806)
 -- Name: users; Type: TABLE; Schema: public; Owner: postgres
 --
 
@@ -655,14 +682,14 @@ CREATE TABLE public.users (
     status character varying(20) DEFAULT 'active'::character varying,
     created_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP,
     updated_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP,
-    CONSTRAINT users_status_check CHECK (((status)::text = ANY ((ARRAY['active'::character varying, 'inactive'::character varying])::text[])))
+    CONSTRAINT users_status_check CHECK (((status)::text = ANY (ARRAY[('active'::character varying)::text, ('inactive'::character varying)::text])))
 );
 
 
 ALTER TABLE public.users OWNER TO postgres;
 
 --
--- TOC entry 239 (class 1259 OID 27135)
+-- TOC entry 245 (class 1259 OID 90817)
 -- Name: users_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
 --
 
@@ -678,8 +705,8 @@ CREATE SEQUENCE public.users_id_seq
 ALTER SEQUENCE public.users_id_seq OWNER TO postgres;
 
 --
--- TOC entry 5379 (class 0 OID 0)
--- Dependencies: 239
+-- TOC entry 5395 (class 0 OID 0)
+-- Dependencies: 245
 -- Name: users_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
 --
 
@@ -687,7 +714,7 @@ ALTER SEQUENCE public.users_id_seq OWNED BY public.users.id;
 
 
 --
--- TOC entry 234 (class 1259 OID 27078)
+-- TOC entry 246 (class 1259 OID 90818)
 -- Name: vehicle_companies; Type: TABLE; Schema: public; Owner: postgres
 --
 
@@ -706,7 +733,7 @@ CREATE TABLE public.vehicle_companies (
 ALTER TABLE public.vehicle_companies OWNER TO postgres;
 
 --
--- TOC entry 233 (class 1259 OID 27077)
+-- TOC entry 247 (class 1259 OID 90827)
 -- Name: vehicle_companies_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
 --
 
@@ -722,8 +749,8 @@ CREATE SEQUENCE public.vehicle_companies_id_seq
 ALTER SEQUENCE public.vehicle_companies_id_seq OWNER TO postgres;
 
 --
--- TOC entry 5380 (class 0 OID 0)
--- Dependencies: 233
+-- TOC entry 5396 (class 0 OID 0)
+-- Dependencies: 247
 -- Name: vehicle_companies_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
 --
 
@@ -731,7 +758,7 @@ ALTER SEQUENCE public.vehicle_companies_id_seq OWNED BY public.vehicle_companies
 
 
 --
--- TOC entry 248 (class 1259 OID 27317)
+-- TOC entry 248 (class 1259 OID 90828)
 -- Name: vehicle_contract_routes; Type: TABLE; Schema: public; Owner: postgres
 --
 
@@ -750,7 +777,7 @@ CREATE TABLE public.vehicle_contract_routes (
 ALTER TABLE public.vehicle_contract_routes OWNER TO postgres;
 
 --
--- TOC entry 247 (class 1259 OID 27316)
+-- TOC entry 249 (class 1259 OID 90841)
 -- Name: vehicle_contract_routes_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
 --
 
@@ -766,8 +793,8 @@ CREATE SEQUENCE public.vehicle_contract_routes_id_seq
 ALTER SEQUENCE public.vehicle_contract_routes_id_seq OWNER TO postgres;
 
 --
--- TOC entry 5381 (class 0 OID 0)
--- Dependencies: 247
+-- TOC entry 5397 (class 0 OID 0)
+-- Dependencies: 249
 -- Name: vehicle_contract_routes_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
 --
 
@@ -775,7 +802,7 @@ ALTER SEQUENCE public.vehicle_contract_routes_id_seq OWNED BY public.vehicle_con
 
 
 --
--- TOC entry 238 (class 1259 OID 27116)
+-- TOC entry 250 (class 1259 OID 90842)
 -- Name: vehicle_contracts; Type: TABLE; Schema: public; Owner: postgres
 --
 
@@ -793,7 +820,7 @@ CREATE TABLE public.vehicle_contracts (
 ALTER TABLE public.vehicle_contracts OWNER TO postgres;
 
 --
--- TOC entry 237 (class 1259 OID 27115)
+-- TOC entry 251 (class 1259 OID 90851)
 -- Name: vehicle_contracts_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
 --
 
@@ -809,8 +836,8 @@ CREATE SEQUENCE public.vehicle_contracts_id_seq
 ALTER SEQUENCE public.vehicle_contracts_id_seq OWNER TO postgres;
 
 --
--- TOC entry 5382 (class 0 OID 0)
--- Dependencies: 237
+-- TOC entry 5398 (class 0 OID 0)
+-- Dependencies: 251
 -- Name: vehicle_contracts_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
 --
 
@@ -818,7 +845,7 @@ ALTER SEQUENCE public.vehicle_contracts_id_seq OWNED BY public.vehicle_contracts
 
 
 --
--- TOC entry 236 (class 1259 OID 27098)
+-- TOC entry 252 (class 1259 OID 90852)
 -- Name: vehicle_types; Type: TABLE; Schema: public; Owner: postgres
 --
 
@@ -836,7 +863,7 @@ CREATE TABLE public.vehicle_types (
 ALTER TABLE public.vehicle_types OWNER TO postgres;
 
 --
--- TOC entry 235 (class 1259 OID 27097)
+-- TOC entry 253 (class 1259 OID 90859)
 -- Name: vehicle_types_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
 --
 
@@ -852,8 +879,8 @@ CREATE SEQUENCE public.vehicle_types_id_seq
 ALTER SEQUENCE public.vehicle_types_id_seq OWNER TO postgres;
 
 --
--- TOC entry 5383 (class 0 OID 0)
--- Dependencies: 235
+-- TOC entry 5399 (class 0 OID 0)
+-- Dependencies: 253
 -- Name: vehicle_types_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
 --
 
@@ -861,7 +888,7 @@ ALTER SEQUENCE public.vehicle_types_id_seq OWNED BY public.vehicle_types.id;
 
 
 --
--- TOC entry 4952 (class 2604 OID 26989)
+-- TOC entry 4950 (class 2604 OID 90860)
 -- Name: cities id; Type: DEFAULT; Schema: public; Owner: postgres
 --
 
@@ -869,15 +896,7 @@ ALTER TABLE ONLY public.cities ALTER COLUMN id SET DEFAULT nextval('public.citie
 
 
 --
--- TOC entry 5002 (class 2604 OID 27496)
--- Name: costs id; Type: DEFAULT; Schema: public; Owner: postgres
---
-
-ALTER TABLE ONLY public.costs ALTER COLUMN id SET DEFAULT nextval('public.costs_id_seq'::regclass);
-
-
---
--- TOC entry 4946 (class 2604 OID 26957)
+-- TOC entry 4953 (class 2604 OID 90862)
 -- Name: countries id; Type: DEFAULT; Schema: public; Owner: postgres
 --
 
@@ -885,7 +904,7 @@ ALTER TABLE ONLY public.countries ALTER COLUMN id SET DEFAULT nextval('public.co
 
 
 --
--- TOC entry 4984 (class 2604 OID 27186)
+-- TOC entry 4956 (class 2604 OID 90863)
 -- Name: country_currencies id; Type: DEFAULT; Schema: public; Owner: postgres
 --
 
@@ -893,7 +912,7 @@ ALTER TABLE ONLY public.country_currencies ALTER COLUMN id SET DEFAULT nextval('
 
 
 --
--- TOC entry 4980 (class 2604 OID 27171)
+-- TOC entry 4960 (class 2604 OID 90864)
 -- Name: currencies id; Type: DEFAULT; Schema: public; Owner: postgres
 --
 
@@ -901,7 +920,7 @@ ALTER TABLE ONLY public.currencies ALTER COLUMN id SET DEFAULT nextval('public.c
 
 
 --
--- TOC entry 4958 (class 2604 OID 27025)
+-- TOC entry 4964 (class 2604 OID 90865)
 -- Name: departments id; Type: DEFAULT; Schema: public; Owner: postgres
 --
 
@@ -909,7 +928,7 @@ ALTER TABLE ONLY public.departments ALTER COLUMN id SET DEFAULT nextval('public.
 
 
 --
--- TOC entry 4988 (class 2604 OID 27211)
+-- TOC entry 4967 (class 2604 OID 90866)
 -- Name: exchange_rates id; Type: DEFAULT; Schema: public; Owner: postgres
 --
 
@@ -917,7 +936,7 @@ ALTER TABLE ONLY public.exchange_rates ALTER COLUMN id SET DEFAULT nextval('publ
 
 
 --
--- TOC entry 4964 (class 2604 OID 27061)
+-- TOC entry 4971 (class 2604 OID 90867)
 -- Name: merchants id; Type: DEFAULT; Schema: public; Owner: postgres
 --
 
@@ -925,7 +944,7 @@ ALTER TABLE ONLY public.merchants ALTER COLUMN id SET DEFAULT nextval('public.me
 
 
 --
--- TOC entry 4961 (class 2604 OID 27043)
+-- TOC entry 4974 (class 2604 OID 90868)
 -- Name: positions id; Type: DEFAULT; Schema: public; Owner: postgres
 --
 
@@ -933,7 +952,7 @@ ALTER TABLE ONLY public.positions ALTER COLUMN id SET DEFAULT nextval('public.po
 
 
 --
--- TOC entry 4949 (class 2604 OID 26971)
+-- TOC entry 4977 (class 2604 OID 90869)
 -- Name: regions id; Type: DEFAULT; Schema: public; Owner: postgres
 --
 
@@ -941,7 +960,7 @@ ALTER TABLE ONLY public.regions ALTER COLUMN id SET DEFAULT nextval('public.regi
 
 
 --
--- TOC entry 4955 (class 2604 OID 27007)
+-- TOC entry 4980 (class 2604 OID 90870)
 -- Name: sub_regions id; Type: DEFAULT; Schema: public; Owner: postgres
 --
 
@@ -949,7 +968,7 @@ ALTER TABLE ONLY public.sub_regions ALTER COLUMN id SET DEFAULT nextval('public.
 
 
 --
--- TOC entry 4999 (class 2604 OID 27466)
+-- TOC entry 4983 (class 2604 OID 90871)
 -- Name: tour_contract_routes id; Type: DEFAULT; Schema: public; Owner: postgres
 --
 
@@ -957,7 +976,15 @@ ALTER TABLE ONLY public.tour_contract_routes ALTER COLUMN id SET DEFAULT nextval
 
 
 --
--- TOC entry 4996 (class 2604 OID 27421)
+-- TOC entry 5006 (class 2604 OID 91341)
+-- Name: tour_groups id; Type: DEFAULT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.tour_groups ALTER COLUMN id SET DEFAULT nextval('public.tour_groups_id_seq'::regclass);
+
+
+--
+-- TOC entry 4986 (class 2604 OID 90872)
 -- Name: tours id; Type: DEFAULT; Schema: public; Owner: postgres
 --
 
@@ -965,7 +992,7 @@ ALTER TABLE ONLY public.tours ALTER COLUMN id SET DEFAULT nextval('public.tours_
 
 
 --
--- TOC entry 4976 (class 2604 OID 27139)
+-- TOC entry 4989 (class 2604 OID 90873)
 -- Name: users id; Type: DEFAULT; Schema: public; Owner: postgres
 --
 
@@ -973,7 +1000,7 @@ ALTER TABLE ONLY public.users ALTER COLUMN id SET DEFAULT nextval('public.users_
 
 
 --
--- TOC entry 4967 (class 2604 OID 27081)
+-- TOC entry 4993 (class 2604 OID 90874)
 -- Name: vehicle_companies id; Type: DEFAULT; Schema: public; Owner: postgres
 --
 
@@ -981,7 +1008,7 @@ ALTER TABLE ONLY public.vehicle_companies ALTER COLUMN id SET DEFAULT nextval('p
 
 
 --
--- TOC entry 4992 (class 2604 OID 27320)
+-- TOC entry 4996 (class 2604 OID 90875)
 -- Name: vehicle_contract_routes id; Type: DEFAULT; Schema: public; Owner: postgres
 --
 
@@ -989,7 +1016,7 @@ ALTER TABLE ONLY public.vehicle_contract_routes ALTER COLUMN id SET DEFAULT next
 
 
 --
--- TOC entry 4973 (class 2604 OID 27119)
+-- TOC entry 5000 (class 2604 OID 90876)
 -- Name: vehicle_contracts id; Type: DEFAULT; Schema: public; Owner: postgres
 --
 
@@ -997,7 +1024,7 @@ ALTER TABLE ONLY public.vehicle_contracts ALTER COLUMN id SET DEFAULT nextval('p
 
 
 --
--- TOC entry 4970 (class 2604 OID 27101)
+-- TOC entry 5003 (class 2604 OID 90877)
 -- Name: vehicle_types id; Type: DEFAULT; Schema: public; Owner: postgres
 --
 
@@ -1005,8 +1032,8 @@ ALTER TABLE ONLY public.vehicle_types ALTER COLUMN id SET DEFAULT nextval('publi
 
 
 --
--- TOC entry 5328 (class 0 OID 26986)
--- Dependencies: 224
+-- TOC entry 5337 (class 0 OID 90681)
+-- Dependencies: 219
 -- Data for Name: cities; Type: TABLE DATA; Schema: public; Owner: postgres
 --
 
@@ -1024,18 +1051,8 @@ COPY public.cities (id, name, region_id, created_at, updated_at) FROM stdin;
 
 
 --
--- TOC entry 5359 (class 0 OID 27493)
--- Dependencies: 255
--- Data for Name: costs; Type: TABLE DATA; Schema: public; Owner: postgres
---
-
-COPY public.costs (id, cost_code, cost_name, created_at, updated_at) FROM stdin;
-\.
-
-
---
--- TOC entry 5324 (class 0 OID 26954)
--- Dependencies: 220
+-- TOC entry 5339 (class 0 OID 90698)
+-- Dependencies: 221
 -- Data for Name: countries; Type: TABLE DATA; Schema: public; Owner: postgres
 --
 
@@ -1048,8 +1065,8 @@ COPY public.countries (id, name, code, local_currency_code, created_at, updated_
 
 
 --
--- TOC entry 5348 (class 0 OID 27183)
--- Dependencies: 244
+-- TOC entry 5341 (class 0 OID 90706)
+-- Dependencies: 223
 -- Data for Name: country_currencies; Type: TABLE DATA; Schema: public; Owner: postgres
 --
 
@@ -1065,8 +1082,8 @@ COPY public.country_currencies (id, country_id, currency_code, unit_name, is_act
 
 
 --
--- TOC entry 5346 (class 0 OID 27168)
--- Dependencies: 242
+-- TOC entry 5343 (class 0 OID 90716)
+-- Dependencies: 225
 -- Data for Name: currencies; Type: TABLE DATA; Schema: public; Owner: postgres
 --
 
@@ -1079,8 +1096,8 @@ COPY public.currencies (id, code, name, symbol, is_active, created_at, updated_a
 
 
 --
--- TOC entry 5332 (class 0 OID 27022)
--- Dependencies: 228
+-- TOC entry 5345 (class 0 OID 90726)
+-- Dependencies: 227
 -- Data for Name: departments; Type: TABLE DATA; Schema: public; Owner: postgres
 --
 
@@ -1101,8 +1118,8 @@ COPY public.departments (id, name, city_id, created_at, updated_at) FROM stdin;
 
 
 --
--- TOC entry 5350 (class 0 OID 27208)
--- Dependencies: 246
+-- TOC entry 5347 (class 0 OID 90734)
+-- Dependencies: 229
 -- Data for Name: exchange_rates; Type: TABLE DATA; Schema: public; Owner: postgres
 --
 
@@ -1228,8 +1245,8 @@ COPY public.exchange_rates (id, country_id, currency_code, rate_date, end_date, 
 
 
 --
--- TOC entry 5336 (class 0 OID 27058)
--- Dependencies: 232
+-- TOC entry 5349 (class 0 OID 90749)
+-- Dependencies: 231
 -- Data for Name: merchants; Type: TABLE DATA; Schema: public; Owner: postgres
 --
 
@@ -1246,15 +1263,14 @@ COPY public.merchants (id, name, official_title, sub_region_id, authorized_perso
 10	Marienplatz Souvenir Shop	Bavaria Souvenirs GmbH	16	Hans Müller	hans.mueller@bavaria-souvenirs.de	+49 89 555 6001	Sophie Weber	sophie.weber@bavaria-souvenirs.de	+49 89 555 6002	https://maps.google.com/?q=48.1374,11.5755	2025-10-31 19:34:50.327689	2025-10-31 19:34:50.327689
 11	Munich Beer Garden	Munich Beer Gardens GmbH	16	Klaus Fischer	klaus.fischer@munich-beer.de	+49 89 555 6011	Anna Schmidt	anna.schmidt@munich-beer.de	+49 89 555 6012	https://maps.google.com/?q=48.1351,11.5759	2025-10-31 19:34:50.327689	2025-10-31 19:34:50.327689
 12	Berlin Mitte Shopping	Berlin Shopping Center GmbH	19	Thomas Wagner	thomas.wagner@berlin-shopping.de	+49 30 555 7001	Laura Becker	laura.becker@berlin-shopping.de	+49 30 555 7002	https://maps.google.com/?q=52.5200,13.4050	2025-10-31 19:34:50.327689	2025-10-31 19:34:50.327689
-13	Le Marais Bistro	Le Marais Restaurants SARL	22	Pierre Dubois	pierre.dubois@marais-bistro.fr	+33 1 55 6001	Marie Bernard	marie.bernard@marais-bistro.fr	+33 1 55 6002	https://maps.google.com/?q=48.8566,2.3522	2025-10-31 19:34:50.327689	2025-10-31 19:34:50.327689
 14	Paris Montmartre Gallery	Montmartre Art Gallery SARL	23	Jean Martin	jean.martin@montmartre-gallery.fr	+33 1 55 7001	Camille Rousseau	camille.rousseau@montmartre-gallery.fr	+33 1 55 7002	https://maps.google.com/?q=48.8867,2.3431	2025-10-31 19:34:50.327689	2025-10-31 19:34:50.327689
 15	Vieux-Port Seafood Restaurant	Marseille Seafood SARL	26	Luc Moreau	luc.moreau@marseille-seafood.fr	+33 4 91 8001	Claire Petit	claire.petit@marseille-seafood.fr	+33 4 91 8002	https://maps.google.com/?q=43.2965,5.3698	2025-10-31 19:34:50.327689	2025-10-31 19:34:50.327689
 \.
 
 
 --
--- TOC entry 5334 (class 0 OID 27040)
--- Dependencies: 230
+-- TOC entry 5351 (class 0 OID 90759)
+-- Dependencies: 233
 -- Data for Name: positions; Type: TABLE DATA; Schema: public; Owner: postgres
 --
 
@@ -1293,8 +1309,8 @@ COPY public.positions (id, name, department_id, created_at, updated_at) FROM std
 
 
 --
--- TOC entry 5326 (class 0 OID 26968)
--- Dependencies: 222
+-- TOC entry 5353 (class 0 OID 90767)
+-- Dependencies: 235
 -- Data for Name: regions; Type: TABLE DATA; Schema: public; Owner: postgres
 --
 
@@ -1311,8 +1327,8 @@ COPY public.regions (id, name, country_id, created_at, updated_at) FROM stdin;
 
 
 --
--- TOC entry 5330 (class 0 OID 27004)
--- Dependencies: 226
+-- TOC entry 5355 (class 0 OID 90775)
+-- Dependencies: 237
 -- Data for Name: sub_regions; Type: TABLE DATA; Schema: public; Owner: postgres
 --
 
@@ -1340,7 +1356,6 @@ COPY public.sub_regions (id, name, city_id, created_at, updated_at) FROM stdin;
 21	Kreuzberg	7	2025-10-31 19:34:50.327689	2025-10-31 19:34:50.327689
 22	Le Marais	8	2025-10-31 19:34:50.327689	2025-10-31 19:34:50.327689
 23	Montmartre	8	2025-10-31 19:34:50.327689	2025-10-31 19:34:50.327689
-24	Champs-Élysées	8	2025-10-31 19:34:50.327689	2025-10-31 19:34:50.327689
 25	Latin Quarter	8	2025-10-31 19:34:50.327689	2025-10-31 19:34:50.327689
 26	Vieux-Port	9	2025-10-31 19:34:50.327689	2025-10-31 19:34:50.327689
 27	Le Panier	9	2025-10-31 19:34:50.327689	2025-10-31 19:34:50.327689
@@ -1348,8 +1363,8 @@ COPY public.sub_regions (id, name, city_id, created_at, updated_at) FROM stdin;
 
 
 --
--- TOC entry 5357 (class 0 OID 27463)
--- Dependencies: 253
+-- TOC entry 5357 (class 0 OID 90783)
+-- Dependencies: 239
 -- Data for Name: tour_contract_routes; Type: TABLE DATA; Schema: public; Owner: postgres
 --
 
@@ -1358,8 +1373,33 @@ COPY public.tour_contract_routes (id, tour_id, sub_region_id, vehicle_contract_r
 
 
 --
--- TOC entry 5355 (class 0 OID 27445)
--- Dependencies: 251
+-- TOC entry 5374 (class 0 OID 91350)
+-- Dependencies: 256
+-- Data for Name: tour_group_members; Type: TABLE DATA; Schema: public; Owner: postgres
+--
+
+COPY public.tour_group_members (tour_group_id, tour_id, created_at, priority) FROM stdin;
+1	2	2025-11-02 12:25:29.430602	1
+1	1	2025-11-02 12:25:29.432218	2
+3	2	2025-11-02 13:04:21.858127	0
+\.
+
+
+--
+-- TOC entry 5373 (class 0 OID 91338)
+-- Dependencies: 255
+-- Data for Name: tour_groups; Type: TABLE DATA; Schema: public; Owner: postgres
+--
+
+COPY public.tour_groups (id, name, description, created_at, updated_at) FROM stdin;
+1	test	test	2025-11-02 11:52:05.963618	2025-11-02 12:25:29.422299
+3	test1	\N	2025-11-02 13:04:21.852673	2025-11-02 13:04:21.852673
+\.
+
+
+--
+-- TOC entry 5359 (class 0 OID 90793)
+-- Dependencies: 241
 -- Data for Name: tour_sub_regions; Type: TABLE DATA; Schema: public; Owner: postgres
 --
 
@@ -1368,18 +1408,20 @@ COPY public.tour_sub_regions (tour_id, sub_region_id) FROM stdin;
 
 
 --
--- TOC entry 5354 (class 0 OID 27418)
--- Dependencies: 250
+-- TOC entry 5360 (class 0 OID 90798)
+-- Dependencies: 242
 -- Data for Name: tours; Type: TABLE DATA; Schema: public; Owner: postgres
 --
 
-COPY public.tours (id, sejour_tour_code, name, sub_region_id, merchant_id, vehicle_contract_id, created_at, updated_at) FROM stdin;
+COPY public.tours (id, sejour_tour_code, name, sub_region_id, merchant_id, vehicle_contract_id, created_at, updated_at, country_id, region_id, city_id) FROM stdin;
+1	LOLPAR	Land Of Legends Theme Park	\N	\N	\N	2025-11-02 11:41:31.525089	2025-11-02 11:41:31.525089	1	3	5
+2	CANER	Turkey	\N	\N	\N	2025-11-02 12:24:01.446277	2025-11-02 12:24:01.446277	1	3	5
 \.
 
 
 --
--- TOC entry 5344 (class 0 OID 27136)
--- Dependencies: 240
+-- TOC entry 5362 (class 0 OID 90806)
+-- Dependencies: 244
 -- Data for Name: users; Type: TABLE DATA; Schema: public; Owner: postgres
 --
 
@@ -1392,8 +1434,8 @@ COPY public.users (id, username, full_name, department_id, position_id, city_id,
 
 
 --
--- TOC entry 5338 (class 0 OID 27078)
--- Dependencies: 234
+-- TOC entry 5364 (class 0 OID 90818)
+-- Dependencies: 246
 -- Data for Name: vehicle_companies; Type: TABLE DATA; Schema: public; Owner: postgres
 --
 
@@ -1416,7 +1458,7 @@ COPY public.vehicle_companies (id, name, city_id, contact_person, contact_email,
 
 
 --
--- TOC entry 5352 (class 0 OID 27317)
+-- TOC entry 5366 (class 0 OID 90828)
 -- Dependencies: 248
 -- Data for Name: vehicle_contract_routes; Type: TABLE DATA; Schema: public; Owner: postgres
 --
@@ -2135,6 +2177,7 @@ COPY public.vehicle_contract_routes (id, vehicle_contract_id, from_location, to_
 1147	5	SEA ALANYA TAM GÜN	BELEK	TRY	2025-10-31 23:44:18.755898	2025-10-31 23:44:18.755898	{"10": 5845, "11": 8820, "12": 13740}
 1148	5	SEA ALANYA TAM GÜN	SİDE	TRY	2025-10-31 23:44:18.756567	2025-10-31 23:44:18.756567	{"10": 5550, "11": 8280, "12": 12880}
 1149	5	SEA ALANYA TAM GÜN	ALANYA	TRY	2025-10-31 23:44:18.75737	2025-10-31 23:44:18.75737	{"10": 5860, "11": 8390, "12": 12715}
+1706	13	ANTALYA	HAVALİMANI	TRY	2025-11-02 10:43:34.813921	2025-11-02 10:43:34.813921	{"31": 2500, "32": 1600}
 1150	5	SİDE ŞEHİR TURU	SİDE	TRY	2025-10-31 23:44:18.758249	2025-10-31 23:44:18.758249	{"10": 5520, "11": 7890, "12": 11960}
 1151	5	SİDE ŞEHİR TURU	ALANYA	TRY	2025-10-31 23:44:18.758948	2025-10-31 23:44:18.758948	{"10": 6250, "11": 9115, "12": 13880}
 1152	5	BEŞKONAK TURU	ANTALYA	TRY	2025-10-31 23:44:18.759584	2025-10-31 23:44:18.761578	{"10": 5845, "11": 8820, "12": 13740}
@@ -2187,6 +2230,7 @@ COPY public.vehicle_contract_routes (id, vehicle_contract_id, from_location, to_
 1202	5	KAPADOKYA 2 GÜN	BELEK	TRY	2025-10-31 23:44:18.793156	2025-10-31 23:44:18.793156	{"10": 16100, "11": 25725, "12": 40340}
 1203	5	KAPADOKYA 2 GÜN	SİDE	TRY	2025-10-31 23:44:18.79384	2025-10-31 23:44:18.79384	{"10": 15805, "11": 25185, "12": 39480}
 1204	5	KAPADOKYA 2 GÜN	ALANYA	TRY	2025-10-31 23:44:18.794473	2025-10-31 23:44:18.794473	{"10": 16100, "11": 25725, "12": 40340}
+1707	13	KEMER	HAVALİMANI	TRY	2025-11-02 10:43:34.832555	2025-11-02 10:43:34.832555	{"31": 4000, "32": 2600}
 1205	5	EFES PAMUKKALE 2 GÜN	ANTALYA	TRY	2025-10-31 23:44:18.795105	2025-10-31 23:44:18.795105	{"10": 18000, "11": 27000, "12": 45000}
 1206	5	EFES PAMUKKALE 2 GÜN	KEMER	TRY	2025-10-31 23:44:18.795751	2025-10-31 23:44:18.795751	{"10": 18750, "11": 28125, "12": 48750}
 1207	5	EFES PAMUKKALE 2 GÜN	BELEK	TRY	2025-10-31 23:44:18.796384	2025-10-31 23:44:18.796384	{"10": 17815, "11": 26250, "12": 44065}
@@ -2394,6 +2438,7 @@ COPY public.vehicle_contract_routes (id, vehicle_contract_id, from_location, to_
 1412	12	PAMUKKALE 2 GÜN	ALANYA	TRY	2025-11-01 00:04:10.414176	2025-11-01 00:04:10.414176	{"28": 23005, "29": 35365, "30": 15110}
 1413	12	KAPADOKYA 2 GÜN	ANTALYA	TRY	2025-11-01 00:04:10.414822	2025-11-01 00:04:10.414822	{"28": 29000, "29": 46000, "30": 19000}
 1414	12	KAPADOKYA 2 GÜN	KEMER	TRY	2025-11-01 00:04:10.415486	2025-11-01 00:04:10.415486	{"28": 27775, "29": 43595, "30": 17215}
+1791	13	BEŞKONAK TURU	ANTALYA	TRY	2025-11-02 10:43:34.98984	2025-11-02 10:43:34.996087	{"31": 8820, "32": 5845}
 1415	12	KAPADOKYA 2 GÜN	BELEK	TRY	2025-11-01 00:04:10.416125	2025-11-01 00:04:10.416125	{"28": 25725, "29": 40340, "30": 16100}
 1416	12	KAPADOKYA 2 GÜN	SİDE	TRY	2025-11-01 00:04:10.41676	2025-11-01 00:04:10.41676	{"28": 25185, "29": 39480, "30": 15805}
 1417	12	KAPADOKYA 2 GÜN	ALANYA	TRY	2025-11-01 00:04:10.417397	2025-11-01 00:04:10.417397	{"28": 25725, "29": 40340, "30": 16100}
@@ -2472,17 +2517,433 @@ COPY public.vehicle_contract_routes (id, vehicle_contract_id, from_location, to_
 1490	12	SİDE	SİDE	TRY	2025-11-01 00:04:10.465095	2025-11-01 00:04:10.465095	{"28": 2665, "29": 4075, "30": 1800}
 1491	12	SİDE	ALANYA	TRY	2025-11-01 00:04:10.465731	2025-11-01 00:04:10.465731	{"28": 4870, "29": 7360, "30": 3115}
 1492	12	BÖLGE İÇİ ARA TRANSFER	ARA TRANSFER	TRY	2025-11-01 00:04:10.466362	2025-11-01 00:04:10.466362	{"28": 2665, "29": 4075, "30": 1800}
+1708	13	KİRİŞ - ÇAMYUVA-TEKİROVA	HAVALİMANI	TRY	2025-11-02 10:43:34.847963	2025-11-02 10:43:34.847963	{"31": 4280, "32": 2800}
+1709	13	BELEK	HAVALİMANI	TRY	2025-11-02 10:43:34.852469	2025-11-02 10:43:34.852469	{"31": 3500, "32": 2270}
+1710	13	BOĞAZKENT	HAVALİMANI	TRY	2025-11-02 10:43:34.857255	2025-11-02 10:43:34.857255	{"31": 3850, "32": 2450}
+1711	13	DENİZYAKA LİKYA WORLD	HAVALİMANI	TRY	2025-11-02 10:43:34.858983	2025-11-02 10:43:34.858983	{"31": 4100, "32": 2750}
+1712	13	SİDE	HAVALİMANI	TRY	2025-11-02 10:43:34.860285	2025-11-02 10:43:34.860285	{"31": 4100, "32": 2750}
+1713	13	KIZILAĞAÇ - KIZILOT	HAVALİMANI	TRY	2025-11-02 10:43:34.86179	2025-11-02 10:43:34.86179	{"31": 4350, "32": 2940}
+1714	13	ALANYA	HAVALİMANI	TRY	2025-11-02 10:43:34.863081	2025-11-02 10:43:34.863081	{"31": 5500, "32": 3640}
+1715	13	MAHMUTLAR	HAVALİMANI	TRY	2025-11-02 10:43:34.86455	2025-11-02 10:43:34.86455	{"31": 5775, "32": 3825}
+1716	13	ÇIRALI	HAVALİMANI	TRY	2025-11-02 10:43:34.865902	2025-11-02 10:43:34.865902	{"31": 5400, "32": 3470}
+1717	13	ADRASAN	HAVALİMANI	TRY	2025-11-02 10:43:34.867338	2025-11-02 10:43:34.867338	{"31": 5795, "32": 3840}
+1718	13	KUMLUCA	HAVALİMANI	TRY	2025-11-02 10:43:34.868659	2025-11-02 10:43:34.868659	{"31": 6360, "32": 4205}
+1719	13	FİNİKE	HAVALİMANI	TRY	2025-11-02 10:43:34.869894	2025-11-02 10:43:34.869894	{"31": 7380, "32": 4885}
+1720	13	DEMRE	HAVALİMANI	TRY	2025-11-02 10:43:34.87127	2025-11-02 10:43:34.87127	{"31": 9430, "32": 6235}
+1721	13	KAŞ	HAVALİMANI	TRY	2025-11-02 10:43:34.872932	2025-11-02 10:43:34.872932	{"31": 11720, "32": 7440}
+1722	13	FETHİYE	HAVALİMANI	TRY	2025-11-02 10:43:34.874339	2025-11-02 10:43:34.874339	{"31": 13210, "32": 8205}
+1723	13	DALAMAN	HAVALİMANI	TRY	2025-11-02 10:43:34.875819	2025-11-02 10:43:34.875819	{"31": 14665, "32": 9160}
+1724	13	MARMARİS	HAVALİMANI	TRY	2025-11-02 10:43:34.877069	2025-11-02 10:43:34.877069	{"31": 20550, "32": 12790}
+1725	13	BODRUM	HAVALİMANI	TRY	2025-11-02 10:43:34.878436	2025-11-02 10:43:34.878436	{"31": 26410, "32": 16455}
+1726	13	GAZİPAŞA	ALANYA	TRY	2025-11-02 10:43:34.879732	2025-11-02 10:43:34.879732	{"31": 4800, "32": 3120}
+1727	13	GAZİPAŞA	SİDE	TRY	2025-11-02 10:43:34.882142	2025-11-02 10:43:34.882142	{"31": 6050, "32": 3880}
+1728	13	GAZİPAŞA	BELEK	TRY	2025-11-02 10:43:34.883397	2025-11-02 10:43:34.883397	{"31": 7200, "32": 4600}
+1729	13	GAZİPAŞA	ANTALYA	TRY	2025-11-02 10:43:34.884647	2025-11-02 10:43:34.884647	{"31": 8450, "32": 5350}
+1730	13	GAZİPAŞA	KEMER	TRY	2025-11-02 10:43:34.886122	2025-11-02 10:43:34.886122	{"31": 10300, "32": 6550}
+1731	13	MANAVGAT BOT TURU	ANTALYA	TRY	2025-11-02 10:43:34.887649	2025-11-02 10:43:34.887649	{"31": 8480, "32": 5850}
+1732	13	MANAVGAT BOT TURU	KEMER	TRY	2025-11-02 10:43:34.88924	2025-11-02 10:43:34.88924	{"31": 9575, "32": 6255}
+1733	13	MANAVGAT BOT TURU	BELEK	TRY	2025-11-02 10:43:34.890699	2025-11-02 10:43:34.890699	{"31": 7740, "32": 5255}
+1734	13	MANAVGAT BOT TURU	SİDE	TRY	2025-11-02 10:43:34.891963	2025-11-02 10:43:34.891963	{"31": 7490, "32": 5310}
+1735	13	MANAVGAT BOT TURU	ALANYA	TRY	2025-11-02 10:43:34.893346	2025-11-02 10:43:34.893346	{"31": 8695, "32": 6030}
+1736	13	DISCOVERY PARK TURU	ANTALYA	TRY	2025-11-02 10:43:34.894626	2025-11-02 10:43:34.894626	{"31": 8480, "32": 5850}
+1737	13	DISCOVERY PARK TURU	KEMER	TRY	2025-11-02 10:43:34.896022	2025-11-02 10:43:34.896022	{"31": 9575, "32": 6255}
+1738	13	DISCOVERY PARK TURU	BELEK	TRY	2025-11-02 10:43:34.897397	2025-11-02 10:43:34.897397	{"31": 6940, "32": 4380}
+1739	13	DISCOVERY PARK TURU	SİDE	TRY	2025-11-02 10:43:34.899048	2025-11-02 10:43:34.899048	{"31": 5540, "32": 3880}
+1493	16	ANTALYA	HAVALİMANI	TRY	2025-11-02 10:42:17.586983	2025-11-02 10:42:17.586983	{"37": 1600, "38": 4100, "39": 2500}
+1494	16	KEMER	HAVALİMANI	TRY	2025-11-02 10:42:17.613664	2025-11-02 10:42:17.613664	{"37": 2600, "38": 6200, "39": 4000}
+1495	16	KİRİŞ - ÇAMYUVA-TEKİROVA	HAVALİMANI	TRY	2025-11-02 10:42:17.621985	2025-11-02 10:42:17.621985	{"37": 2800, "38": 6700, "39": 4280}
+1496	16	BELEK	HAVALİMANI	TRY	2025-11-02 10:42:17.627311	2025-11-02 10:42:17.627311	{"37": 2270, "38": 5600, "39": 3500}
+1497	16	BOĞAZKENT	HAVALİMANI	TRY	2025-11-02 10:42:17.633092	2025-11-02 10:42:17.633092	{"37": 2450, "38": 6000, "39": 3850}
+1498	16	DENİZYAKA LİKYA WORLD	HAVALİMANI	TRY	2025-11-02 10:42:17.634594	2025-11-02 10:42:17.634594	{"37": 2750, "38": 6900, "39": 4100}
+1499	16	SİDE	HAVALİMANI	TRY	2025-11-02 10:42:17.635982	2025-11-02 10:42:17.635982	{"37": 2750, "38": 6900, "39": 4100}
+1500	16	KIZILAĞAÇ - KIZILOT	HAVALİMANI	TRY	2025-11-02 10:42:17.637194	2025-11-02 10:42:17.637194	{"37": 2940, "38": 7300, "39": 4350}
+1501	16	ALANYA	HAVALİMANI	TRY	2025-11-02 10:42:17.638561	2025-11-02 10:42:17.638561	{"37": 3640, "38": 8665, "39": 5500}
+1502	16	MAHMUTLAR	HAVALİMANI	TRY	2025-11-02 10:42:17.639627	2025-11-02 10:42:17.639627	{"37": 3825, "38": 9100, "39": 5775}
+1503	16	ÇIRALI	HAVALİMANI	TRY	2025-11-02 10:42:17.640928	2025-11-02 10:42:17.640928	{"37": 3470, "38": 8920, "39": 5400}
+1504	16	ADRASAN	HAVALİMANI	TRY	2025-11-02 10:42:17.642572	2025-11-02 10:42:17.642572	{"37": 3840, "38": 9640, "39": 5795}
+1505	16	KUMLUCA	HAVALİMANI	TRY	2025-11-02 10:42:17.64392	2025-11-02 10:42:17.64392	{"37": 4205, "38": 10270, "39": 6360}
+1506	16	FİNİKE	HAVALİMANI	TRY	2025-11-02 10:42:17.64518	2025-11-02 10:42:17.64518	{"37": 4885, "38": 11445, "39": 7380}
+1507	16	DEMRE	HAVALİMANI	TRY	2025-11-02 10:42:17.646614	2025-11-02 10:42:17.646614	{"37": 6235, "38": 15285, "39": 9430}
+1508	16	KAŞ	HAVALİMANI	TRY	2025-11-02 10:42:17.647878	2025-11-02 10:42:17.647878	{"37": 7440, "38": 19775, "39": 11720}
+1509	16	FETHİYE	HAVALİMANI	TRY	2025-11-02 10:42:17.64918	2025-11-02 10:42:17.64918	{"37": 8205, "38": 22220, "39": 13210}
+1510	16	DALAMAN	HAVALİMANI	TRY	2025-11-02 10:42:17.650636	2025-11-02 10:42:17.650636	{"37": 9160, "38": 24685, "39": 14665}
+1511	16	MARMARİS	HAVALİMANI	TRY	2025-11-02 10:42:17.652363	2025-11-02 10:42:17.652363	{"37": 12790, "38": 34595, "39": 20550}
+1512	16	BODRUM	HAVALİMANI	TRY	2025-11-02 10:42:17.653794	2025-11-02 10:42:17.653794	{"37": 16455, "38": 44475, "39": 26410}
+1513	16	GAZİPAŞA	ALANYA	TRY	2025-11-02 10:42:17.656233	2025-11-02 10:42:17.656233	{"37": 3120, "38": 8000, "39": 4800}
+1514	16	GAZİPAŞA	SİDE	TRY	2025-11-02 10:42:17.657984	2025-11-02 10:42:17.657984	{"37": 3880, "38": 10100, "39": 6050}
+1515	16	GAZİPAŞA	BELEK	TRY	2025-11-02 10:42:17.659376	2025-11-02 10:42:17.659376	{"37": 4600, "38": 12100, "39": 7200}
+1516	16	GAZİPAŞA	ANTALYA	TRY	2025-11-02 10:42:17.661777	2025-11-02 10:42:17.661777	{"37": 5350, "38": 14100, "39": 8450}
+1517	16	GAZİPAŞA	KEMER	TRY	2025-11-02 10:42:17.663039	2025-11-02 10:42:17.663039	{"37": 6550, "38": 17250, "39": 10300}
+1518	16	MANAVGAT BOT TURU	ANTALYA	TRY	2025-11-02 10:42:17.664541	2025-11-02 10:42:17.664541	{"37": 5850, "38": 12900, "39": 8480}
+1519	16	MANAVGAT BOT TURU	KEMER	TRY	2025-11-02 10:42:17.665789	2025-11-02 10:42:17.665789	{"37": 6255, "38": 14940, "39": 9575}
+1520	16	MANAVGAT BOT TURU	BELEK	TRY	2025-11-02 10:42:17.667248	2025-11-02 10:42:17.667248	{"37": 5255, "38": 12025, "39": 7740}
+1521	16	MANAVGAT BOT TURU	SİDE	TRY	2025-11-02 10:42:17.668539	2025-11-02 10:42:17.668539	{"37": 5310, "38": 11330, "39": 7490}
+1522	16	MANAVGAT BOT TURU	ALANYA	TRY	2025-11-02 10:42:17.676116	2025-11-02 10:42:17.676116	{"37": 6030, "38": 13220, "39": 8695}
+1523	16	DISCOVERY PARK TURU	ANTALYA	TRY	2025-11-02 10:42:17.677323	2025-11-02 10:42:17.677323	{"37": 5850, "38": 12900, "39": 8480}
+1524	16	DISCOVERY PARK TURU	KEMER	TRY	2025-11-02 10:42:17.678879	2025-11-02 10:42:17.678879	{"37": 6255, "38": 14940, "39": 9575}
+1525	16	DISCOVERY PARK TURU	BELEK	TRY	2025-11-02 10:42:17.680091	2025-11-02 10:42:17.680091	{"37": 4380, "38": 10780, "39": 6940}
+1526	16	DISCOVERY PARK TURU	SİDE	TRY	2025-11-02 10:42:17.688437	2025-11-02 10:42:17.688437	{"37": 3880, "38": 8400, "39": 5540}
+1527	16	DISCOVERY PARK TURU	ALANYA	TRY	2025-11-02 10:42:17.689597	2025-11-02 10:42:17.689597	{"37": 5030, "38": 11175, "39": 7330}
+1528	16	BELEK LAND OF LEGENDS TURU	ANTALYA	TRY	2025-11-02 10:42:17.691825	2025-11-02 10:42:17.691825	{"37": 5360, "38": 11480, "39": 7590}
+1529	16	BELEK LAND OF LEGENDS TURU	KEMER	TRY	2025-11-02 10:42:17.700053	2025-11-02 10:42:17.700053	{"37": 5845, "38": 13740, "39": 8820}
+1530	16	BELEK LAND OF LEGENDS TURU	BELEK	TRY	2025-11-02 10:42:17.703214	2025-11-02 10:42:17.703214	{"37": 4815, "38": 10735, "39": 6935}
+1531	16	BELEK LAND OF LEGENDS TURU	SİDE	TRY	2025-11-02 10:42:17.70565	2025-11-02 10:42:17.70565	{"37": 5520, "38": 11960, "39": 7890}
+1532	16	BELEK LAND OF LEGENDS TURU	ALANYA	TRY	2025-11-02 10:42:17.707747	2025-11-02 10:42:17.707747	{"37": 6425, "38": 14375, "39": 9430}
+1533	16	AQUALAND TURU / AKVARYUM TURU	ANTALYA	TRY	2025-11-02 10:42:17.70926	2025-11-02 10:42:17.70926	{"37": 5310, "38": 11330, "39": 7490}
+1534	16	AQUALAND TURU / AKVARYUM TURU	KEMER	TRY	2025-11-02 10:42:17.710652	2025-11-02 10:42:17.710652	{"37": 5255, "38": 12025, "39": 7740}
+1535	16	AQUALAND TURU / AKVARYUM TURU	BELEK	TRY	2025-11-02 10:42:17.712152	2025-11-02 10:42:17.712152	{"37": 5255, "38": 12025, "39": 7740}
+1536	16	AQUALAND TURU / AKVARYUM TURU	SİDE	TRY	2025-11-02 10:42:17.713531	2025-11-02 10:42:17.713531	{"37": 5850, "38": 12900, "39": 8480}
+1537	16	AQUALAND TURU / AKVARYUM TURU	ALANYA	TRY	2025-11-02 10:42:17.714998	2025-11-02 10:42:17.714998	{"37": 6815, "38": 15530, "39": 10155}
+1538	16	TÜNEKTEPE TELEFERİK TURU	ANTALYA	TRY	2025-11-02 10:42:17.716306	2025-11-02 10:42:17.716306	{"37": 5410, "38": 11640, "39": 7690}
+1539	16	TÜNEKTEPE TELEFERİK TURU	KEMER	TRY	2025-11-02 10:42:17.719194	2025-11-02 10:42:17.719194	{"37": 5140, "38": 11680, "39": 7525}
+1540	16	TÜNEKTEPE TELEFERİK TURU	BELEK	TRY	2025-11-02 10:42:17.729312	2025-11-02 10:42:17.729312	{"37": 5435, "38": 12535, "39": 8065}
+1541	16	TÜNEKTEPE TELEFERİK TURU	SİDE	TRY	2025-11-02 10:42:17.735529	2025-11-02 10:42:17.735529	{"37": 5845, "38": 13740, "39": 8820}
+1542	16	TÜNEKTEPE TELEFERİK TURU	ALANYA	TRY	2025-11-02 10:42:17.74702	2025-11-02 10:42:17.74702	{"37": 6995, "38": 16025, "39": 10470}
+1543	16	ANTALYA YAT TURU SETUR MARİNA	ANTALYA	TRY	2025-11-02 10:42:17.756689	2025-11-02 10:42:17.756689	{"37": 5410, "38": 11640, "39": 7690}
+1544	16	ANTALYA YAT TURU SETUR MARİNA	KEMER	TRY	2025-11-02 10:42:17.761006	2025-11-02 10:42:17.761006	{"37": 5140, "38": 11680, "39": 7525}
+1545	16	ANTALYA YAT TURU SETUR MARİNA	BELEK	TRY	2025-11-02 10:42:17.764893	2025-11-02 10:42:17.764893	{"37": 5435, "38": 12535, "39": 8065}
+1546	16	ANTALYA YAT TURU SETUR MARİNA	SİDE	TRY	2025-11-02 10:42:17.768993	2025-11-02 10:42:17.768993	{"37": 5845, "38": 13740, "39": 8820}
+1547	16	ANTALYA YAT TURU SETUR MARİNA	ALANYA	TRY	2025-11-02 10:42:17.773229	2025-11-02 10:42:17.773229	{"37": 6995, "38": 16025, "39": 10470}
+1548	16	ANTALYA MACERA PARK TURU / HAYVANAT BAHÇESİ TURU	ANTALYA	TRY	2025-11-02 10:42:17.776537	2025-11-02 10:42:17.776537	{"37": 5410, "38": 11640, "39": 7690}
+1549	16	ANTALYA MACERA PARK TURU / HAYVANAT BAHÇESİ TURU	KEMER	TRY	2025-11-02 10:42:17.781045	2025-11-02 10:42:17.781045	{"37": 5140, "38": 11680, "39": 7525}
+1550	16	ANTALYA MACERA PARK TURU / HAYVANAT BAHÇESİ TURU	BELEK	TRY	2025-11-02 10:42:17.787147	2025-11-02 10:42:17.787147	{"37": 5435, "38": 12535, "39": 8065}
+1551	16	ANTALYA MACERA PARK TURU / HAYVANAT BAHÇESİ TURU	SİDE	TRY	2025-11-02 10:42:17.790378	2025-11-02 10:42:17.790378	{"37": 6120, "38": 13690, "39": 8980}
+1552	16	ANTALYA MACERA PARK TURU / HAYVANAT BAHÇESİ TURU	ALANYA	TRY	2025-11-02 10:42:17.793192	2025-11-02 10:42:17.793192	{"37": 6995, "38": 16025, "39": 10470}
+1553	16	ANTALYA ŞEHİR TURU	ANTALYA	TRY	2025-11-02 10:42:17.795574	2025-11-02 10:42:17.795574	{"37": 5520, "38": 11960, "39": 7890}
+1554	16	ANTALYA ŞEHİR TURU	KEMER	TRY	2025-11-02 10:42:17.798057	2025-11-02 10:42:17.798057	{"37": 5785, "38": 13565, "39": 8710}
+1555	16	ANTALYA ŞEHİR TURU	BELEK	TRY	2025-11-02 10:42:17.800575	2025-11-02 10:42:17.800575	{"37": 5550, "38": 12880, "39": 8280}
+1556	16	ANTALYA ŞEHİR TURU	SİDE	TRY	2025-11-02 10:42:17.803307	2025-11-02 10:42:17.803307	{"37": 6220, "38": 14000, "39": 9170}
+1557	16	ANTALYA ŞEHİR TURU	ALANYA	TRY	2025-11-02 10:42:17.806143	2025-11-02 10:42:17.806143	{"37": 7275, "38": 16855, "39": 10985}
+1558	16	ALANYA ŞEHİR TURU	SİDE	TRY	2025-11-02 10:42:17.809056	2025-11-02 10:42:17.809056	{"37": 5950, "38": 13220, "39": 8680}
+1559	16	ALANYA ŞEHİR TURU	ALANYA	TRY	2025-11-02 10:42:17.811584	2025-11-02 10:42:17.811584	{"37": 5795, "38": 12560, "39": 8285}
+1560	16	ALARAHAN PİKNİK TURU	SİDE	TRY	2025-11-02 10:42:17.813922	2025-11-02 10:42:17.813922	{"37": 5850, "38": 12900, "39": 8480}
+1561	16	ALARAHAN PİKNİK TURU	ALANYA	TRY	2025-11-02 10:42:17.81754	2025-11-02 10:42:17.81754	{"37": 5795, "38": 12560, "39": 8285}
+1562	16	ALANYA BOT TURU	SİDE	TRY	2025-11-02 10:42:17.822676	2025-11-02 10:42:17.822676	{"37": 5670, "38": 13225, "39": 8495}
+1563	16	ALANYA BOT TURU	ALANYA	TRY	2025-11-02 10:42:17.827663	2025-11-02 10:42:17.827663	{"37": 5795, "38": 12560, "39": 8285}
+1564	16	WATER PLANET	SİDE	TRY	2025-11-02 10:42:17.830339	2025-11-02 10:42:17.830339	{"37": 5850, "38": 12900, "39": 8480}
+1565	16	WATER PLANET	ALANYA	TRY	2025-11-02 10:42:17.833379	2025-11-02 10:42:17.833379	{"37": 5745, "38": 12390, "39": 8180}
+1566	16	SEA ALANYA DOLPHIN TURU	ANTALYA	TRY	2025-11-02 10:42:17.835931	2025-11-02 10:42:17.835931	{"37": 6140, "38": 14595, "39": 9360}
+1567	16	SEA ALANYA DOLPHIN TURU	KEMER	TRY	2025-11-02 10:42:17.838461	2025-11-02 10:42:17.838461	{"37": 7020, "38": 17170, "39": 10975}
+1568	16	SEA ALANYA DOLPHIN TURU	BELEK	TRY	2025-11-02 10:42:17.841696	2025-11-02 10:42:17.841696	{"37": 5845, "38": 13740, "39": 8820}
+1569	16	SEA ALANYA DOLPHIN TURU	SİDE	TRY	2025-11-02 10:42:17.844515	2025-11-02 10:42:17.844515	{"37": 4890, "38": 10950, "39": 7180}
+1570	16	SEA ALANYA DOLPHIN TURU	ALANYA	TRY	2025-11-02 10:42:17.847267	2025-11-02 10:42:17.847267	{"37": 4360, "38": 9650, "39": 6345}
+1571	16	SEA ALANYA TAM GÜN	ANTALYA	TRY	2025-11-02 10:42:17.850491	2025-11-02 10:42:17.850491	{"37": 6390, "38": 14480, "39": 9470}
+1572	16	SEA ALANYA TAM GÜN	KEMER	TRY	2025-11-02 10:42:17.853391	2025-11-02 10:42:17.853391	{"37": 7020, "38": 17170, "39": 10975}
+1573	16	SEA ALANYA TAM GÜN	BELEK	TRY	2025-11-02 10:42:17.856218	2025-11-02 10:42:17.856218	{"37": 5845, "38": 13740, "39": 8820}
+1574	16	SEA ALANYA TAM GÜN	SİDE	TRY	2025-11-02 10:42:17.859227	2025-11-02 10:42:17.859227	{"37": 5550, "38": 12880, "39": 8280}
+1575	16	SEA ALANYA TAM GÜN	ALANYA	TRY	2025-11-02 10:42:17.862042	2025-11-02 10:42:17.862042	{"37": 5860, "38": 12715, "39": 8390}
+1576	16	SİDE ŞEHİR TURU	SİDE	TRY	2025-11-02 10:42:17.864831	2025-11-02 10:42:17.864831	{"37": 5520, "38": 11960, "39": 7890}
+1577	16	SİDE ŞEHİR TURU	ALANYA	TRY	2025-11-02 10:42:17.867376	2025-11-02 10:42:17.867376	{"37": 6250, "38": 13880, "39": 9115}
+1740	13	DISCOVERY PARK TURU	ALANYA	TRY	2025-11-02 10:43:34.900454	2025-11-02 10:43:34.900454	{"31": 7330, "32": 5030}
+1578	16	BEŞKONAK TURU	ANTALYA	TRY	2025-11-02 10:42:17.871629	2025-11-02 10:42:17.882346	{"37": 5845, "38": 13740, "39": 8820}
+1579	16	BEŞKONAK TURU	KEMER	TRY	2025-11-02 10:42:17.875182	2025-11-02 10:42:17.897243	{"37": 6435, "38": 15455, "39": 9900}
+1580	16	BEŞKONAK TURU	BELEK	TRY	2025-11-02 10:42:17.878134	2025-11-02 10:42:17.899606	{"37": 5550, "38": 12880, "39": 8280}
+1584	16	BEŞKONAK TURU	SİDE	TRY	2025-11-02 10:42:17.902625	2025-11-02 10:42:17.902625	{"37": 6060, "38": 13530, "39": 8880}
+1585	16	BEŞKONAK TURU	ALANYA	TRY	2025-11-02 10:42:17.905422	2025-11-02 10:42:17.905422	{"37": 6880, "38": 15700, "39": 10260}
+1586	16	TAZI KANYONU TURU	ANTALYA	TRY	2025-11-02 10:42:17.907438	2025-11-02 10:42:17.907438	{"37": 6140, "38": 14595, "39": 9360}
+1587	16	TAZI KANYONU TURU	KEMER	TRY	2025-11-02 10:42:17.909736	2025-11-02 10:42:17.909736	{"37": 6725, "38": 16310, "39": 10435}
+1588	16	TAZI KANYONU TURU	BELEK	TRY	2025-11-02 10:42:17.912029	2025-11-02 10:42:17.912029	{"37": 5490, "38": 12710, "39": 8175}
+1589	16	TAZI KANYONU TURU	SİDE	TRY	2025-11-02 10:42:17.914206	2025-11-02 10:42:17.914206	{"37": 6140, "38": 14595, "39": 9360}
+1590	16	TAZI KANYONU TURU	ALANYA	TRY	2025-11-02 10:42:17.916787	2025-11-02 10:42:17.916787	{"37": 7160, "38": 16530, "39": 10775}
+1591	16	ASPENDOS KONSER TURU	ANTALYA	TRY	2025-11-02 10:42:17.919111	2025-11-02 10:42:17.919111	{"37": 4090, "38": 9030, "39": 5940}
+1592	16	ASPENDOS KONSER TURU	KEMER	TRY	2025-11-02 10:42:17.921066	2025-11-02 10:42:17.921066	{"37": 5845, "38": 13740, "39": 8820}
+1593	16	ASPENDOS KONSER TURU	BELEK	TRY	2025-11-02 10:42:17.923027	2025-11-02 10:42:17.923027	{"37": 2660, "38": 6095, "39": 3925}
+1594	16	ASPENDOS KONSER TURU	SİDE	TRY	2025-11-02 10:42:17.924883	2025-11-02 10:42:17.924883	{"37": 3980, "38": 8720, "39": 5740}
+1741	13	BELEK LAND OF LEGENDS TURU	ANTALYA	TRY	2025-11-02 10:43:34.90332	2025-11-02 10:43:34.90332	{"31": 7590, "32": 5360}
+1742	13	BELEK LAND OF LEGENDS TURU	KEMER	TRY	2025-11-02 10:43:34.904886	2025-11-02 10:43:34.904886	{"31": 8820, "32": 5845}
+1743	13	BELEK LAND OF LEGENDS TURU	BELEK	TRY	2025-11-02 10:43:34.908896	2025-11-02 10:43:34.908896	{"31": 6935, "32": 4815}
+1595	16	ASPENDOS KONSER TURU	ALANYA	TRY	2025-11-02 10:42:17.926938	2025-11-02 10:42:17.926938	{"37": 6365, "38": 14205, "39": 9325}
+1596	16	OYMAPINAR PİKNİK TURU	ANTALYA	TRY	2025-11-02 10:42:17.928889	2025-11-02 10:42:17.928889	{"37": 5950, "38": 13225, "39": 8680}
+1597	16	OYMAPINAR PİKNİK TURU	KEMER	TRY	2025-11-02 10:42:17.930768	2025-11-02 10:42:17.930768	{"37": 6435, "38": 15455, "39": 9900}
+1598	16	OYMAPINAR PİKNİK TURU	BELEK	TRY	2025-11-02 10:42:17.932809	2025-11-02 10:42:17.932809	{"37": 5375, "38": 12365, "39": 7960}
+1599	16	OYMAPINAR PİKNİK TURU	SİDE	TRY	2025-11-02 10:42:17.934853	2025-11-02 10:42:17.934853	{"37": 5310, "38": 11330, "39": 7490}
+1600	16	OYMAPINAR PİKNİK TURU	ALANYA	TRY	2025-11-02 10:42:17.936824	2025-11-02 10:42:17.936824	{"37": 6250, "38": 13880, "39": 9115}
+1601	16	KARACAÖREN PİKNİK TURU	ANTALYA	TRY	2025-11-02 10:42:17.93891	2025-11-02 10:42:17.93891	{"37": 5850, "38": 12900, "39": 8480}
+1602	16	KARACAÖREN PİKNİK TURU	KEMER	TRY	2025-11-02 10:42:17.939965	2025-11-02 10:42:17.939965	{"37": 6140, "38": 14595, "39": 9360}
+1603	16	KARACAÖREN PİKNİK TURU	BELEK	TRY	2025-11-02 10:42:17.941925	2025-11-02 10:42:17.941925	{"37": 5610, "38": 13050, "39": 8390}
+1604	16	KARACAÖREN PİKNİK TURU	SİDE	TRY	2025-11-02 10:42:17.943519	2025-11-02 10:42:17.943519	{"37": 6080, "38": 14425, "39": 9250}
+1605	16	KARACAÖREN PİKNİK TURU	ALANYA	TRY	2025-11-02 10:42:17.946368	2025-11-02 10:42:17.946368	{"37": 7275, "38": 16855, "39": 10985}
+1606	16	DEMRE KEKOVA TURU	ANTALYA	TRY	2025-11-02 10:42:17.950118	2025-11-02 10:42:17.950118	{"37": 6725, "38": 16310, "39": 10435}
+1607	16	DEMRE KEKOVA TURU	KEMER	TRY	2025-11-02 10:42:17.95181	2025-11-02 10:42:17.95181	{"37": 6140, "38": 14595, "39": 9360}
+1608	16	DEMRE KEKOVA TURU	BELEK	TRY	2025-11-02 10:42:17.954482	2025-11-02 10:42:17.954482	{"37": 7020, "38": 17170, "39": 10975}
+1609	16	DEMRE KEKOVA TURU	SİDE	TRY	2025-11-02 10:42:17.957405	2025-11-02 10:42:17.957405	{"37": 7435, "38": 18370, "39": 11730}
+1610	16	DEMRE KEKOVA TURU	ALANYA	TRY	2025-11-02 10:42:17.960041	2025-11-02 10:42:17.960041	{"37": 8695, "38": 21000, "39": 13590}
+1611	16	PAMUKKALE 1 GÜN	ANTALYA	TRY	2025-11-02 10:42:17.961628	2025-11-02 10:42:17.961628	{"37": 8500, "38": 21500, "39": 13000}
+1612	16	PAMUKKALE 1 GÜN	KEMER	TRY	2025-11-02 10:42:17.963529	2025-11-02 10:42:17.963529	{"37": 9190, "38": 23345, "39": 14065}
+1613	16	PAMUKKALE 1 GÜN	BELEK	TRY	2025-11-02 10:42:17.965076	2025-11-02 10:42:17.965076	{"37": 9190, "38": 23345, "39": 14065}
+1614	16	PAMUKKALE 1 GÜN	SİDE	TRY	2025-11-02 10:42:17.968661	2025-11-02 10:42:17.968661	{"37": 8490, "38": 21455, "39": 13670}
+1615	16	PAMUKKALE 1 GÜN	ALANYA	TRY	2025-11-02 10:42:17.971532	2025-11-02 10:42:17.971532	{"37": 9255, "38": 23685, "39": 15070}
+1616	16	PAMUKKALE SALDA TURU	ANTALYA	TRY	2025-11-02 10:42:17.974026	2025-11-02 10:42:17.974026	{"37": 9500, "38": 24750, "39": 15000}
+1617	16	PAMUKKALE SALDA TURU	KEMER	TRY	2025-11-02 10:42:17.978026	2025-11-02 10:42:17.978026	{"37": 10315, "38": 25780, "39": 15940}
+1618	16	PAMUKKALE SALDA TURU	BELEK	TRY	2025-11-02 10:42:17.979992	2025-11-02 10:42:17.979992	{"37": 10315, "38": 25780, "39": 15940}
+1619	16	PAMUKKALE SALDA TURU	SİDE	TRY	2025-11-02 10:42:17.981938	2025-11-02 10:42:17.981938	{"37": 8785, "38": 22315, "39": 14210}
+1620	16	PAMUKKALE SALDA TURU	ALANYA	TRY	2025-11-02 10:42:17.984624	2025-11-02 10:42:17.984624	{"37": 9550, "38": 24540, "39": 15610}
+1621	16	PAMUKKALE 2 GÜN	ANTALYA	TRY	2025-11-02 10:42:17.988066	2025-11-02 10:42:17.988066	{"37": 12570, "38": 30050, "39": 19255}
+1622	16	PAMUKKALE 2 GÜN	KEMER	TRY	2025-11-02 10:42:17.992369	2025-11-02 10:42:17.992369	{"37": 13040, "38": 31420, "39": 20120}
+1623	16	PAMUKKALE 2 GÜN	BELEK	TRY	2025-11-02 10:42:17.995844	2025-11-02 10:42:17.995844	{"37": 12690, "38": 30390, "39": 19475}
+1624	16	PAMUKKALE 2 GÜN	SİDE	TRY	2025-11-02 10:42:17.998704	2025-11-02 10:42:17.998704	{"37": 13280, "38": 32105, "39": 20550}
+1625	16	PAMUKKALE 2 GÜN	ALANYA	TRY	2025-11-02 10:42:18.001155	2025-11-02 10:42:18.001155	{"37": 15110, "38": 35365, "39": 23005}
+1626	16	KAPADOKYA 2 GÜN	ANTALYA	TRY	2025-11-02 10:42:18.00409	2025-11-02 10:42:18.00409	{"37": 19000, "38": 46000, "39": 29000}
+1627	16	KAPADOKYA 2 GÜN	KEMER	TRY	2025-11-02 10:42:18.006849	2025-11-02 10:42:18.006849	{"37": 17215, "38": 43595, "39": 27775}
+1628	16	KAPADOKYA 2 GÜN	BELEK	TRY	2025-11-02 10:42:18.009654	2025-11-02 10:42:18.009654	{"37": 16100, "38": 40340, "39": 25725}
+1629	16	KAPADOKYA 2 GÜN	SİDE	TRY	2025-11-02 10:42:18.012359	2025-11-02 10:42:18.012359	{"37": 15805, "38": 39480, "39": 25185}
+1630	16	KAPADOKYA 2 GÜN	ALANYA	TRY	2025-11-02 10:42:18.014871	2025-11-02 10:42:18.014871	{"37": 16100, "38": 40340, "39": 25725}
+1631	16	EFES PAMUKKALE 2 GÜN	ANTALYA	TRY	2025-11-02 10:42:18.017495	2025-11-02 10:42:18.017495	{"37": 18000, "38": 45000, "39": 27000}
+1632	16	EFES PAMUKKALE 2 GÜN	KEMER	TRY	2025-11-02 10:42:18.020995	2025-11-02 10:42:18.020995	{"37": 18750, "38": 48750, "39": 28125}
+1633	16	EFES PAMUKKALE 2 GÜN	BELEK	TRY	2025-11-02 10:42:18.023875	2025-11-02 10:42:18.023875	{"37": 17815, "38": 44065, "39": 26250}
+1634	16	EFES PAMUKKALE 2 GÜN	SİDE	TRY	2025-11-02 10:42:18.025845	2025-11-02 10:42:18.025845	{"37": 16980, "38": 42910, "39": 27340}
+1635	16	EFES PAMUKKALE 2 GÜN	ALANYA	TRY	2025-11-02 10:42:18.027767	2025-11-02 10:42:18.027767	{"37": 19080, "38": 46935, "39": 30285}
+1636	16	DEMRE PAMUKKALE TURU 2 GÜN	ANTALYA	TRY	2025-11-02 10:42:18.030448	2025-11-02 10:42:18.030448	{"37": 16000, "38": 39000, "39": 21910}
+1637	16	DEMRE PAMUKKALE TURU 2 GÜN	KEMER	TRY	2025-11-02 10:42:18.033175	2025-11-02 10:42:18.033175	{"37": 15220, "38": 37765, "39": 24110}
+1638	16	DEMRE PAMUKKALE TURU 2 GÜN	BELEK	TRY	2025-11-02 10:42:18.034928	2025-11-02 10:42:18.034928	{"37": 14630, "38": 36050, "39": 23030}
+1639	16	DEMRE PAMUKKALE TURU 2 GÜN	SİDE	TRY	2025-11-02 10:42:18.037061	2025-11-02 10:42:18.037061	{"37": 15220, "38": 37765, "39": 24110}
+1640	16	DEMRE PAMUKKALE TURU 2 GÜN	ALANYA	TRY	2025-11-02 10:42:18.03961	2025-11-02 10:42:18.03961	{"37": 16100, "38": 40340, "39": 25725}
+1641	16	KAŞ TURU	ANTALYA	TRY	2025-11-02 10:42:18.042091	2025-11-02 10:42:18.042091	{"37": 7610, "38": 18885, "39": 12055}
+1642	16	KAŞ TURU	KEMER	TRY	2025-11-02 10:42:18.045046	2025-11-02 10:42:18.045046	{"37": 6550, "38": 15795, "39": 10115}
+1643	16	KEMER ŞEHİR TURU	ANTALYA	TRY	2025-11-02 10:42:18.047551	2025-11-02 10:42:18.047551	{"37": 6020, "38": 14250, "39": 9145}
+1644	16	KEMER ŞEHİR TURU	KEMER	TRY	2025-11-02 10:42:18.050045	2025-11-02 10:42:18.050045	{"37": 5255, "38": 12025, "39": 7740}
+1645	16	KEMER ŞEHİR TURU	BELEK	TRY	2025-11-02 10:42:18.053658	2025-11-02 10:42:18.053658	{"37": 6200, "38": 14765, "39": 9465}
+1646	16	KEMER ŞEHİR TURU	SİDE	TRY	2025-11-02 10:42:18.056422	2025-11-02 10:42:18.056422	{"37": 6725, "38": 16310, "39": 10435}
+1647	16	KEMER ŞEHİR TURU	ALANYA	TRY	2025-11-02 10:42:18.062179	2025-11-02 10:42:18.062179	{"37": 8010, "38": 19005, "39": 12340}
+1648	16	ADRASAN SULUADA TURU	ANTALYA	TRY	2025-11-02 10:42:18.069329	2025-11-02 10:42:18.069329	{"37": 6020, "38": 14250, "39": 9145}
+1649	16	ADRASAN SULUADA TURU	KEMER	TRY	2025-11-02 10:42:18.072334	2025-11-02 10:42:18.072334	{"37": 5435, "38": 12535, "39": 8065}
+1650	16	ADRASAN SULUADA TURU	BELEK	TRY	2025-11-02 10:42:18.074868	2025-11-02 10:42:18.074868	{"37": 6255, "38": 14940, "39": 9575}
+1651	16	ADRASAN SULUADA TURU	SİDE	TRY	2025-11-02 10:42:18.076926	2025-11-02 10:42:18.076926	{"37": 6725, "38": 16310, "39": 10435}
+1652	16	ADRASAN SULUADA TURU	ALANYA	TRY	2025-11-02 10:42:18.079021	2025-11-02 10:42:18.079021	{"37": 8130, "38": 19330, "39": 12550}
+1653	16	KEMER BOT TURU	ANTALYA	TRY	2025-11-02 10:42:18.081905	2025-11-02 10:42:18.081905	{"37": 5435, "38": 12535, "39": 8065}
+1654	16	KEMER BOT TURU	KEMER	TRY	2025-11-02 10:42:18.083173	2025-11-02 10:42:18.083173	{"37": 4965, "38": 11165, "39": 7205}
+1655	16	KEMER BOT TURU	BELEK	TRY	2025-11-02 10:42:18.09001	2025-11-02 10:42:18.09001	{"37": 5725, "38": 13395, "39": 8605}
+1656	16	KEMER BOT TURU	SİDE	TRY	2025-11-02 10:42:18.094088	2025-11-02 10:42:18.094088	{"37": 6140, "38": 14595, "39": 9360}
+1657	16	KEMER BOT TURU	ALANYA	TRY	2025-11-02 10:42:18.095401	2025-11-02 10:42:18.095401	{"37": 7560, "38": 17685, "39": 11510}
+1658	16	GÖYNÜK DİNOPARK TURU	ANTALYA	TRY	2025-11-02 10:42:18.097067	2025-11-02 10:42:18.097067	{"37": 5630, "38": 12270, "39": 8080}
+1659	16	GÖYNÜK DİNOPARK TURU	KEMER	TRY	2025-11-02 10:42:18.098318	2025-11-02 10:42:18.098318	{"37": 4965, "38": 11165, "39": 7205}
+1660	16	GÖYNÜK DİNOPARK TURU	BELEK	TRY	2025-11-02 10:42:18.100805	2025-11-02 10:42:18.100805	{"37": 5610, "38": 13050, "39": 8390}
+1661	16	TAHTALI TURU	ANTALYA	TRY	2025-11-02 10:42:18.102736	2025-11-02 10:42:18.102736	{"37": 5845, "38": 13740, "39": 8820}
+1662	16	TAHTALI TURU	KEMER	TRY	2025-11-02 10:42:18.10489	2025-11-02 10:42:18.10489	{"37": 5080, "38": 11510, "39": 7420}
+1663	16	TAHTALI TURU	BELEK	TRY	2025-11-02 10:42:18.107662	2025-11-02 10:42:18.107662	{"37": 5965, "38": 14080, "39": 9035}
+1664	16	TAHTALI TURU	SİDE	TRY	2025-11-02 10:42:18.11021	2025-11-02 10:42:18.11021	{"37": 6490, "38": 15625, "39": 10005}
+1665	16	TAHTALI TURU	ALANYA	TRY	2025-11-02 10:42:18.11166	2025-11-02 10:42:18.11166	{"37": 7780, "38": 18345, "39": 11920}
+1666	16	TAHTALI + AKVARYUM TURU	ANTALYA	TRY	2025-11-02 10:42:18.113608	2025-11-02 10:42:18.113608	{"37": 6120, "38": 15000, "39": 9500}
+1667	16	TAHTALI + AKVARYUM TURU	KEMER	TRY	2025-11-02 10:42:18.116239	2025-11-02 10:42:18.116239	{"37": 5670, "38": 13225, "39": 8495}
+1668	16	TAHTALI + AKVARYUM TURU	BELEK	TRY	2025-11-02 10:42:18.118638	2025-11-02 10:42:18.118638	{"37": 5965, "38": 14080, "39": 9035}
+1669	16	TAHTALI + AKVARYUM TURU	SİDE	TRY	2025-11-02 10:42:18.12086	2025-11-02 10:42:18.12086	{"37": 6490, "38": 15625, "39": 10005}
+1670	16	TAHTALI + AKVARYUM TURU	ALANYA	TRY	2025-11-02 10:42:18.122959	2025-11-02 10:42:18.122959	{"37": 7780, "38": 18345, "39": 11920}
+1671	16	ULUPINAR OLİMPOS PHASELİS TURU	ANTALYA	TRY	2025-11-02 10:42:18.125254	2025-11-02 10:42:18.125254	{"37": 6280, "38": 14160, "39": 9270}
+1672	16	ULUPINAR OLİMPOS PHASELİS TURU	KEMER	TRY	2025-11-02 10:42:18.126695	2025-11-02 10:42:18.126695	{"37": 5435, "38": 12535, "39": 8065}
+1673	16	ULUPINAR OLİMPOS PHASELİS TURU	BELEK	TRY	2025-11-02 10:42:18.128831	2025-11-02 10:42:18.128831	{"37": 6200, "38": 14765, "39": 9465}
+1674	16	ULUPINAR OLİMPOS PHASELİS TURU	SİDE	TRY	2025-11-02 10:42:18.130687	2025-11-02 10:42:18.130687	{"37": 6725, "38": 16310, "39": 10435}
+1675	16	ULUPINAR OLİMPOS PHASELİS TURU	ALANYA	TRY	2025-11-02 10:42:18.132106	2025-11-02 10:42:18.132106	{"37": 8010, "38": 19005, "39": 12340}
+1676	16	PERGE ANTALYA TURU	ANTALYA	TRY	2025-11-02 10:42:18.1343	2025-11-02 10:42:18.1343	{"37": 5630, "38": 12270, "39": 8080}
+1677	16	PERGE ANTALYA TURU	KEMER	TRY	2025-11-02 10:42:18.136309	2025-11-02 10:42:18.136309	{"37": 6020, "38": 14250, "39": 9145}
+1678	16	PERGE ANTALYA TURU	BELEK	TRY	2025-11-02 10:42:18.138528	2025-11-02 10:42:18.138528	{"37": 5550, "38": 12880, "39": 8280}
+1679	16	PERGE ANTALYA TURU	SİDE	TRY	2025-11-02 10:42:18.139894	2025-11-02 10:42:18.139894	{"37": 5965, "38": 14080, "39": 9035}
+1680	16	PERGE ANTALYA TURU	ALANYA	TRY	2025-11-02 10:42:18.141411	2025-11-02 10:42:18.141411	{"37": 6725, "38": 16310, "39": 10435}
+1681	16	PERGE ASPENDOS SİDE	ANTALYA	TRY	2025-11-02 10:42:18.142791	2025-11-02 10:42:18.142791	{"37": 5725, "38": 13395, "39": 8605}
+1682	16	PERGE ASPENDOS SİDE	KEMER	TRY	2025-11-02 10:42:18.144269	2025-11-02 10:42:18.144269	{"37": 6375, "38": 15280, "39": 9790}
+1683	16	PERGE ASPENDOS SİDE	BELEK	TRY	2025-11-02 10:42:18.145497	2025-11-02 10:42:18.145497	{"37": 5435, "38": 12535, "39": 8065}
+1684	16	PERGE ASPENDOS SİDE	SİDE	TRY	2025-11-02 10:42:18.146733	2025-11-02 10:42:18.146733	{"37": 5845, "38": 13740, "39": 8820}
+1685	16	PERGE ASPENDOS SİDE	ALANYA	TRY	2025-11-02 10:42:18.147991	2025-11-02 10:42:18.147991	{"37": 6670, "38": 16140, "39": 10330}
+1686	16	ANTALYA AKŞAM YEMEK TURU	ANTALYA	TRY	2025-11-02 10:42:18.149578	2025-11-02 10:42:18.149578	{"37": 3970, "38": 8930, "39": 5760}
+1687	16	ANTALYA AKŞAM YEMEK TURU	KEMER	TRY	2025-11-02 10:42:18.150859	2025-11-02 10:42:18.150859	{"37": 5255, "38": 12025, "39": 7740}
+1688	16	ANTALYA AKŞAM YEMEK TURU	BELEK	TRY	2025-11-02 10:42:18.152168	2025-11-02 10:42:18.152168	{"37": 4205, "38": 9620, "39": 6195}
+1689	16	ANTALYA AKŞAM YEMEK TURU	SİDE	TRY	2025-11-02 10:42:18.153414	2025-11-02 10:42:18.153414	{"37": 5550, "38": 12880, "39": 8280}
+1690	16	ANTALYA AKŞAM YEMEK TURU	ALANYA	TRY	2025-11-02 10:42:18.154659	2025-11-02 10:42:18.154659	{"37": 6140, "38": 14595, "39": 9360}
+1691	16	KEMER	KEMER	TRY	2025-11-02 10:42:18.156	2025-11-02 10:42:18.156	{"37": 1800, "38": 4075, "39": 2665}
+1692	16	KEMER	ANTALYA	TRY	2025-11-02 10:42:18.158036	2025-11-02 10:42:18.158036	{"37": 2510, "38": 5950, "39": 3895}
+1693	16	KEMER	BELEK	TRY	2025-11-02 10:42:18.159486	2025-11-02 10:42:18.159486	{"37": 4150, "38": 9890, "39": 6470}
+1694	16	KEMER	SİDE	TRY	2025-11-02 10:42:18.161104	2025-11-02 10:42:18.161104	{"37": 5480, "38": 13375, "39": 8665}
+1695	16	KEMER	ALANYA	TRY	2025-11-02 10:42:18.162819	2025-11-02 10:42:18.162819	{"37": 7570, "38": 18610, "39": 12085}
+1696	16	ANTALYA	ANTALYA	TRY	2025-11-02 10:42:18.164907	2025-11-02 10:42:18.164907	{"37": 1800, "38": 4075, "39": 2665}
+1697	16	ANTALYA	BELEK	TRY	2025-11-02 10:42:18.167265	2025-11-02 10:42:18.167265	{"37": 2160, "38": 4915, "39": 3275}
+1698	16	ANTALYA	SİDE	TRY	2025-11-02 10:42:18.169111	2025-11-02 10:42:18.169111	{"37": 3115, "38": 7360, "39": 4870}
+1699	16	ANTALYA	ALANYA	TRY	2025-11-02 10:42:18.177068	2025-11-02 10:42:18.177068	{"37": 4355, "38": 10565, "39": 6865}
+1700	16	BELEK	BELEK	TRY	2025-11-02 10:42:18.178457	2025-11-02 10:42:18.178457	{"37": 1800, "38": 4075, "39": 2665}
+1701	16	BELEK	SİDE	TRY	2025-11-02 10:42:18.180043	2025-11-02 10:42:18.180043	{"37": 2420, "38": 5650, "39": 3700}
+1702	16	BELEK	ALANYA	TRY	2025-11-02 10:42:18.18138	2025-11-02 10:42:18.18138	{"37": 3985, "38": 9505, "39": 6255}
+1703	16	SİDE	SİDE	TRY	2025-11-02 10:42:18.18291	2025-11-02 10:42:18.18291	{"37": 1800, "38": 4075, "39": 2665}
+1704	16	SİDE	ALANYA	TRY	2025-11-02 10:42:18.184325	2025-11-02 10:42:18.184325	{"37": 3115, "38": 7360, "39": 4870}
+1705	16	BÖLGE İÇİ ARA TRANSFER	ARA TRANSFER	TRY	2025-11-02 10:42:18.186835	2025-11-02 10:42:18.186835	{"37": 1800, "38": 4075, "39": 2665}
+1744	13	BELEK LAND OF LEGENDS TURU	SİDE	TRY	2025-11-02 10:43:34.910431	2025-11-02 10:43:34.910431	{"31": 7890, "32": 5520}
+1745	13	BELEK LAND OF LEGENDS TURU	ALANYA	TRY	2025-11-02 10:43:34.911964	2025-11-02 10:43:34.911964	{"31": 9430, "32": 6425}
+1746	13	AQUALAND TURU / AKVARYUM TURU	ANTALYA	TRY	2025-11-02 10:43:34.913258	2025-11-02 10:43:34.913258	{"31": 7490, "32": 5310}
+1747	13	AQUALAND TURU / AKVARYUM TURU	KEMER	TRY	2025-11-02 10:43:34.91508	2025-11-02 10:43:34.91508	{"31": 7740, "32": 5255}
+1748	13	AQUALAND TURU / AKVARYUM TURU	BELEK	TRY	2025-11-02 10:43:34.916393	2025-11-02 10:43:34.916393	{"31": 7740, "32": 5255}
+1749	13	AQUALAND TURU / AKVARYUM TURU	SİDE	TRY	2025-11-02 10:43:34.918065	2025-11-02 10:43:34.918065	{"31": 8480, "32": 5850}
+1750	13	AQUALAND TURU / AKVARYUM TURU	ALANYA	TRY	2025-11-02 10:43:34.91947	2025-11-02 10:43:34.91947	{"31": 10155, "32": 6815}
+1751	13	TÜNEKTEPE TELEFERİK TURU	ANTALYA	TRY	2025-11-02 10:43:34.920763	2025-11-02 10:43:34.920763	{"31": 7690, "32": 5410}
+1752	13	TÜNEKTEPE TELEFERİK TURU	KEMER	TRY	2025-11-02 10:43:34.922185	2025-11-02 10:43:34.922185	{"31": 7525, "32": 5140}
+1753	13	TÜNEKTEPE TELEFERİK TURU	BELEK	TRY	2025-11-02 10:43:34.92387	2025-11-02 10:43:34.92387	{"31": 8065, "32": 5435}
+1754	13	TÜNEKTEPE TELEFERİK TURU	SİDE	TRY	2025-11-02 10:43:34.925134	2025-11-02 10:43:34.925134	{"31": 8820, "32": 5845}
+1755	13	TÜNEKTEPE TELEFERİK TURU	ALANYA	TRY	2025-11-02 10:43:34.926705	2025-11-02 10:43:34.926705	{"31": 10470, "32": 6995}
+1756	13	ANTALYA YAT TURU SETUR MARİNA	ANTALYA	TRY	2025-11-02 10:43:34.928129	2025-11-02 10:43:34.928129	{"31": 7690, "32": 5410}
+1757	13	ANTALYA YAT TURU SETUR MARİNA	KEMER	TRY	2025-11-02 10:43:34.929552	2025-11-02 10:43:34.929552	{"31": 7525, "32": 5140}
+1758	13	ANTALYA YAT TURU SETUR MARİNA	BELEK	TRY	2025-11-02 10:43:34.930796	2025-11-02 10:43:34.930796	{"31": 8065, "32": 5435}
+1759	13	ANTALYA YAT TURU SETUR MARİNA	SİDE	TRY	2025-11-02 10:43:34.932813	2025-11-02 10:43:34.932813	{"31": 8820, "32": 5845}
+1760	13	ANTALYA YAT TURU SETUR MARİNA	ALANYA	TRY	2025-11-02 10:43:34.935054	2025-11-02 10:43:34.935054	{"31": 10470, "32": 6995}
+1761	13	ANTALYA MACERA PARK TURU / HAYVANAT BAHÇESİ TURU	ANTALYA	TRY	2025-11-02 10:43:34.937549	2025-11-02 10:43:34.937549	{"31": 7690, "32": 5410}
+1762	13	ANTALYA MACERA PARK TURU / HAYVANAT BAHÇESİ TURU	KEMER	TRY	2025-11-02 10:43:34.938908	2025-11-02 10:43:34.938908	{"31": 7525, "32": 5140}
+1763	13	ANTALYA MACERA PARK TURU / HAYVANAT BAHÇESİ TURU	BELEK	TRY	2025-11-02 10:43:34.940259	2025-11-02 10:43:34.940259	{"31": 8065, "32": 5435}
+1764	13	ANTALYA MACERA PARK TURU / HAYVANAT BAHÇESİ TURU	SİDE	TRY	2025-11-02 10:43:34.941684	2025-11-02 10:43:34.941684	{"31": 8980, "32": 6120}
+1765	13	ANTALYA MACERA PARK TURU / HAYVANAT BAHÇESİ TURU	ALANYA	TRY	2025-11-02 10:43:34.943252	2025-11-02 10:43:34.943252	{"31": 10470, "32": 6995}
+1766	13	ANTALYA ŞEHİR TURU	ANTALYA	TRY	2025-11-02 10:43:34.944845	2025-11-02 10:43:34.944845	{"31": 7890, "32": 5520}
+1767	13	ANTALYA ŞEHİR TURU	KEMER	TRY	2025-11-02 10:43:34.946136	2025-11-02 10:43:34.946136	{"31": 8710, "32": 5785}
+1768	13	ANTALYA ŞEHİR TURU	BELEK	TRY	2025-11-02 10:43:34.947497	2025-11-02 10:43:34.947497	{"31": 8280, "32": 5550}
+1769	13	ANTALYA ŞEHİR TURU	SİDE	TRY	2025-11-02 10:43:34.949921	2025-11-02 10:43:34.949921	{"31": 9170, "32": 6220}
+1770	13	ANTALYA ŞEHİR TURU	ALANYA	TRY	2025-11-02 10:43:34.951417	2025-11-02 10:43:34.951417	{"31": 10985, "32": 7275}
+1771	13	ALANYA ŞEHİR TURU	SİDE	TRY	2025-11-02 10:43:34.952999	2025-11-02 10:43:34.952999	{"31": 8680, "32": 5950}
+1772	13	ALANYA ŞEHİR TURU	ALANYA	TRY	2025-11-02 10:43:34.954526	2025-11-02 10:43:34.954526	{"31": 8285, "32": 5795}
+1773	13	ALARAHAN PİKNİK TURU	SİDE	TRY	2025-11-02 10:43:34.956089	2025-11-02 10:43:34.956089	{"31": 8480, "32": 5850}
+1774	13	ALARAHAN PİKNİK TURU	ALANYA	TRY	2025-11-02 10:43:34.958206	2025-11-02 10:43:34.958206	{"31": 8285, "32": 5795}
+1775	13	ALANYA BOT TURU	SİDE	TRY	2025-11-02 10:43:34.959616	2025-11-02 10:43:34.959616	{"31": 8495, "32": 5670}
+1776	13	ALANYA BOT TURU	ALANYA	TRY	2025-11-02 10:43:34.961925	2025-11-02 10:43:34.961925	{"31": 8285, "32": 5795}
+1777	13	WATER PLANET	SİDE	TRY	2025-11-02 10:43:34.963373	2025-11-02 10:43:34.963373	{"31": 8480, "32": 5850}
+1778	13	WATER PLANET	ALANYA	TRY	2025-11-02 10:43:34.965754	2025-11-02 10:43:34.965754	{"31": 8180, "32": 5745}
+1779	13	SEA ALANYA DOLPHIN TURU	ANTALYA	TRY	2025-11-02 10:43:34.967627	2025-11-02 10:43:34.967627	{"31": 9360, "32": 6140}
+1780	13	SEA ALANYA DOLPHIN TURU	KEMER	TRY	2025-11-02 10:43:34.969234	2025-11-02 10:43:34.969234	{"31": 10975, "32": 7020}
+1781	13	SEA ALANYA DOLPHIN TURU	BELEK	TRY	2025-11-02 10:43:34.971398	2025-11-02 10:43:34.971398	{"31": 8820, "32": 5845}
+1782	13	SEA ALANYA DOLPHIN TURU	SİDE	TRY	2025-11-02 10:43:34.973354	2025-11-02 10:43:34.973354	{"31": 7180, "32": 4890}
+1783	13	SEA ALANYA DOLPHIN TURU	ALANYA	TRY	2025-11-02 10:43:34.975408	2025-11-02 10:43:34.975408	{"31": 6345, "32": 4360}
+1784	13	SEA ALANYA TAM GÜN	ANTALYA	TRY	2025-11-02 10:43:34.977185	2025-11-02 10:43:34.977185	{"31": 9470, "32": 6390}
+1785	13	SEA ALANYA TAM GÜN	KEMER	TRY	2025-11-02 10:43:34.978635	2025-11-02 10:43:34.978635	{"31": 10975, "32": 7020}
+1786	13	SEA ALANYA TAM GÜN	BELEK	TRY	2025-11-02 10:43:34.980437	2025-11-02 10:43:34.980437	{"31": 8820, "32": 5845}
+1787	13	SEA ALANYA TAM GÜN	SİDE	TRY	2025-11-02 10:43:34.982214	2025-11-02 10:43:34.982214	{"31": 8280, "32": 5550}
+1788	13	SEA ALANYA TAM GÜN	ALANYA	TRY	2025-11-02 10:43:34.98436	2025-11-02 10:43:34.98436	{"31": 8390, "32": 5860}
+1789	13	SİDE ŞEHİR TURU	SİDE	TRY	2025-11-02 10:43:34.986502	2025-11-02 10:43:34.986502	{"31": 7890, "32": 5520}
+1790	13	SİDE ŞEHİR TURU	ALANYA	TRY	2025-11-02 10:43:34.988371	2025-11-02 10:43:34.988371	{"31": 9115, "32": 6250}
+1792	13	BEŞKONAK TURU	KEMER	TRY	2025-11-02 10:43:34.992029	2025-11-02 10:43:35.002947	{"31": 9900, "32": 6435}
+1793	13	BEŞKONAK TURU	BELEK	TRY	2025-11-02 10:43:34.994219	2025-11-02 10:43:35.004814	{"31": 8280, "32": 5550}
+1797	13	BEŞKONAK TURU	SİDE	TRY	2025-11-02 10:43:35.006296	2025-11-02 10:43:35.006296	{"31": 8880, "32": 6060}
+1798	13	BEŞKONAK TURU	ALANYA	TRY	2025-11-02 10:43:35.010996	2025-11-02 10:43:35.010996	{"31": 10260, "32": 6880}
+1799	13	TAZI KANYONU TURU	ANTALYA	TRY	2025-11-02 10:43:35.01288	2025-11-02 10:43:35.01288	{"31": 9360, "32": 6140}
+1800	13	TAZI KANYONU TURU	KEMER	TRY	2025-11-02 10:43:35.015052	2025-11-02 10:43:35.015052	{"31": 10435, "32": 6725}
+1801	13	TAZI KANYONU TURU	BELEK	TRY	2025-11-02 10:43:35.017009	2025-11-02 10:43:35.017009	{"31": 8175, "32": 5490}
+1802	13	TAZI KANYONU TURU	SİDE	TRY	2025-11-02 10:43:35.018745	2025-11-02 10:43:35.018745	{"31": 9360, "32": 6140}
+1803	13	TAZI KANYONU TURU	ALANYA	TRY	2025-11-02 10:43:35.020675	2025-11-02 10:43:35.020675	{"31": 10775, "32": 7160}
+1804	13	ASPENDOS KONSER TURU	ANTALYA	TRY	2025-11-02 10:43:35.022298	2025-11-02 10:43:35.022298	{"31": 5940, "32": 4090}
+1805	13	ASPENDOS KONSER TURU	KEMER	TRY	2025-11-02 10:43:35.02364	2025-11-02 10:43:35.02364	{"31": 8820, "32": 5845}
+1806	13	ASPENDOS KONSER TURU	BELEK	TRY	2025-11-02 10:43:35.025238	2025-11-02 10:43:35.025238	{"31": 3925, "32": 2660}
+1807	13	ASPENDOS KONSER TURU	SİDE	TRY	2025-11-02 10:43:35.026685	2025-11-02 10:43:35.026685	{"31": 5740, "32": 3980}
+1808	13	ASPENDOS KONSER TURU	ALANYA	TRY	2025-11-02 10:43:35.028076	2025-11-02 10:43:35.028076	{"31": 9325, "32": 6365}
+1809	13	OYMAPINAR PİKNİK TURU	ANTALYA	TRY	2025-11-02 10:43:35.029474	2025-11-02 10:43:35.029474	{"31": 8680, "32": 5950}
+1810	13	OYMAPINAR PİKNİK TURU	KEMER	TRY	2025-11-02 10:43:35.030941	2025-11-02 10:43:35.030941	{"31": 9900, "32": 6435}
+1811	13	OYMAPINAR PİKNİK TURU	BELEK	TRY	2025-11-02 10:43:35.032325	2025-11-02 10:43:35.032325	{"31": 7960, "32": 5375}
+1812	13	OYMAPINAR PİKNİK TURU	SİDE	TRY	2025-11-02 10:43:35.033858	2025-11-02 10:43:35.033858	{"31": 7490, "32": 5310}
+1813	13	OYMAPINAR PİKNİK TURU	ALANYA	TRY	2025-11-02 10:43:35.035886	2025-11-02 10:43:35.035886	{"31": 9115, "32": 6250}
+1814	13	KARACAÖREN PİKNİK TURU	ANTALYA	TRY	2025-11-02 10:43:35.037449	2025-11-02 10:43:35.037449	{"31": 8480, "32": 5850}
+1815	13	KARACAÖREN PİKNİK TURU	KEMER	TRY	2025-11-02 10:43:35.039533	2025-11-02 10:43:35.039533	{"31": 9360, "32": 6140}
+1816	13	KARACAÖREN PİKNİK TURU	BELEK	TRY	2025-11-02 10:43:35.04133	2025-11-02 10:43:35.04133	{"31": 8390, "32": 5610}
+1817	13	KARACAÖREN PİKNİK TURU	SİDE	TRY	2025-11-02 10:43:35.042765	2025-11-02 10:43:35.042765	{"31": 9250, "32": 6080}
+1818	13	KARACAÖREN PİKNİK TURU	ALANYA	TRY	2025-11-02 10:43:35.044292	2025-11-02 10:43:35.044292	{"31": 10985, "32": 7275}
+1819	13	DEMRE KEKOVA TURU	ANTALYA	TRY	2025-11-02 10:43:35.045865	2025-11-02 10:43:35.045865	{"31": 10435, "32": 6725}
+1820	13	DEMRE KEKOVA TURU	KEMER	TRY	2025-11-02 10:43:35.047342	2025-11-02 10:43:35.047342	{"31": 9360, "32": 6140}
+1821	13	DEMRE KEKOVA TURU	BELEK	TRY	2025-11-02 10:43:35.048766	2025-11-02 10:43:35.048766	{"31": 10975, "32": 7020}
+1822	13	DEMRE KEKOVA TURU	SİDE	TRY	2025-11-02 10:43:35.051272	2025-11-02 10:43:35.051272	{"31": 11730, "32": 7435}
+1823	13	DEMRE KEKOVA TURU	ALANYA	TRY	2025-11-02 10:43:35.054504	2025-11-02 10:43:35.054504	{"31": 13590, "32": 8695}
+1824	13	PAMUKKALE 1 GÜN	ANTALYA	TRY	2025-11-02 10:43:35.05851	2025-11-02 10:43:35.05851	{"31": 13000, "32": 8500}
+1825	13	PAMUKKALE 1 GÜN	KEMER	TRY	2025-11-02 10:43:35.060572	2025-11-02 10:43:35.060572	{"31": 14065, "32": 9190}
+1826	13	PAMUKKALE 1 GÜN	BELEK	TRY	2025-11-02 10:43:35.062304	2025-11-02 10:43:35.062304	{"31": 14065, "32": 9190}
+1827	13	PAMUKKALE 1 GÜN	SİDE	TRY	2025-11-02 10:43:35.063846	2025-11-02 10:43:35.063846	{"31": 13670, "32": 8490}
+1828	13	PAMUKKALE 1 GÜN	ALANYA	TRY	2025-11-02 10:43:35.066352	2025-11-02 10:43:35.066352	{"31": 15070, "32": 9255}
+1829	13	PAMUKKALE SALDA TURU	ANTALYA	TRY	2025-11-02 10:43:35.071347	2025-11-02 10:43:35.071347	{"31": 15000, "32": 9500}
+1830	13	PAMUKKALE SALDA TURU	KEMER	TRY	2025-11-02 10:43:35.07398	2025-11-02 10:43:35.07398	{"31": 15940, "32": 10315}
+1831	13	PAMUKKALE SALDA TURU	BELEK	TRY	2025-11-02 10:43:35.076367	2025-11-02 10:43:35.076367	{"31": 15940, "32": 10315}
+1832	13	PAMUKKALE SALDA TURU	SİDE	TRY	2025-11-02 10:43:35.078161	2025-11-02 10:43:35.078161	{"31": 14210, "32": 8785}
+1833	13	PAMUKKALE SALDA TURU	ALANYA	TRY	2025-11-02 10:43:35.080102	2025-11-02 10:43:35.080102	{"31": 15610, "32": 9550}
+1834	13	PAMUKKALE 2 GÜN	ANTALYA	TRY	2025-11-02 10:43:35.082304	2025-11-02 10:43:35.082304	{"31": 19255, "32": 12570}
+1835	13	PAMUKKALE 2 GÜN	KEMER	TRY	2025-11-02 10:43:35.084003	2025-11-02 10:43:35.084003	{"31": 20120, "32": 13040}
+1836	13	PAMUKKALE 2 GÜN	BELEK	TRY	2025-11-02 10:43:35.086336	2025-11-02 10:43:35.086336	{"31": 19475, "32": 12690}
+1837	13	PAMUKKALE 2 GÜN	SİDE	TRY	2025-11-02 10:43:35.08852	2025-11-02 10:43:35.08852	{"31": 20550, "32": 13280}
+1838	13	PAMUKKALE 2 GÜN	ALANYA	TRY	2025-11-02 10:43:35.090495	2025-11-02 10:43:35.090495	{"31": 23005, "32": 15110}
+1839	13	KAPADOKYA 2 GÜN	ANTALYA	TRY	2025-11-02 10:43:35.092274	2025-11-02 10:43:35.092274	{"31": 29000, "32": 19000}
+1840	13	KAPADOKYA 2 GÜN	KEMER	TRY	2025-11-02 10:43:35.093956	2025-11-02 10:43:35.093956	{"31": 27775, "32": 17215}
+1841	13	KAPADOKYA 2 GÜN	BELEK	TRY	2025-11-02 10:43:35.095684	2025-11-02 10:43:35.095684	{"31": 25725, "32": 16100}
+1842	13	KAPADOKYA 2 GÜN	SİDE	TRY	2025-11-02 10:43:35.097567	2025-11-02 10:43:35.097567	{"31": 25185, "32": 15805}
+1843	13	KAPADOKYA 2 GÜN	ALANYA	TRY	2025-11-02 10:43:35.099965	2025-11-02 10:43:35.099965	{"31": 25725, "32": 16100}
+1844	13	EFES PAMUKKALE 2 GÜN	ANTALYA	TRY	2025-11-02 10:43:35.102255	2025-11-02 10:43:35.102255	{"31": 27000, "32": 18000}
+1845	13	EFES PAMUKKALE 2 GÜN	KEMER	TRY	2025-11-02 10:43:35.105152	2025-11-02 10:43:35.105152	{"31": 28125, "32": 18750}
+1846	13	EFES PAMUKKALE 2 GÜN	BELEK	TRY	2025-11-02 10:43:35.107242	2025-11-02 10:43:35.107242	{"31": 26250, "32": 17815}
+1847	13	EFES PAMUKKALE 2 GÜN	SİDE	TRY	2025-11-02 10:43:35.109465	2025-11-02 10:43:35.109465	{"31": 27340, "32": 16980}
+1848	13	EFES PAMUKKALE 2 GÜN	ALANYA	TRY	2025-11-02 10:43:35.11179	2025-11-02 10:43:35.11179	{"31": 30285, "32": 19080}
+1849	13	DEMRE PAMUKKALE TURU 2 GÜN	ANTALYA	TRY	2025-11-02 10:43:35.113459	2025-11-02 10:43:35.113459	{"31": 21910, "32": 16000}
+1850	13	DEMRE PAMUKKALE TURU 2 GÜN	KEMER	TRY	2025-11-02 10:43:35.115833	2025-11-02 10:43:35.115833	{"31": 24110, "32": 15220}
+1851	13	DEMRE PAMUKKALE TURU 2 GÜN	BELEK	TRY	2025-11-02 10:43:35.119632	2025-11-02 10:43:35.119632	{"31": 23030, "32": 14630}
+1852	13	DEMRE PAMUKKALE TURU 2 GÜN	SİDE	TRY	2025-11-02 10:43:35.12267	2025-11-02 10:43:35.12267	{"31": 24110, "32": 15220}
+1853	13	DEMRE PAMUKKALE TURU 2 GÜN	ALANYA	TRY	2025-11-02 10:43:35.12633	2025-11-02 10:43:35.12633	{"31": 25725, "32": 16100}
+1854	13	KAŞ TURU	ANTALYA	TRY	2025-11-02 10:43:35.130855	2025-11-02 10:43:35.130855	{"31": 12055, "32": 7610}
+1855	13	KAŞ TURU	KEMER	TRY	2025-11-02 10:43:35.134266	2025-11-02 10:43:35.134266	{"31": 10115, "32": 6550}
+1856	13	KEMER ŞEHİR TURU	ANTALYA	TRY	2025-11-02 10:43:35.138006	2025-11-02 10:43:35.138006	{"31": 9145, "32": 6020}
+1857	13	KEMER ŞEHİR TURU	KEMER	TRY	2025-11-02 10:43:35.142668	2025-11-02 10:43:35.142668	{"31": 7740, "32": 5255}
+1858	13	KEMER ŞEHİR TURU	BELEK	TRY	2025-11-02 10:43:35.147609	2025-11-02 10:43:35.147609	{"31": 9465, "32": 6200}
+1859	13	KEMER ŞEHİR TURU	SİDE	TRY	2025-11-02 10:43:35.152215	2025-11-02 10:43:35.152215	{"31": 10435, "32": 6725}
+1860	13	KEMER ŞEHİR TURU	ALANYA	TRY	2025-11-02 10:43:35.15558	2025-11-02 10:43:35.15558	{"31": 12340, "32": 8010}
+1861	13	ADRASAN SULUADA TURU	ANTALYA	TRY	2025-11-02 10:43:35.160311	2025-11-02 10:43:35.160311	{"31": 9145, "32": 6020}
+1862	13	ADRASAN SULUADA TURU	KEMER	TRY	2025-11-02 10:43:35.207029	2025-11-02 10:43:35.207029	{"31": 8065, "32": 5435}
+1863	13	ADRASAN SULUADA TURU	BELEK	TRY	2025-11-02 10:43:35.211728	2025-11-02 10:43:35.211728	{"31": 9575, "32": 6255}
+1864	13	ADRASAN SULUADA TURU	SİDE	TRY	2025-11-02 10:43:35.214376	2025-11-02 10:43:35.214376	{"31": 10435, "32": 6725}
+1865	13	ADRASAN SULUADA TURU	ALANYA	TRY	2025-11-02 10:43:35.217254	2025-11-02 10:43:35.217254	{"31": 12550, "32": 8130}
+1866	13	KEMER BOT TURU	ANTALYA	TRY	2025-11-02 10:43:35.219582	2025-11-02 10:43:35.219582	{"31": 8065, "32": 5435}
+1867	13	KEMER BOT TURU	KEMER	TRY	2025-11-02 10:43:35.221625	2025-11-02 10:43:35.221625	{"31": 7205, "32": 4965}
+1868	13	KEMER BOT TURU	BELEK	TRY	2025-11-02 10:43:35.224084	2025-11-02 10:43:35.224084	{"31": 8605, "32": 5725}
+1869	13	KEMER BOT TURU	SİDE	TRY	2025-11-02 10:43:35.226161	2025-11-02 10:43:35.226161	{"31": 9360, "32": 6140}
+1870	13	KEMER BOT TURU	ALANYA	TRY	2025-11-02 10:43:35.228073	2025-11-02 10:43:35.228073	{"31": 11510, "32": 7560}
+1871	13	GÖYNÜK DİNOPARK TURU	ANTALYA	TRY	2025-11-02 10:43:35.230606	2025-11-02 10:43:35.230606	{"31": 8080, "32": 5630}
+1872	13	GÖYNÜK DİNOPARK TURU	KEMER	TRY	2025-11-02 10:43:35.232848	2025-11-02 10:43:35.232848	{"31": 7205, "32": 4965}
+1873	13	GÖYNÜK DİNOPARK TURU	BELEK	TRY	2025-11-02 10:43:35.235141	2025-11-02 10:43:35.235141	{"31": 8390, "32": 5610}
+1874	13	TAHTALI TURU	ANTALYA	TRY	2025-11-02 10:43:35.237534	2025-11-02 10:43:35.237534	{"31": 8820, "32": 5845}
+1875	13	TAHTALI TURU	KEMER	TRY	2025-11-02 10:43:35.239976	2025-11-02 10:43:35.239976	{"31": 7420, "32": 5080}
+1876	13	TAHTALI TURU	BELEK	TRY	2025-11-02 10:43:35.242137	2025-11-02 10:43:35.242137	{"31": 9035, "32": 5965}
+1877	13	TAHTALI TURU	SİDE	TRY	2025-11-02 10:43:35.245169	2025-11-02 10:43:35.245169	{"31": 10005, "32": 6490}
+1878	13	TAHTALI TURU	ALANYA	TRY	2025-11-02 10:43:35.247691	2025-11-02 10:43:35.247691	{"31": 11920, "32": 7780}
+1879	13	TAHTALI + AKVARYUM TURU	ANTALYA	TRY	2025-11-02 10:43:35.250395	2025-11-02 10:43:35.250395	{"31": 9500, "32": 6120}
+1880	13	TAHTALI + AKVARYUM TURU	KEMER	TRY	2025-11-02 10:43:35.25352	2025-11-02 10:43:35.25352	{"31": 8495, "32": 5670}
+1881	13	TAHTALI + AKVARYUM TURU	BELEK	TRY	2025-11-02 10:43:35.256381	2025-11-02 10:43:35.256381	{"31": 9035, "32": 5965}
+1882	13	TAHTALI + AKVARYUM TURU	SİDE	TRY	2025-11-02 10:43:35.259524	2025-11-02 10:43:35.259524	{"31": 10005, "32": 6490}
+1883	13	TAHTALI + AKVARYUM TURU	ALANYA	TRY	2025-11-02 10:43:35.262281	2025-11-02 10:43:35.262281	{"31": 11920, "32": 7780}
+1884	13	ULUPINAR OLİMPOS PHASELİS TURU	ANTALYA	TRY	2025-11-02 10:43:35.264694	2025-11-02 10:43:35.264694	{"31": 9270, "32": 6280}
+1885	13	ULUPINAR OLİMPOS PHASELİS TURU	KEMER	TRY	2025-11-02 10:43:35.267337	2025-11-02 10:43:35.267337	{"31": 8065, "32": 5435}
+1886	13	ULUPINAR OLİMPOS PHASELİS TURU	BELEK	TRY	2025-11-02 10:43:35.269731	2025-11-02 10:43:35.269731	{"31": 9465, "32": 6200}
+1887	13	ULUPINAR OLİMPOS PHASELİS TURU	SİDE	TRY	2025-11-02 10:43:35.272725	2025-11-02 10:43:35.272725	{"31": 10435, "32": 6725}
+1888	13	ULUPINAR OLİMPOS PHASELİS TURU	ALANYA	TRY	2025-11-02 10:43:35.275303	2025-11-02 10:43:35.275303	{"31": 12340, "32": 8010}
+1889	13	PERGE ANTALYA TURU	ANTALYA	TRY	2025-11-02 10:43:35.279278	2025-11-02 10:43:35.279278	{"31": 8080, "32": 5630}
+1890	13	PERGE ANTALYA TURU	KEMER	TRY	2025-11-02 10:43:35.284267	2025-11-02 10:43:35.284267	{"31": 9145, "32": 6020}
+1891	13	PERGE ANTALYA TURU	BELEK	TRY	2025-11-02 10:43:35.287758	2025-11-02 10:43:35.287758	{"31": 8280, "32": 5550}
+1892	13	PERGE ANTALYA TURU	SİDE	TRY	2025-11-02 10:43:35.290406	2025-11-02 10:43:35.290406	{"31": 9035, "32": 5965}
+1893	13	PERGE ANTALYA TURU	ALANYA	TRY	2025-11-02 10:43:35.292787	2025-11-02 10:43:35.292787	{"31": 10435, "32": 6725}
+1894	13	PERGE ASPENDOS SİDE	ANTALYA	TRY	2025-11-02 10:43:35.29556	2025-11-02 10:43:35.29556	{"31": 8605, "32": 5725}
+1895	13	PERGE ASPENDOS SİDE	KEMER	TRY	2025-11-02 10:43:35.297727	2025-11-02 10:43:35.297727	{"31": 9790, "32": 6375}
+1896	13	PERGE ASPENDOS SİDE	BELEK	TRY	2025-11-02 10:43:35.300343	2025-11-02 10:43:35.300343	{"31": 8065, "32": 5435}
+1897	13	PERGE ASPENDOS SİDE	SİDE	TRY	2025-11-02 10:43:35.30299	2025-11-02 10:43:35.30299	{"31": 8820, "32": 5845}
+1898	13	PERGE ASPENDOS SİDE	ALANYA	TRY	2025-11-02 10:43:35.305319	2025-11-02 10:43:35.305319	{"31": 10330, "32": 6670}
+1899	13	ANTALYA AKŞAM YEMEK TURU	ANTALYA	TRY	2025-11-02 10:43:35.307686	2025-11-02 10:43:35.307686	{"31": 5760, "32": 3970}
+1900	13	ANTALYA AKŞAM YEMEK TURU	KEMER	TRY	2025-11-02 10:43:35.310836	2025-11-02 10:43:35.310836	{"31": 7740, "32": 5255}
+1901	13	ANTALYA AKŞAM YEMEK TURU	BELEK	TRY	2025-11-02 10:43:35.313166	2025-11-02 10:43:35.313166	{"31": 6195, "32": 4205}
+1902	13	ANTALYA AKŞAM YEMEK TURU	SİDE	TRY	2025-11-02 10:43:35.315703	2025-11-02 10:43:35.315703	{"31": 8280, "32": 5550}
+1903	13	ANTALYA AKŞAM YEMEK TURU	ALANYA	TRY	2025-11-02 10:43:35.318239	2025-11-02 10:43:35.318239	{"31": 9360, "32": 6140}
+1904	13	KEMER	KEMER	TRY	2025-11-02 10:43:35.320624	2025-11-02 10:43:35.320624	{"31": 2665, "32": 1800}
+1905	13	KEMER	ANTALYA	TRY	2025-11-02 10:43:35.323221	2025-11-02 10:43:35.323221	{"31": 3895, "32": 2510}
+1906	13	KEMER	BELEK	TRY	2025-11-02 10:43:35.326624	2025-11-02 10:43:35.326624	{"31": 6470, "32": 4150}
+1907	13	KEMER	SİDE	TRY	2025-11-02 10:43:35.329796	2025-11-02 10:43:35.329796	{"31": 8665, "32": 5480}
+1908	13	KEMER	ALANYA	TRY	2025-11-02 10:43:35.333245	2025-11-02 10:43:35.333245	{"31": 12085, "32": 7570}
+1909	13	ANTALYA	ANTALYA	TRY	2025-11-02 10:43:35.335881	2025-11-02 10:43:35.335881	{"31": 2665, "32": 1800}
+1910	13	ANTALYA	BELEK	TRY	2025-11-02 10:43:35.338391	2025-11-02 10:43:35.338391	{"31": 3275, "32": 2160}
+1911	13	ANTALYA	SİDE	TRY	2025-11-02 10:43:35.341125	2025-11-02 10:43:35.341125	{"31": 4870, "32": 3115}
+1912	13	ANTALYA	ALANYA	TRY	2025-11-02 10:43:35.344287	2025-11-02 10:43:35.344287	{"31": 6865, "32": 4355}
+1913	13	BELEK	BELEK	TRY	2025-11-02 10:43:35.347328	2025-11-02 10:43:35.347328	{"31": 2665, "32": 1800}
+1914	13	BELEK	SİDE	TRY	2025-11-02 10:43:35.350467	2025-11-02 10:43:35.350467	{"31": 3700, "32": 2420}
+1915	13	BELEK	ALANYA	TRY	2025-11-02 10:43:35.353909	2025-11-02 10:43:35.353909	{"31": 6255, "32": 3985}
+1916	13	SİDE	SİDE	TRY	2025-11-02 10:43:35.357048	2025-11-02 10:43:35.357048	{"31": 2665, "32": 1800}
+1917	13	SİDE	ALANYA	TRY	2025-11-02 10:43:35.360161	2025-11-02 10:43:35.360161	{"31": 4870, "32": 3115}
+1918	13	BÖLGE İÇİ ARA TRANSFER	ARA TRANSFER	TRY	2025-11-02 10:43:35.362755	2025-11-02 10:43:35.362755	{"31": 2665, "32": 1800}
 \.
 
 
 --
--- TOC entry 5342 (class 0 OID 27116)
--- Dependencies: 238
+-- TOC entry 5368 (class 0 OID 90842)
+-- Dependencies: 250
 -- Data for Name: vehicle_contracts; Type: TABLE DATA; Schema: public; Owner: postgres
 --
 
 COPY public.vehicle_contracts (id, vehicle_company_id, contract_code, start_date, end_date, created_at, updated_at) FROM stdin;
-1	1	FST-001	2024-01-01	2024-12-31	2025-10-31 19:34:50.327689	2025-10-31 19:34:50.327689
 2	1	FST-002	2024-06-01	2025-05-31	2025-10-31 19:34:50.327689	2025-10-31 19:34:50.327689
 3	2	FST-003	2024-01-15	2024-12-15	2025-10-31 19:34:50.327689	2025-10-31 19:34:50.327689
 4	3	FST-004	2024-03-01	2025-02-28	2025-10-31 19:34:50.327689	2025-10-31 19:34:50.327689
@@ -2502,8 +2963,8 @@ COPY public.vehicle_contracts (id, vehicle_company_id, contract_code, start_date
 
 
 --
--- TOC entry 5340 (class 0 OID 27098)
--- Dependencies: 236
+-- TOC entry 5370 (class 0 OID 90852)
+-- Dependencies: 252
 -- Data for Name: vehicle_types; Type: TABLE DATA; Schema: public; Owner: postgres
 --
 
@@ -2551,8 +3012,8 @@ COPY public.vehicle_types (id, name, vehicle_company_id, created_at, updated_at,
 
 
 --
--- TOC entry 5384 (class 0 OID 0)
--- Dependencies: 223
+-- TOC entry 5400 (class 0 OID 0)
+-- Dependencies: 220
 -- Name: cities_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
@@ -2560,17 +3021,8 @@ SELECT pg_catalog.setval('public.cities_id_seq', 9, true);
 
 
 --
--- TOC entry 5385 (class 0 OID 0)
--- Dependencies: 254
--- Name: costs_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
---
-
-SELECT pg_catalog.setval('public.costs_id_seq', 1, false);
-
-
---
--- TOC entry 5386 (class 0 OID 0)
--- Dependencies: 219
+-- TOC entry 5401 (class 0 OID 0)
+-- Dependencies: 222
 -- Name: countries_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
@@ -2578,8 +3030,8 @@ SELECT pg_catalog.setval('public.countries_id_seq', 4, true);
 
 
 --
--- TOC entry 5387 (class 0 OID 0)
--- Dependencies: 243
+-- TOC entry 5402 (class 0 OID 0)
+-- Dependencies: 224
 -- Name: country_currencies_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
@@ -2587,8 +3039,8 @@ SELECT pg_catalog.setval('public.country_currencies_id_seq', 7, true);
 
 
 --
--- TOC entry 5388 (class 0 OID 0)
--- Dependencies: 241
+-- TOC entry 5403 (class 0 OID 0)
+-- Dependencies: 226
 -- Name: currencies_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
@@ -2596,8 +3048,8 @@ SELECT pg_catalog.setval('public.currencies_id_seq', 4, true);
 
 
 --
--- TOC entry 5389 (class 0 OID 0)
--- Dependencies: 227
+-- TOC entry 5404 (class 0 OID 0)
+-- Dependencies: 228
 -- Name: departments_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
@@ -2605,8 +3057,8 @@ SELECT pg_catalog.setval('public.departments_id_seq', 12, true);
 
 
 --
--- TOC entry 5390 (class 0 OID 0)
--- Dependencies: 245
+-- TOC entry 5405 (class 0 OID 0)
+-- Dependencies: 230
 -- Name: exchange_rates_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
@@ -2614,8 +3066,8 @@ SELECT pg_catalog.setval('public.exchange_rates_id_seq', 159, true);
 
 
 --
--- TOC entry 5391 (class 0 OID 0)
--- Dependencies: 231
+-- TOC entry 5406 (class 0 OID 0)
+-- Dependencies: 232
 -- Name: merchants_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
@@ -2623,8 +3075,8 @@ SELECT pg_catalog.setval('public.merchants_id_seq', 15, true);
 
 
 --
--- TOC entry 5392 (class 0 OID 0)
--- Dependencies: 229
+-- TOC entry 5407 (class 0 OID 0)
+-- Dependencies: 234
 -- Name: positions_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
@@ -2632,8 +3084,8 @@ SELECT pg_catalog.setval('public.positions_id_seq', 30, true);
 
 
 --
--- TOC entry 5393 (class 0 OID 0)
--- Dependencies: 221
+-- TOC entry 5408 (class 0 OID 0)
+-- Dependencies: 236
 -- Name: regions_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
@@ -2641,8 +3093,8 @@ SELECT pg_catalog.setval('public.regions_id_seq', 8, true);
 
 
 --
--- TOC entry 5394 (class 0 OID 0)
--- Dependencies: 225
+-- TOC entry 5409 (class 0 OID 0)
+-- Dependencies: 238
 -- Name: sub_regions_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
@@ -2650,8 +3102,8 @@ SELECT pg_catalog.setval('public.sub_regions_id_seq', 27, true);
 
 
 --
--- TOC entry 5395 (class 0 OID 0)
--- Dependencies: 252
+-- TOC entry 5410 (class 0 OID 0)
+-- Dependencies: 240
 -- Name: tour_contract_routes_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
@@ -2659,17 +3111,26 @@ SELECT pg_catalog.setval('public.tour_contract_routes_id_seq', 1, false);
 
 
 --
--- TOC entry 5396 (class 0 OID 0)
--- Dependencies: 249
+-- TOC entry 5411 (class 0 OID 0)
+-- Dependencies: 254
+-- Name: tour_groups_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
+--
+
+SELECT pg_catalog.setval('public.tour_groups_id_seq', 3, true);
+
+
+--
+-- TOC entry 5412 (class 0 OID 0)
+-- Dependencies: 243
 -- Name: tours_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
-SELECT pg_catalog.setval('public.tours_id_seq', 1, false);
+SELECT pg_catalog.setval('public.tours_id_seq', 2, true);
 
 
 --
--- TOC entry 5397 (class 0 OID 0)
--- Dependencies: 239
+-- TOC entry 5413 (class 0 OID 0)
+-- Dependencies: 245
 -- Name: users_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
@@ -2677,8 +3138,8 @@ SELECT pg_catalog.setval('public.users_id_seq', 4, true);
 
 
 --
--- TOC entry 5398 (class 0 OID 0)
--- Dependencies: 233
+-- TOC entry 5414 (class 0 OID 0)
+-- Dependencies: 247
 -- Name: vehicle_companies_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
@@ -2686,17 +3147,17 @@ SELECT pg_catalog.setval('public.vehicle_companies_id_seq', 14, true);
 
 
 --
--- TOC entry 5399 (class 0 OID 0)
--- Dependencies: 247
+-- TOC entry 5415 (class 0 OID 0)
+-- Dependencies: 249
 -- Name: vehicle_contract_routes_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
-SELECT pg_catalog.setval('public.vehicle_contract_routes_id_seq', 1492, true);
+SELECT pg_catalog.setval('public.vehicle_contract_routes_id_seq', 1918, true);
 
 
 --
--- TOC entry 5400 (class 0 OID 0)
--- Dependencies: 237
+-- TOC entry 5416 (class 0 OID 0)
+-- Dependencies: 251
 -- Name: vehicle_contracts_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
@@ -2704,8 +3165,8 @@ SELECT pg_catalog.setval('public.vehicle_contracts_id_seq', 17, true);
 
 
 --
--- TOC entry 5401 (class 0 OID 0)
--- Dependencies: 235
+-- TOC entry 5417 (class 0 OID 0)
+-- Dependencies: 253
 -- Name: vehicle_types_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
@@ -2713,7 +3174,7 @@ SELECT pg_catalog.setval('public.vehicle_types_id_seq', 39, true);
 
 
 --
--- TOC entry 5021 (class 2606 OID 26997)
+-- TOC entry 5015 (class 2606 OID 90879)
 -- Name: cities cities_name_region_id_key; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -2722,7 +3183,7 @@ ALTER TABLE ONLY public.cities
 
 
 --
--- TOC entry 5023 (class 2606 OID 26995)
+-- TOC entry 5017 (class 2606 OID 90881)
 -- Name: cities cities_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -2731,25 +3192,7 @@ ALTER TABLE ONLY public.cities
 
 
 --
--- TOC entry 5127 (class 2606 OID 27505)
--- Name: costs costs_cost_code_key; Type: CONSTRAINT; Schema: public; Owner: postgres
---
-
-ALTER TABLE ONLY public.costs
-    ADD CONSTRAINT costs_cost_code_key UNIQUE (cost_code);
-
-
---
--- TOC entry 5129 (class 2606 OID 27503)
--- Name: costs costs_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
---
-
-ALTER TABLE ONLY public.costs
-    ADD CONSTRAINT costs_pkey PRIMARY KEY (id);
-
-
---
--- TOC entry 5009 (class 2606 OID 26966)
+-- TOC entry 5021 (class 2606 OID 90887)
 -- Name: countries countries_name_key; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -2758,7 +3201,7 @@ ALTER TABLE ONLY public.countries
 
 
 --
--- TOC entry 5011 (class 2606 OID 26964)
+-- TOC entry 5023 (class 2606 OID 90889)
 -- Name: countries countries_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -2767,7 +3210,7 @@ ALTER TABLE ONLY public.countries
 
 
 --
--- TOC entry 5086 (class 2606 OID 27196)
+-- TOC entry 5027 (class 2606 OID 90891)
 -- Name: country_currencies country_currencies_country_id_currency_code_key; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -2776,7 +3219,7 @@ ALTER TABLE ONLY public.country_currencies
 
 
 --
--- TOC entry 5088 (class 2606 OID 27194)
+-- TOC entry 5029 (class 2606 OID 90893)
 -- Name: country_currencies country_currencies_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -2785,7 +3228,7 @@ ALTER TABLE ONLY public.country_currencies
 
 
 --
--- TOC entry 5080 (class 2606 OID 27181)
+-- TOC entry 5033 (class 2606 OID 90895)
 -- Name: currencies currencies_code_key; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -2794,7 +3237,7 @@ ALTER TABLE ONLY public.currencies
 
 
 --
--- TOC entry 5082 (class 2606 OID 27179)
+-- TOC entry 5035 (class 2606 OID 90897)
 -- Name: currencies currencies_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -2803,7 +3246,7 @@ ALTER TABLE ONLY public.currencies
 
 
 --
--- TOC entry 5033 (class 2606 OID 27033)
+-- TOC entry 5039 (class 2606 OID 90899)
 -- Name: departments departments_name_city_id_key; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -2812,7 +3255,7 @@ ALTER TABLE ONLY public.departments
 
 
 --
--- TOC entry 5035 (class 2606 OID 27031)
+-- TOC entry 5041 (class 2606 OID 90901)
 -- Name: departments departments_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -2821,7 +3264,7 @@ ALTER TABLE ONLY public.departments
 
 
 --
--- TOC entry 5092 (class 2606 OID 27226)
+-- TOC entry 5045 (class 2606 OID 90903)
 -- Name: exchange_rates exchange_rates_country_id_currency_code_rate_date_key; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -2830,7 +3273,7 @@ ALTER TABLE ONLY public.exchange_rates
 
 
 --
--- TOC entry 5094 (class 2606 OID 27224)
+-- TOC entry 5047 (class 2606 OID 90905)
 -- Name: exchange_rates exchange_rates_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -2839,7 +3282,7 @@ ALTER TABLE ONLY public.exchange_rates
 
 
 --
--- TOC entry 5047 (class 2606 OID 27071)
+-- TOC entry 5053 (class 2606 OID 90907)
 -- Name: merchants merchants_name_sub_region_id_key; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -2848,7 +3291,7 @@ ALTER TABLE ONLY public.merchants
 
 
 --
--- TOC entry 5049 (class 2606 OID 27069)
+-- TOC entry 5055 (class 2606 OID 90909)
 -- Name: merchants merchants_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -2857,7 +3300,7 @@ ALTER TABLE ONLY public.merchants
 
 
 --
--- TOC entry 5041 (class 2606 OID 27051)
+-- TOC entry 5059 (class 2606 OID 90911)
 -- Name: positions positions_name_department_id_key; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -2866,7 +3309,7 @@ ALTER TABLE ONLY public.positions
 
 
 --
--- TOC entry 5043 (class 2606 OID 27049)
+-- TOC entry 5061 (class 2606 OID 90913)
 -- Name: positions positions_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -2875,7 +3318,7 @@ ALTER TABLE ONLY public.positions
 
 
 --
--- TOC entry 5017 (class 2606 OID 26979)
+-- TOC entry 5065 (class 2606 OID 90915)
 -- Name: regions regions_name_country_id_key; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -2884,7 +3327,7 @@ ALTER TABLE ONLY public.regions
 
 
 --
--- TOC entry 5019 (class 2606 OID 26977)
+-- TOC entry 5067 (class 2606 OID 90917)
 -- Name: regions regions_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -2893,7 +3336,7 @@ ALTER TABLE ONLY public.regions
 
 
 --
--- TOC entry 5029 (class 2606 OID 27015)
+-- TOC entry 5071 (class 2606 OID 90919)
 -- Name: sub_regions sub_regions_name_city_id_key; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -2902,7 +3345,7 @@ ALTER TABLE ONLY public.sub_regions
 
 
 --
--- TOC entry 5031 (class 2606 OID 27013)
+-- TOC entry 5073 (class 2606 OID 90921)
 -- Name: sub_regions sub_regions_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -2911,7 +3354,7 @@ ALTER TABLE ONLY public.sub_regions
 
 
 --
--- TOC entry 5123 (class 2606 OID 27474)
+-- TOC entry 5078 (class 2606 OID 90923)
 -- Name: tour_contract_routes tour_contract_routes_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -2920,7 +3363,7 @@ ALTER TABLE ONLY public.tour_contract_routes
 
 
 --
--- TOC entry 5125 (class 2606 OID 27476)
+-- TOC entry 5080 (class 2606 OID 90925)
 -- Name: tour_contract_routes tour_contract_routes_tour_id_sub_region_id_vehicle_contract_key; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -2929,7 +3372,25 @@ ALTER TABLE ONLY public.tour_contract_routes
 
 
 --
--- TOC entry 5118 (class 2606 OID 27451)
+-- TOC entry 5141 (class 2606 OID 91357)
+-- Name: tour_group_members tour_group_members_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.tour_group_members
+    ADD CONSTRAINT tour_group_members_pkey PRIMARY KEY (tour_group_id, tour_id);
+
+
+--
+-- TOC entry 5137 (class 2606 OID 91349)
+-- Name: tour_groups tour_groups_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.tour_groups
+    ADD CONSTRAINT tour_groups_pkey PRIMARY KEY (id);
+
+
+--
+-- TOC entry 5084 (class 2606 OID 90927)
 -- Name: tour_sub_regions tour_sub_regions_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -2938,7 +3399,7 @@ ALTER TABLE ONLY public.tour_sub_regions
 
 
 --
--- TOC entry 5112 (class 2606 OID 27427)
+-- TOC entry 5094 (class 2606 OID 90929)
 -- Name: tours tours_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -2947,7 +3408,7 @@ ALTER TABLE ONLY public.tours
 
 
 --
--- TOC entry 5114 (class 2606 OID 27429)
+-- TOC entry 5096 (class 2606 OID 90931)
 -- Name: tours tours_sejour_tour_code_key; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -2956,7 +3417,7 @@ ALTER TABLE ONLY public.tours
 
 
 --
--- TOC entry 5076 (class 2606 OID 27149)
+-- TOC entry 5104 (class 2606 OID 90933)
 -- Name: users users_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -2965,7 +3426,7 @@ ALTER TABLE ONLY public.users
 
 
 --
--- TOC entry 5078 (class 2606 OID 27151)
+-- TOC entry 5106 (class 2606 OID 90935)
 -- Name: users users_username_key; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -2974,7 +3435,7 @@ ALTER TABLE ONLY public.users
 
 
 --
--- TOC entry 5053 (class 2606 OID 27091)
+-- TOC entry 5110 (class 2606 OID 90937)
 -- Name: vehicle_companies vehicle_companies_name_city_id_key; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -2983,7 +3444,7 @@ ALTER TABLE ONLY public.vehicle_companies
 
 
 --
--- TOC entry 5055 (class 2606 OID 27089)
+-- TOC entry 5112 (class 2606 OID 90939)
 -- Name: vehicle_companies vehicle_companies_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -2992,7 +3453,7 @@ ALTER TABLE ONLY public.vehicle_companies
 
 
 --
--- TOC entry 5103 (class 2606 OID 27330)
+-- TOC entry 5119 (class 2606 OID 90941)
 -- Name: vehicle_contract_routes vehicle_contract_routes_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -3001,7 +3462,7 @@ ALTER TABLE ONLY public.vehicle_contract_routes
 
 
 --
--- TOC entry 5105 (class 2606 OID 27332)
+-- TOC entry 5121 (class 2606 OID 90943)
 -- Name: vehicle_contract_routes vehicle_contract_routes_vehicle_contract_id_from_location_t_key; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -3010,7 +3471,7 @@ ALTER TABLE ONLY public.vehicle_contract_routes
 
 
 --
--- TOC entry 5066 (class 2606 OID 27129)
+-- TOC entry 5126 (class 2606 OID 90945)
 -- Name: vehicle_contracts vehicle_contracts_contract_code_key; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -3019,7 +3480,7 @@ ALTER TABLE ONLY public.vehicle_contracts
 
 
 --
--- TOC entry 5068 (class 2606 OID 27127)
+-- TOC entry 5128 (class 2606 OID 90947)
 -- Name: vehicle_contracts vehicle_contracts_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -3028,7 +3489,7 @@ ALTER TABLE ONLY public.vehicle_contracts
 
 
 --
--- TOC entry 5059 (class 2606 OID 27109)
+-- TOC entry 5132 (class 2606 OID 90949)
 -- Name: vehicle_types vehicle_types_name_vehicle_company_id_key; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -3037,7 +3498,7 @@ ALTER TABLE ONLY public.vehicle_types
 
 
 --
--- TOC entry 5061 (class 2606 OID 27107)
+-- TOC entry 5134 (class 2606 OID 90951)
 -- Name: vehicle_types vehicle_types_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -3046,7 +3507,7 @@ ALTER TABLE ONLY public.vehicle_types
 
 
 --
--- TOC entry 5024 (class 1259 OID 27243)
+-- TOC entry 5018 (class 1259 OID 90952)
 -- Name: idx_cities_name; Type: INDEX; Schema: public; Owner: postgres
 --
 
@@ -3054,7 +3515,7 @@ CREATE INDEX idx_cities_name ON public.cities USING btree (name);
 
 
 --
--- TOC entry 5025 (class 1259 OID 27242)
+-- TOC entry 5019 (class 1259 OID 90953)
 -- Name: idx_cities_region_id; Type: INDEX; Schema: public; Owner: postgres
 --
 
@@ -3062,23 +3523,7 @@ CREATE INDEX idx_cities_region_id ON public.cities USING btree (region_id);
 
 
 --
--- TOC entry 5130 (class 1259 OID 27534)
--- Name: idx_costs_cost_code; Type: INDEX; Schema: public; Owner: postgres
---
-
-CREATE INDEX idx_costs_cost_code ON public.costs USING btree (cost_code);
-
-
---
--- TOC entry 5131 (class 1259 OID 27535)
--- Name: idx_costs_cost_name; Type: INDEX; Schema: public; Owner: postgres
---
-
-CREATE INDEX idx_costs_cost_name ON public.costs USING btree (cost_name);
-
-
---
--- TOC entry 5012 (class 1259 OID 27238)
+-- TOC entry 5024 (class 1259 OID 90956)
 -- Name: idx_countries_code; Type: INDEX; Schema: public; Owner: postgres
 --
 
@@ -3086,7 +3531,7 @@ CREATE INDEX idx_countries_code ON public.countries USING btree (code);
 
 
 --
--- TOC entry 5013 (class 1259 OID 27237)
+-- TOC entry 5025 (class 1259 OID 90957)
 -- Name: idx_countries_name; Type: INDEX; Schema: public; Owner: postgres
 --
 
@@ -3094,7 +3539,7 @@ CREATE INDEX idx_countries_name ON public.countries USING btree (name);
 
 
 --
--- TOC entry 5089 (class 1259 OID 27267)
+-- TOC entry 5030 (class 1259 OID 90958)
 -- Name: idx_country_currencies_country_id; Type: INDEX; Schema: public; Owner: postgres
 --
 
@@ -3102,7 +3547,7 @@ CREATE INDEX idx_country_currencies_country_id ON public.country_currencies USIN
 
 
 --
--- TOC entry 5090 (class 1259 OID 27268)
+-- TOC entry 5031 (class 1259 OID 90959)
 -- Name: idx_country_currencies_currency_code; Type: INDEX; Schema: public; Owner: postgres
 --
 
@@ -3110,7 +3555,7 @@ CREATE INDEX idx_country_currencies_currency_code ON public.country_currencies U
 
 
 --
--- TOC entry 5083 (class 1259 OID 27265)
+-- TOC entry 5036 (class 1259 OID 90960)
 -- Name: idx_currencies_code; Type: INDEX; Schema: public; Owner: postgres
 --
 
@@ -3118,7 +3563,7 @@ CREATE INDEX idx_currencies_code ON public.currencies USING btree (code);
 
 
 --
--- TOC entry 5084 (class 1259 OID 27266)
+-- TOC entry 5037 (class 1259 OID 90961)
 -- Name: idx_currencies_name; Type: INDEX; Schema: public; Owner: postgres
 --
 
@@ -3126,7 +3571,7 @@ CREATE INDEX idx_currencies_name ON public.currencies USING btree (name);
 
 
 --
--- TOC entry 5036 (class 1259 OID 27246)
+-- TOC entry 5042 (class 1259 OID 90962)
 -- Name: idx_departments_city_id; Type: INDEX; Schema: public; Owner: postgres
 --
 
@@ -3134,7 +3579,7 @@ CREATE INDEX idx_departments_city_id ON public.departments USING btree (city_id)
 
 
 --
--- TOC entry 5037 (class 1259 OID 27247)
+-- TOC entry 5043 (class 1259 OID 90963)
 -- Name: idx_departments_name; Type: INDEX; Schema: public; Owner: postgres
 --
 
@@ -3142,7 +3587,7 @@ CREATE INDEX idx_departments_name ON public.departments USING btree (name);
 
 
 --
--- TOC entry 5095 (class 1259 OID 27269)
+-- TOC entry 5048 (class 1259 OID 90964)
 -- Name: idx_exchange_rates_country_date; Type: INDEX; Schema: public; Owner: postgres
 --
 
@@ -3150,7 +3595,7 @@ CREATE INDEX idx_exchange_rates_country_date ON public.exchange_rates USING btre
 
 
 --
--- TOC entry 5096 (class 1259 OID 27270)
+-- TOC entry 5049 (class 1259 OID 90965)
 -- Name: idx_exchange_rates_currency_date; Type: INDEX; Schema: public; Owner: postgres
 --
 
@@ -3158,7 +3603,7 @@ CREATE INDEX idx_exchange_rates_currency_date ON public.exchange_rates USING btr
 
 
 --
--- TOC entry 5044 (class 1259 OID 27251)
+-- TOC entry 5050 (class 1259 OID 90966)
 -- Name: idx_merchants_name; Type: INDEX; Schema: public; Owner: postgres
 --
 
@@ -3166,7 +3611,7 @@ CREATE INDEX idx_merchants_name ON public.merchants USING btree (name);
 
 
 --
--- TOC entry 5045 (class 1259 OID 27250)
+-- TOC entry 5051 (class 1259 OID 90967)
 -- Name: idx_merchants_sub_region_id; Type: INDEX; Schema: public; Owner: postgres
 --
 
@@ -3174,7 +3619,7 @@ CREATE INDEX idx_merchants_sub_region_id ON public.merchants USING btree (sub_re
 
 
 --
--- TOC entry 5038 (class 1259 OID 27248)
+-- TOC entry 5056 (class 1259 OID 90968)
 -- Name: idx_positions_department_id; Type: INDEX; Schema: public; Owner: postgres
 --
 
@@ -3182,7 +3627,7 @@ CREATE INDEX idx_positions_department_id ON public.positions USING btree (depart
 
 
 --
--- TOC entry 5039 (class 1259 OID 27249)
+-- TOC entry 5057 (class 1259 OID 90969)
 -- Name: idx_positions_name; Type: INDEX; Schema: public; Owner: postgres
 --
 
@@ -3190,7 +3635,7 @@ CREATE INDEX idx_positions_name ON public.positions USING btree (name);
 
 
 --
--- TOC entry 5014 (class 1259 OID 27240)
+-- TOC entry 5062 (class 1259 OID 90970)
 -- Name: idx_regions_country_id; Type: INDEX; Schema: public; Owner: postgres
 --
 
@@ -3198,7 +3643,7 @@ CREATE INDEX idx_regions_country_id ON public.regions USING btree (country_id);
 
 
 --
--- TOC entry 5015 (class 1259 OID 27241)
+-- TOC entry 5063 (class 1259 OID 90971)
 -- Name: idx_regions_name; Type: INDEX; Schema: public; Owner: postgres
 --
 
@@ -3206,7 +3651,7 @@ CREATE INDEX idx_regions_name ON public.regions USING btree (name);
 
 
 --
--- TOC entry 5026 (class 1259 OID 27244)
+-- TOC entry 5068 (class 1259 OID 90972)
 -- Name: idx_sub_regions_city_id; Type: INDEX; Schema: public; Owner: postgres
 --
 
@@ -3214,7 +3659,7 @@ CREATE INDEX idx_sub_regions_city_id ON public.sub_regions USING btree (city_id)
 
 
 --
--- TOC entry 5027 (class 1259 OID 27245)
+-- TOC entry 5069 (class 1259 OID 90973)
 -- Name: idx_sub_regions_name; Type: INDEX; Schema: public; Owner: postgres
 --
 
@@ -3222,7 +3667,7 @@ CREATE INDEX idx_sub_regions_name ON public.sub_regions USING btree (name);
 
 
 --
--- TOC entry 5119 (class 1259 OID 27530)
+-- TOC entry 5074 (class 1259 OID 90974)
 -- Name: idx_tour_contract_routes_route_id; Type: INDEX; Schema: public; Owner: postgres
 --
 
@@ -3230,7 +3675,7 @@ CREATE INDEX idx_tour_contract_routes_route_id ON public.tour_contract_routes US
 
 
 --
--- TOC entry 5120 (class 1259 OID 27529)
+-- TOC entry 5075 (class 1259 OID 90975)
 -- Name: idx_tour_contract_routes_sub_region_id; Type: INDEX; Schema: public; Owner: postgres
 --
 
@@ -3238,7 +3683,7 @@ CREATE INDEX idx_tour_contract_routes_sub_region_id ON public.tour_contract_rout
 
 
 --
--- TOC entry 5121 (class 1259 OID 27528)
+-- TOC entry 5076 (class 1259 OID 90976)
 -- Name: idx_tour_contract_routes_tour_id; Type: INDEX; Schema: public; Owner: postgres
 --
 
@@ -3246,7 +3691,31 @@ CREATE INDEX idx_tour_contract_routes_tour_id ON public.tour_contract_routes USI
 
 
 --
--- TOC entry 5115 (class 1259 OID 27527)
+-- TOC entry 5138 (class 1259 OID 91369)
+-- Name: idx_tour_group_members_group_id; Type: INDEX; Schema: public; Owner: postgres
+--
+
+CREATE INDEX idx_tour_group_members_group_id ON public.tour_group_members USING btree (tour_group_id);
+
+
+--
+-- TOC entry 5139 (class 1259 OID 91370)
+-- Name: idx_tour_group_members_tour_id; Type: INDEX; Schema: public; Owner: postgres
+--
+
+CREATE INDEX idx_tour_group_members_tour_id ON public.tour_group_members USING btree (tour_id);
+
+
+--
+-- TOC entry 5135 (class 1259 OID 91368)
+-- Name: idx_tour_groups_name; Type: INDEX; Schema: public; Owner: postgres
+--
+
+CREATE INDEX idx_tour_groups_name ON public.tour_groups USING btree (name);
+
+
+--
+-- TOC entry 5081 (class 1259 OID 90977)
 -- Name: idx_tour_sub_regions_sub_region_id; Type: INDEX; Schema: public; Owner: postgres
 --
 
@@ -3254,7 +3723,7 @@ CREATE INDEX idx_tour_sub_regions_sub_region_id ON public.tour_sub_regions USING
 
 
 --
--- TOC entry 5116 (class 1259 OID 27526)
+-- TOC entry 5082 (class 1259 OID 90978)
 -- Name: idx_tour_sub_regions_tour_id; Type: INDEX; Schema: public; Owner: postgres
 --
 
@@ -3262,7 +3731,23 @@ CREATE INDEX idx_tour_sub_regions_tour_id ON public.tour_sub_regions USING btree
 
 
 --
--- TOC entry 5106 (class 1259 OID 27521)
+-- TOC entry 5085 (class 1259 OID 91336)
+-- Name: idx_tours_city_id; Type: INDEX; Schema: public; Owner: postgres
+--
+
+CREATE INDEX idx_tours_city_id ON public.tours USING btree (city_id);
+
+
+--
+-- TOC entry 5086 (class 1259 OID 91334)
+-- Name: idx_tours_country_id; Type: INDEX; Schema: public; Owner: postgres
+--
+
+CREATE INDEX idx_tours_country_id ON public.tours USING btree (country_id);
+
+
+--
+-- TOC entry 5087 (class 1259 OID 90979)
 -- Name: idx_tours_merchant_id; Type: INDEX; Schema: public; Owner: postgres
 --
 
@@ -3270,7 +3755,7 @@ CREATE INDEX idx_tours_merchant_id ON public.tours USING btree (merchant_id);
 
 
 --
--- TOC entry 5107 (class 1259 OID 27525)
+-- TOC entry 5088 (class 1259 OID 90980)
 -- Name: idx_tours_name; Type: INDEX; Schema: public; Owner: postgres
 --
 
@@ -3278,7 +3763,15 @@ CREATE INDEX idx_tours_name ON public.tours USING btree (name);
 
 
 --
--- TOC entry 5108 (class 1259 OID 27524)
+-- TOC entry 5089 (class 1259 OID 91335)
+-- Name: idx_tours_region_id; Type: INDEX; Schema: public; Owner: postgres
+--
+
+CREATE INDEX idx_tours_region_id ON public.tours USING btree (region_id);
+
+
+--
+-- TOC entry 5090 (class 1259 OID 90981)
 -- Name: idx_tours_sejour_tour_code; Type: INDEX; Schema: public; Owner: postgres
 --
 
@@ -3286,7 +3779,7 @@ CREATE INDEX idx_tours_sejour_tour_code ON public.tours USING btree (sejour_tour
 
 
 --
--- TOC entry 5109 (class 1259 OID 27522)
+-- TOC entry 5091 (class 1259 OID 90982)
 -- Name: idx_tours_sub_region_id; Type: INDEX; Schema: public; Owner: postgres
 --
 
@@ -3294,7 +3787,7 @@ CREATE INDEX idx_tours_sub_region_id ON public.tours USING btree (sub_region_id)
 
 
 --
--- TOC entry 5110 (class 1259 OID 27523)
+-- TOC entry 5092 (class 1259 OID 90983)
 -- Name: idx_tours_vehicle_contract_id; Type: INDEX; Schema: public; Owner: postgres
 --
 
@@ -3302,7 +3795,7 @@ CREATE INDEX idx_tours_vehicle_contract_id ON public.tours USING btree (vehicle_
 
 
 --
--- TOC entry 5069 (class 1259 OID 27262)
+-- TOC entry 5097 (class 1259 OID 90984)
 -- Name: idx_users_city_id; Type: INDEX; Schema: public; Owner: postgres
 --
 
@@ -3310,7 +3803,7 @@ CREATE INDEX idx_users_city_id ON public.users USING btree (city_id);
 
 
 --
--- TOC entry 5070 (class 1259 OID 27260)
+-- TOC entry 5098 (class 1259 OID 90985)
 -- Name: idx_users_department_id; Type: INDEX; Schema: public; Owner: postgres
 --
 
@@ -3318,7 +3811,7 @@ CREATE INDEX idx_users_department_id ON public.users USING btree (department_id)
 
 
 --
--- TOC entry 5071 (class 1259 OID 27264)
+-- TOC entry 5099 (class 1259 OID 90986)
 -- Name: idx_users_email; Type: INDEX; Schema: public; Owner: postgres
 --
 
@@ -3326,7 +3819,7 @@ CREATE INDEX idx_users_email ON public.users USING btree (email);
 
 
 --
--- TOC entry 5072 (class 1259 OID 27261)
+-- TOC entry 5100 (class 1259 OID 90987)
 -- Name: idx_users_position_id; Type: INDEX; Schema: public; Owner: postgres
 --
 
@@ -3334,7 +3827,7 @@ CREATE INDEX idx_users_position_id ON public.users USING btree (position_id);
 
 
 --
--- TOC entry 5073 (class 1259 OID 27263)
+-- TOC entry 5101 (class 1259 OID 90988)
 -- Name: idx_users_status; Type: INDEX; Schema: public; Owner: postgres
 --
 
@@ -3342,7 +3835,7 @@ CREATE INDEX idx_users_status ON public.users USING btree (status);
 
 
 --
--- TOC entry 5074 (class 1259 OID 27259)
+-- TOC entry 5102 (class 1259 OID 90989)
 -- Name: idx_users_username; Type: INDEX; Schema: public; Owner: postgres
 --
 
@@ -3350,7 +3843,7 @@ CREATE INDEX idx_users_username ON public.users USING btree (username);
 
 
 --
--- TOC entry 5050 (class 1259 OID 27252)
+-- TOC entry 5107 (class 1259 OID 90990)
 -- Name: idx_vehicle_companies_city_id; Type: INDEX; Schema: public; Owner: postgres
 --
 
@@ -3358,7 +3851,7 @@ CREATE INDEX idx_vehicle_companies_city_id ON public.vehicle_companies USING btr
 
 
 --
--- TOC entry 5051 (class 1259 OID 27253)
+-- TOC entry 5108 (class 1259 OID 90991)
 -- Name: idx_vehicle_companies_name; Type: INDEX; Schema: public; Owner: postgres
 --
 
@@ -3366,7 +3859,7 @@ CREATE INDEX idx_vehicle_companies_name ON public.vehicle_companies USING btree 
 
 
 --
--- TOC entry 5097 (class 1259 OID 27540)
+-- TOC entry 5113 (class 1259 OID 90992)
 -- Name: idx_vehicle_contract_routes_contract_id; Type: INDEX; Schema: public; Owner: postgres
 --
 
@@ -3374,7 +3867,7 @@ CREATE INDEX idx_vehicle_contract_routes_contract_id ON public.vehicle_contract_
 
 
 --
--- TOC entry 5098 (class 1259 OID 27541)
+-- TOC entry 5114 (class 1259 OID 90993)
 -- Name: idx_vehicle_contract_routes_from_location; Type: INDEX; Schema: public; Owner: postgres
 --
 
@@ -3382,7 +3875,7 @@ CREATE INDEX idx_vehicle_contract_routes_from_location ON public.vehicle_contrac
 
 
 --
--- TOC entry 5099 (class 1259 OID 27543)
+-- TOC entry 5115 (class 1259 OID 90994)
 -- Name: idx_vehicle_contract_routes_location_order; Type: INDEX; Schema: public; Owner: postgres
 --
 
@@ -3390,7 +3883,7 @@ CREATE INDEX idx_vehicle_contract_routes_location_order ON public.vehicle_contra
 
 
 --
--- TOC entry 5100 (class 1259 OID 27542)
+-- TOC entry 5116 (class 1259 OID 90995)
 -- Name: idx_vehicle_contract_routes_to_location; Type: INDEX; Schema: public; Owner: postgres
 --
 
@@ -3398,7 +3891,7 @@ CREATE INDEX idx_vehicle_contract_routes_to_location ON public.vehicle_contract_
 
 
 --
--- TOC entry 5101 (class 1259 OID 27373)
+-- TOC entry 5117 (class 1259 OID 90996)
 -- Name: idx_vehicle_contract_routes_type_prices; Type: INDEX; Schema: public; Owner: postgres
 --
 
@@ -3406,7 +3899,7 @@ CREATE INDEX idx_vehicle_contract_routes_type_prices ON public.vehicle_contract_
 
 
 --
--- TOC entry 5062 (class 1259 OID 27257)
+-- TOC entry 5122 (class 1259 OID 90997)
 -- Name: idx_vehicle_contracts_code; Type: INDEX; Schema: public; Owner: postgres
 --
 
@@ -3414,7 +3907,7 @@ CREATE INDEX idx_vehicle_contracts_code ON public.vehicle_contracts USING btree 
 
 
 --
--- TOC entry 5063 (class 1259 OID 27256)
+-- TOC entry 5123 (class 1259 OID 90998)
 -- Name: idx_vehicle_contracts_company_id; Type: INDEX; Schema: public; Owner: postgres
 --
 
@@ -3422,7 +3915,7 @@ CREATE INDEX idx_vehicle_contracts_company_id ON public.vehicle_contracts USING 
 
 
 --
--- TOC entry 5064 (class 1259 OID 27258)
+-- TOC entry 5124 (class 1259 OID 90999)
 -- Name: idx_vehicle_contracts_dates; Type: INDEX; Schema: public; Owner: postgres
 --
 
@@ -3430,7 +3923,7 @@ CREATE INDEX idx_vehicle_contracts_dates ON public.vehicle_contracts USING btree
 
 
 --
--- TOC entry 5056 (class 1259 OID 27254)
+-- TOC entry 5129 (class 1259 OID 91000)
 -- Name: idx_vehicle_types_company_id; Type: INDEX; Schema: public; Owner: postgres
 --
 
@@ -3438,7 +3931,7 @@ CREATE INDEX idx_vehicle_types_company_id ON public.vehicle_types USING btree (v
 
 
 --
--- TOC entry 5057 (class 1259 OID 27255)
+-- TOC entry 5130 (class 1259 OID 91001)
 -- Name: idx_vehicle_types_name; Type: INDEX; Schema: public; Owner: postgres
 --
 
@@ -3446,7 +3939,7 @@ CREATE INDEX idx_vehicle_types_name ON public.vehicle_types USING btree (name);
 
 
 --
--- TOC entry 5160 (class 2620 OID 27274)
+-- TOC entry 5173 (class 2620 OID 91002)
 -- Name: cities update_cities_updated_at; Type: TRIGGER; Schema: public; Owner: postgres
 --
 
@@ -3454,15 +3947,7 @@ CREATE TRIGGER update_cities_updated_at BEFORE UPDATE ON public.cities FOR EACH 
 
 
 --
--- TOC entry 5175 (class 2620 OID 27538)
--- Name: costs update_costs_updated_at; Type: TRIGGER; Schema: public; Owner: postgres
---
-
-CREATE TRIGGER update_costs_updated_at BEFORE UPDATE ON public.costs FOR EACH ROW EXECUTE FUNCTION public.update_updated_at_column();
-
-
---
--- TOC entry 5158 (class 2620 OID 27272)
+-- TOC entry 5174 (class 2620 OID 91004)
 -- Name: countries update_countries_updated_at; Type: TRIGGER; Schema: public; Owner: postgres
 --
 
@@ -3470,7 +3955,7 @@ CREATE TRIGGER update_countries_updated_at BEFORE UPDATE ON public.countries FOR
 
 
 --
--- TOC entry 5170 (class 2620 OID 27284)
+-- TOC entry 5175 (class 2620 OID 91005)
 -- Name: country_currencies update_country_currencies_updated_at; Type: TRIGGER; Schema: public; Owner: postgres
 --
 
@@ -3478,7 +3963,7 @@ CREATE TRIGGER update_country_currencies_updated_at BEFORE UPDATE ON public.coun
 
 
 --
--- TOC entry 5169 (class 2620 OID 27283)
+-- TOC entry 5176 (class 2620 OID 91006)
 -- Name: currencies update_currencies_updated_at; Type: TRIGGER; Schema: public; Owner: postgres
 --
 
@@ -3486,7 +3971,7 @@ CREATE TRIGGER update_currencies_updated_at BEFORE UPDATE ON public.currencies F
 
 
 --
--- TOC entry 5162 (class 2620 OID 27276)
+-- TOC entry 5177 (class 2620 OID 91007)
 -- Name: departments update_departments_updated_at; Type: TRIGGER; Schema: public; Owner: postgres
 --
 
@@ -3494,7 +3979,7 @@ CREATE TRIGGER update_departments_updated_at BEFORE UPDATE ON public.departments
 
 
 --
--- TOC entry 5171 (class 2620 OID 27285)
+-- TOC entry 5178 (class 2620 OID 91008)
 -- Name: exchange_rates update_exchange_rates_updated_at; Type: TRIGGER; Schema: public; Owner: postgres
 --
 
@@ -3502,7 +3987,7 @@ CREATE TRIGGER update_exchange_rates_updated_at BEFORE UPDATE ON public.exchange
 
 
 --
--- TOC entry 5164 (class 2620 OID 27278)
+-- TOC entry 5179 (class 2620 OID 91009)
 -- Name: merchants update_merchants_updated_at; Type: TRIGGER; Schema: public; Owner: postgres
 --
 
@@ -3510,7 +3995,7 @@ CREATE TRIGGER update_merchants_updated_at BEFORE UPDATE ON public.merchants FOR
 
 
 --
--- TOC entry 5163 (class 2620 OID 27277)
+-- TOC entry 5180 (class 2620 OID 91010)
 -- Name: positions update_positions_updated_at; Type: TRIGGER; Schema: public; Owner: postgres
 --
 
@@ -3518,7 +4003,7 @@ CREATE TRIGGER update_positions_updated_at BEFORE UPDATE ON public.positions FOR
 
 
 --
--- TOC entry 5159 (class 2620 OID 27273)
+-- TOC entry 5181 (class 2620 OID 91011)
 -- Name: regions update_regions_updated_at; Type: TRIGGER; Schema: public; Owner: postgres
 --
 
@@ -3526,7 +4011,7 @@ CREATE TRIGGER update_regions_updated_at BEFORE UPDATE ON public.regions FOR EAC
 
 
 --
--- TOC entry 5161 (class 2620 OID 27275)
+-- TOC entry 5182 (class 2620 OID 91012)
 -- Name: sub_regions update_sub_regions_updated_at; Type: TRIGGER; Schema: public; Owner: postgres
 --
 
@@ -3534,7 +4019,7 @@ CREATE TRIGGER update_sub_regions_updated_at BEFORE UPDATE ON public.sub_regions
 
 
 --
--- TOC entry 5174 (class 2620 OID 27537)
+-- TOC entry 5183 (class 2620 OID 91013)
 -- Name: tour_contract_routes update_tour_contract_routes_updated_at; Type: TRIGGER; Schema: public; Owner: postgres
 --
 
@@ -3542,7 +4027,7 @@ CREATE TRIGGER update_tour_contract_routes_updated_at BEFORE UPDATE ON public.to
 
 
 --
--- TOC entry 5173 (class 2620 OID 27536)
+-- TOC entry 5184 (class 2620 OID 91014)
 -- Name: tours update_tours_updated_at; Type: TRIGGER; Schema: public; Owner: postgres
 --
 
@@ -3550,7 +4035,7 @@ CREATE TRIGGER update_tours_updated_at BEFORE UPDATE ON public.tours FOR EACH RO
 
 
 --
--- TOC entry 5168 (class 2620 OID 27282)
+-- TOC entry 5185 (class 2620 OID 91015)
 -- Name: users update_users_updated_at; Type: TRIGGER; Schema: public; Owner: postgres
 --
 
@@ -3558,7 +4043,7 @@ CREATE TRIGGER update_users_updated_at BEFORE UPDATE ON public.users FOR EACH RO
 
 
 --
--- TOC entry 5165 (class 2620 OID 27279)
+-- TOC entry 5186 (class 2620 OID 91016)
 -- Name: vehicle_companies update_vehicle_companies_updated_at; Type: TRIGGER; Schema: public; Owner: postgres
 --
 
@@ -3566,7 +4051,7 @@ CREATE TRIGGER update_vehicle_companies_updated_at BEFORE UPDATE ON public.vehic
 
 
 --
--- TOC entry 5172 (class 2620 OID 27539)
+-- TOC entry 5187 (class 2620 OID 91017)
 -- Name: vehicle_contract_routes update_vehicle_contract_routes_updated_at; Type: TRIGGER; Schema: public; Owner: postgres
 --
 
@@ -3574,7 +4059,7 @@ CREATE TRIGGER update_vehicle_contract_routes_updated_at BEFORE UPDATE ON public
 
 
 --
--- TOC entry 5167 (class 2620 OID 27281)
+-- TOC entry 5188 (class 2620 OID 91018)
 -- Name: vehicle_contracts update_vehicle_contracts_updated_at; Type: TRIGGER; Schema: public; Owner: postgres
 --
 
@@ -3582,7 +4067,7 @@ CREATE TRIGGER update_vehicle_contracts_updated_at BEFORE UPDATE ON public.vehic
 
 
 --
--- TOC entry 5166 (class 2620 OID 27280)
+-- TOC entry 5189 (class 2620 OID 91019)
 -- Name: vehicle_types update_vehicle_types_updated_at; Type: TRIGGER; Schema: public; Owner: postgres
 --
 
@@ -3590,7 +4075,7 @@ CREATE TRIGGER update_vehicle_types_updated_at BEFORE UPDATE ON public.vehicle_t
 
 
 --
--- TOC entry 5133 (class 2606 OID 26998)
+-- TOC entry 5142 (class 2606 OID 91020)
 -- Name: cities cities_region_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -3599,7 +4084,7 @@ ALTER TABLE ONLY public.cities
 
 
 --
--- TOC entry 5144 (class 2606 OID 27197)
+-- TOC entry 5143 (class 2606 OID 91025)
 -- Name: country_currencies country_currencies_country_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -3608,7 +4093,7 @@ ALTER TABLE ONLY public.country_currencies
 
 
 --
--- TOC entry 5145 (class 2606 OID 27202)
+-- TOC entry 5144 (class 2606 OID 91030)
 -- Name: country_currencies country_currencies_currency_code_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -3617,7 +4102,7 @@ ALTER TABLE ONLY public.country_currencies
 
 
 --
--- TOC entry 5135 (class 2606 OID 27034)
+-- TOC entry 5145 (class 2606 OID 91035)
 -- Name: departments departments_city_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -3626,7 +4111,7 @@ ALTER TABLE ONLY public.departments
 
 
 --
--- TOC entry 5146 (class 2606 OID 27227)
+-- TOC entry 5146 (class 2606 OID 91040)
 -- Name: exchange_rates exchange_rates_country_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -3635,7 +4120,7 @@ ALTER TABLE ONLY public.exchange_rates
 
 
 --
--- TOC entry 5147 (class 2606 OID 27232)
+-- TOC entry 5147 (class 2606 OID 91045)
 -- Name: exchange_rates exchange_rates_currency_code_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -3644,7 +4129,7 @@ ALTER TABLE ONLY public.exchange_rates
 
 
 --
--- TOC entry 5137 (class 2606 OID 27072)
+-- TOC entry 5148 (class 2606 OID 91050)
 -- Name: merchants merchants_sub_region_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -3653,7 +4138,7 @@ ALTER TABLE ONLY public.merchants
 
 
 --
--- TOC entry 5136 (class 2606 OID 27052)
+-- TOC entry 5149 (class 2606 OID 91055)
 -- Name: positions positions_department_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -3662,7 +4147,7 @@ ALTER TABLE ONLY public.positions
 
 
 --
--- TOC entry 5132 (class 2606 OID 26980)
+-- TOC entry 5150 (class 2606 OID 91060)
 -- Name: regions regions_country_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -3671,7 +4156,7 @@ ALTER TABLE ONLY public.regions
 
 
 --
--- TOC entry 5134 (class 2606 OID 27016)
+-- TOC entry 5151 (class 2606 OID 91065)
 -- Name: sub_regions sub_regions_city_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -3680,7 +4165,7 @@ ALTER TABLE ONLY public.sub_regions
 
 
 --
--- TOC entry 5155 (class 2606 OID 27482)
+-- TOC entry 5152 (class 2606 OID 91070)
 -- Name: tour_contract_routes tour_contract_routes_sub_region_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -3689,7 +4174,7 @@ ALTER TABLE ONLY public.tour_contract_routes
 
 
 --
--- TOC entry 5156 (class 2606 OID 27477)
+-- TOC entry 5153 (class 2606 OID 91075)
 -- Name: tour_contract_routes tour_contract_routes_tour_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -3698,7 +4183,7 @@ ALTER TABLE ONLY public.tour_contract_routes
 
 
 --
--- TOC entry 5157 (class 2606 OID 27487)
+-- TOC entry 5154 (class 2606 OID 91080)
 -- Name: tour_contract_routes tour_contract_routes_vehicle_contract_route_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -3707,7 +4192,25 @@ ALTER TABLE ONLY public.tour_contract_routes
 
 
 --
--- TOC entry 5153 (class 2606 OID 27457)
+-- TOC entry 5171 (class 2606 OID 91358)
+-- Name: tour_group_members tour_group_members_tour_group_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.tour_group_members
+    ADD CONSTRAINT tour_group_members_tour_group_id_fkey FOREIGN KEY (tour_group_id) REFERENCES public.tour_groups(id) ON DELETE CASCADE;
+
+
+--
+-- TOC entry 5172 (class 2606 OID 91363)
+-- Name: tour_group_members tour_group_members_tour_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.tour_group_members
+    ADD CONSTRAINT tour_group_members_tour_id_fkey FOREIGN KEY (tour_id) REFERENCES public.tours(id) ON DELETE CASCADE;
+
+
+--
+-- TOC entry 5155 (class 2606 OID 91085)
 -- Name: tour_sub_regions tour_sub_regions_sub_region_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -3716,7 +4219,7 @@ ALTER TABLE ONLY public.tour_sub_regions
 
 
 --
--- TOC entry 5154 (class 2606 OID 27452)
+-- TOC entry 5156 (class 2606 OID 91090)
 -- Name: tour_sub_regions tour_sub_regions_tour_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -3725,7 +4228,25 @@ ALTER TABLE ONLY public.tour_sub_regions
 
 
 --
--- TOC entry 5150 (class 2606 OID 27435)
+-- TOC entry 5157 (class 2606 OID 91329)
+-- Name: tours tours_city_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.tours
+    ADD CONSTRAINT tours_city_id_fkey FOREIGN KEY (city_id) REFERENCES public.cities(id) ON DELETE CASCADE;
+
+
+--
+-- TOC entry 5158 (class 2606 OID 91319)
+-- Name: tours tours_country_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.tours
+    ADD CONSTRAINT tours_country_id_fkey FOREIGN KEY (country_id) REFERENCES public.countries(id) ON DELETE CASCADE;
+
+
+--
+-- TOC entry 5159 (class 2606 OID 91095)
 -- Name: tours tours_merchant_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -3734,7 +4255,16 @@ ALTER TABLE ONLY public.tours
 
 
 --
--- TOC entry 5151 (class 2606 OID 27430)
+-- TOC entry 5160 (class 2606 OID 91324)
+-- Name: tours tours_region_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.tours
+    ADD CONSTRAINT tours_region_id_fkey FOREIGN KEY (region_id) REFERENCES public.regions(id) ON DELETE CASCADE;
+
+
+--
+-- TOC entry 5161 (class 2606 OID 91100)
 -- Name: tours tours_sub_region_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -3743,7 +4273,7 @@ ALTER TABLE ONLY public.tours
 
 
 --
--- TOC entry 5152 (class 2606 OID 27440)
+-- TOC entry 5162 (class 2606 OID 91105)
 -- Name: tours tours_vehicle_contract_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -3752,7 +4282,7 @@ ALTER TABLE ONLY public.tours
 
 
 --
--- TOC entry 5141 (class 2606 OID 27162)
+-- TOC entry 5163 (class 2606 OID 91110)
 -- Name: users users_city_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -3761,7 +4291,7 @@ ALTER TABLE ONLY public.users
 
 
 --
--- TOC entry 5142 (class 2606 OID 27152)
+-- TOC entry 5164 (class 2606 OID 91115)
 -- Name: users users_department_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -3770,7 +4300,7 @@ ALTER TABLE ONLY public.users
 
 
 --
--- TOC entry 5143 (class 2606 OID 27157)
+-- TOC entry 5165 (class 2606 OID 91120)
 -- Name: users users_position_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -3779,7 +4309,7 @@ ALTER TABLE ONLY public.users
 
 
 --
--- TOC entry 5138 (class 2606 OID 27092)
+-- TOC entry 5166 (class 2606 OID 91125)
 -- Name: vehicle_companies vehicle_companies_city_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -3788,7 +4318,7 @@ ALTER TABLE ONLY public.vehicle_companies
 
 
 --
--- TOC entry 5148 (class 2606 OID 27338)
+-- TOC entry 5167 (class 2606 OID 91130)
 -- Name: vehicle_contract_routes vehicle_contract_routes_currency_code_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -3797,7 +4327,7 @@ ALTER TABLE ONLY public.vehicle_contract_routes
 
 
 --
--- TOC entry 5149 (class 2606 OID 27333)
+-- TOC entry 5168 (class 2606 OID 91135)
 -- Name: vehicle_contract_routes vehicle_contract_routes_vehicle_contract_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -3806,7 +4336,7 @@ ALTER TABLE ONLY public.vehicle_contract_routes
 
 
 --
--- TOC entry 5140 (class 2606 OID 27130)
+-- TOC entry 5169 (class 2606 OID 91140)
 -- Name: vehicle_contracts vehicle_contracts_vehicle_company_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -3815,7 +4345,7 @@ ALTER TABLE ONLY public.vehicle_contracts
 
 
 --
--- TOC entry 5139 (class 2606 OID 27110)
+-- TOC entry 5170 (class 2606 OID 91145)
 -- Name: vehicle_types vehicle_types_vehicle_company_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -3823,11 +4353,11 @@ ALTER TABLE ONLY public.vehicle_types
     ADD CONSTRAINT vehicle_types_vehicle_company_id_fkey FOREIGN KEY (vehicle_company_id) REFERENCES public.vehicle_companies(id) ON DELETE CASCADE;
 
 
--- Completed on 2025-11-02 01:39:14
+-- Completed on 2025-11-02 15:31:14
 
 --
 -- PostgreSQL database dump complete
 --
 
-\unrestrict N9fRdcCmNH6EAvKO4OV4dSth7nWR1adudgGl7M81NndufeUmv9bdwtEmKXEtrwO
+\unrestrict HP8IjBVaPkLONqJWdgJiscY5isxG37bTd8SSGEk760O1JmTYQhev4i8vqjnBuei
 

@@ -294,9 +294,44 @@ function formatBytes($bytes, $decimals = 2) {
     return $size . ' ' . $unit;
 }
 
+// Load platform helper if available
+if (file_exists(__DIR__ . '/../../includes/platform_helper.php')) {
+    require_once __DIR__ . '/../../includes/platform_helper.php';
+}
+
 // Find pg_dump executable
 function findPgDump() {
     $pgDump = 'pg_dump'; // Default: assume in PATH
+    
+    // Use platform helper if available
+    if (function_exists('findExecutable')) {
+        $commonPaths = [];
+        if (function_exists('isWindows') && isWindows()) {
+            $commonPaths = [
+                'C:\\laragon\\bin\\postgresql\\postgresql\\bin',
+                'C:\\Program Files\\PostgreSQL\\16\\bin',
+                'C:\\Program Files\\PostgreSQL\\15\\bin',
+                'C:\\Program Files\\PostgreSQL\\14\\bin',
+                'C:\\Program Files\\PostgreSQL\\13\\bin',
+                'C:\\Program Files\\PostgreSQL\\12\\bin',
+                'C:\\Program Files (x86)\\PostgreSQL\\16\\bin',
+                'C:\\Program Files (x86)\\PostgreSQL\\15\\bin',
+                'C:\\Program Files (x86)\\PostgreSQL\\14\\bin',
+            ];
+        } else {
+            $commonPaths = [
+                '/usr/bin',
+                '/usr/local/bin',
+                '/opt/local/bin',
+                '/usr/local/pgsql/bin',
+            ];
+        }
+        
+        $found = findExecutable('pg_dump', $commonPaths);
+        if ($found) {
+            return $found;
+        }
+    }
     
     // Windows paths
     if (strtoupper(substr(PHP_OS, 0, 3)) === 'WIN') {
@@ -374,12 +409,28 @@ function runBackup($format = 'custom', $compress = true) {
         }
     }
     
-    // Create backup directory
+    // Create backup directory with platform helper
     $backupDir = __DIR__;
     if (!is_dir($backupDir)) {
-        if (!@mkdir($backupDir, 0755, true)) {
-            echo t('directory_creation_failed') . ': ' . $backupDir . PHP_EOL;
-            return false;
+        if (function_exists('createDirectory')) {
+            if (!createDirectory($backupDir, getDefaultDirMode(), true)) {
+                echo t('directory_creation_failed') . ': ' . $backupDir . PHP_EOL;
+                return false;
+            }
+        } else {
+            // Fallback if platform helper not available
+            $mode = (strtoupper(substr(PHP_OS, 0, 3)) === 'WIN') ? null : 0755;
+            if ($mode !== null) {
+                if (!@mkdir($backupDir, $mode, true)) {
+                    echo t('directory_creation_failed') . ': ' . $backupDir . PHP_EOL;
+                    return false;
+                }
+            } else {
+                if (!@mkdir($backupDir, true)) {
+                    echo t('directory_creation_failed') . ': ' . $backupDir . PHP_EOL;
+                    return false;
+                }
+            }
         }
     }
     
@@ -426,32 +477,59 @@ function runBackup($format = 'custom', $compress = true) {
         $formatFlag
     );
     
-    // On Windows, redirect stderr to null and stdout to file for cleaner SQL
-    // On Unix, we'll filter manually
-    if (strtoupper(substr(PHP_OS, 0, 3)) === 'WIN') {
-        // Windows: verbose messages go to stderr, SQL to stdout
-        $cmd .= ' 2>nul';
+    // Set UTF-8 locale for all platforms
+    if (function_exists('isWindows')) {
+        $isWindows = isWindows();
     } else {
-        // Unix: redirect both, we'll filter
+        $isWindows = (strtoupper(substr(PHP_OS, 0, 3)) === 'WIN');
+    }
+    
+    if ($isWindows) {
+        // Windows: verbose messages go to stderr, SQL to stdout
+        // Redirect stderr separately to avoid encoding issues
+        $cmd .= ' 2>nul';
+        // Set UTF-8 codepage for Windows console
+        @exec('chcp 65001 >nul 2>&1');
+    } else {
+        // Unix/Linux/macOS: redirect both, we'll filter
         $cmd .= ' 2>&1';
-        // Set locale for UTF-8
+        // Set UTF-8 locale environment variables
         putenv('LC_ALL=en_US.UTF-8');
         putenv('LANG=en_US.UTF-8');
+        putenv('LC_CTYPE=UTF-8');
     }
+    
+    // Always set PostgreSQL encoding environment
+    putenv('PGCLIENTENCODING=UTF8');
     
     // Execute backup
     echo t('executing_dump') . '...' . PHP_EOL;
     
     // Set UTF-8 encoding for file output
-    $fileHandle = fopen($backupFile, 'wb'); // Binary mode for better UTF-8 handling
+    // Use binary mode for all formats to ensure proper byte handling
+    $fileHandle = fopen($backupFile, 'wb');
+    
+    if (!$fileHandle) {
+        echo t('dump_failed') . ': Cannot create backup file' . PHP_EOL;
+        putenv('PGPASSWORD=');
+        putenv('PGCLIENTENCODING=');
+        return false;
+    }
+    
+    // Write UTF-8 BOM only for plain SQL files (not binary formats)
+    // This helps editors recognize UTF-8 encoding for all languages
+    if ($format === 'sql' || $format === 'plain') {
+        fwrite($fileHandle, "\xEF\xBB\xBF"); // UTF-8 BOM
+    }
     
     // Use popen for better handling of large outputs
-    // Note: pg_dump output may contain Turkish characters, ensure UTF-8 encoding
+    // Note: pg_dump output may contain characters from all languages, ensure UTF-8 encoding
     $handle = popen($cmd, 'r');
     if (!$handle) {
         echo t('dump_failed') . PHP_EOL;
         if ($fileHandle) fclose($fileHandle);
         putenv('PGPASSWORD=');
+        putenv('PGCLIENTENCODING=');
         return false;
     }
     
@@ -459,6 +537,7 @@ function runBackup($format = 'custom', $compress = true) {
         pclose($handle);
         echo t('dump_failed') . ': Cannot write to file' . PHP_EOL;
         putenv('PGPASSWORD=');
+        putenv('PGCLIENTENCODING=');
         return false;
     }
     
@@ -494,7 +573,15 @@ function runBackup($format = 'custom', $compress = true) {
                 continue;
             }
             
-            // This is SQL content, write directly to file
+            // This is SQL content - ensure UTF-8 encoding before writing
+            // Convert to UTF-8 if not already (safety check for all languages)
+            if (!mb_check_encoding($line, 'UTF-8')) {
+                $detected = mb_detect_encoding($line, ['UTF-8', 'ISO-8859-1', 'Windows-1252', 'Windows-1254', 'Windows-1251', 'EUC-JP', 'SHIFT-JIS'], true);
+                if ($detected && $detected !== 'UTF-8') {
+                    $line = mb_convert_encoding($line, 'UTF-8', $detected);
+                }
+            }
+            
             fwrite($fileHandle, $line);
             $errorOutput .= $line; // Also capture for error checking
         }
@@ -502,6 +589,13 @@ function runBackup($format = 'custom', $compress = true) {
     
     // Write any remaining buffer (incomplete line) if it's not a verbose message
     if (!empty($lineBuffer) && strpos($lineBuffer, 'pg_dump:') !== 0) {
+        // Ensure UTF-8 encoding for remaining buffer
+        if (!mb_check_encoding($lineBuffer, 'UTF-8')) {
+            $detected = mb_detect_encoding($lineBuffer, ['UTF-8', 'ISO-8859-1', 'Windows-1252', 'Windows-1254', 'Windows-1251', 'EUC-JP', 'SHIFT-JIS'], true);
+            if ($detected && $detected !== 'UTF-8') {
+                $lineBuffer = mb_convert_encoding($lineBuffer, 'UTF-8', $detected);
+            }
+        }
         fwrite($fileHandle, $lineBuffer);
         $errorOutput .= $lineBuffer;
     }
@@ -522,6 +616,7 @@ function runBackup($format = 'custom', $compress = true) {
         }
         @unlink($backupFile);
         putenv('PGPASSWORD=');
+        putenv('PGCLIENTENCODING=');
         return false;
     }
     
@@ -564,8 +659,16 @@ function runBackup($format = 'custom', $compress = true) {
         $finalFiles[] = $backupFile;
     }
     
-    // Clean up environment
+    // Clean up environment variables
     putenv('PGPASSWORD=');
+    putenv('PGCLIENTENCODING=');
+    
+    // Reset locale for Unix systems
+    if (!$isWindows) {
+        putenv('LC_ALL=');
+        putenv('LANG=');
+        putenv('LC_CTYPE=');
+    }
     
     // Calculate elapsed time
     $elapsed = number_format(microtime(true) - $startTime, 2);

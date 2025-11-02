@@ -1,7 +1,6 @@
 @echo off
 REM FST Cost Management - Dependency Installation Script
 REM Supports PHP 7.4+ and all PHP 8.x versions
-
 setlocal enabledelayedexpansion
 
 echo === FST Cost Management - Installing Dependencies ===

@@ -2,8 +2,8 @@
 vendor/
 
 # Composer
-composer.phar
-composer.phar.*
+# composer.phar
+# composer.phar.*
 
 # Environment variables
 .env
@@ -41,7 +41,9 @@ tmp/
 temp/
 
 # Database backups
-database/*backup*.sql
-database/*.dump
-database/globals_*.sql
+# database/*backup*.sql
+# database/*.dump
+# database/globals_*.sql
+# database/Backup_db/*.sql
+# database/Backup_db/*.sql.gz
 

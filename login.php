@@ -94,8 +94,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         } elseif (empty($username) || empty($password)) {
             $error = $t_common['required_field'] ?? 'Please fill in all fields';
         } else {
-            // Authentication with password field (currently accepts any password, ready for future password validation)
-            // TODO: In production, implement LDAP/AD authentication or password hash verification
+            // Authentication - Currently accepts any password for development
+            // Note: LDAP/AD authentication or password hash verification should be implemented for production
             $conn = getDbConnection();
             
             if ($conn) {

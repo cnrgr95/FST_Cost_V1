@@ -1,5 +1,4 @@
 # FST Cost Management - Vendor Dependency Check
-
 # Change to project root directory
 $scriptPath = Split-Path -Parent $MyInvocation.MyCommand.Path
 $projectRoot = Split-Path -Parent $scriptPath

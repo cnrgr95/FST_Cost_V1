@@ -1,6 +1,5 @@
 # FST Cost Management - Dependency Installation Script
 # Supports PHP 7.4+ and all PHP 8.x versions
-
 param([switch]$Dev)
 
 Write-Host "=== FST Cost Management - Installing Dependencies ===" -ForegroundColor Green

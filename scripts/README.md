@@ -16,9 +16,10 @@ PowerShell scripti - Composer bağımlılıklarını yükler.
 ```
 
 ### install_dependencies.bat
-Batch scripti - Composer bağımlılıklarını yükler.
+Batch scripti - Composer bağımlılıklarını yükler (PowerShell yoksa).
 - Otomatik PHP bulma
 - PHP 7.4+ ve tüm 8.x sürümlerini destekler
+- **Not:** PowerShell versiyonu önerilir (daha gelişmiş)
 
 **Kullanım:**
 ```cmd
@@ -33,6 +34,14 @@ Vendor klasörünün durumunu kontrol eder.
 **Kullanım:**
 ```powershell
 .\scripts\check_vendor.ps1
+```
+
+### check_unused_db_objects.sql
+Veritabanı yapısı analiz scripti - PostgreSQL'de kullanılmayan tablo ve sütunları tespit eder.
+
+**Kullanım:**
+```sql
+\i scripts/check_unused_db_objects.sql
 ```
 
 ## Notlar

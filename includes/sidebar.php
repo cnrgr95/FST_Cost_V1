@@ -210,7 +210,7 @@ function isActiveMenuItem($pages = [], $requireExact = false) {
       <li class="nav-item nav-link-branding">
         <div class="brand-text">
           <span class="brand-name"><?php echo $t_sidebar['fst'] ?? 'FST'; ?></span>
-          <span class="brand-version"><?php echo $all_translations['version'] ?? 'v1.0.0'; ?></span>
+          <span class="brand-version"><?php echo $all_translations['app']['version'] ?? 'v1.0.0'; ?></span>
         </div>
       </li>
     </ul>
