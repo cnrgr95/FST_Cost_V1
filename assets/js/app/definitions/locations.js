@@ -14,6 +14,11 @@
             if (pageConfig.translations) {
                 window.Translations = pageConfig.translations;
             }
+            // Store CSRF token in page config for easy access
+            if (pageConfig.csrfToken) {
+                window.pageConfig = window.pageConfig || {};
+                window.pageConfig.csrfToken = pageConfig.csrfToken;
+            }
         } catch (e) {
             console.error('Failed to parse page config:', e);
         }
@@ -468,9 +473,8 @@
             loadRegionsForSelect();
         } else if (type === 'sub_regions') {
             loadCitiesForSelect();
-        } else if (type === 'countries') {
-            loadCurrenciesForSelect();
         }
+        // Note: Countries modal doesn't need currency select anymore
     };
     
     // Close modal - Enhanced to work with specific modal IDs or all modals
@@ -621,11 +625,36 @@
         
         showConfirmDialog(deleteConfirmMessage, async function() {
             try {
+                // Get CSRF token from multiple sources
+                let token = null;
+                if (typeof window.getCsrfToken === 'function') {
+                    token = window.getCsrfToken();
+                } else if (window.pageConfig && window.pageConfig.csrfToken) {
+                    token = window.pageConfig.csrfToken;
+                } else if (pageConfig && pageConfig.csrfToken) {
+                    token = pageConfig.csrfToken;
+                }
+                
+                if (!token) {
+                    console.error('CSRF token not found');
+                    showToast('error', tCommon.security_token_expired || 'Security token expired. Please refresh the page and try again.');
+                    return;
+                }
+                
                 const action = getApiAction(type);
                 const response = await window.apiFetch(`${API_BASE}?action=${action}&id=${id}`, {
-                    method: 'DELETE'
+                    method: 'DELETE',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ csrf_token: token })
                 });
                 const result = await response.json();
+                
+                // Handle CSRF token errors
+                if (!result.success && result.message && result.message.toLowerCase().includes('csrf')) {
+                    showToast('error', tCommon.security_token_expired || 'Security token expired. Please refresh the page and try again.');
+                    console.error('CSRF token error:', result.message);
+                    return;
+                }
                 
                 if (result.success) {
                     currentData[type] = [];
@@ -674,10 +703,94 @@
         });
     };
     
+    // Error handling functions
+    function clearFormErrors(form) {
+        if (!form) return;
+        const errorMessages = form.querySelectorAll('.input-error-message');
+        errorMessages.forEach(msg => {
+            msg.textContent = '';
+            msg.style.display = 'none';
+        });
+        const inputs = form.querySelectorAll('input, select');
+        inputs.forEach(input => {
+            input.classList.remove('error');
+            input.style.borderColor = '';
+        });
+    }
+    
+    function highlightFieldError(formId, fieldName) {
+        const form = document.getElementById(formId);
+        if (!form) return;
+        const field = form.querySelector(`[name="${fieldName}"]`);
+        if (field) {
+            field.classList.add('error');
+            field.style.borderColor = '#dc3545';
+            const errorSpan = field.parentElement.querySelector('.input-error-message');
+            if (errorSpan) {
+                errorSpan.style.display = 'block';
+            }
+        }
+    }
+    
+    function handleApiError(formId, errorMessage, formName = null) {
+        if (!errorMessage) return;
+        
+        const form = document.getElementById(formId);
+        if (!form) return;
+        
+        const errorMsgLower = errorMessage.toLowerCase();
+        
+        // Handle required field errors
+        if (errorMsgLower.includes('is required')) {
+            if (formId === 'countryForm') {
+                if (errorMsgLower.includes('country name')) {
+                    highlightFieldError('countryForm', 'name');
+                } else if (errorMsgLower.includes('country code')) {
+                    highlightFieldError('countryForm', 'code');
+                }
+                showToast('error', errorMessage);
+            } else {
+                showToast('error', errorMessage);
+            }
+            return;
+        }
+        
+        // Handle uniqueness errors
+        if (errorMsgLower.includes('already exists') || errorMsgLower.includes('must be unique')) {
+            if (formId === 'countryForm') {
+                highlightFieldError('countryForm', 'name');
+                showToast('error', errorMessage);
+            } else if (formId === 'regionForm') {
+                highlightFieldError('regionForm', 'name');
+                if (errorMsgLower.includes('country')) {
+                    highlightFieldError('regionForm', 'country_id');
+                }
+                showToast('error', errorMessage);
+            } else if (formId === 'cityForm') {
+                highlightFieldError('cityForm', 'name');
+                if (errorMsgLower.includes('region')) {
+                    highlightFieldError('cityForm', 'region_id');
+                }
+                showToast('error', errorMessage);
+            } else if (formId === 'sub_regionsForm') {
+                highlightFieldError('sub_regionsForm', 'name');
+                if (errorMsgLower.includes('city')) {
+                    highlightFieldError('sub_regionsForm', 'city_id');
+                }
+                showToast('error', errorMessage);
+            }
+        } else {
+            // Other errors - show toast only
+            showToast('error', errorMessage);
+        }
+    }
+    
     // Handle form submission
     function handleCountrySubmit(e) {
         e.preventDefault();
         const form = e.target;
+        clearFormErrors(form);
+        
         const formData = new FormData(form);
         const data = {
             name: formData.get('name'),
@@ -704,6 +817,8 @@
     function handleRegionSubmit(e) {
         e.preventDefault();
         const form = e.target;
+        clearFormErrors(form);
+        
         const formData = new FormData(form);
         const data = {
             name: formData.get('name'),
@@ -721,6 +836,8 @@
     function handleCitySubmit(e) {
         e.preventDefault();
         const form = e.target;
+        clearFormErrors(form);
+        
         const formData = new FormData(form);
         const data = {
             name: formData.get('name'),
@@ -738,6 +855,8 @@
     function handleSubRegionSubmit(e) {
         e.preventDefault();
         const form = e.target;
+        clearFormErrors(form);
+        
         const formData = new FormData(form);
         const data = {
             name: formData.get('name'),
@@ -755,6 +874,24 @@
     // Create operations
     async function createCountry(data) {
         try {
+            // Get CSRF token from multiple sources
+            let token = null;
+            if (typeof window.getCsrfToken === 'function') {
+                token = window.getCsrfToken();
+            } else if (window.pageConfig && window.pageConfig.csrfToken) {
+                token = window.pageConfig.csrfToken;
+            } else if (pageConfig && pageConfig.csrfToken) {
+                token = pageConfig.csrfToken;
+            }
+            
+            if (!token) {
+                console.error('CSRF token not found');
+                showToast('error', tCommon.security_token_expired || 'Security token expired. Please refresh the page and try again.');
+                return;
+            }
+            
+            data.csrf_token = token;
+            
             const response = await fetch(`${API_BASE}?action=country`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -762,22 +899,20 @@
             });
             const result = await response.json();
             
+            // Handle CSRF token errors
+            if (!result.success && result.message && result.message.toLowerCase().includes('csrf')) {
+                showToast('error', tCommon.security_token_expired || 'Security token expired. Please refresh the page and try again.');
+                console.error('CSRF token error:', result.message);
+                return;
+            }
+            
             if (result.success) {
                 currentData.countries = [];
                 loadData('countries');
                 closeModal();
                 showToast('success', tLoc.country_added || 'Country created successfully');
             } else {
-                if (result.message && result.message.toLowerCase().includes('already exists')) {
-                    // Show error under input field
-                    const input = document.querySelector('#countryForm input[name="name"]');
-                    if (input) {
-                        input.classList.add('error');
-                        input.setCustomValidity(result.message);
-                        input.reportValidity();
-                    }
-                }
-                showToast('error', result.message);
+                handleApiError('countryForm', result.message);
             }
         } catch (error) {
             console.error('Error creating country:', error);
@@ -787,6 +922,24 @@
     
     async function createRegion(data) {
         try {
+            // Get CSRF token from multiple sources
+            let token = null;
+            if (typeof window.getCsrfToken === 'function') {
+                token = window.getCsrfToken();
+            } else if (window.pageConfig && window.pageConfig.csrfToken) {
+                token = window.pageConfig.csrfToken;
+            } else if (pageConfig && pageConfig.csrfToken) {
+                token = pageConfig.csrfToken;
+            }
+            
+            if (!token) {
+                console.error('CSRF token not found');
+                showToast('error', tCommon.security_token_expired || 'Security token expired. Please refresh the page and try again.');
+                return;
+            }
+            
+            data.csrf_token = token;
+            
             const response = await fetch(`${API_BASE}?action=region`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -794,21 +947,20 @@
             });
             const result = await response.json();
             
+            // Handle CSRF token errors
+            if (!result.success && result.message && result.message.toLowerCase().includes('csrf')) {
+                showToast('error', tCommon.security_token_expired || 'Security token expired. Please refresh the page and try again.');
+                console.error('CSRF token error:', result.message);
+                return;
+            }
+            
             if (result.success) {
                 currentData.regions = [];
                 loadData('regions');
                 closeModal();
                 showToast('success', tLoc.region_added || 'Region created successfully');
             } else {
-                if (result.message && result.message.toLowerCase().includes('already exists')) {
-                    const input = document.querySelector('#regionForm input[name="name"]');
-                    if (input) {
-                        input.classList.add('error');
-                        input.setCustomValidity(result.message);
-                        input.reportValidity();
-                    }
-                }
-                showToast('error', result.message);
+                handleApiError('regionForm', result.message);
             }
         } catch (error) {
             console.error('Error creating region:', error);
@@ -818,6 +970,24 @@
     
     async function createCity(data) {
         try {
+            // Get CSRF token from multiple sources
+            let token = null;
+            if (typeof window.getCsrfToken === 'function') {
+                token = window.getCsrfToken();
+            } else if (window.pageConfig && window.pageConfig.csrfToken) {
+                token = window.pageConfig.csrfToken;
+            } else if (pageConfig && pageConfig.csrfToken) {
+                token = pageConfig.csrfToken;
+            }
+            
+            if (!token) {
+                console.error('CSRF token not found');
+                showToast('error', tCommon.security_token_expired || 'Security token expired. Please refresh the page and try again.');
+                return;
+            }
+            
+            data.csrf_token = token;
+            
             const response = await fetch(`${API_BASE}?action=city`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -825,21 +995,20 @@
             });
             const result = await response.json();
             
+            // Handle CSRF token errors
+            if (!result.success && result.message && result.message.toLowerCase().includes('csrf')) {
+                showToast('error', tCommon.security_token_expired || 'Security token expired. Please refresh the page and try again.');
+                console.error('CSRF token error:', result.message);
+                return;
+            }
+            
             if (result.success) {
                 currentData.cities = [];
                 loadData('cities');
                 closeModal();
                 showToast('success', tLoc.city_added || 'City created successfully');
             } else {
-                if (result.message && result.message.toLowerCase().includes('already exists')) {
-                    const input = document.querySelector('#cityForm input[name="name"]');
-                    if (input) {
-                        input.classList.add('error');
-                        input.setCustomValidity(result.message);
-                        input.reportValidity();
-                    }
-                }
-                showToast('error', result.message);
+                handleApiError('cityForm', result.message);
             }
         } catch (error) {
             console.error('Error creating city:', error);
@@ -850,6 +1019,24 @@
     // Update operations
     async function updateCountry(data) {
         try {
+            // Get CSRF token from multiple sources
+            let token = null;
+            if (typeof window.getCsrfToken === 'function') {
+                token = window.getCsrfToken();
+            } else if (window.pageConfig && window.pageConfig.csrfToken) {
+                token = window.pageConfig.csrfToken;
+            } else if (pageConfig && pageConfig.csrfToken) {
+                token = pageConfig.csrfToken;
+            }
+            
+            if (!token) {
+                console.error('CSRF token not found');
+                showToast('error', tCommon.security_token_expired || 'Security token expired. Please refresh the page and try again.');
+                return;
+            }
+            
+            data.csrf_token = token;
+            
             const response = await fetch(`${API_BASE}?action=country`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
@@ -857,21 +1044,20 @@
             });
             const result = await response.json();
             
+            // Handle CSRF token errors
+            if (!result.success && result.message && result.message.toLowerCase().includes('csrf')) {
+                showToast('error', tCommon.security_token_expired || 'Security token expired. Please refresh the page and try again.');
+                console.error('CSRF token error:', result.message);
+                return;
+            }
+            
             if (result.success) {
                 currentData.countries = [];
                 loadData('countries');
                 closeModal();
                 showToast('success', tLoc.country_updated || 'Country updated successfully');
             } else {
-                if (result.message && result.message.toLowerCase().includes('already exists')) {
-                    const input = document.querySelector('#countryForm input[name="name"]');
-                    if (input) {
-                        input.classList.add('error');
-                        input.setCustomValidity(result.message);
-                        input.reportValidity();
-                    }
-                }
-                showToast('error', result.message);
+                handleApiError('countryForm', result.message);
             }
         } catch (error) {
             console.error('Error updating country:', error);
@@ -881,6 +1067,24 @@
     
     async function updateRegion(data) {
         try {
+            // Get CSRF token from multiple sources
+            let token = null;
+            if (typeof window.getCsrfToken === 'function') {
+                token = window.getCsrfToken();
+            } else if (window.pageConfig && window.pageConfig.csrfToken) {
+                token = window.pageConfig.csrfToken;
+            } else if (pageConfig && pageConfig.csrfToken) {
+                token = pageConfig.csrfToken;
+            }
+            
+            if (!token) {
+                console.error('CSRF token not found');
+                showToast('error', tCommon.security_token_expired || 'Security token expired. Please refresh the page and try again.');
+                return;
+            }
+            
+            data.csrf_token = token;
+            
             const response = await fetch(`${API_BASE}?action=region`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
@@ -888,21 +1092,20 @@
             });
             const result = await response.json();
             
+            // Handle CSRF token errors
+            if (!result.success && result.message && result.message.toLowerCase().includes('csrf')) {
+                showToast('error', tCommon.security_token_expired || 'Security token expired. Please refresh the page and try again.');
+                console.error('CSRF token error:', result.message);
+                return;
+            }
+            
             if (result.success) {
                 currentData.regions = [];
                 loadData('regions');
                 closeModal();
                 showToast('success', tLoc.region_updated || 'Region updated successfully');
             } else {
-                if (result.message && result.message.toLowerCase().includes('already exists')) {
-                    const input = document.querySelector('#regionForm input[name="name"]');
-                    if (input) {
-                        input.classList.add('error');
-                        input.setCustomValidity(result.message);
-                        input.reportValidity();
-                    }
-                }
-                showToast('error', result.message);
+                handleApiError('regionForm', result.message);
             }
         } catch (error) {
             console.error('Error updating region:', error);
@@ -912,6 +1115,24 @@
     
     async function updateCity(data) {
         try {
+            // Get CSRF token from multiple sources
+            let token = null;
+            if (typeof window.getCsrfToken === 'function') {
+                token = window.getCsrfToken();
+            } else if (window.pageConfig && window.pageConfig.csrfToken) {
+                token = window.pageConfig.csrfToken;
+            } else if (pageConfig && pageConfig.csrfToken) {
+                token = pageConfig.csrfToken;
+            }
+            
+            if (!token) {
+                console.error('CSRF token not found');
+                showToast('error', tCommon.security_token_expired || 'Security token expired. Please refresh the page and try again.');
+                return;
+            }
+            
+            data.csrf_token = token;
+            
             const response = await fetch(`${API_BASE}?action=city`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
@@ -919,21 +1140,20 @@
             });
             const result = await response.json();
             
+            // Handle CSRF token errors
+            if (!result.success && result.message && result.message.toLowerCase().includes('csrf')) {
+                showToast('error', tCommon.security_token_expired || 'Security token expired. Please refresh the page and try again.');
+                console.error('CSRF token error:', result.message);
+                return;
+            }
+            
             if (result.success) {
                 currentData.cities = [];
                 loadData('cities');
                 closeModal();
                 showToast('success', tLoc.city_updated || 'City updated successfully');
             } else {
-                if (result.message && result.message.toLowerCase().includes('already exists')) {
-                    const input = document.querySelector('#cityForm input[name="name"]');
-                    if (input) {
-                        input.classList.add('error');
-                        input.setCustomValidity(result.message);
-                        input.reportValidity();
-                    }
-                }
-                showToast('error', result.message);
+                handleApiError('cityForm', result.message);
             }
         } catch (error) {
             console.error('Error updating city:', error);
@@ -992,6 +1212,24 @@
     // Sub Region CRUD operations
     async function createSubRegion(data) {
         try {
+            // Get CSRF token from multiple sources
+            let token = null;
+            if (typeof window.getCsrfToken === 'function') {
+                token = window.getCsrfToken();
+            } else if (window.pageConfig && window.pageConfig.csrfToken) {
+                token = window.pageConfig.csrfToken;
+            } else if (pageConfig && pageConfig.csrfToken) {
+                token = pageConfig.csrfToken;
+            }
+            
+            if (!token) {
+                console.error('CSRF token not found');
+                showToast('error', tCommon.security_token_expired || 'Security token expired. Please refresh the page and try again.');
+                return;
+            }
+            
+            data.csrf_token = token;
+            
             const response = await fetch(`${API_BASE}?action=sub_region`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -999,21 +1237,20 @@
             });
             const result = await response.json();
             
+            // Handle CSRF token errors
+            if (!result.success && result.message && result.message.toLowerCase().includes('csrf')) {
+                showToast('error', tCommon.security_token_expired || 'Security token expired. Please refresh the page and try again.');
+                console.error('CSRF token error:', result.message);
+                return;
+            }
+            
             if (result.success) {
                 currentData.sub_regions = [];
                 loadData('sub_regions');
                 closeModal();
                 showToast('success', tLoc.sub_region_added || 'Sub region created successfully');
             } else {
-                if (result.message && result.message.toLowerCase().includes('already exists')) {
-                    const input = document.querySelector('#sub_regionsForm input[name="name"]');
-                    if (input) {
-                        input.classList.add('error');
-                        input.setCustomValidity(result.message);
-                        input.reportValidity();
-                    }
-                }
-                showToast('error', result.message);
+                handleApiError('sub_regionsForm', result.message);
             }
         } catch (error) {
             console.error('Error creating sub region:', error);
@@ -1023,6 +1260,24 @@
     
     async function updateSubRegion(data) {
         try {
+            // Get CSRF token from multiple sources
+            let token = null;
+            if (typeof window.getCsrfToken === 'function') {
+                token = window.getCsrfToken();
+            } else if (window.pageConfig && window.pageConfig.csrfToken) {
+                token = window.pageConfig.csrfToken;
+            } else if (pageConfig && pageConfig.csrfToken) {
+                token = pageConfig.csrfToken;
+            }
+            
+            if (!token) {
+                console.error('CSRF token not found');
+                showToast('error', tCommon.security_token_expired || 'Security token expired. Please refresh the page and try again.');
+                return;
+            }
+            
+            data.csrf_token = token;
+            
             const response = await fetch(`${API_BASE}?action=sub_region`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
@@ -1030,21 +1285,20 @@
             });
             const result = await response.json();
             
+            // Handle CSRF token errors
+            if (!result.success && result.message && result.message.toLowerCase().includes('csrf')) {
+                showToast('error', tCommon.security_token_expired || 'Security token expired. Please refresh the page and try again.');
+                console.error('CSRF token error:', result.message);
+                return;
+            }
+            
             if (result.success) {
                 currentData.sub_regions = [];
                 loadData('sub_regions');
                 closeModal();
                 showToast('success', tLoc.sub_region_updated || 'Sub region updated successfully');
             } else {
-                if (result.message && result.message.toLowerCase().includes('already exists')) {
-                    const input = document.querySelector('#sub_regionsForm input[name="name"]');
-                    if (input) {
-                        input.classList.add('error');
-                        input.setCustomValidity(result.message);
-                        input.reportValidity();
-                    }
-                }
-                showToast('error', result.message);
+                handleApiError('sub_regionsForm', result.message);
             }
         } catch (error) {
             console.error('Error updating sub region:', error);
@@ -1076,13 +1330,15 @@
             });
             
             countryNameInput.addEventListener('blur', debounce(async function() {
-                const name = this.value.trim();
+                const input = countryNameInput;
+                if (!input) return;
+                const name = input.value ? input.value.trim() : '';
                 if (name.length < 2) {
-                    this.classList.remove('error');
-                    this.setCustomValidity('');
+                    input.classList.remove('error');
+                    input.setCustomValidity('');
                     return;
                 }
-                await checkNameExists('check_country', { name }, countryNameInput);
+                await checkNameExists('check_country', { name }, input);
             }, 500));
         }
         
@@ -1095,14 +1351,18 @@
             });
             
             regionNameInput.addEventListener('blur', debounce(async function() {
-                const name = this.value.trim();
-                const countryId = document.querySelector('#regionForm select[name="country_id"]').value;
+                const input = regionNameInput;
+                if (!input) return;
+                const name = input.value ? input.value.trim() : '';
+                const countrySelect = document.querySelector('#regionForm select[name="country_id"]');
+                if (!countrySelect) return;
+                const countryId = countrySelect.value;
                 if (name.length < 2 || !countryId) {
-                    this.classList.remove('error');
-                    this.setCustomValidity('');
+                    input.classList.remove('error');
+                    input.setCustomValidity('');
                     return;
                 }
-                await checkNameExists('check_region', { name, country_id: countryId }, regionNameInput);
+                await checkNameExists('check_region', { name, country_id: countryId }, input);
             }, 500));
         }
         
@@ -1115,14 +1375,18 @@
             });
             
             cityNameInput.addEventListener('blur', debounce(async function() {
-                const name = this.value.trim();
-                const regionId = document.querySelector('#cityForm select[name="region_id"]').value;
+                const input = cityNameInput;
+                if (!input) return;
+                const name = input.value ? input.value.trim() : '';
+                const regionSelect = document.querySelector('#cityForm select[name="region_id"]');
+                if (!regionSelect) return;
+                const regionId = regionSelect.value;
                 if (name.length < 2 || !regionId) {
-                    this.classList.remove('error');
-                    this.setCustomValidity('');
+                    input.classList.remove('error');
+                    input.setCustomValidity('');
                     return;
                 }
-                await checkNameExists('check_city', { name, region_id: regionId }, cityNameInput);
+                await checkNameExists('check_city', { name, region_id: regionId }, input);
             }, 500));
         }
         
@@ -1135,14 +1399,18 @@
             });
             
             subRegionNameInput.addEventListener('blur', debounce(async function() {
-                const name = this.value.trim();
-                const cityId = document.querySelector('#sub_regionsForm select[name="city_id"]').value;
+                const input = subRegionNameInput;
+                if (!input) return;
+                const name = input.value ? input.value.trim() : '';
+                const citySelect = document.querySelector('#sub_regionsForm select[name="city_id"]');
+                if (!citySelect) return;
+                const cityId = citySelect.value;
                 if (name.length < 2 || !cityId) {
-                    this.classList.remove('error');
-                    this.setCustomValidity('');
+                    input.classList.remove('error');
+                    input.setCustomValidity('');
                     return;
                 }
-                await checkNameExists('check_sub_region', { name, city_id: cityId }, subRegionNameInput);
+                await checkNameExists('check_sub_region', { name, city_id: cityId }, input);
             }, 500));
         }
     }

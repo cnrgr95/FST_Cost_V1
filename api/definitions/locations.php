@@ -205,15 +205,25 @@ function getCountries($conn) {
 function createCountry($conn, $data) {
     $name = pg_escape_string($conn, $data['name']);
     
+    // Validate required fields
+    if (empty($name)) {
+        echo json_encode(['success' => false, 'message' => 'Country name is required.']);
+        return;
+    }
+    
+    $code = trim($data['code'] ?? '');
+    if (empty($code)) {
+        echo json_encode(['success' => false, 'message' => 'Country code is required.']);
+        return;
+    }
+    
     // Check if country name already exists - use parameterized query
     $checkQuery = "SELECT id FROM countries WHERE name = $1";
     $checkResult = pg_query_params($conn, $checkQuery, [$name]);
     if ($checkResult && pg_num_rows($checkResult) > 0) {
-        echo json_encode(['success' => false, 'message' => 'A country with this name already exists']);
+        echo json_encode(['success' => false, 'message' => 'A country with this name already exists. Country names must be unique.']);
         return;
     }
-    
-    $code = $data['code'] ?? '';
     // local_currency_code is managed from currency-country.php, so it's set to NULL here
     // Use parameterized query to prevent SQL injection
     $query = "INSERT INTO countries (name, code, local_currency_code, created_at) VALUES ($1, $2, NULL, NOW()) RETURNING id";
@@ -230,7 +240,28 @@ function createCountry($conn, $data) {
 function updateCountry($conn, $data) {
     $id = (int)$data['id'];
     $name = pg_escape_string($conn, $data['name']);
-    $code = pg_escape_string($conn, $data['code'] ?? '');
+    
+    // Validate required fields
+    if (empty($name)) {
+        echo json_encode(['success' => false, 'message' => 'Country name is required.']);
+        return;
+    }
+    
+    $code = trim($data['code'] ?? '');
+    if (empty($code)) {
+        echo json_encode(['success' => false, 'message' => 'Country code is required.']);
+        return;
+    }
+    
+    $code = pg_escape_string($conn, $code);
+    
+    // Check if country name already exists for another country - use parameterized query
+    $checkQuery = "SELECT id FROM countries WHERE name = $1 AND id != $2";
+    $checkResult = pg_query_params($conn, $checkQuery, [$name, $id]);
+    if ($checkResult && pg_num_rows($checkResult) > 0) {
+        echo json_encode(['success' => false, 'message' => 'A country with this name already exists. Country names must be unique.']);
+        return;
+    }
     
     // use_in_currency is always true - all countries are available for currencies
     // local_currency_code is managed from currency-country.php, so we don't update it here
@@ -299,7 +330,7 @@ function createRegion($conn, $data) {
     $checkQuery = "SELECT id FROM regions WHERE name = $1 AND country_id = $2";
     $checkResult = pg_query_params($conn, $checkQuery, [$name, $country_id]);
     if ($checkResult && pg_num_rows($checkResult) > 0) {
-        echo json_encode(['success' => false, 'message' => 'A region with this name already exists in this country']);
+        echo json_encode(['success' => false, 'message' => 'A region with this name already exists in this country. Region names must be unique within a country.']);
         return;
     }
     
@@ -317,8 +348,16 @@ function createRegion($conn, $data) {
 
 function updateRegion($conn, $data) {
     $id = (int)$data['id'];
-    $name = $data['name'];
+    $name = pg_escape_string($conn, $data['name']);
     $country_id = (int)$data['country_id'];
+    
+    // Check if region name already exists in the same country for another region - use parameterized query
+    $checkQuery = "SELECT id FROM regions WHERE name = $1 AND country_id = $2 AND id != $3";
+    $checkResult = pg_query_params($conn, $checkQuery, [$name, $country_id, $id]);
+    if ($checkResult && pg_num_rows($checkResult) > 0) {
+        echo json_encode(['success' => false, 'message' => 'A region with this name already exists in this country. Region names must be unique within a country.']);
+        return;
+    }
     
     // Use parameterized query to prevent SQL injection
     $query = "UPDATE regions SET name = $1, country_id = $2, updated_at = NOW() WHERE id = $3";
@@ -389,7 +428,7 @@ function createCity($conn, $data) {
     $checkQuery = "SELECT id FROM cities WHERE name = $1 AND region_id = $2";
     $checkResult = pg_query_params($conn, $checkQuery, [$name, $region_id]);
     if ($checkResult && pg_num_rows($checkResult) > 0) {
-        echo json_encode(['success' => false, 'message' => 'A city with this name already exists in this region']);
+        echo json_encode(['success' => false, 'message' => 'A city with this name already exists in this region. City names must be unique within a region.']);
         return;
     }
     
@@ -407,8 +446,16 @@ function createCity($conn, $data) {
 
 function updateCity($conn, $data) {
     $id = (int)$data['id'];
-    $name = $data['name'];
+    $name = pg_escape_string($conn, $data['name']);
     $region_id = (int)$data['region_id'];
+    
+    // Check if city name already exists in the same region for another city - use parameterized query
+    $checkQuery = "SELECT id FROM cities WHERE name = $1 AND region_id = $2 AND id != $3";
+    $checkResult = pg_query_params($conn, $checkQuery, [$name, $region_id, $id]);
+    if ($checkResult && pg_num_rows($checkResult) > 0) {
+        echo json_encode(['success' => false, 'message' => 'A city with this name already exists in this region. City names must be unique within a region.']);
+        return;
+    }
     
     // Use parameterized query to prevent SQL injection
     $query = "UPDATE cities SET name = $1, region_id = $2, updated_at = NOW() WHERE id = $3";
@@ -486,7 +533,7 @@ function createSubRegion($conn, $data) {
     $checkQuery = "SELECT id FROM sub_regions WHERE name = $1 AND city_id = $2";
     $checkResult = pg_query_params($conn, $checkQuery, [$name, $city_id]);
     if ($checkResult && pg_num_rows($checkResult) > 0) {
-        echo json_encode(['success' => false, 'message' => 'A sub region with this name already exists in this city']);
+        echo json_encode(['success' => false, 'message' => 'A sub region with this name already exists in this city. Sub region names must be unique within a city.']);
         return;
     }
     
@@ -506,6 +553,14 @@ function updateSubRegion($conn, $data) {
     $id = (int)$data['id'];
     $name = pg_escape_string($conn, $data['name']);
     $city_id = (int)$data['city_id'];
+    
+    // Check if sub region name already exists in the same city for another sub region - use parameterized query
+    $checkQuery = "SELECT id FROM sub_regions WHERE name = $1 AND city_id = $2 AND id != $3";
+    $checkResult = pg_query_params($conn, $checkQuery, [$name, $city_id, $id]);
+    if ($checkResult && pg_num_rows($checkResult) > 0) {
+        echo json_encode(['success' => false, 'message' => 'A sub region with this name already exists in this city. Sub region names must be unique within a city.']);
+        return;
+    }
     
     // Use parameterized query to prevent SQL injection
     $query = "UPDATE sub_regions SET name = $1, city_id = $2, updated_at = NOW() WHERE id = $3";

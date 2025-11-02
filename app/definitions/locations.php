@@ -113,10 +113,12 @@ $t_dependencies = $all_translations['dependencies'] ?? [];
                 <div class="form-group">
                     <label><?php echo $t_locations['country_name'] ?? 'Country Name'; ?> *</label>
                     <input type="text" name="name" required>
+                    <span class="input-error-message"></span>
                 </div>
                 <div class="form-group">
-                    <label><?php echo $t_locations['country_code'] ?? 'Country Code'; ?></label>
-                    <input type="text" name="code" maxlength="3" placeholder="<?php echo $t_locations['code_placeholder'] ?? 'e.g., TR, US'; ?>">
+                    <label><?php echo $t_locations['country_code'] ?? 'Country Code'; ?> *</label>
+                    <input type="text" name="code" maxlength="3" required placeholder="<?php echo $t_locations['code_placeholder'] ?? 'e.g., TR, US'; ?>">
+                    <span class="input-error-message"></span>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn-secondary" id="cancelCountriesBtn">
@@ -145,12 +147,14 @@ $t_dependencies = $all_translations['dependencies'] ?? [];
                 <div class="form-group">
                     <label><?php echo $t_locations['region_name'] ?? 'Region Name'; ?> *</label>
                     <input type="text" name="name" required>
+                    <span class="input-error-message"></span>
                 </div>
                 <div class="form-group">
                     <label><?php echo $t_sidebar['country'] ?? 'Country'; ?> *</label>
                     <select name="country_id" required>
                         <option value=""><?php echo $t_locations['loading_data'] ?? 'Loading...'; ?></option>
                     </select>
+                    <span class="input-error-message"></span>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn-secondary" id="cancelRegionsBtn">
@@ -179,12 +183,14 @@ $t_dependencies = $all_translations['dependencies'] ?? [];
                 <div class="form-group">
                     <label><?php echo $t_locations['city_name'] ?? 'City Name'; ?> *</label>
                     <input type="text" name="name" required>
+                    <span class="input-error-message"></span>
                 </div>
                 <div class="form-group">
                     <label><?php echo $t_sidebar['region'] ?? 'Region'; ?> *</label>
                     <select name="region_id" required>
                         <option value=""><?php echo $t_locations['loading_data'] ?? 'Loading...'; ?></option>
                     </select>
+                    <span class="input-error-message"></span>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn-secondary" id="cancelCitiesBtn">
@@ -213,12 +219,14 @@ $t_dependencies = $all_translations['dependencies'] ?? [];
                 <div class="form-group">
                     <label><?php echo $t_locations['sub_region_name'] ?? 'Sub Region Name'; ?> *</label>
                     <input type="text" name="name" required>
+                    <span class="input-error-message"></span>
                 </div>
                 <div class="form-group">
                     <label><?php echo $t_sidebar['city'] ?? 'City'; ?> *</label>
                     <select name="city_id" required>
                         <option value=""><?php echo $t_locations['loading_data'] ?? 'Loading...'; ?></option>
                     </select>
+                    <span class="input-error-message"></span>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn-secondary" id="cancelSubRegionsBtn">
