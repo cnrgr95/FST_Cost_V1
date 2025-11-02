@@ -1391,35 +1391,78 @@ form[novalidate] input:invalid:focus:not(:placeholder-shown) {
 .tour-group-search-wrapper {
     width: 100%;
     flex-shrink: 0;
+    margin-bottom: 12px;
 }
 
 .search-box-inline {
     position: relative;
-    display: flex;
-    align-items: center;
+    display: block;
     width: 100%;
 }
 
 .search-box-inline .search-icon {
     position: absolute;
-    left: 12px;
+    left: 14px;
     top: 50%;
     transform: translateY(-50%);
     color: #9ca3af;
-    font-size: 20px;
+    font-size: 18px !important;
     pointer-events: none;
-    z-index: 1;
-    line-height: 1;
+    z-index: 3;
+    line-height: 1 !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    width: 18px !important;
+    height: 18px !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    text-align: center;
+    vertical-align: middle;
+    overflow: hidden;
+}
+
+.search-box-inline .search-icon,
+.search-box-inline .material-symbols-rounded {
+    font-family: 'Material Symbols Rounded' !important;
+    font-weight: normal !important;
+    font-style: normal !important;
+    font-size: 20px !important;
+    line-height: 1 !important;
+    letter-spacing: normal !important;
+    text-transform: none !important;
+    display: inline-block !important;
+    white-space: nowrap !important;
+    word-wrap: normal !important;
+    direction: ltr !important;
+    -webkit-font-feature-settings: 'liga' !important;
+    -webkit-font-smoothing: antialiased !important;
 }
 
 .search-input-inline {
     width: 100%;
-    padding: 10px 40px 10px 40px;
+    padding-left: 48px !important;
+    padding-right: 40px;
+    padding-top: 10px;
+    padding-bottom: 10px;
     border: 1px solid #d1d5db;
     border-radius: 8px;
     font-size: 14px;
+    line-height: 1.42857143;
     transition: all 0.2s ease;
     background: white;
+    box-sizing: border-box;
+    height: auto;
+    min-height: 40px;
+    text-indent: 0 !important;
+}
+
+.search-input-inline::placeholder {
+    color: #9ca3af !important;
+    opacity: 1 !important;
+    padding-left: 0 !important;
+    margin-left: 0 !important;
+    text-indent: 0 !important;
 }
 
 .search-input-inline:focus {
@@ -1433,19 +1476,19 @@ form[novalidate] input:invalid:focus:not(:placeholder-shown) {
     right: 8px;
     top: 50%;
     transform: translateY(-50%);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    line-height: 1;
     width: 24px;
     height: 24px;
     border: none;
     background: #f3f4f6;
     border-radius: 50%;
     cursor: pointer;
-    display: none;
-    align-items: center;
-    justify-content: center;
     padding: 0;
     transition: all 0.2s ease;
     z-index: 2;
-    line-height: 1;
 }
 
 .search-clear-inline[style*="flex"] {
