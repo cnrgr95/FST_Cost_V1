@@ -114,7 +114,10 @@ $translations = [
         'size_estimate' => 'Tahmini Boyut',
         'backup_details' => 'Yedek Detayları',
         'total_data' => 'Toplam Veri',
-        'empty_tables' => 'Boş Tablolar'
+        'empty_tables' => 'Boş Tablolar',
+        'backing_up_globals' => 'Global nesneler yedekleniyor',
+        'globals_backup' => 'Global yedek',
+        'encoding' => 'Kodlama'
     ],
     'de' => [
         'title' => 'Datenbanksicherung',
@@ -131,6 +134,9 @@ $translations = [
         'total_data' => 'Gesamtdaten',
         'empty_tables' => 'Leere Tabellen',
         'backup_file' => 'Sicherungsdatei',
+        'backing_up_globals' => 'Globale Objekte werden gesichert',
+        'globals_backup' => 'Globale Sicherung',
+        'encoding' => 'Kodierung',
         'backup_success' => '✓ Sicherung erfolgreich!',
         'backup_failed' => '✗ Sicherung fehlgeschlagen!',
         'creating_directory' => 'Sicherungsverzeichnis wird erstellt...',
@@ -193,6 +199,9 @@ $translations = [
         'backup_details' => 'Détails de la sauvegarde',
         'total_data' => 'Données totales',
         'empty_tables' => 'Tables vides',
+        'backing_up_globals' => 'Sauvegarde des objets globaux',
+        'globals_backup' => 'Sauvegarde globale',
+        'encoding' => 'Encodage',
         'connection_failed' => 'Échec de la connexion à la base de données',
         'directory_creation_failed' => 'Impossible de créer le répertoire de sauvegarde',
         'dump_failed' => 'Échec du dump de la base de données',
@@ -241,6 +250,9 @@ $translations = [
         'backup_details' => 'Detalles de la copia',
         'total_data' => 'Datos totales',
         'empty_tables' => 'Tablas vacías',
+        'backing_up_globals' => 'Respaldando objetos globales',
+        'globals_backup' => 'Respaldo global',
+        'encoding' => 'Codificación',
         'connection_failed' => 'Falló la conexión a la base de datos',
         'directory_creation_failed' => 'No se pudo crear el directorio de respaldo',
         'dump_failed' => 'Falló el volcado de la base de datos',
@@ -275,6 +287,9 @@ $translations = [
         'total_data' => 'Dati totali',
         'empty_tables' => 'Tabelle vuote',
         'backup_file' => 'File di backup',
+        'backing_up_globals' => 'Backup oggetti globali',
+        'globals_backup' => 'Backup globale',
+        'encoding' => 'Codifica',
         'backup_success' => '✓ Backup completato!',
         'backup_failed' => '✗ Backup fallito!',
         'creating_directory' => 'Creazione directory di backup...',
@@ -307,6 +322,57 @@ $translations = [
         'compressed' => 'Compresso',
         'backup_files' => 'File di backup',
         'files' => 'file'
+    ],
+    'en' => [
+        'title' => 'Database Backup',
+        'starting' => 'Starting database backup...',
+        'reading_config' => 'Reading configuration...',
+        'database' => 'Database',
+        'backup_file' => 'Backup file',
+        'backup_success' => '✓ Backup successful!',
+        'backup_failed' => '✗ Backup failed!',
+        'creating_directory' => 'Creating backup directory...',
+        'executing_dump' => 'Executing database dump...',
+        'compressing' => 'Compressing...',
+        'completed' => 'Completed',
+        'error' => 'Error',
+        'file_size' => 'File size',
+        'location' => 'Location',
+        'backup_info' => 'Backup information',
+        'timestamp' => 'Timestamp',
+        'format' => 'Format',
+        'missing_pg_dump' => 'pg_dump not found. PostgreSQL client tools must be installed.',
+        'missing_config' => 'Configuration file not found.',
+        'connection_failed' => 'Database connection failed',
+        'directory_creation_failed' => 'Failed to create backup directory',
+        'dump_failed' => 'Database dump failed',
+        'compression_failed' => 'Compression failed',
+        'bytes' => 'bytes',
+        'kb' => 'KB',
+        'mb' => 'MB',
+        'gb' => 'GB',
+        'back' => 'Back',
+        'download_backup' => 'Download Backup',
+        'create_new_backup' => 'Create New Backup',
+        'existing_backups' => 'Existing Backups',
+        'download' => 'Download',
+        'actions' => 'Actions',
+        'no_backups_yet' => 'No backups yet',
+        'compressed' => 'Compressed',
+        'backup_files' => 'Backup files',
+        'files' => 'files',
+        'tables_count' => 'Total Tables',
+        'rows_count' => 'Total Rows',
+        'table_stats' => 'Table Statistics',
+        'table_name' => 'Table Name',
+        'row_count' => 'Row Count',
+        'size_estimate' => 'Estimated Size',
+        'backup_details' => 'Backup Details',
+        'total_data' => 'Total Data',
+        'empty_tables' => 'Empty Tables',
+        'backing_up_globals' => 'Backing up global objects',
+        'globals_backup' => 'Globals backup',
+        'encoding' => 'Encoding'
     ]
 ];
 
@@ -514,8 +580,250 @@ function getDatabaseStats() {
     }
 }
 
+/**
+ * Find pg_dumpall executable (for globals backup)
+ */
+function findPgDumpAll() {
+    $pgDumpAll = 'pg_dumpall'; // Default: assume in PATH
+    
+    // Use platform helper if available
+    if (function_exists('findExecutable')) {
+        $commonPaths = [];
+        if (function_exists('isWindows') && isWindows()) {
+            $commonPaths = [
+                'C:\\laragon\\bin\\postgresql\\postgresql\\bin',
+                'C:\\Program Files\\PostgreSQL\\16\\bin',
+                'C:\\Program Files\\PostgreSQL\\15\\bin',
+                'C:\\Program Files\\PostgreSQL\\14\\bin',
+                'C:\\Program Files\\PostgreSQL\\13\\bin',
+                'C:\\Program Files\\PostgreSQL\\12\\bin',
+                'C:\\Program Files (x86)\\PostgreSQL\\16\\bin',
+                'C:\\Program Files (x86)\\PostgreSQL\\15\\bin',
+                'C:\\Program Files (x86)\\PostgreSQL\\14\\bin',
+            ];
+        } else {
+            $commonPaths = [
+                '/usr/bin',
+                '/usr/local/bin',
+                '/opt/local/bin',
+                '/usr/local/pgsql/bin',
+            ];
+        }
+        
+        $found = findExecutable('pg_dumpall', $commonPaths);
+        if ($found) {
+            return $found;
+        }
+    }
+    
+    // Windows paths
+    if (strtoupper(substr(PHP_OS, 0, 3)) === 'WIN') {
+        $commonPaths = [
+            'C:\\laragon\\bin\\postgresql\\postgresql\\bin\\pg_dumpall.exe',
+            'C:\\Program Files\\PostgreSQL\\16\\bin\\pg_dumpall.exe',
+            'C:\\Program Files\\PostgreSQL\\15\\bin\\pg_dumpall.exe',
+            'C:\\Program Files\\PostgreSQL\\14\\bin\\pg_dumpall.exe',
+            'C:\\Program Files\\PostgreSQL\\13\\bin\\pg_dumpall.exe',
+            'C:\\Program Files\\PostgreSQL\\12\\bin\\pg_dumpall.exe',
+            'C:\\Program Files (x86)\\PostgreSQL\\16\\bin\\pg_dumpall.exe',
+            'C:\\Program Files (x86)\\PostgreSQL\\15\\bin\\pg_dumpall.exe',
+            'C:\\Program Files (x86)\\PostgreSQL\\14\\bin\\pg_dumpall.exe',
+        ];
+        
+        foreach ($commonPaths as $path) {
+            if (file_exists($path)) {
+                return $path;
+            }
+        }
+        
+        // Try to find in PATH
+        $output = [];
+        @exec('where pg_dumpall 2>nul', $output);
+        if (!empty($output) && file_exists(trim($output[0]))) {
+            return trim($output[0]);
+        }
+    } else {
+        // Unix/Linux/Mac paths
+        $commonPaths = [
+            '/usr/bin/pg_dumpall',
+            '/usr/local/bin/pg_dumpall',
+            '/opt/homebrew/bin/pg_dumpall',
+            '/usr/local/pgsql/bin/pg_dumpall',
+        ];
+        
+        foreach ($commonPaths as $path) {
+            if (file_exists($path) && is_executable($path)) {
+                return $path;
+            }
+        }
+        
+        // Try which command
+        $output = [];
+        @exec('which pg_dumpall 2>/dev/null', $output);
+        if (!empty($output) && file_exists(trim($output[0]))) {
+            return trim($output[0]);
+        }
+    }
+    
+    return $pgDumpAll; // Return default (hopefully in PATH)
+}
+
+/**
+ * Backup globals (roles, users, tablespaces) - Full internationalization support
+ */
+function backupGlobals($backupDir, $timestamp) {
+    global $t;
+    
+    $pgDumpAll = findPgDumpAll();
+    
+    // Check if pg_dumpall is available
+    if (!file_exists($pgDumpAll) && $pgDumpAll === 'pg_dumpall') {
+        $test = [];
+        @exec('pg_dumpall --version 2>&1', $test);
+        if (empty($test)) {
+            echo "Warning: pg_dumpall not found. Skipping globals backup." . PHP_EOL;
+            return false;
+        }
+    }
+    
+    $globalsFile = $backupDir . DIRECTORY_SEPARATOR . 'globals_' . $timestamp . '.sql';
+    
+    // Set password via environment variable
+    putenv('PGPASSWORD=' . DB_PASS);
+    
+    // Set UTF-8 locale for all platforms
+    if (function_exists('isWindows')) {
+        $isWindows = isWindows();
+    } else {
+        $isWindows = (strtoupper(substr(PHP_OS, 0, 3)) === 'WIN');
+    }
+    
+    if ($isWindows) {
+        @exec('chcp 65001 >nul 2>&1');
+    } else {
+        putenv('LC_ALL=en_US.UTF-8');
+        putenv('LANG=en_US.UTF-8');
+        putenv('LC_CTYPE=UTF-8');
+    }
+    
+    // Always set PostgreSQL encoding environment
+    putenv('PGCLIENTENCODING=UTF8');
+    
+    // Build pg_dumpall command for globals only (roles, users, tablespaces)
+    // --globals-only: Only dump global objects (roles and tablespaces)
+    $cmd = sprintf(
+        '%s -h %s -p %s -U %s --globals-only --encoding=UTF8',
+        escapeshellarg($pgDumpAll),
+        escapeshellarg(DB_HOST),
+        escapeshellarg(DB_PORT),
+        escapeshellarg(DB_USER)
+    );
+    
+    if ($isWindows) {
+        $cmd .= ' 2>nul';
+    } else {
+        $cmd .= ' 2>&1';
+    }
+    
+    // Execute globals backup
+    echo t('backing_up_globals') . '...' . PHP_EOL;
+    
+    $fileHandle = fopen($globalsFile, 'wb');
+    if (!$fileHandle) {
+        echo "Warning: Cannot create globals backup file" . PHP_EOL;
+        putenv('PGPASSWORD=');
+        putenv('PGCLIENTENCODING=');
+        return false;
+    }
+    
+    // Write UTF-8 BOM for SQL files
+    fwrite($fileHandle, "\xEF\xBB\xBF");
+    
+    $handle = popen($cmd, 'r');
+    if (!$handle) {
+        echo "Warning: Failed to execute pg_dumpall" . PHP_EOL;
+        fclose($fileHandle);
+        putenv('PGPASSWORD=');
+        putenv('PGCLIENTENCODING=');
+        return false;
+    }
+    
+    // Stream output directly to file
+    $bufferSize = 8192;
+    $errorOutput = '';
+    $lineBuffer = '';
+    
+    while (!feof($handle)) {
+        $data = fread($handle, $bufferSize);
+        if ($data === false) break;
+        
+        $lineBuffer .= $data;
+        
+        // Process complete lines
+        while (($pos = strpos($lineBuffer, "\n")) !== false) {
+            $line = substr($lineBuffer, 0, $pos + 1);
+            $lineBuffer = substr($lineBuffer, $pos + 1);
+            
+            // Filter out pg_dumpall verbose messages
+            if (strpos($line, 'pg_dumpall:') === 0) {
+                $errorOutput .= $line;
+                continue;
+            }
+            
+            // Ensure UTF-8 encoding
+            if (!mb_check_encoding($line, 'UTF-8')) {
+                $detected = mb_detect_encoding($line, ['UTF-8', 'ISO-8859-1', 'Windows-1252', 'Windows-1254', 'Windows-1251', 'EUC-JP', 'SHIFT-JIS', 'GB18030', 'BIG5'], true);
+                if ($detected && $detected !== 'UTF-8') {
+                    $line = mb_convert_encoding($line, 'UTF-8', $detected);
+                }
+            }
+            
+            fwrite($fileHandle, $line);
+            $errorOutput .= $line;
+        }
+    }
+    
+    // Write any remaining buffer
+    if (!empty($lineBuffer) && strpos($lineBuffer, 'pg_dumpall:') !== 0) {
+        if (!mb_check_encoding($lineBuffer, 'UTF-8')) {
+            $detected = mb_detect_encoding($lineBuffer, ['UTF-8', 'ISO-8859-1', 'Windows-1252', 'Windows-1254', 'Windows-1251', 'EUC-JP', 'SHIFT-JIS', 'GB18030', 'BIG5'], true);
+            if ($detected && $detected !== 'UTF-8') {
+                $lineBuffer = mb_convert_encoding($lineBuffer, 'UTF-8', $detected);
+            }
+        }
+        fwrite($fileHandle, $lineBuffer);
+        $errorOutput .= $lineBuffer;
+    }
+    
+    $returnVar = pclose($handle);
+    fclose($fileHandle);
+    
+    // Clean up environment variables
+    putenv('PGPASSWORD=');
+    putenv('PGCLIENTENCODING=');
+    if (!$isWindows) {
+        putenv('LC_ALL=');
+        putenv('LANG=');
+        putenv('LC_CTYPE=');
+    }
+    
+    if ($returnVar !== 0) {
+        echo "Warning: Globals backup failed (exit code: " . $returnVar . ")" . PHP_EOL;
+        @unlink($globalsFile);
+        return false;
+    }
+    
+    // Check if file has content
+    if (file_exists($globalsFile) && filesize($globalsFile) > 100) {
+        return $globalsFile;
+    } else {
+        @unlink($globalsFile);
+        return false;
+    }
+}
+
 // Main backup function
-function runBackup($format = 'custom', $compress = true) {
+function runBackup($format = 'sql', $compress = true, $includeGlobals = true) {
     global $t, $lang;
     
     $startTime = microtime(true);
@@ -580,24 +888,19 @@ function runBackup($format = 'custom', $compress = true) {
     
     $backupFile = $backupDir . DIRECTORY_SEPARATOR . $dbName . '_backup_' . $timestamp . $ext;
     
-    // Build pg_dump command
-    $connString = sprintf(
-        'host=%s port=%s dbname=%s user=%s password=%s',
-        escapeshellarg(DB_HOST),
-        escapeshellarg(DB_PORT),
-        escapeshellarg(DB_NAME),
-        escapeshellarg(DB_USER),
-        escapeshellarg(DB_PASS)
-    );
-    
     // Set password via environment variable (more secure than command line)
     putenv('PGPASSWORD=' . DB_PASS);
     
-    // Add encoding parameter to ensure UTF-8 encoding for Turkish characters
-    // Use -v for verbose but filter out verbose messages from SQL output
-    // For better encoding, we'll separate SQL output from verbose messages
+    // Enhanced pg_dump command with full internationalization support
+    // --create: Include CREATE DATABASE statement
+    // --clean: Include DROP statements before CREATE
+    // --if-exists: Use IF EXISTS for DROP statements
+    // --encoding=UTF8: Ensure UTF-8 encoding for all languages
+    // --no-owner: Don't output commands to set ownership (for portability)
+    // --no-privileges: Don't output commands to set privileges (for portability)
+    // --verbose: Verbose output (filtered in processing)
     $cmd = sprintf(
-        '%s -h %s -p %s -U %s -d %s %s --create --clean --if-exists --encoding=UTF8 -v',
+        '%s -h %s -p %s -U %s -d %s %s --create --clean --if-exists --encoding=UTF8 --no-owner --no-privileges --verbose',
         escapeshellarg($pgDump),
         escapeshellarg(DB_HOST),
         escapeshellarg(DB_PORT),
@@ -704,10 +1007,22 @@ function runBackup($format = 'custom', $compress = true) {
             
             // This is SQL content - ensure UTF-8 encoding before writing
             // Convert to UTF-8 if not already (safety check for all languages)
+            // Support for: Turkish, Arabic, Chinese, Japanese, Korean, Russian, European languages
             if (!mb_check_encoding($line, 'UTF-8')) {
-                $detected = mb_detect_encoding($line, ['UTF-8', 'ISO-8859-1', 'Windows-1252', 'Windows-1254', 'Windows-1251', 'EUC-JP', 'SHIFT-JIS'], true);
+                $detected = mb_detect_encoding($line, [
+                    'UTF-8', 'ISO-8859-1', 'ISO-8859-2', 'ISO-8859-3', 'ISO-8859-4',
+                    'ISO-8859-5', 'ISO-8859-6', 'ISO-8859-7', 'ISO-8859-8', 'ISO-8859-9',
+                    'ISO-8859-10', 'ISO-8859-13', 'ISO-8859-14', 'ISO-8859-15', 'ISO-8859-16',
+                    'Windows-1250', 'Windows-1251', 'Windows-1252', 'Windows-1253',
+                    'Windows-1254', 'Windows-1255', 'Windows-1256', 'Windows-1257', 'Windows-1258',
+                    'EUC-JP', 'SHIFT-JIS', 'ISO-2022-JP', 'GB18030', 'GB2312', 'BIG5',
+                    'EUC-KR', 'ISO-2022-KR', 'KOI8-R', 'KOI8-U', 'ARMSCII-8'
+                ], true);
                 if ($detected && $detected !== 'UTF-8') {
                     $line = mb_convert_encoding($line, 'UTF-8', $detected);
+                } else {
+                    // If detection fails, try to convert using UTF-8 ignore errors
+                    $line = mb_convert_encoding($line, 'UTF-8', 'UTF-8');
                 }
             }
             
@@ -718,11 +1033,21 @@ function runBackup($format = 'custom', $compress = true) {
     
     // Write any remaining buffer (incomplete line) if it's not a verbose message
     if (!empty($lineBuffer) && strpos($lineBuffer, 'pg_dump:') !== 0) {
-        // Ensure UTF-8 encoding for remaining buffer
+        // Ensure UTF-8 encoding for remaining buffer - full internationalization support
         if (!mb_check_encoding($lineBuffer, 'UTF-8')) {
-            $detected = mb_detect_encoding($lineBuffer, ['UTF-8', 'ISO-8859-1', 'Windows-1252', 'Windows-1254', 'Windows-1251', 'EUC-JP', 'SHIFT-JIS'], true);
+            $detected = mb_detect_encoding($lineBuffer, [
+                'UTF-8', 'ISO-8859-1', 'ISO-8859-2', 'ISO-8859-3', 'ISO-8859-4',
+                'ISO-8859-5', 'ISO-8859-6', 'ISO-8859-7', 'ISO-8859-8', 'ISO-8859-9',
+                'ISO-8859-10', 'ISO-8859-13', 'ISO-8859-14', 'ISO-8859-15', 'ISO-8859-16',
+                'Windows-1250', 'Windows-1251', 'Windows-1252', 'Windows-1253',
+                'Windows-1254', 'Windows-1255', 'Windows-1256', 'Windows-1257', 'Windows-1258',
+                'EUC-JP', 'SHIFT-JIS', 'ISO-2022-JP', 'GB18030', 'GB2312', 'BIG5',
+                'EUC-KR', 'ISO-2022-KR', 'KOI8-R', 'KOI8-U', 'ARMSCII-8'
+            ], true);
             if ($detected && $detected !== 'UTF-8') {
                 $lineBuffer = mb_convert_encoding($lineBuffer, 'UTF-8', $detected);
+            } else {
+                $lineBuffer = mb_convert_encoding($lineBuffer, 'UTF-8', 'UTF-8');
             }
         }
         fwrite($fileHandle, $lineBuffer);
@@ -799,6 +1124,12 @@ function runBackup($format = 'custom', $compress = true) {
         putenv('LC_CTYPE=');
     }
     
+    // Backup globals (roles, users, tablespaces) for full backup
+    $globalsFile = false;
+    if ($includeGlobals) {
+        $globalsFile = backupGlobals($backupDir, $timestamp);
+    }
+    
     // Get database statistics
     $stats = getDatabaseStats();
     
@@ -816,16 +1147,29 @@ function runBackup($format = 'custom', $compress = true) {
     echo t('database') . ': ' . DB_NAME . PHP_EOL;
     
     // Show all created files
-    if (count($finalFiles) > 1) {
+    $allFiles = $finalFiles;
+    if ($globalsFile && file_exists($globalsFile)) {
+        $allFiles[] = $globalsFile;
+    }
+    
+    if (count($allFiles) > 1) {
         echo t('backup_files') . ':' . PHP_EOL;
-        foreach ($finalFiles as $file) {
+        foreach ($allFiles as $file) {
             $fileSize = file_exists($file) ? filesize($file) : 0;
-            echo '  - ' . basename($file) . ' (' . formatBytes($fileSize) . ')' . PHP_EOL;
+            $label = basename($file);
+            if (strpos($label, 'globals_') === 0) {
+                $label .= ' (Roles, Users, Tablespaces)';
+            }
+            echo '  - ' . $label . ' (' . formatBytes($fileSize) . ')' . PHP_EOL;
         }
     } else {
         $fileSize = file_exists($finalFile) ? filesize($finalFile) : 0;
         echo t('backup_file') . ': ' . basename($finalFile) . PHP_EOL;
         echo t('file_size') . ': ' . formatBytes($fileSize) . PHP_EOL;
+    }
+    
+    if ($globalsFile && file_exists($globalsFile)) {
+        echo t('globals_backup') . ': ' . basename($globalsFile) . ' (' . formatBytes(filesize($globalsFile)) . ')' . PHP_EOL;
     }
     
     echo t('location') . ': ' . dirname($finalFile) . PHP_EOL;
@@ -837,6 +1181,7 @@ function runBackup($format = 'custom', $compress = true) {
         echo ' (.sql)';
     }
     echo PHP_EOL;
+    echo t('encoding') . ': UTF-8 (Full Internationalization Support)' . PHP_EOL;
     echo t('completed') . ' in ' . $elapsed . ' seconds' . PHP_EOL;
     
     // Display detailed statistics if available
@@ -872,10 +1217,11 @@ function runBackup($format = 'custom', $compress = true) {
     
     // Return array with files and statistics for web interface
     return [
-        'files' => $finalFiles,
+        'files' => $allFiles,
         'stats' => $stats,
         'elapsed' => $elapsed,
-        'file_size' => $fileSize
+        'file_size' => $fileSize,
+        'globals_file' => $globalsFile
     ];
 }
 
@@ -1086,11 +1432,11 @@ if (php_sapi_name() === 'cli') {
                 echo '<hr style="margin: 30px 0;">';
                 echo '<a href="?" class="btn">' . htmlspecialchars(t('create_new_backup')) . '</a>';
             } elseif (isset($_GET['download'])) {
-                // Handle file download
+                // Handle file download (both database backups and globals)
                 $filename = basename($_GET['download']);
                 $filepath = __DIR__ . DIRECTORY_SEPARATOR . $filename;
                 
-                if (file_exists($filepath) && strpos($filename, '_backup_') !== false) {
+                if (file_exists($filepath) && (strpos($filename, '_backup_') !== false || strpos($filename, 'globals_') === 0)) {
                     header('Content-Type: application/octet-stream');
                     header('Content-Disposition: attachment; filename="' . $filename . '"');
                     header('Content-Length: ' . filesize($filepath));
@@ -1121,11 +1467,13 @@ if (php_sapi_name() === 'cli') {
                 
                 <h3>📋 <?php echo htmlspecialchars(t('existing_backups')); ?></h3>
                 <?php
-                // List existing backups
+                // List existing backups (include both database backups and globals)
                 $backupFiles = glob(__DIR__ . DIRECTORY_SEPARATOR . DB_NAME . '_backup_*.sql*');
-                if (!empty($backupFiles)) {
+                $globalsFiles = glob(__DIR__ . DIRECTORY_SEPARATOR . 'globals_*.sql*');
+                $allBackupFiles = array_merge($backupFiles, $globalsFiles);
+                if (!empty($allBackupFiles)) {
                     // Sort by modification time (newest first)
-                    usort($backupFiles, function($a, $b) {
+                    usort($allBackupFiles, function($a, $b) {
                         return filemtime($b) - filemtime($a);
                     });
                     
@@ -1137,14 +1485,16 @@ if (php_sapi_name() === 'cli') {
                     echo '<th style="padding: 10px; text-align: center;">' . htmlspecialchars(t('actions')) . '</th>';
                     echo '</tr></thead><tbody>';
                     
-                    foreach ($backupFiles as $file) {
+                    foreach ($allBackupFiles as $file) {
+                        $isGlobals = (strpos(basename($file), 'globals_') === 0);
                         $basename = basename($file);
                         $filesize = filesize($file);
                         $modified = date('Y-m-d H:i:s', filemtime($file));
                         $downloadUrl = '?download=' . urlencode($basename);
                         
-                        echo '<tr style="border-bottom: 1px solid #eee;">';
-                        echo '<td style="padding: 10px;"><code>' . htmlspecialchars($basename) . '</code></td>';
+                        $fileTypeLabel = $isGlobals ? ' <span style="font-size: 0.85em; color: #059669; font-weight: bold;">(Globals)</span>' : '';
+                        echo '<tr style="border-bottom: 1px solid #eee;' . ($isGlobals ? ' background: #f0fdf4;' : '') . '">';
+                        echo '<td style="padding: 10px;"><code>' . htmlspecialchars($basename) . '</code>' . $fileTypeLabel . '</td>';
                         echo '<td style="padding: 10px; text-align: right;">' . formatBytes($filesize) . '</td>';
                         echo '<td style="padding: 10px; text-align: center;">' . htmlspecialchars($modified) . '</td>';
                         echo '<td style="padding: 10px; text-align: center;">';

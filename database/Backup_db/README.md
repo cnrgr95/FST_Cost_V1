@@ -4,12 +4,14 @@
 
 ## ✨ Özellikler
 
-- 🌍 **Çok Dilli Destek**: Türkçe, İngilizce, Almanca, Fransızca, İspanyolca, İtalyanca
+- 🌍 **Tam Uluslararası Destek**: Türkçe, İngilizce, Almanca, Fransızca, İspanyolca, İtalyanca
+- 🌐 **Geniş Karakter Desteği**: UTF-8 encoding ile tüm dillere uygun yedekleme (Türkçe, Arapça, Çince, Japonca, Korece, Rusça ve Avrupa dilleri)
+- 👥 **Global Nesne Yedeği**: Roller, kullanıcılar ve tablespace'ler dahil tam yedekleme
 - 🖥️ **Platform Desteği**: Windows, Linux, macOS
 - 📦 **Format Desteği**: SQL (Plain), Custom (Binary), Tar
 - 🗜️ **Sıkıştırma**: Otomatik gzip sıkıştırma desteği
 - 🔒 **Güvenlik**: .env dosyasından otomatik yapılandırma
-- 📊 **Detaylı Bilgi**: Dosya boyutu, zaman damgası, format bilgisi
+- 📊 **Detaylı Bilgi**: Dosya boyutu, zaman damgası, format bilgisi, tablo istatistikleri
 
 ## 📋 Kullanım
 
@@ -181,6 +183,14 @@ pg_restore -h localhost -p 5432 -U postgres -d fst_cost_db -c backup_file.dump
 gunzip -c backup_file.sql.gz | psql -h localhost -p 5432 -U postgres -d fst_cost_db
 ```
 
+### Globals Backup (Roles, Users, Tablespaces)
+Tam yedekleme için global nesneleri de geri yükleyin:
+```bash
+psql -h localhost -p 5432 -U postgres < globals_20250101_120000.sql
+```
+
+**Önemli:** Global nesneleri **veritabanı yedeğinden önce** geri yükleyin!
+
 ## ⚙️ Gereksinimler
 
 - **PHP 7.4+** (PHP script için)
@@ -225,10 +235,13 @@ chmod 755 database/Backup/
 
 ## 📝 Notlar
 
-- Yedekler **tam veritabanı** yedeğidir (schema + data + blobs)
-- `--create --clean --if-exists` bayrakları kullanılır
+- Yedekler **tam veritabanı** yedeğidir (schema + data + blobs + global nesneler)
+- `--create --clean --if-exists --encoding=UTF8` bayrakları kullanılır
+- **Global nesneler** (roller, kullanıcılar, tablespace'ler) ayrı bir `globals_*.sql` dosyasında yedeklenir
+- UTF-8 encoding ile tüm dillere uygun karakter desteği
 - Yedekleme sırasında veritabanı bağlantısı kesilmez (hot backup)
 - Büyük veritabanları için Custom format önerilir
+- Karakter kodlaması otomatik algılanır ve UTF-8'e dönüştürülür
 
 ## 🔒 Güvenlik
 
@@ -255,8 +268,10 @@ Sorun yaşarsanız:
 
 ---
 
-**Son Güncelleme:** 2025-01-01  
-**Versiyon:** 1.0.0  
+**Son Güncelleme:** 2025-01-02  
+**Versiyon:** 2.0.0  
 **Platform:** Windows, Linux, macOS  
-**Dil Desteği:** TR, EN, DE, FR, ES, IT
+**Dil Desteği:** TR, EN, DE, FR, ES, IT  
+**Karakter Desteği:** UTF-8 (Türkçe, Arapça, Çince, Japonca, Korece, Rusça, Avrupa dilleri)  
+**Özellikler:** Tam veritabanı + Global nesneler (roller, kullanıcılar, tablespace'ler)
 
