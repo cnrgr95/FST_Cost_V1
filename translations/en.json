@@ -395,14 +395,6 @@
         "deselect_all": "Deselect All",
         "search_regions": "Search regions...",
         "select_regions_first": "Please select country, region and city first",
-        "tour_groups": "Tour Groups",
-        "add_tour_group": "Add Tour Group",
-        "edit_tour_group": "Edit Tour Group",
-        "tour_group_name": "Tour Group Name",
-        "tour_group_description": "Description",
-        "no_tour_groups": "No tour groups found",
-        "tour_group_added": "Tour group added successfully",
-        "tour_group_updated": "Tour group updated successfully",
         "select_sub_regions": "Select Sub Regions",
         "search_sub_regions": "Search sub regions...",
         "select_city_first": "Please select city first",
@@ -417,8 +409,7 @@
         "select_country": "Select Country",
         "select_region": "Select Region",
         "select_city": "Select City",
-        "tour": "tour",
-        "tour_group": "tour group"
+        "tour": "tour"
     },
     "errors": {
         "page_not_found": "Page not found",

@@ -22,7 +22,7 @@ ORDER BY table_name;
 -- Aşağıdaki tablolar kod tabanında kullanılıyor:
 -- countries, regions, cities, sub_regions
 -- users, departments, positions
--- merchants, tours, tour_sub_regions, tour_groups, tour_group_members, tour_contract_routes
+-- merchants, tours, tour_sub_regions, tour_contract_routes
 -- vehicle_companies, vehicle_types, vehicle_contracts, vehicle_contract_routes
 -- currencies, country_currencies, exchange_rates
 
@@ -35,7 +35,7 @@ AND table_name NOT IN (
     'countries', 'regions', 'cities', 'sub_regions',
     'users', 'departments', 'positions',
     'merchants', 'tours', 'tour_sub_regions', 
-    'tour_groups', 'tour_group_members', 'tour_contract_routes',
+    'tour_contract_routes',
     'vehicle_companies', 'vehicle_types', 'vehicle_contracts', 
     'vehicle_contract_routes', 'currencies', 'country_currencies', 
     'exchange_rates'
@@ -130,7 +130,7 @@ DECLARE
     r RECORD;
     row_count INTEGER;
     -- Junction/ilişkisel tablolar - boş olmaları normal
-    junction_tables TEXT[] := ARRAY['tour_contract_routes', 'tour_sub_regions', 'tour_group_members'];
+    junction_tables TEXT[] := ARRAY['tour_contract_routes', 'tour_sub_regions'];
 BEGIN
     FOR r IN 
         SELECT table_name 

@@ -65,22 +65,8 @@ $t_vehicles = $all_translations['vehicles'] ?? [];
                     <h1 id="toursPageTitle"><?php echo $t_tours['tours'] ?? 'Tours'; ?></h1>
                 </div>
                 
-                <!-- Tabs -->
-                <div class="tours-tabs">
-                    <button class="tours-tab active" data-tab="tours">
-                        <?php echo $t_tours['tours'] ?? 'Tours'; ?>
-                    </button>
-                    <button class="tours-tab" data-tab="tour_groups">
-                        <?php echo $t_tours['tour_groups'] ?? 'Tour Groups'; ?>
-                    </button>
-                </div>
-                
                 <!-- Tab Content -->
                 <div class="tours-content" id="tours-content">
-                    <!-- Content will be loaded by JavaScript -->
-                </div>
-                
-                <div class="tours-content" id="tour_groups-content">
                     <!-- Content will be loaded by JavaScript -->
                 </div>
             </div>
@@ -161,67 +147,6 @@ $t_vehicles = $all_translations['vehicles'] ?? [];
                 
                 <div class="modal-footer">
                     <button type="button" class="btn-secondary" onclick="closeModal()">
-                        <?php echo $t_common['cancel'] ?? 'Cancel'; ?>
-                    </button>
-                    <button type="submit" class="btn-primary">
-                        <?php echo $t_common['save'] ?? 'Save'; ?>
-                    </button>
-                </div>
-            </form>
-        </div>
-    </div>
-    
-    <!-- Tour Group Modal -->
-    <div class="modal" id="tourGroupModal">
-        <div class="modal-content" style="max-width: 800px;">
-            <div class="modal-header">
-                <h2 id="tourGroupModalTitle"><?php echo $t_tours['add_tour_group'] ?? 'Add Tour Group'; ?></h2>
-                <button class="btn-close">
-                    <span class="material-symbols-rounded">close</span>
-                </button>
-            </div>
-            <form id="tourGroupForm" novalidate>
-                <div class="modal-body">
-                    <div class="form-group">
-                        <label><?php echo $t_tours['tour_group_name'] ?? 'Tour Group Name'; ?> *</label>
-                        <input type="text" name="name" placeholder="<?php echo $t_tours['tour_group_name'] ?? 'Tour Group Name'; ?>" required data-error="<?php echo ($t_tours['tour_group_name'] ?? 'Tour Group Name') . ' ' . ($t_common['is_required'] ?? 'is required'); ?>">
-                        <span class="input-error-message"></span>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label><?php echo $t_tours['tour_group_description'] ?? 'Description'; ?></label>
-                        <textarea name="description" rows="3" placeholder="<?php echo $t_tours['tour_group_description'] ?? 'Description'; ?>"></textarea>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label><?php echo $t_tours['tours'] ?? 'Tours'; ?></label>
-                        <div class="tour-group-tours-wrapper">
-                            <div class="tour-group-search-wrapper">
-                                <div class="search-box-inline">
-                                    <span class="material-symbols-rounded search-icon">search</span>
-                                    <input type="text" 
-                                           id="tourGroupToursSearch" 
-                                           placeholder="<?php echo $t_common['search'] ?? 'Search tours...'; ?>" 
-                                           class="search-input-inline"
-                                           onkeyup="filterTourGroupTours(this.value)">
-                                    <button class="search-clear-inline" id="tourGroupToursSearchClear" onclick="clearTourGroupToursSearch()" style="display: none;">
-                                        <span class="material-symbols-rounded">close</span>
-                                    </button>
-                                </div>
-                            </div>
-                            <div id="tourGroupToursContainer" class="tour-group-tours-container">
-                                <div class="checkbox-message"><?php echo $t_tours['loading_tours'] ?? $t_common['loading'] ?? 'Loading...'; ?></div>
-                            </div>
-                        </div>
-                        <small style="color: #6b7280; margin-top: 8px; display: block; font-size: 13px;">
-                            <span class="material-symbols-rounded" style="vertical-align: middle; font-size: 16px;">info</span>
-                            <?php echo $t_tours['priority_help'] ?? 'Select tours and assign priority (lower number = higher priority)'; ?>
-                        </small>
-                    </div>
-                </div>
-                
-                <div class="modal-footer">
-                    <button type="button" class="btn-secondary" onclick="closeTourGroupModal()">
                         <?php echo $t_common['cancel'] ?? 'Cancel'; ?>
                     </button>
                     <button type="submit" class="btn-primary">

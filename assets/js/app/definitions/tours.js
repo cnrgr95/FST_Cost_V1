@@ -35,7 +35,7 @@
     
     // Get initial tab from URL hash or localStorage, default to 'tours'
     function getInitialTab() {
-        const validTabs = ['tours', 'tour_groups'];
+        const validTabs = ['tours'];
         // First, try URL hash
         if (window.location.hash) {
             const hashTab = window.location.hash.replace('#', '');
@@ -54,8 +54,7 @@
     
     let currentTab = getInitialTab();
     let currentData = {
-        tours: [],
-        tour_groups: []
+        tours: []
     };
     
     // Initialize
@@ -68,7 +67,7 @@
         // Listen for hash changes (browser back/forward)
         window.addEventListener('hashchange', function() {
             const hashTab = window.location.hash.replace('#', '');
-            const validTabs = ['tours', 'tour_groups'];
+            const validTabs = ['tours'];
             if (validTabs.includes(hashTab) && hashTab !== currentTab) {
                 switchTab(hashTab);
             }
@@ -82,22 +81,10 @@
             });
         }
         
-        const tourGroupModalCloseBtn = document.querySelector('#tourGroupModal .btn-close');
-        if (tourGroupModalCloseBtn) {
-            tourGroupModalCloseBtn.addEventListener('click', function() {
-                closeModal('tourGroupModal');
-            });
-        }
-        
         // Setup form submissions
         const tourForm = document.getElementById('tourForm');
         if (tourForm) {
             tourForm.addEventListener('submit', handleTourSubmit);
-        }
-        
-        const tourGroupForm = document.getElementById('tourGroupForm');
-        if (tourGroupForm) {
-            tourGroupForm.addEventListener('submit', handleTourGroupSubmit);
         }
         
         // Clear errors on input/change for tour form - REAL-TIME CLEARING
@@ -131,36 +118,6 @@
             });
         }
         
-        // Clear errors on input/change for tour group form - REAL-TIME CLEARING
-        if (tourGroupForm) {
-            tourGroupForm.addEventListener('input', function(e) {
-                if (e.target.classList.contains('error') || e.target.classList.contains('invalid') || e.target.classList.contains('has-error')) {
-                    e.target.classList.remove('error', 'invalid', 'has-error');
-                    e.target.removeAttribute('aria-invalid');
-                    e.target.setCustomValidity('');
-                    const errorMsg = e.target.parentElement.querySelector('.input-error-message');
-                    if (errorMsg) {
-                        errorMsg.classList.remove('show', 'has-error');
-                        errorMsg.textContent = '';
-                        errorMsg.removeAttribute('role');
-                    }
-                }
-            });
-            
-            tourGroupForm.addEventListener('change', function(e) {
-                if (e.target.classList.contains('error') || e.target.classList.contains('invalid') || e.target.classList.contains('has-error')) {
-                    e.target.classList.remove('error', 'invalid', 'has-error');
-                    e.target.removeAttribute('aria-invalid');
-                    e.target.setCustomValidity('');
-                    const errorMsg = e.target.parentElement.querySelector('.input-error-message');
-                    if (errorMsg) {
-                        errorMsg.classList.remove('show', 'has-error');
-                        errorMsg.textContent = '';
-                        errorMsg.removeAttribute('role');
-                    }
-                }
-            });
-        }
         
         // Setup hierarchical location change listeners
         document.addEventListener('change', function(e) {
@@ -196,7 +153,7 @@
     
     // Switch tabs
     function switchTab(tab) {
-        const validTabs = ['tours', 'tour_groups'];
+        const validTabs = ['tours'];
         if (!validTabs.includes(tab)) {
             tab = 'tours'; // Fallback to default
         }
@@ -224,11 +181,7 @@
         // Update page header title
         const pageHeader = document.getElementById('toursPageTitle') || document.querySelector('.tours-header h1');
         if (pageHeader) {
-            if (tab === 'tours') {
-                pageHeader.textContent = tTours.tours || 'Tours';
-            } else if (tab === 'tour_groups') {
-                pageHeader.textContent = tTours.tour_groups || 'Tour Groups';
-            }
+            pageHeader.textContent = tTours.tours || 'Tours';
         }
         
         // Load data
@@ -247,8 +200,6 @@
             let url;
             if (type === 'tours') {
                 url = `${API_BASE}?action=tours`;
-            } else if (type === 'tour_groups') {
-                url = `${API_BASE}?action=tour_groups`;
             } else {
                 console.error('Unknown data type:', type);
                 return;
@@ -291,8 +242,6 @@
         
         if (type === 'tours') {
             renderToursTable(container, data);
-        } else if (type === 'tour_groups') {
-            renderTourGroupsTable(container, data);
         }
     }
     
@@ -423,132 +372,6 @@
         window.toursTableData = data;
     }
     
-    // Render Tour Groups table
-    function renderTourGroupsTable(container, data) {
-        const totalCount = data.length;
-        
-        if (data.length === 0) {
-            container.innerHTML = `
-                <div class="tours-table-container">
-                    <div class="tours-table-header">
-                        <div class="tours-table-title">
-                            <span class="material-symbols-rounded" style="vertical-align: middle; margin-right: 8px; font-size: 24px;">group</span>
-                            ${tTours.tour_groups || 'Tour Groups'}
-                        </div>
-                        <button class="btn-add" onclick="openTourGroupModal()">
-                            <span class="material-symbols-rounded">add</span>
-                            ${tTours.add_tour_group || 'Add Tour Group'}
-                        </button>
-                    </div>
-                    <div class="empty-state">
-                        <span class="material-symbols-rounded">group</span>
-                        <h3>${tTours.no_tour_groups || 'No tour groups found'}</h3>
-                        <p>${tTours.add_tour_group || 'Create tour groups to organize your tours'}</p>
-                        <button class="btn-add" onclick="openTourGroupModal()" style="margin-top: 20px;">
-                            <span class="material-symbols-rounded">add</span>
-                            ${tTours.add_tour_group || 'Add Tour Group'}
-                        </button>
-                    </div>
-                </div>
-            `;
-            return;
-        }
-        
-        let html = '<div class="tours-table-container">';
-        html += '<div class="tours-table-header">';
-        html += `<div class="tours-table-title">
-                    <span class="material-symbols-rounded" style="vertical-align: middle; margin-right: 8px; font-size: 24px;">group</span>
-                    ${tTours.tour_groups || 'Tour Groups'} 
-                    <span class="table-count-badge">${totalCount}</span>
-                 </div>`;
-        html += '<div class="table-actions-group">';
-        html += `<div class="search-box">
-                    <span class="material-symbols-rounded search-icon">search</span>
-                    <input type="text" 
-                           id="tourGroupsSearchInput" 
-                           placeholder="${tCommon.search || 'Search tour groups...'}" 
-                           class="search-input"
-                           onkeyup="filterTourGroupsTable(this.value)">
-                    <button class="search-clear" id="tourGroupsSearchClear" onclick="clearTourGroupsSearch()" style="display: none;">
-                        <span class="material-symbols-rounded">close</span>
-                    </button>
-                 </div>`;
-        html += `<button class="btn-add" onclick="openTourGroupModal()" title="${tTours.add_tour_group || 'Add Tour Group'}">
-                    <span class="material-symbols-rounded">add</span>
-                    ${tTours.add_tour_group || 'Add Tour Group'}
-                 </button>`;
-        html += '</div>';
-        html += '</div>';
-        html += '<div class="currencies-table-section">';
-        html += '<table class="currencies-table" id="tourGroupsTable">';
-        html += '<thead><tr>';
-        html += `<th class="sortable" onclick="sortTable('tour_groups', 'name')">
-                    ${tTours.tour_group_name || 'Tour Group Name'}
-                    <span class="sort-icon">⇅</span>
-                 </th>`;
-        html += `<th>${tTours.tour_group_description || 'Description'}</th>`;
-        html += `<th>${tTours.tours || 'Tours'} (${tTours.priority || 'Priority'})</th>`;
-        html += `<th class="no-sort">${tCommon.actions || 'Actions'}</th>`;
-        html += '</tr></thead>';
-        html += '<tbody id="tourGroupsTableBody">';
-        
-        data.forEach((item, index) => {
-            // Build tours list with priorities
-            let toursHtml = '';
-            if (item.tours && item.tours.length > 0) {
-                const toursList = item.tours.map(tour => {
-                    const priority = tour.priority !== null && tour.priority !== undefined ? tour.priority : 0;
-                    return `<span class="tour-priority-badge" title="${tTours.priority || 'Priority'}: ${priority}">
-                        ${escapeHtml(tour.sejour_tour_code || '')} - ${escapeHtml(tour.name || '')}
-                        <strong class="priority-number">[P:${priority}]</strong>
-                    </span>`;
-                }).join('');
-                toursHtml = `<div class="tours-in-group">${toursList}</div>`;
-            } else {
-                toursHtml = `<span class="no-tours-text">${tTours.no_tours || 'No tours'}</span>`;
-            }
-            
-            html += `
-                <tr data-index="${index}" 
-                    data-name="${escapeHtml((item.name || '').toLowerCase())}"
-                    data-description="${escapeHtml((item.description || '').toLowerCase())}">
-                    <td>
-                        <strong class="group-name">${escapeHtml(item.name)}</strong>
-                    </td>
-                    <td>
-                        <span class="group-description">${escapeHtml(item.description || '-')}</span>
-                    </td>
-                    <td>
-                        <div class="tour-count-info">
-                            <span class="tour-count-badge">${item.tour_count || 0} ${tTours.tours || 'tours'}</span>
-                        </div>
-                        ${toursHtml}
-                    </td>
-                    <td>
-                        <div class="action-buttons">
-                            <button class="btn-icon" onclick="editTourGroup(${item.id})" title="${tCommon.edit || 'Edit'} ${escapeHtml(item.name)}">
-                                <span class="material-symbols-rounded">edit</span>
-                            </button>
-                            <button class="btn-icon btn-danger" onclick="deleteTourGroup(${item.id})" title="${tCommon.delete || 'Delete'} ${escapeHtml(item.name)}">
-                                <span class="material-symbols-rounded">delete</span>
-                            </button>
-                        </div>
-                    </td>
-                </tr>
-            `;
-        });
-        
-        html += '</tbody></table>';
-        html += '<div class="table-footer">';
-        html += `<div class="table-info">${tCommon.showing || 'Showing'} <strong>${totalCount}</strong> ${totalCount === 1 ? (tTours.tour_group || 'tour group') : (tTours.tour_groups || 'tour groups')}</div>`;
-        html += '</div>';
-        html += '</div></div>';
-        container.innerHTML = html;
-        
-        // Store original data for filtering
-        window.tourGroupsTableData = data;
-    }
-    
     // Show loading state
     function showLoading(type) {
         const container = document.getElementById(`${type}-content`);
@@ -575,12 +398,6 @@
             if (tourForm) {
                 tourForm.reset();
                 delete tourForm.dataset.id;
-            }
-        } else if (modalId === 'tourGroupModal') {
-            const tourGroupForm = document.getElementById('tourGroupForm');
-            if (tourGroupForm) {
-                tourGroupForm.reset();
-                delete tourGroupForm.dataset.id;
             }
         }
     }
@@ -683,17 +500,11 @@
         
         if (item.city_id) {
             document.getElementById('citySelect').value = item.city_id;
-            await loadSubRegionsForTour(item.city_id);
-        }
-        
-        // Load and select tour sub regions
-        if (item.sub_region_ids && Array.isArray(item.sub_region_ids)) {
-            setTimeout(() => {
-                item.sub_region_ids.forEach(subRegionId => {
-                    const checkbox = document.getElementById(`sub_region_${subRegionId}`);
-                    if (checkbox) checkbox.checked = true;
-                });
-            }, 300);
+            // Pass selected sub region IDs to loadSubRegionsForTour
+            const selectedSubRegionIds = item.sub_region_ids && Array.isArray(item.sub_region_ids) 
+                ? item.sub_region_ids.map(id => parseInt(id)).filter(id => !isNaN(id))
+                : [];
+            await loadSubRegionsForTour(item.city_id, selectedSubRegionIds);
         }
         
         // Show modal
@@ -1210,7 +1021,7 @@
     }
     
     // Load tour sub regions as checkboxes by city
-    async function loadSubRegionsForTour(city_id) {
+    async function loadSubRegionsForTour(city_id, selectedSubRegionIds = []) {
         const container = document.getElementById('sub_regions_checkbox_container');
         const subRegionsGroup = document.getElementById('subRegionsGroup');
         const searchBox = document.querySelector('#toursModal .checkbox-search');
@@ -1236,12 +1047,19 @@
                 if (deselectAllBtn) deselectAllBtn.style.display = 'inline-block';
                 
                 container.innerHTML = '';
+                
+                // Normalize selected IDs to integers for comparison
+                const selectedIds = selectedSubRegionIds.map(id => parseInt(id)).filter(id => !isNaN(id));
+                
                 result.data.forEach(subRegion => {
+                    const subRegionId = parseInt(subRegion.id);
+                    const isChecked = selectedIds.includes(subRegionId);
+                    
                     const checkboxDiv = document.createElement('div');
                     checkboxDiv.className = 'checkbox-item';
                     checkboxDiv.innerHTML = `
                         <label>
-                            <input type="checkbox" name="sub_region_ids[]" value="${subRegion.id}" id="sub_region_${subRegion.id}">
+                            <input type="checkbox" name="sub_region_ids[]" value="${subRegion.id}" id="sub_region_${subRegion.id}" ${isChecked ? 'checked' : ''}>
                             <span>${escapeHtml(subRegion.name)}</span>
                         </label>
                     `;
@@ -1288,509 +1106,6 @@
         });
     };
     
-    // Tour Groups Functions
-    window.openTourGroupModal = async function() {
-        const modal = document.getElementById('tourGroupModal');
-        if (!modal) {
-            console.error('Modal not found: tourGroupModal');
-            return;
-        }
-        
-        const form = document.getElementById('tourGroupForm');
-        if (form) {
-            form.reset();
-            delete form.dataset.id;
-            // Clear all errors
-            clearFormErrors(form);
-        }
-        
-        const title = document.getElementById('tourGroupModalTitle');
-        if (title) {
-            title.textContent = tTours.add_tour_group || 'Add Tour Group';
-        }
-        
-        // Load tours for checkbox list
-        await loadToursForGroup();
-        
-        modal.classList.add('active');
-        document.body.style.overflow = 'hidden';
-    };
-    
-    window.closeTourGroupModal = function() {
-        closeModal('tourGroupModal');
-    };
-    
-    window.editTourGroup = async function(id) {
-        const modal = document.getElementById('tourGroupModal');
-        if (!modal) return;
-        
-        try {
-            const response = await fetch(`${API_BASE}?action=tour_group&id=${id}`);
-            const result = await response.json();
-            
-            if (result.success && result.data) {
-                const item = result.data;
-                const form = document.getElementById('tourGroupForm');
-                form.dataset.id = id;
-                form.querySelector('input[name="name"]').value = item.name || '';
-                form.querySelector('textarea[name="description"]').value = item.description || '';
-                
-                document.getElementById('tourGroupModalTitle').textContent = tTours.edit_tour_group || 'Edit Tour Group';
-                
-                // Convert tour_ids to integers and ensure tour_priorities keys are integers
-                const tourIds = Array.isArray(item.tour_ids) 
-                    ? item.tour_ids.map(id => parseInt(id)).filter(id => !isNaN(id))
-                    : [];
-                
-                const tourPriorities = {};
-                if (item.tour_priorities && typeof item.tour_priorities === 'object') {
-                    Object.keys(item.tour_priorities).forEach(key => {
-                        const tourId = parseInt(key);
-                        if (!isNaN(tourId)) {
-                            tourPriorities[tourId] = parseInt(item.tour_priorities[key]) || 0;
-                        }
-                    });
-                }
-                
-                // Load tours and check selected ones with priorities
-                await loadToursForGroup(tourIds, tourPriorities);
-                
-                modal.classList.add('active');
-                document.body.style.overflow = 'hidden';
-            } else {
-                showToast('error', result.message);
-            }
-        } catch (error) {
-            console.error('Error loading tour group:', error);
-            showToast('error', tCommon.failed_to_load_data || 'Failed to load data');
-        }
-    };
-    
-    window.deleteTourGroup = async function(id) {
-        showConfirmDialog(tTours.delete_confirm || 'Are you sure you want to delete this tour group?', async function() {
-            try {
-                const response = await window.apiFetch(`${API_BASE}?action=tour_group&id=${id}`, {
-                    method: 'DELETE'
-                });
-                const result = await response.json();
-                
-                // Handle CSRF token errors
-                if (!result.success && result.message && result.message.toLowerCase().includes('csrf')) {
-                    showToast('error', tCommon.security_token_expired || 'Security token expired. Please refresh the page and try again.');
-                    console.error('CSRF token error:', result.message);
-                    return;
-                }
-                
-                if (result.success) {
-                    currentData.tour_groups = [];
-                    closeModal('tourGroupModal');
-                    showToast('success', tCommon.item_deleted_successfully || 'Deleted successfully');
-                    if (currentTab === 'tour_groups') {
-                        await loadData('tour_groups');
-                    }
-                } else {
-                    showToast('error', result.message);
-                }
-            } catch (error) {
-                console.error('Error deleting tour group:', error);
-                showToast('error', tCommon.delete_failed || 'Failed to delete');
-            }
-        });
-    };
-    
-    async function loadToursForGroup(selectedIds = [], selectedPriorities = {}) {
-        const container = document.getElementById('tourGroupToursContainer');
-        if (!container) return;
-        
-        try {
-            const response = await fetch(`${API_BASE}?action=tours`);
-            const result = await response.json();
-            
-            if (result.success) {
-                container.innerHTML = '';
-                
-                // Store tours data for filtering
-                window.tourGroupToursData = (result.data || []).map(tour => ({
-                    ...tour,
-                    tourId: parseInt(tour.id),
-                    searchText: ((tour.sejour_tour_code || '') + ' ' + (tour.name || '')).toLowerCase()
-                }));
-                
-                // Sort tours: selected first, then by priority, then by name
-                const allTours = window.tourGroupToursData.slice();
-                allTours.sort((a, b) => {
-                    const aSelected = selectedIds.some(id => parseInt(id) === a.tourId);
-                    const bSelected = selectedIds.some(id => parseInt(id) === b.tourId);
-                    if (aSelected && !bSelected) return -1;
-                    if (!aSelected && bSelected) return 1;
-                    if (aSelected && bSelected) {
-                        const aPriority = selectedPriorities[a.tourId] || 0;
-                        const bPriority = selectedPriorities[b.tourId] || 0;
-                        if (aPriority !== bPriority) return aPriority - bPriority;
-                    }
-                    return (a.sejour_tour_code || '').localeCompare(b.sejour_tour_code || '');
-                });
-                
-                // Separate selected and unselected tours
-                const selectedTours = [];
-                const unselectedTours = [];
-                
-                allTours.forEach(tour => {
-                    // Ensure both values are integers for comparison
-                    const tourId = tour.tourId;
-                    const isChecked = selectedIds.some(id => parseInt(id) === tourId);
-                    
-                    if (isChecked) {
-                        selectedTours.push(tour);
-                    } else {
-                        unselectedTours.push(tour);
-                    }
-                });
-                
-                // Render selected tours first
-                [...selectedTours, ...unselectedTours].forEach(tour => {
-                    const tourId = tour.tourId;
-                    const isChecked = selectedIds.some(id => parseInt(id) === tourId);
-                    const priority = selectedPriorities[tourId] || 0;
-                    
-                    const tourItemDiv = document.createElement('div');
-                    tourItemDiv.className = 'tour-group-item';
-                    tourItemDiv.dataset.tourId = tourId;
-                    tourItemDiv.dataset.searchText = tour.searchText;
-                    tourItemDiv.style.cssText = 'display: flex; align-items: center; justify-content: space-between; gap: 15px; padding: 10px; border-bottom: 1px solid #e5e7eb; transition: background 0.2s;';
-                    tourItemDiv.onmouseenter = function() { this.style.background = '#f9fafb'; };
-                    tourItemDiv.onmouseleave = function() { this.style.background = ''; };
-                    
-                    const checkboxDiv = document.createElement('div');
-                    checkboxDiv.style.cssText = 'display: flex; align-items: center; flex: 1; min-width: 0;';
-                    
-                    const checkbox = document.createElement('input');
-                    checkbox.type = 'checkbox';
-                    checkbox.name = 'tour_ids[]';
-                    checkbox.value = tour.id;
-                    checkbox.checked = isChecked;
-                    checkbox.style.cssText = 'margin-right: 10px; cursor: pointer; width: 18px; height: 18px; flex-shrink: 0;';
-                    checkbox.addEventListener('change', function() {
-                        updatePriorityVisibility(this);
-                    });
-                    
-                    const label = document.createElement('label');
-                    label.style.cssText = 'display: flex; align-items: center; cursor: pointer; width: 100%; min-width: 0;';
-                    label.appendChild(checkbox);
-                    
-                    const span = document.createElement('span');
-                    span.style.cssText = 'font-size: 14px; color: #374151; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;';
-                    span.textContent = (tour.sejour_tour_code || '') + ' - ' + (tour.name || '');
-                    span.title = (tour.sejour_tour_code || '') + ' - ' + (tour.name || '');
-                    label.appendChild(span);
-                    
-                    checkboxDiv.appendChild(label);
-                    
-                    const priorityDiv = document.createElement('div');
-                    priorityDiv.style.cssText = 'display: ' + (isChecked ? 'flex' : 'none') + '; align-items: center; gap: 6px; min-width: 180px; flex-shrink: 0;';
-                    priorityDiv.className = 'priority-input-wrapper';
-                    priorityDiv.innerHTML = `
-                        <label style="font-size: 12px; color: #666; font-weight: 500; white-space: nowrap;">${tTours.priority || 'Priority'}:</label>
-                        <input type="number" 
-                               name="tour_priorities[${tourId}]" 
-                               value="${priority}" 
-                               min="0" 
-                               step="1"
-                               style="width: 70px; padding: 6px 8px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 13px; font-weight: 600; text-align: center;"
-                               data-tour-id="${tourId}"
-                               placeholder="0">
-                        <small style="font-size: 11px; color: #6b7280; white-space: nowrap;">(${tTours.lower_is_higher || 'Lower = Higher'})</small>
-                    `;
-                    
-                    tourItemDiv.appendChild(checkboxDiv);
-                    tourItemDiv.appendChild(priorityDiv);
-                    container.appendChild(tourItemDiv);
-                });
-            }
-        } catch (error) {
-            console.error('Error loading tours:', error);
-            container.innerHTML = '<div class="checkbox-message">' + (tCommon.error || 'Error loading tours') + '</div>';
-        }
-    }
-    
-    // Filter tours in Tour Group modal
-    window.filterTourGroupTours = function(searchTerm) {
-        const container = document.getElementById('tourGroupToursContainer');
-        const clearBtn = document.getElementById('tourGroupToursSearchClear');
-        const form = document.getElementById('tourGroupForm');
-        
-        if (!container) return;
-        
-        const term = searchTerm.toLowerCase().trim();
-        const items = Array.from(container.querySelectorAll('.tour-group-item'));
-        
-        // Get selected tour IDs from form
-        const selectedCheckboxes = form ? form.querySelectorAll('input[name="tour_ids[]"]:checked') : [];
-        const selectedIds = Array.from(selectedCheckboxes).map(cb => parseInt(cb.value));
-        
-        let visibleCount = 0;
-        const visibleItems = [];
-        const hiddenItems = [];
-        
-        items.forEach(item => {
-            const searchText = item.dataset.searchText || '';
-            const tourId = parseInt(item.dataset.tourId);
-            const isSelected = selectedIds.includes(tourId);
-            const matches = term === '' || searchText.includes(term);
-            
-            if (matches) {
-                visibleCount++;
-                if (isSelected) {
-                    visibleItems.unshift(item); // Selected items first
-                } else {
-                    visibleItems.push(item);
-                }
-            } else {
-                hiddenItems.push(item);
-            }
-        });
-        
-        // Reorder: selected items first, then others
-        container.innerHTML = '';
-        visibleItems.forEach(item => container.appendChild(item));
-        hiddenItems.forEach(item => {
-            item.style.display = 'none';
-            container.appendChild(item);
-        });
-        
-        // Update display
-        visibleItems.forEach(item => item.style.display = '');
-        
-        // Show/hide clear button
-        if (clearBtn) {
-            clearBtn.style.display = term ? 'flex' : 'none';
-        }
-        
-        // Show empty message if no results
-        let emptyMsg = container.querySelector('.tour-group-empty-message');
-        if (visibleCount === 0 && term !== '') {
-            if (!emptyMsg) {
-                emptyMsg = document.createElement('div');
-                emptyMsg.className = 'tour-group-empty-message checkbox-message';
-                container.appendChild(emptyMsg);
-            }
-            emptyMsg.textContent = tCommon.no_results || 'No tours found';
-            emptyMsg.style.display = 'block';
-        } else if (emptyMsg) {
-            emptyMsg.style.display = 'none';
-        }
-    };
-    
-    // Clear Tour Group tours search
-    window.clearTourGroupToursSearch = function() {
-        const input = document.getElementById('tourGroupToursSearch');
-        const clearBtn = document.getElementById('tourGroupToursSearchClear');
-        
-        if (input) {
-            input.value = '';
-            filterTourGroupTours('');
-        }
-        if (clearBtn) {
-            clearBtn.style.display = 'none';
-        }
-    };
-    
-    // Update priority visibility when checkbox changes
-    window.updatePriorityVisibility = function(checkbox) {
-        const tourItem = checkbox.closest('.tour-group-item');
-        const priorityWrapper = tourItem?.querySelector('.priority-input-wrapper');
-        if (priorityWrapper) {
-            priorityWrapper.style.display = checkbox.checked ? 'flex' : 'none';
-            
-            // Ensure priority input is visible when checked
-            if (checkbox.checked) {
-                const priorityInput = priorityWrapper.querySelector('input[type="number"]');
-                if (priorityInput && (!priorityInput.value || priorityInput.value === '0')) {
-                    // Set default priority to 0 if empty
-                    priorityInput.value = '0';
-                }
-            }
-        }
-        
-        // Reorder: selected tours always on top
-        const searchInput = document.getElementById('tourGroupToursSearch');
-        if (searchInput && searchInput.value) {
-            // If there's a search term, re-filter to maintain selected-first order
-            filterTourGroupTours(searchInput.value);
-        } else {
-            // If no search, just reorder
-            reorderTourGroupItems();
-        }
-    };
-    
-    // Reorder tour group items: selected first
-    function reorderTourGroupItems() {
-        const container = document.getElementById('tourGroupToursContainer');
-        const form = document.getElementById('tourGroupForm');
-        if (!container || !form) return;
-        
-        const selectedCheckboxes = form.querySelectorAll('input[name="tour_ids[]"]:checked');
-        const selectedIds = Array.from(selectedCheckboxes).map(cb => parseInt(cb.value));
-        
-        const items = Array.from(container.querySelectorAll('.tour-group-item'));
-        const selectedItems = [];
-        const unselectedItems = [];
-        
-        items.forEach(item => {
-            const tourId = parseInt(item.dataset.tourId);
-            if (selectedIds.includes(tourId)) {
-                selectedItems.push(item);
-            } else {
-                unselectedItems.push(item);
-            }
-        });
-        
-        // Clear and re-append: selected first
-        container.innerHTML = '';
-        selectedItems.forEach(item => container.appendChild(item));
-        unselectedItems.forEach(item => container.appendChild(item));
-    }
-    
-    // Handle tour group form submission
-    async function handleTourGroupSubmit(e) {
-        e.preventDefault();
-        e.stopPropagation();
-        
-        const form = e.target;
-        
-        // Clear previous errors
-        clearFormErrors(form);
-        
-        // Validate all required fields - IMMEDIATE VALIDATION (sync)
-        const isValid = validateForm(form);
-        
-        if (!isValid) {
-            showToast('error', tCommon.fill_required_fields || 'Please fill all required fields');
-            return false;
-        }
-        
-        const formData = new FormData(form);
-        
-        const name = formData.get('name');
-        
-        // Get all checked tour IDs (ensure they are integers)
-        const checkedCheckboxes = form.querySelectorAll('input[name="tour_ids[]"]:checked');
-        const tourIds = Array.from(checkedCheckboxes).map(cb => parseInt(cb.value)).filter(id => !isNaN(id));
-        
-        // Collect priorities from all priority inputs (not just selected tours)
-        // This ensures we capture priorities even if checkbox state is inconsistent
-        const tourPriorities = {};
-        const allPriorityInputs = form.querySelectorAll('input[name^="tour_priorities["]');
-        allPriorityInputs.forEach(input => {
-            const nameMatch = input.name.match(/tour_priorities\[(\d+)\]/);
-            if (nameMatch) {
-                const tourId = parseInt(nameMatch[1]);
-                const priority = parseInt(input.value) || 0;
-                // Only include if tour is actually selected
-                if (tourIds.includes(tourId)) {
-                    tourPriorities[tourId] = priority;
-                }
-            }
-        });
-        
-        // Set default priority 0 for tours without priority input
-        tourIds.forEach(tourId => {
-            if (!(tourId in tourPriorities)) {
-                tourPriorities[tourId] = 0;
-            }
-        });
-        
-        const data = {
-            name: name.trim(),
-            description: formData.get('description') || '',
-            tour_ids: tourIds,
-            tour_priorities: tourPriorities
-        };
-        
-        // Get CSRF token from multiple sources
-        let token = null;
-        if (typeof window.getCsrfToken === 'function') {
-            token = window.getCsrfToken();
-        } else if (window.pageConfig && window.pageConfig.csrfToken) {
-            token = window.pageConfig.csrfToken;
-        } else if (pageConfig && pageConfig.csrfToken) {
-            token = pageConfig.csrfToken;
-        }
-        
-        if (!token) {
-            console.error('CSRF token not found');
-            showToast('error', 'Security token not found. Please refresh the page.');
-            return;
-        }
-        
-        data.csrf_token = token;
-        
-        try {
-            if (form.dataset.id) {
-                data.id = parseInt(form.dataset.id);
-                const response = await window.apiFetch(`${API_BASE}?action=tour_group`, {
-                    method: 'PUT',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(data)
-                });
-                const result = await response.json();
-                
-                // Handle CSRF token errors
-                if (!result.success && result.message && result.message.toLowerCase().includes('csrf')) {
-                    showToast('error', tCommon.security_token_expired || 'Security token expired. Please refresh the page and try again.');
-                    console.error('CSRF token error:', result.message);
-                    return;
-                }
-                
-                   if (result.success) {
-                       currentData.tour_groups = [];
-                       clearFormErrors(document.getElementById('tourGroupForm'));
-                       closeModal('tourGroupModal');
-                       showToast('success', tTours.tour_group_updated || 'Tour group updated');
-                       if (currentTab === 'tour_groups') {
-                           await loadData('tour_groups');
-                       }
-                   } else {
-                       // Handle validation errors
-                       const errorMessage = result.message || 'Failed to update tour group';
-                       parseApiError(errorMessage, 'tourGroupForm');
-                       showToast('error', errorMessage);
-                   }
-            } else {
-                const response = await window.apiFetch(`${API_BASE}?action=tour_group`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(data)
-                });
-                const result = await response.json();
-                
-                // Handle CSRF token errors
-                if (!result.success && result.message && result.message.toLowerCase().includes('csrf')) {
-                    showToast('error', tCommon.security_token_expired || 'Security token expired. Please refresh the page and try again.');
-                    console.error('CSRF token error:', result.message);
-                    return;
-                }
-                
-                   if (result.success) {
-                       currentData.tour_groups = [];
-                       clearFormErrors(document.getElementById('tourGroupForm'));
-                       closeModal('tourGroupModal');
-                       showToast('success', tTours.tour_group_added || 'Tour group added');
-                       if (currentTab === 'tour_groups') {
-                           await loadData('tour_groups');
-                       }
-                   } else {
-                       // Handle validation errors
-                       const errorMessage = result.message || 'Failed to create tour group';
-                       parseApiError(errorMessage, 'tourGroupForm');
-                       showToast('error', errorMessage);
-                   }
-            }
-        } catch (error) {
-            console.error('Error saving tour group:', error);
-            showToast('error', tCommon.save_failed || 'Failed to save');
-        }
-    }
     
     // Filter Tours table
     window.filterToursTable = function(searchTerm) {
@@ -1847,61 +1162,11 @@
         }
     };
     
-    // Filter Tour Groups table
-    window.filterTourGroupsTable = function(searchTerm) {
-        const tbody = document.getElementById('tourGroupsTableBody');
-        const clearBtn = document.getElementById('tourGroupsSearchClear');
-        
-        if (!tbody) return;
-        
-        const term = searchTerm.toLowerCase().trim();
-        const rows = tbody.querySelectorAll('tr');
-        let visibleCount = 0;
-        
-        rows.forEach(row => {
-            const name = row.getAttribute('data-name') || '';
-            const description = row.getAttribute('data-description') || '';
-            
-            const matches = term === '' || 
-                          name.includes(term) || 
-                          description.includes(term);
-            
-            row.style.display = matches ? '' : 'none';
-            if (matches) visibleCount++;
-        });
-        
-        // Show/hide clear button
-        if (clearBtn) {
-            clearBtn.style.display = term ? 'flex' : 'none';
-        }
-        
-        // Update footer count
-        const footer = document.querySelector('#tour_groups-content .table-info');
-        if (footer) {
-            footer.innerHTML = `${tCommon.showing || 'Showing'} <strong>${visibleCount}</strong> ${visibleCount === 1 ? (tTours.tour_group || 'tour group') : (tTours.tour_groups || 'tour groups')}`;
-        }
-    };
-    
-    // Clear Tour Groups search
-    window.clearTourGroupsSearch = function() {
-        const input = document.getElementById('tourGroupsSearchInput');
-        const clearBtn = document.getElementById('tourGroupsSearchClear');
-        
-        if (input) {
-            input.value = '';
-            filterTourGroupsTable('');
-        }
-        if (clearBtn) {
-            clearBtn.style.display = 'none';
-        }
-    };
     
     // Sort table
     window.sortTable = function(type, column) {
         if (type === 'tours') {
             sortToursTable(column);
-        } else if (type === 'tour_groups') {
-            sortTourGroupsTable(column);
         }
     };
     
@@ -1954,53 +1219,6 @@
         }
     }
     
-    // Sort Tour Groups table
-    let tourGroupsSortColumn = null;
-    let tourGroupsSortDirection = 'asc';
-    
-    function sortTourGroupsTable(column) {
-        const tbody = document.getElementById('tourGroupsTableBody');
-        if (!tbody || !window.tourGroupsTableData) return;
-        
-        // Toggle sort direction if same column
-        if (tourGroupsSortColumn === column) {
-            tourGroupsSortDirection = tourGroupsSortDirection === 'asc' ? 'desc' : 'asc';
-        } else {
-            tourGroupsSortColumn = column;
-            tourGroupsSortDirection = 'asc';
-        }
-        
-        // Sort data
-        const sortedData = [...window.tourGroupsTableData].sort((a, b) => {
-            let aVal = a[column] || '';
-            let bVal = b[column] || '';
-            
-            if (typeof aVal === 'string') {
-                aVal = aVal.toLowerCase();
-                bVal = bVal.toLowerCase();
-            }
-            
-            if (tourGroupsSortDirection === 'asc') {
-                return aVal > bVal ? 1 : aVal < bVal ? -1 : 0;
-            } else {
-                return aVal < bVal ? 1 : aVal > bVal ? -1 : 0;
-            }
-        });
-        
-        // Re-render table
-        renderTourGroupsTable(document.getElementById('tour_groups-content'), sortedData);
-        
-        // Update sort icons
-        document.querySelectorAll('#tourGroupsTable th.sortable .sort-icon').forEach(icon => {
-            icon.textContent = '⇅';
-        });
-        
-        const activeHeader = document.querySelector(`#tourGroupsTable th[onclick*="${column}"] .sort-icon`);
-        if (activeHeader) {
-            activeHeader.textContent = tourGroupsSortDirection === 'asc' ? '↑' : '↓';
-            activeHeader.style.color = '#151A2D';
-        }
-    }
     
     // Escape HTML to prevent XSS
     function escapeHtml(text) {

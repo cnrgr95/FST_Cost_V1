@@ -395,14 +395,6 @@
         "deselect_all": "Tümünü Temizle",
         "search_regions": "Bölge ara...",
         "select_regions_first": "Önce ülke, bölge ve şehir seçin",
-        "tour_groups": "Tur Grupları",
-        "add_tour_group": "Tur Grubu Ekle",
-        "edit_tour_group": "Tur Grubu Düzenle",
-        "tour_group_name": "Tur Grubu Adı",
-        "tour_group_description": "Açıklama",
-        "no_tour_groups": "Tur grubu bulunamadı",
-        "tour_group_added": "Tur grubu başarıyla eklendi",
-        "tour_group_updated": "Tur grubu başarıyla güncellendi",
         "select_sub_regions": "Alt Bölgeleri Seçin",
         "search_sub_regions": "Alt bölge ara...",
         "select_city_first": "Lütfen önce şehir seçin",
@@ -417,8 +409,7 @@
         "select_country": "Ülke Seçin",
         "select_region": "Bölge Seçin",
         "select_city": "Şehir Seçin",
-        "tour": "tur",
-        "tour_group": "tur grubu"
+        "tour": "tur"
     },
     "errors": {
         "page_not_found": "Sayfa bulunamadı",
