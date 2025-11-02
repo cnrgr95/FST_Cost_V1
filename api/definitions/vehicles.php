@@ -35,6 +35,9 @@ require_once __DIR__ . '/../../config.php';
 // Load security helpers for CSRF protection
 require_once __DIR__ . '/../../includes/security.php';
 
+// Initialize CSRF token in session if not exists
+generateCsrfToken();
+
 // Clear any output that might have been generated
 ob_end_clean();
 
@@ -928,19 +931,26 @@ function uploadContractPrices($conn) {
         if (!empty($firstRow)) {
             // Check if first row contains common header keywords
             $headerKeywords = ['nerden', 'nereye', 'from', 'to', 'vip', 'vito', 'mini', 'midi', 'bus'];
+            $headerMatchCount = 0;
             foreach ($firstRow as $cell) {
                 $cellLower = strtolower(trim($cell ?? ''));
                 foreach ($headerKeywords as $keyword) {
                     if (stripos($cellLower, $keyword) !== false) {
+                        $headerMatchCount++;
                         $hasTextualHeader = true;
-                        break 2;
+                        break;
                     }
                 }
             }
             
-            if ($hasTextualHeader) {
+            // If we found at least 2 header keywords, consider it a header row
+            // This prevents false positives from data rows that happen to contain one keyword
+            if ($hasTextualHeader && $headerMatchCount >= 2) {
                 $isHeader = true;
                 $headerRow = array_shift($rows); // Remove header row
+                error_log('Excel upload - Header row detected and removed. Header row: ' . json_encode(array_slice($headerRow, 0, 5)));
+            } else {
+                error_log('Excel upload - No header detected (match count: ' . $headerMatchCount . ')');
             }
         }
         
@@ -966,11 +976,41 @@ function uploadContractPrices($conn) {
         
         if ($getFullData) {
             // Return full Excel data for processing with mapping
+            // IMPORTANT: $rows already has header removed if $isHeader was true
+            // Normalize all rows to ensure consistent indexing
+            // Also filter out completely empty rows
+            $normalizedRows = [];
+            foreach ($rows as $row) {
+                if (is_array($row)) {
+                    $normalizedRow = array_values($row);
+                    // Check if row has any non-empty values (skip completely empty rows)
+                    $hasData = false;
+                    foreach ($normalizedRow as $cell) {
+                        if ($cell !== null && $cell !== '' && trim((string)$cell) !== '') {
+                            $hasData = true;
+                            break;
+                        }
+                    }
+                    if ($hasData) {
+                        $normalizedRows[] = $normalizedRow;
+                    }
+                }
+            }
+            
+            // Debug logging
+            error_log('Excel upload - get_full_data:');
+            error_log('  Header detected: ' . ($isHeader ? 'YES' : 'NO'));
+            error_log('  Total rows before filtering: ' . count($rows));
+            error_log('  Total rows after filtering empty: ' . count($normalizedRows));
+            if (!empty($normalizedRows)) {
+                error_log('  First row (first 5 cols): ' . json_encode(array_slice($normalizedRows[0], 0, 5)));
+            }
+            
             echo json_encode([
                 'success' => true,
-                'excel_rows' => $rows,
+                'excel_rows' => $normalizedRows,
                 'has_header' => $isHeader,
-                'total_rows' => count($rows)
+                'total_rows' => count($normalizedRows)
             ], JSON_UNESCAPED_UNICODE);
             return;
         }
@@ -1241,7 +1281,7 @@ function saveContractRoutes($conn, $data) {
     try {
         $contract_id = (int)($data['contract_id'] ?? 0);
         $columnMapping = $data['column_mapping'] ?? []; // Maps field names to Excel column indices
-        $excelData = $data['excel_data'] ?? []; // Raw Excel rows
+        $excelData = $data['excel_data'] ?? []; // Raw Excel rows (should already have header removed if has_header was true)
         $hasHeader = isset($data['has_header']) ? (bool)$data['has_header'] : false;
         $manualCurrency = isset($data['manual_currency']) ? trim($data['manual_currency']) : null;
         
@@ -1249,6 +1289,17 @@ function saveContractRoutes($conn, $data) {
             echo json_encode(['success' => false, 'message' => 'contract_id, column_mapping, and excel_data are required']);
             return;
         }
+        
+        // Normalize Excel data - ensure all rows are properly indexed arrays
+        $normalizedExcelData = [];
+        foreach ($excelData as $row) {
+            if (is_array($row)) {
+                $normalizedExcelData[] = array_values($row); // Reset to 0-based sequential array
+            } else {
+                $normalizedExcelData[] = [];
+            }
+        }
+        $excelData = $normalizedExcelData;
         
         // Verify contract exists - use parameterized query
         $contractQuery = "SELECT vehicle_company_id FROM vehicle_contracts WHERE id = $1";
@@ -1280,9 +1331,33 @@ function saveContractRoutes($conn, $data) {
         
         $savedCount = 0;
         $skippedCount = 0;
+        $skipReasons = ['empty_location' => 0, 'insert_failed' => 0, 'no_prices' => 0];
         
         // Get vehicle type mappings: { type_id => excel_column_index }
         $vehicleTypeMappings = $columnMapping['vehicle_types'] ?? [];
+        
+        // Validate column mappings - check if keys exist (0 is valid index)
+        // Convert to integers immediately to ensure proper type
+        $fromLocationCol = null;
+        $toLocationCol = null;
+        
+        if (isset($columnMapping['from_location'])) {
+            $fromLocationCol = is_numeric($columnMapping['from_location']) ? (int)$columnMapping['from_location'] : null;
+        }
+        if (isset($columnMapping['to_location'])) {
+            $toLocationCol = is_numeric($columnMapping['to_location']) ? (int)$columnMapping['to_location'] : null;
+        }
+        
+        if ($fromLocationCol === null || $fromLocationCol < 0) {
+            error_log('Invalid from_location mapping: ' . json_encode($columnMapping['from_location'] ?? 'NOT SET'));
+            echo json_encode(['success' => false, 'message' => 'from_location column mapping is required and must be a valid column index']);
+            return;
+        }
+        if ($toLocationCol === null || $toLocationCol < 0) {
+            error_log('Invalid to_location mapping: ' . json_encode($columnMapping['to_location'] ?? 'NOT SET'));
+            echo json_encode(['success' => false, 'message' => 'to_location column mapping is required and must be a valid column index']);
+            return;
+        }
         
         // Build mapping: vehicle_type_id => excel_column_index
         // This will be used to create JSONB object with vehicle_type_id as key
@@ -1293,25 +1368,104 @@ function saveContractRoutes($conn, $data) {
             }
         }
         
-        // Process Excel rows with column mapping
-        foreach ($excelData as $row) {
-            // Normalize row to ensure numeric indices (PhpSpreadsheet may return associative or mixed arrays)
-            $normalizedRow = [];
-            $rowIndex = 0;
-            foreach ($row as $key => $value) {
-                $normalizedRow[$rowIndex] = $value;
-                $rowIndex++;
+        error_log('=== saveContractRoutes DEBUG START ===');
+        error_log('Column mapping: ' . json_encode($columnMapping));
+        error_log('Vehicle type mappings: ' . json_encode($vehicleTypeColumnMap));
+        error_log('Excel data rows count: ' . count($excelData));
+        error_log('Has header flag: ' . ($hasHeader ? 'YES' : 'NO'));
+        error_log('from_location column index (validated): ' . $fromLocationCol);
+        error_log('to_location column index (validated): ' . $toLocationCol);
+        
+        // Log first Excel row structure for debugging
+        if (!empty($excelData) && isset($excelData[0])) {
+            $firstRow = $excelData[0];
+            error_log('First Excel row column count: ' . count($firstRow));
+            error_log('First Excel row (first 10 columns): ' . json_encode(array_slice($firstRow, 0, 10)));
+            if (isset($firstRow[$fromLocationCol])) {
+                error_log('First row from_location value (col ' . $fromLocationCol . '): ' . json_encode($firstRow[$fromLocationCol]));
+            } else {
+                error_log('First row from_location column ' . $fromLocationCol . ' does not exist!');
             }
+            if (isset($firstRow[$toLocationCol])) {
+                error_log('First row to_location value (col ' . $toLocationCol . '): ' . json_encode($firstRow[$toLocationCol]));
+            } else {
+                error_log('First row to_location column ' . $toLocationCol . ' does not exist!');
+            }
+        }
+        
+        // Process Excel rows with column mapping
+        $rowNum = 0;
+        foreach ($excelData as $row) {
+            $rowNum++;
+            
+            // Normalize row - PhpSpreadsheet may return associative arrays or mixed indices
+            // Convert to sequential numeric array starting from 0
+            if (!is_array($row)) {
+                $skippedCount++;
+                $skipReasons['empty_location']++;
+                if ($rowNum <= 3) {
+                    error_log("Row $rowNum skipped: not an array");
+                }
+                continue;
+            }
+            
+            // Reset array indices to 0, 1, 2, ...
+            $normalizedRow = array_values($row);
             $row = $normalizedRow;
             
-            // Get values based on mapping
-            $fromLocation = isset($columnMapping['from_location']) && isset($row[$columnMapping['from_location']]) 
-                ? trim($row[$columnMapping['from_location']]) : '';
-            $toLocation = isset($columnMapping['to_location']) && isset($row[$columnMapping['to_location']]) 
-                ? trim($row[$columnMapping['to_location']]) : '';
+            // Debug: Log first few rows
+            if ($rowNum <= 3) {
+                error_log("Row $rowNum - Total columns: " . count($row));
+                error_log("Row $rowNum data (first 5): " . json_encode(array_slice($row, 0, 5)));
+            }
             
+            // Use pre-validated column indices
+            $fromColIndex = $fromLocationCol;
+            $toColIndex = $toLocationCol;
+            
+            // Check if row has enough columns
+            $maxColIndex = count($row) - 1;
+            if ($fromColIndex > $maxColIndex || $toColIndex > $maxColIndex) {
+                if ($rowNum <= 5) {
+                    error_log("Row $rowNum skipped: Column index out of bounds (from: $fromColIndex, to: $toColIndex, max: $maxColIndex, row columns: " . count($row) . ")");
+                }
+                $skippedCount++;
+                $skipReasons['empty_location']++;
+                continue;
+            }
+            
+            // Get values from row using column indices - handle null, empty, and whitespace
+            $fromLocation = '';
+            $toLocation = '';
+            
+            if (isset($row[$fromColIndex]) && $row[$fromColIndex] !== null && $row[$fromColIndex] !== '') {
+                $fromLocation = trim((string)$row[$fromColIndex]);
+            }
+            if (isset($row[$toColIndex]) && $row[$toColIndex] !== null && $row[$toColIndex] !== '') {
+                $toLocation = trim((string)$row[$toColIndex]);
+            }
+            
+            // Debug first few rows
+            if ($rowNum <= 5) {
+                error_log("--- Row $rowNum Debug ---");
+                error_log("Row $rowNum - from_location column index: $fromColIndex, value: '$fromLocation'");
+                error_log("Row $rowNum - to_location column index: $toColIndex, value: '$toLocation'");
+                error_log("Row $rowNum - Total columns in row: " . count($row));
+                error_log("Row $rowNum - First 10 column values: " . json_encode(array_slice($row, 0, 10)));
+                error_log("Row $rowNum - Column $fromColIndex exists: " . (isset($row[$fromColIndex]) ? 'YES' : 'NO'));
+                error_log("Row $rowNum - Column $toColIndex exists: " . (isset($row[$toColIndex]) ? 'YES' : 'NO'));
+            }
+            
+            // Skip if locations are empty - be more explicit
             if (empty($fromLocation) || empty($toLocation)) {
                 $skippedCount++;
+                $skipReasons['empty_location']++;
+                if ($rowNum <= 5) {
+                    error_log("Row $rowNum skipped: empty locations");
+                    error_log("  - from_location (col $fromColIndex): '$fromLocation' (raw: " . json_encode($row[$fromColIndex] ?? 'NOT SET') . ")");
+                    error_log("  - to_location (col $toColIndex): '$toLocation' (raw: " . json_encode($row[$toColIndex] ?? 'NOT SET') . ")");
+                    error_log("  - Row data (first 10 cols): " . json_encode(array_slice($row, 0, 10)));
+                }
                 continue;
             }
             
@@ -1331,25 +1485,28 @@ function saveContractRoutes($conn, $data) {
                     continue;
                 }
                 $value = trim((string)$row[$colIndex]);
-                // Remove any non-numeric characters except decimal point
-                $value = preg_replace('/[^0-9.]/', '', $value);
+                // Remove any non-numeric characters except decimal point and minus sign
+                $value = preg_replace('/[^0-9.\-]/', '', $value);
                 if (!empty($value)) {
                     $price = (float)$value;
-                    if ($price > 0) {
-                        // Store as string key (JSON keys are always strings, but we'll ensure consistency)
-                        $vehicleTypePrices[(string)$typeId] = $price;
-                    }
+                    // Allow 0 and negative prices too (for special cases)
+                    // Store as string key (JSON keys are always strings, but we'll ensure consistency)
+                    $vehicleTypePrices[(string)$typeId] = $price;
                 }
             }
             
-            if (!empty($vehicleTypePrices)) {
-                error_log('Saving prices for route: ' . $fromLocation . ' -> ' . $toLocation);
-                error_log('Vehicle type prices: ' . json_encode($vehicleTypePrices));
+            // Debug first few rows
+            if ($rowNum <= 3) {
+                error_log("Row $rowNum - Vehicle type prices found: " . count($vehicleTypePrices));
+                error_log("Row $rowNum - Prices: " . json_encode($vehicleTypePrices));
             }
             
-            // If no prices found, still create empty object
+            // If no prices found, still create route with empty prices object
             if (empty($vehicleTypePrices)) {
                 $vehicleTypePrices = [];
+                if ($rowNum <= 3) {
+                    error_log("Row $rowNum - No vehicle type prices found, but creating route anyway");
+                }
             }
             
             // Convert PHP array to JSONB string
@@ -1378,19 +1535,47 @@ function saveContractRoutes($conn, $data) {
                 $savedCount++;
             } else {
                 $errorMsg = getDbErrorMessage($conn);
-                error_log('Error inserting contract route: ' . $errorMsg);
-                error_log('Route: ' . $fromLocation . ' -> ' . $toLocation);
-                error_log('Prices JSON: ' . $vehicleTypePricesJson);
-                error_log('Vehicle type mappings: ' . json_encode($vehicleTypeColumnMap));
+                error_log("Row $rowNum - Error inserting contract route: " . $errorMsg);
+                error_log("Row $rowNum - Route: " . $fromLocation . ' -> ' . $toLocation);
+                error_log("Row $rowNum - Prices JSON: " . $vehicleTypePricesJson);
+                error_log("Row $rowNum - Vehicle type mappings: " . json_encode($vehicleTypeColumnMap));
+                error_log("Row $rowNum - Contract ID: $contract_id");
+                error_log("Row $rowNum - Currency: $currencyCode");
                 $skippedCount++;
+                $skipReasons['insert_failed']++;
             }
         }
         
+        // Build detailed message
+        $message = "$savedCount routes imported successfully";
+        if ($skippedCount > 0) {
+            $details = [];
+            if ($skipReasons['empty_location'] > 0) {
+                $details[] = $skipReasons['empty_location'] . " with empty locations";
+            }
+            if ($skipReasons['insert_failed'] > 0) {
+                $details[] = $skipReasons['insert_failed'] . " failed to insert";
+            }
+            if ($skipReasons['no_prices'] > 0) {
+                $details[] = $skipReasons['no_prices'] . " with no prices";
+            }
+            if (!empty($details)) {
+                $message .= ", " . $skippedCount . " skipped (" . implode(", ", $details) . ")";
+            } else {
+                $message .= ", $skippedCount skipped";
+            }
+        }
+        
+        error_log("=== saveContractRoutes DEBUG END ===");
+        error_log("Final result - Saved: $savedCount, Skipped: $skippedCount");
+        error_log("Skip reasons: " . json_encode($skipReasons));
+        
         echo json_encode([
             'success' => true,
-            'message' => "$savedCount routes imported successfully" . ($skippedCount > 0 ? ", $skippedCount skipped" : ''),
+            'message' => $message,
             'saved_count' => $savedCount,
-            'skipped_count' => $skippedCount
+            'skipped_count' => $skippedCount,
+            'skip_reasons' => $skipReasons
         ]);
     } catch (Exception $e) {
         error_log('Error in saveContractRoutes: ' . $e->getMessage() . ' | File: ' . $e->getFile() . ' | Line: ' . $e->getLine() . ' | Trace: ' . $e->getTraceAsString());

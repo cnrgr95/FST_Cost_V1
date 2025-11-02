@@ -259,6 +259,9 @@
         return null;
     }
     
+    // Make getCsrfToken available globally
+    window.getCsrfToken = getCsrfToken;
+    
     /**
      * Enhanced fetch with automatic CSRF token injection
      * This wrapper automatically adds CSRF token to POST, PUT, DELETE requests

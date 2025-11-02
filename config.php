@@ -106,6 +106,9 @@ if (!file_exists(LOG_PATH)) {
 
 // Upload Configuration
 define('UPLOAD_PATH', BASE_PATH . 'uploads' . DIRECTORY_SEPARATOR);
+if (!file_exists(UPLOAD_PATH)) {
+    mkdir(UPLOAD_PATH, 0755, true);
+}
 define('UPLOAD_MAX_SIZE', 5242880); // 5 MB
 define('UPLOAD_ALLOWED_TYPES', ['jpg', 'jpeg', 'png', 'gif', 'pdf']);
 

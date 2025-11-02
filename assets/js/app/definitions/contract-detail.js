@@ -472,6 +472,12 @@
         formData.append('excel_file', file);
         formData.append('contract_id', CONTRACT_ID);
         
+        // Add CSRF token for FormData
+        const token = getCsrfToken();
+        if (token) {
+            formData.append('csrf_token', token);
+        }
+        
         try {
             const resp = await fetch(`${API_BASE}?action=upload_contract_prices`, {
                 method: 'POST',
@@ -1030,8 +1036,10 @@
         
         excelColumns.forEach(col => {
             const selected = autoDetectColumn('from_location', col);
+            const sampleText = col.sample ? `(${col.sample})` : '';
+            const emptyIndicator = !col.sample ? ' [BOŞ]' : '';
             html += `<option value="${col.index}" ${selected ? 'selected' : ''}>
-                ${col.header} ${col.sample ? `(${col.sample})` : ''}
+                Column ${col.index + 1}: ${col.header} ${sampleText}${emptyIndicator}
             </option>`;
         });
         
@@ -1050,8 +1058,10 @@
         
         excelColumns.forEach(col => {
             const selected = autoDetectColumn('to_location', col);
+            const sampleText = col.sample ? `(${col.sample})` : '';
+            const emptyIndicator = !col.sample ? ' [BOŞ]' : '';
             html += `<option value="${col.index}" ${selected ? 'selected' : ''}>
-                ${col.header} ${col.sample ? `(${col.sample})` : ''}
+                Column ${col.index + 1}: ${col.header} ${sampleText}${emptyIndicator}
             </option>`;
         });
         
@@ -1120,9 +1130,10 @@
                 const headerLower = (col.header || '').toLowerCase();
                 const sampleLower = (col.sample || '').toLowerCase();
                 const selected = headerLower.includes(typeNameLower) || sampleLower.includes(typeNameLower);
-                
+                const sampleText = col.sample ? `(${col.sample})` : '';
+                const emptyIndicator = !col.sample ? ' [BOŞ]' : '';
                 optionsHtml += `<option value="${col.index}" ${selected ? 'selected' : ''}>
-                    ${col.header} ${col.sample ? `(${col.sample})` : ''}
+                    Column ${col.index + 1}: ${col.header} ${sampleText}${emptyIndicator}
                 </option>`;
             });
             
@@ -1165,50 +1176,73 @@
     
     async function saveColumnMapping() {
         // Collect mapping for from and to
-        const columnMapping = {
-            from_location: document.getElementById('map_from_location')?.value,
-            to_location: document.getElementById('map_to_location')?.value
-        };
+        const fromLocationSelect = document.getElementById('map_from_location');
+        const toLocationSelect = document.getElementById('map_to_location');
+        
+        const fromLocationValue = fromLocationSelect?.value ?? '';
+        const toLocationValue = toLocationSelect?.value ?? '';
+        
+        // Validate required fields - check if values are set (can be "0" which is valid)
+        if (fromLocationValue === '' || toLocationValue === '') {
+            showToast('warning', tVehicles.map_required_fields || 'Please map all required fields (Nerden, Nereye)');
+            return;
+        }
+        
+        // Convert to integers - parseInt will handle "0" correctly
+        const fromLocationIndex = parseInt(fromLocationValue, 10);
+        const toLocationIndex = parseInt(toLocationValue, 10);
+        
+        // Validate that conversion was successful and indices are non-negative
+        if (isNaN(fromLocationIndex) || isNaN(toLocationIndex) || fromLocationIndex < 0 || toLocationIndex < 0) {
+            console.error('Invalid column mapping:', {
+                fromLocationValue,
+                toLocationValue,
+                fromLocationIndex,
+                toLocationIndex
+            });
+            showToast('error', 'Invalid column mapping. Please select valid columns for "Nerden" and "Nereye".');
+            return;
+        }
+        
+        console.log('Column mapping validated:', {
+            from_location: fromLocationIndex,
+            to_location: toLocationIndex
+        });
         
         // Collect vehicle type mappings dynamically
         // Use the correct selector: rows with data-vehicle-type-row attribute
         const vehicleTypeMappings = {};
         const vehicleTypeRows = document.querySelectorAll('#mappingTableSection tr[data-vehicle-type-row]');
         
-        // Vehicle type rows processed
-        
         vehicleTypeRows.forEach(row => {
             const select = row.querySelector('select');
             if (select && select.id.startsWith('map_vehicle_type_')) {
                 const typeId = select.id.replace('map_vehicle_type_', '');
                 const colIndex = select.value;
-                // Vehicle type mapping found
-                if (colIndex && colIndex !== '') {
-                    // Store typeId as integer key to match backend expectation
-                    vehicleTypeMappings[parseInt(typeId)] = parseInt(colIndex);
+                // Vehicle type mapping found - colIndex can be "0" which is valid
+                if (colIndex !== '' && colIndex !== null && colIndex !== undefined) {
+                    const colIndexInt = parseInt(colIndex);
+                    if (!isNaN(colIndexInt)) {
+                        // Store typeId as integer key to match backend expectation
+                        vehicleTypeMappings[parseInt(typeId)] = colIndexInt;
+                    }
                 } else {
                     console.warn('Vehicle type', typeId, 'has no column selected');
                 }
             }
         });
         
-        // Process vehicle type mappings
-        
         // Get manual currency (only option now)
         const manualCurrency = document.getElementById('map_currency_manual')?.value;
         
-        // Validate required fields
-        if (!columnMapping.from_location || !columnMapping.to_location) {
-            showToast('warning', tVehicles.map_required_fields || 'Please map all required fields (Nerden, Nereye)');
-            return;
-        }
-        
         // Convert to integers and ensure proper format
         const cleanMapping = {
-            from_location: parseInt(columnMapping.from_location),
-            to_location: parseInt(columnMapping.to_location),
+            from_location: fromLocationIndex,
+            to_location: toLocationIndex,
             vehicle_types: vehicleTypeMappings // Object with type_id (int) => column_index (int)
         };
+        
+        console.log('Clean mapping:', cleanMapping);
         
         // Complete mapping prepared
         
@@ -1231,6 +1265,12 @@
         formData.append('excel_file', file);
         formData.append('contract_id', CONTRACT_ID);
         formData.append('get_full_data', '1');
+        
+        // Add CSRF token for FormData
+        const tokenForMapping = getCsrfToken();
+        if (tokenForMapping) {
+            formData.append('csrf_token', tokenForMapping);
+        }
         
         try {
             const resp = await fetch(`${API_BASE}?action=upload_contract_prices`, {
@@ -1270,9 +1310,88 @@
                 contract_id: CONTRACT_ID,
                 column_mapping: cleanMapping,
                 excel_data: fullDataRes.excel_rows,
-                has_header: hasHeader,
+                has_header: fullDataRes.has_header !== undefined ? fullDataRes.has_header : hasHeader, // Use server's has_header value
                 manual_currency: manualCurrency || null // Manual currency for all rows
             };
+            
+            // Debug logging - detailed
+            const firstRow = fullDataRes.excel_rows?.[0] || [];
+            console.log('Sending save request with:', {
+                contract_id: CONTRACT_ID,
+                column_mapping: cleanMapping,
+                excel_rows_count: fullDataRes.excel_rows?.length || 0,
+                has_header: saveData.has_header,
+                first_row_preview: firstRow.slice(0, 10) || []
+            });
+            console.log('First row details:', {
+                total_columns: firstRow.length,
+                from_location_col_0: firstRow[cleanMapping.from_location],
+                to_location_col: firstRow[cleanMapping.to_location],
+                all_values: firstRow
+            });
+            
+            // Check if first few rows have data - show ALL columns for debugging
+            if (fullDataRes.excel_rows && fullDataRes.excel_rows.length > 0) {
+                console.log('First 3 rows preview (ALL COLUMNS):');
+                fullDataRes.excel_rows.slice(0, 3).forEach((row, idx) => {
+                    const rowData = { total_cols: row.length };
+                    for (let i = 0; i < Math.min(row.length, 10); i++) {
+                        rowData[`col_${i}`] = row[i] !== null && row[i] !== undefined ? row[i] : '[NULL/EMPTY]';
+                    }
+                    console.log(`  Row ${idx + 1}:`, rowData);
+                });
+                
+                // Show column analysis
+                console.log('Column analysis (which columns have data):');
+                const columnAnalysis = {};
+                fullDataRes.excel_rows.slice(0, 10).forEach(row => {
+                    for (let i = 0; i < row.length; i++) {
+                        if (!columnAnalysis[i]) {
+                            columnAnalysis[i] = { total: 0, nonEmpty: 0, samples: [] };
+                        }
+                        columnAnalysis[i].total++;
+                        if (row[i] !== null && row[i] !== undefined && row[i] !== '' && String(row[i]).trim() !== '') {
+                            columnAnalysis[i].nonEmpty++;
+                            if (columnAnalysis[i].samples.length < 3) {
+                                columnAnalysis[i].samples.push(row[i]);
+                            }
+                        }
+                    }
+                });
+                console.log('Column statistics:', columnAnalysis);
+                
+                // Show recommendation for to_location
+                const currentToLocationCol = cleanMapping.to_location;
+                console.log(`\n⚠️ IMPORTANT: You selected column ${currentToLocationCol + 1} for "Nereye" (to_location)`);
+                if (columnAnalysis[currentToLocationCol]) {
+                    const colStats = columnAnalysis[currentToLocationCol];
+                    console.log(`   Column ${currentToLocationCol + 1} status: ${colStats.nonEmpty}/${colStats.total} rows have data`);
+                    if (colStats.nonEmpty === 0) {
+                        console.log(`   ❌ Column ${currentToLocationCol + 1} is EMPTY!`);
+                        console.log(`   ✅ Recommended: Look for a column with location values like "HAVALİMANI", "MERKEZ", etc.`);
+                        // Find column with most data
+                        let bestCol = null;
+                        let bestNonEmpty = 0;
+                        for (let i = 0; i < Object.keys(columnAnalysis).length; i++) {
+                            if (i !== cleanMapping.from_location && columnAnalysis[i] && columnAnalysis[i].nonEmpty > bestNonEmpty) {
+                                bestNonEmpty = columnAnalysis[i].nonEmpty;
+                                bestCol = i;
+                            }
+                        }
+                        if (bestCol !== null && columnAnalysis[bestCol].samples.length > 0) {
+                            console.log(`   💡 Suggestion: Column ${bestCol + 1} has ${bestNonEmpty} rows with data. Samples:`, columnAnalysis[bestCol].samples);
+                        }
+                    } else {
+                        console.log(`   ✅ Column ${currentToLocationCol + 1} looks good!`);
+                    }
+                }
+            }
+            
+            // Add CSRF token to saveData
+            const token2 = getCsrfToken();
+            if (token2) {
+                saveData.csrf_token = token2;
+            }
             
             const saveResp = await fetch(`${API_BASE}?action=save_contract_routes`, {
                 method: 'POST',
@@ -1298,13 +1417,23 @@
                 throw new Error(tCommon.save_failed || 'Save failed: Invalid response from server');
             }
             
+            // Debug: Log save response
+            console.log('Save response:', saveRes);
+            
             if (saveRes.success) {
-                showToast('success', saveRes.message || (tVehicles.routes_uploaded || 'Routes uploaded successfully'));
+                const message = saveRes.message || (tVehicles.routes_uploaded || 'Routes uploaded successfully');
+                console.log('✅ Import successful:', {
+                    saved_count: saveRes.saved_count || 0,
+                    skipped_count: saveRes.skipped_count || 0,
+                    skip_reasons: saveRes.skip_reasons || {}
+                });
+                showToast('success', message);
                 closeUploadModal();
                 await loadContractRoutes();
                 // Clear stored file
                 excelFileData = null;
             } else {
+                console.error('❌ Import failed:', saveRes.message);
                 showToast('error', saveRes.message || (tCommon.save_failed || 'Save failed'));
             }
         } catch (e) {

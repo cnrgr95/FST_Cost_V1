@@ -1,3 +1,10 @@
+# Vendor dependencies (should be installed via composer install)
+vendor/
+
+# Composer
+composer.phar
+composer.phar.*
+
 # Environment variables
 .env
 .env.local

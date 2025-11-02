@@ -25,6 +25,9 @@ if ($contractId <= 0) {
 // Load translation helper
 require_once $basePath . 'includes/translations.php';
 
+// Load security helpers for CSRF token
+require_once $basePath . 'includes/security.php';
+
 // Get translations
 $t_sidebar = $all_translations['sidebar'] ?? [];
 $t_common = $all_translations['common'] ?? [];
@@ -282,6 +285,7 @@ $t_vehicles = $all_translations['vehicles'] ?? [];
         'basePath' => $basePath,
         'apiBase' => $basePath . 'api/definitions/vehicles.php',
         'contractId' => $contractId,
+        'csrfToken' => csrfToken(),
         'translations' => [
             'vehicles' => $t_vehicles,
             'common' => $t_common,

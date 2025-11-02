@@ -8,14 +8,12 @@
  * Generate CSRF token
  */
 function generateCsrfToken() {
-    // Don't start session if already started or if API request
-    if (session_status() === PHP_SESSION_NONE && !defined('API_REQUEST')) {
+    // Start session if not already started
+    if (session_status() === PHP_SESSION_NONE) {
         session_start();
-    } elseif (session_status() === PHP_SESSION_NONE && defined('API_REQUEST')) {
-        // For API requests, session should already be started
-        return null;
     }
     
+    // Generate token if it doesn't exist
     if (!isset($_SESSION['csrf_token'])) {
         $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
     }

@@ -37,6 +37,9 @@ try {
     require_once __DIR__ . '/../../config.php';
     // Load security helpers for CSRF protection
     require_once __DIR__ . '/../../includes/security.php';
+    
+    // Initialize CSRF token in session if not exists
+    generateCsrfToken();
 } catch (Throwable $e) {
     if (ob_get_level() > 0) {
         ob_end_clean();
