@@ -205,34 +205,69 @@
             });
     }
     
-    function renderTable() {
-        const data = countries;
+    function renderTable(dataToRender = null) {
+        const data = dataToRender !== null ? dataToRender : countries;
         const tbody = document.getElementById('currenciesTableBody');
+        const countBadge = document.getElementById('currenciesCountBadge');
+        const tableInfo = document.getElementById('currenciesTableInfo');
         
         if (!data || data.length === 0) {
             tbody.innerHTML = `
                 <tr>
-                    <td colspan="4" style="text-align: center; padding: 40px;">
-                        <span class="material-symbols-rounded" style="font-size: 48px; color: #9ca3af;">currency_exchange</span>
-                        <p style="color: #9ca3af; margin-top: 10px;">${tCurrencies.no_countries || 'No countries selected for currencies'}</p>
+                    <td colspan="4">
+                        <div class="empty-state">
+                            <span class="material-symbols-rounded">currency_exchange</span>
+                            <h3>${tCurrencies.no_countries || 'No countries selected for currencies'}</h3>
+                            <p>${tCurrencies.select_countries || 'Select countries to manage currencies'}</p>
+                        </div>
                     </td>
                 </tr>
             `;
+            if (countBadge) countBadge.textContent = '0';
+            if (tableInfo) tableInfo.innerHTML = `${tCommon.showing || 'Showing'} <strong>0</strong> items`;
+            window.currenciesTableData = [];
             return;
         }
         
-        tbody.innerHTML = data.map(country => `
-            <tr>
-                <td><strong>${country.name || '-'}</strong></td>
-                <td>${country.code || '-'}</td>
-                <td>${country.local_currency_code || '-'}</td>
-                <td>
-                    <a class="btn-icon" href="${(pageConfig.basePath || '../../')}app/definitions/currency-country.php?id=${country.id}" title="${tCurrencies.manage || 'Manage'}">
-                        <span class="material-symbols-rounded">open_in_new</span>
-                    </a>
-                </td>
-            </tr>
-        `).join('');
+        const totalCount = data.length;
+        const escapedHtml = window.escapeHtml || function(text) {
+            if (!text) return '';
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        };
+        
+        tbody.innerHTML = data.map((country, index) => {
+            const escapedName = escapedHtml(country.name || '');
+            const escapedCode = escapedHtml(country.code || '');
+            const escapedCurrency = escapedHtml(country.local_currency_code || '');
+            return `
+                <tr data-index="${index}" 
+                     data-name="${(country.name || '').toLowerCase()}" 
+                     data-code="${((country.code || '') + '').toLowerCase()}" 
+                     data-currency="${((country.local_currency_code || '') + '').toLowerCase()}">
+                    <td><strong>${escapedName || '-'}</strong></td>
+                    <td><span class="code-badge">${escapedCode || '-'}</span></td>
+                    <td>${escapedCurrency || '-'}</td>
+                    <td>
+                        <div class="action-buttons">
+                            <a class="btn-icon" href="${(pageConfig.basePath || '../../')}app/definitions/currency-country.php?id=${country.id}" title="${tCurrencies.manage || 'Manage'} ${escapedName}">
+                                <span class="material-symbols-rounded">open_in_new</span>
+                            </a>
+                        </div>
+                    </td>
+                </tr>
+            `;
+        }).join('');
+        
+        // Update count badge and footer
+        if (countBadge) countBadge.textContent = totalCount;
+        if (tableInfo) {
+            tableInfo.innerHTML = `${tCommon.showing || 'Showing'} <strong>${totalCount}</strong> ${totalCount === 1 ? 'item' : 'items'}`;
+        }
+        
+        // Store original data for filtering and sorting
+        window.currenciesTableData = data;
     }
     
     // Manage country modal
@@ -658,4 +693,73 @@
     }
     
     // Toast notifications use global showToast from toast.js
+    
+    // ============================================
+    // TABLE SEARCH AND SORT FUNCTIONS
+    // ============================================
+    
+    // Filter Currencies table
+    window.filterCurrenciesTable = function(searchTerm) {
+        const tbody = document.getElementById('currenciesTableBody');
+        const clearBtn = document.getElementById('currenciesSearchClear');
+        
+        if (!tbody) return;
+        
+        // Use generic filterTable function
+        window.filterTable('currenciesTableBody', searchTerm, ['name', 'code', 'currency'], 'currenciesSearchClear', function(visibleCount) {
+            // Update footer count
+            const footer = document.getElementById('currenciesTableInfo');
+            if (footer) {
+                footer.innerHTML = `${tCommon.showing || 'Showing'} <strong>${visibleCount}</strong> ${visibleCount === 1 ? 'item' : 'items'}`;
+            }
+        });
+    };
+    
+    // Clear Currencies search
+    window.clearCurrenciesSearch = function() {
+        const input = document.getElementById('currenciesSearchInput');
+        const clearBtn = document.getElementById('currenciesSearchClear');
+        
+        if (input) {
+            input.value = '';
+            filterCurrenciesTable('');
+        }
+        if (clearBtn) {
+            clearBtn.style.display = 'none';
+        }
+    };
+    
+    // Sort Currencies table
+    let currenciesSortState = { column: null, direction: 'asc' };
+    
+    window.sortCurrenciesTable = function(column) {
+        const data = window.currenciesTableData;
+        if (!data || data.length === 0) return;
+        
+        const result = window.sortTableData(data, column, currenciesSortState.column, currenciesSortState.direction);
+        
+        // Update sort state
+        currenciesSortState.column = result.newColumn;
+        currenciesSortState.direction = result.newDirection;
+        
+        // Re-render table with sorted data
+        renderTable(result.sortedData);
+        
+        // Update sort icons
+        const table = document.getElementById('currenciesTable');
+        if (table) {
+            const headers = table.querySelectorAll('th.sortable .sort-icon');
+            headers.forEach(icon => {
+                icon.textContent = '⇅';
+                icon.style.color = '';
+            });
+            
+            const activeHeader = table.querySelector(`th[onclick*="${column}"] .sort-icon`);
+            if (activeHeader) {
+                activeHeader.textContent = result.newDirection === 'asc' ? '↑' : '↓';
+                activeHeader.style.color = '#151A2D';
+            }
+        }
+    };
+    
 })();

@@ -74,28 +74,61 @@ $t_currencies = $all_translations['currencies'] ?? [];
                 </div>
                 
                 <!-- Countries Section -->
-                <div class="section-header" style="margin-top: 40px;">
-                    <h2><?php echo $t_currencies['countries'] ?? 'Countries'; ?></h2>
-                </div>
-                <div class="currencies-table-section">
-                    <table class="currencies-table">
-                        <thead>
-                            <tr>
-                                <th><?php echo $t_currencies['country'] ?? 'Country'; ?></th>
-                                <th><?php echo $t_currencies['country_code'] ?? 'Code'; ?></th>
-                                <th><?php echo $t_currencies['local_currency'] ?? 'Local Currency'; ?></th>
-                                <th><?php echo $t_common['actions'] ?? 'Actions'; ?></th>
-                            </tr>
-                        </thead>
-                        <tbody id="currenciesTableBody">
-                            <tr>
-                                <td colspan="4" style="text-align: center; padding: 40px;">
-                                    <span class="material-symbols-rounded" style="font-size: 48px; color: #9ca3af;">currency_exchange</span>
-                                    <p style="color: #9ca3af; margin-top: 10px;"><?php echo $t_currencies['loading_data'] ?? 'Loading data...'; ?></p>
-                                </td>
-                            </tr>
-                        </tbody>
-                    </table>
+                <div class="currencies-table-container" style="margin-top: 40px;">
+                    <div class="currencies-table-header">
+                        <div class="currencies-table-title">
+                            <span class="material-symbols-rounded" style="vertical-align: middle; margin-right: 8px; font-size: 24px;">public</span>
+                            <?php echo $t_currencies['countries'] ?? 'Countries'; ?>
+                            <span class="table-count-badge" id="currenciesCountBadge">0</span>
+                        </div>
+                        <div class="table-actions-group">
+                            <div class="search-box">
+                                <span class="material-symbols-rounded search-icon">search</span>
+                                <input type="text" 
+                                       id="currenciesSearchInput" 
+                                       placeholder="<?php echo $t_common['search'] ?? 'Search...'; ?>" 
+                                       class="search-input"
+                                       onkeyup="filterCurrenciesTable(this.value)">
+                                <button class="search-clear" id="currenciesSearchClear" onclick="clearCurrenciesSearch()" style="display: none;">
+                                    <span class="material-symbols-rounded">close</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="currencies-table-section">
+                        <table class="currencies-table" id="currenciesTable">
+                            <thead>
+                                <tr>
+                                    <th class="sortable" onclick="sortCurrenciesTable('name')">
+                                        <?php echo $t_currencies['country'] ?? 'Country'; ?>
+                                        <span class="sort-icon">⇅</span>
+                                    </th>
+                                    <th class="sortable" onclick="sortCurrenciesTable('code')">
+                                        <?php echo $t_currencies['country_code'] ?? 'Code'; ?>
+                                        <span class="sort-icon">⇅</span>
+                                    </th>
+                                    <th class="sortable" onclick="sortCurrenciesTable('local_currency_code')">
+                                        <?php echo $t_currencies['local_currency'] ?? 'Local Currency'; ?>
+                                        <span class="sort-icon">⇅</span>
+                                    </th>
+                                    <th class="no-sort"><?php echo $t_common['actions'] ?? 'Actions'; ?></th>
+                                </tr>
+                            </thead>
+                            <tbody id="currenciesTableBody">
+                                <tr>
+                                    <td colspan="4" style="text-align: center; padding: 40px;">
+                                        <div class="loading">
+                                            <span class="material-symbols-rounded">sync</span>
+                                            <p><?php echo $t_currencies['loading_data'] ?? 'Loading data...'; ?></p>
+                                        </div>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                        <div class="table-footer">
+                            <div class="table-info" id="currenciesTableInfo"><?php echo $t_common['showing'] ?? 'Showing'; ?> <strong>0</strong> items</div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>

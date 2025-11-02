@@ -84,28 +84,57 @@
     }
     
     // Render languages list with drag and drop
-    function renderLanguagesList() {
+    function renderLanguagesList(dataToRender = null) {
         const container = document.getElementById('languages-list');
-        let html = '';
+        const countBadge = document.getElementById('languagesCountBadge');
+        const data = dataToRender !== null ? dataToRender : currentData.languages;
         
-        currentData.languages.forEach((lang, index) => {
+        if (!data || data.length === 0) {
+            container.innerHTML = `
+                <div class="empty-state" style="padding: 40px 20px;">
+                    <span class="material-symbols-rounded">language</span>
+                    <h3>${tLangMgmt.no_languages || 'No languages found'}</h3>
+                    <p>${tLangMgmt.add_language || 'Add your first language'}</p>
+                </div>
+            `;
+            if (countBadge) countBadge.textContent = '0';
+            window.languagesListData = [];
+            return;
+        }
+        
+        const totalCount = data.length;
+        const escapedHtml = window.escapeHtml || function(text) {
+            if (!text) return '';
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        };
+        
+        let html = '';
+        data.forEach((lang, index) => {
             const isActive = currentData.currentLang && currentData.currentLang.code === lang.code;
             const isBase = lang.code === 'en';
+            const escapedName = escapedHtml(lang.name);
             html += `
-                <div class="lang-item ${isActive ? 'active' : ''}" data-code="${lang.code}" draggable="true" data-index="${index}">
+                <div class="lang-item ${isActive ? 'active' : ''}" 
+                     data-code="${lang.code}" 
+                     draggable="true" 
+                     data-index="${index}"
+                     data-name="${(lang.name || '').toLowerCase()}"
+                     data-code-search="${(lang.code || '').toLowerCase()}">
                     <div style="display: flex; justify-content: space-between; align-items: center;">
                         <div style="display: flex; align-items: center; gap: 8px; flex: 1;">
                             <span class="drag-handle material-symbols-rounded" style="cursor: move; color: #6b7280; font-size: 20px;">drag_handle</span>
                         <div onclick="selectLanguage('${lang.code}')" style="flex: 1; cursor: pointer;">
-                            <strong>${lang.code.toUpperCase()}</strong> - ${lang.name}
+                            <strong>${lang.code.toUpperCase()}</strong> - ${escapedName}
                             </div>
                         </div>
                         <div style="display: flex; gap: 5px;">
                             ${!isBase ? `
-                            <button onclick="editLanguageName('${lang.code}', '${lang.name.replace(/'/g, "\\'")}')" style="padding: 4px 8px; background: #10b981; color: white; border: none; border-radius: 4px; cursor: pointer;">
+                            <button onclick="editLanguageName('${lang.code}', '${lang.name.replace(/'/g, "\\'")}')" title="${tCommon.edit || 'Edit'} ${escapedName}" style="padding: 4px 8px; background: #10b981; color: white; border: none; border-radius: 4px; cursor: pointer;">
                                 <span class="material-symbols-rounded" style="font-size: 16px;">edit</span>
                             </button>
-                            <button onclick="deleteLanguage('${lang.code}')" style="padding: 4px 8px; background: #ef4444; color: white; border: none; border-radius: 4px; cursor: pointer;">
+                            <button onclick="deleteLanguage('${lang.code}')" title="${tCommon.delete || 'Delete'} ${escapedName}" style="padding: 4px 8px; background: #ef4444; color: white; border: none; border-radius: 4px; cursor: pointer;">
                                 <span class="material-symbols-rounded" style="font-size: 16px;">delete</span>
                             </button>
                             ` : ''}
@@ -116,6 +145,8 @@
         });
         
         container.innerHTML = html || `<p style="color: #9ca3af;">${tLangMgmt.no_languages || 'No languages found'}</p>`;
+        if (countBadge) countBadge.textContent = totalCount;
+        window.languagesListData = data;
         
         // Setup drag and drop
         setupDragAndDrop();
@@ -665,4 +696,56 @@
             }
         });
     };
+    
+    // ============================================
+    // LANGUAGE LIST SEARCH FUNCTION
+    // ============================================
+    
+    // Filter Languages list
+    window.filterLanguagesList = function(searchTerm) {
+        const container = document.getElementById('languages-list');
+        const clearBtn = document.getElementById('languagesSearchClear');
+        
+        if (!container) return;
+        
+        const term = searchTerm.toLowerCase().trim();
+        const items = container.querySelectorAll('.lang-item');
+        let visibleCount = 0;
+        
+        items.forEach(item => {
+            const name = item.getAttribute('data-name') || '';
+            const code = item.getAttribute('data-code-search') || '';
+            
+            const matches = term === '' || name.includes(term) || code.includes(term);
+            
+            item.style.display = matches ? '' : 'none';
+            if (matches) visibleCount++;
+        });
+        
+        // Show/hide clear button
+        if (clearBtn) {
+            clearBtn.style.display = term ? 'flex' : 'none';
+        }
+        
+        // Update count badge
+        const countBadge = document.getElementById('languagesCountBadge');
+        if (countBadge) {
+            countBadge.textContent = visibleCount;
+        }
+    };
+    
+    // Clear Languages search
+    window.clearLanguagesSearch = function() {
+        const input = document.getElementById('languagesSearchInput');
+        const clearBtn = document.getElementById('languagesSearchClear');
+        
+        if (input) {
+            input.value = '';
+            filterLanguagesList('');
+        }
+        if (clearBtn) {
+            clearBtn.style.display = 'none';
+        }
+    };
+    
 })();

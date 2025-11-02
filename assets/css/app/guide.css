@@ -72,20 +72,14 @@
     overflow: visible; /* Changed from hidden to visible */
 }
 
-/* Wrapper for responsive scrolling */
-.guide-table-wrapper {
-    overflow-x: auto !important;
-    overflow-y: visible;
-    -webkit-overflow-scrolling: touch;
+/* Guide table specific styles - currencies-table-section is handled by common.css */
+.guide-table,
+.currencies-table {
     width: 100%;
-    display: block;
-    position: relative;
-}
-
-/* Ensure table expands */
-.guide-table-wrapper > .guide-table {
-    min-width: 1200px;
-    width: max-content;
+    border-collapse: collapse;
+    min-width: 1200px; /* Minimum width to force horizontal scroll on smaller screens */
+    display: table;
+    table-layout: auto;
 }
 
 .guide-table-header {
@@ -103,17 +97,10 @@
     color: #1f2937;
 }
 
-.guide-table {
-    width: 100%;
-    border-collapse: collapse;
-    min-width: 1200px; /* Minimum width to force horizontal scroll */
-    display: table;
-    table-layout: auto;
-}
-
 /* Force table to expand beyond container on smaller screens */
 @media (max-width: 1400px) {
-    .guide-table-wrapper .guide-table {
+    .currencies-table-section .currencies-table,
+    .currencies-table-section .guide-table {
         width: max-content !important;
         min-width: 1200px !important;
     }
@@ -321,11 +308,10 @@
         padding: 0;
     }
     
-    .guide-table-wrapper {
+    .currencies-table-section {
         overflow-x: auto !important;
         -webkit-overflow-scrolling: touch;
         width: 100%;
-        display: block;
         margin: 0;
         padding: 0;
         position: relative;
@@ -335,7 +321,8 @@
         overflow: visible !important;
     }
     
-    .guide-table {
+    .guide-table,
+    .currencies-table {
         min-width: max-content !important;
         width: max-content !important;
         display: table !important;
@@ -411,12 +398,13 @@
         font-size: 22px;
     }
     
-    .guide-table-wrapper {
+    .currencies-table-section {
         margin: 0;
         padding: 0;
     }
     
-    .guide-table {
+    .guide-table,
+    .currencies-table {
         min-width: max-content !important;
         width: max-content !important;
     }

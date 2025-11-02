@@ -530,5 +530,110 @@
         return row;
     };
     
+    // ============================================
+    // COMMON TABLE UI FUNCTIONS (from tours.js)
+    // Search, Sort, Filter helpers
+    // ============================================
+    
+    /**
+     * Generic table filter function
+     * Filters table rows based on search term and data attributes
+     * @param {string} tableBodyId - ID of tbody element
+     * @param {string} searchTerm - Search term
+     * @param {Array<string>} dataAttributes - Array of data attribute names to search
+     * @param {string} clearButtonId - ID of clear button (optional)
+     * @param {Function} onUpdateCount - Callback to update count display (optional)
+     */
+    window.filterTable = function(tableBodyId, searchTerm, dataAttributes = [], clearButtonId = null, onUpdateCount = null) {
+        const tbody = document.getElementById(tableBodyId);
+        if (!tbody) return;
+        
+        const clearBtn = clearButtonId ? document.getElementById(clearButtonId) : null;
+        const term = searchTerm.toLowerCase().trim();
+        const rows = tbody.querySelectorAll('tr');
+        let visibleCount = 0;
+        
+        rows.forEach(row => {
+            let matches = term === '';
+            
+            if (!matches && dataAttributes.length > 0) {
+                matches = dataAttributes.some(attr => {
+                    const value = row.getAttribute(`data-${attr}`) || '';
+                    return value.includes(term);
+                });
+            } else if (!matches) {
+                // Fallback: search all text content
+                const text = row.textContent.toLowerCase();
+                matches = text.includes(term);
+            }
+            
+            row.style.display = matches ? '' : 'none';
+            if (matches) visibleCount++;
+        });
+        
+        // Show/hide clear button
+        if (clearBtn) {
+            clearBtn.style.display = term ? 'flex' : 'none';
+        }
+        
+        // Update count via callback
+        if (onUpdateCount && typeof onUpdateCount === 'function') {
+            onUpdateCount(visibleCount);
+        }
+    };
+    
+    /**
+     * Generic table sort function
+     * Sorts table data and re-renders
+     * @param {Array} data - Array of data objects
+     * @param {string} column - Column key to sort by
+     * @param {string} currentColumn - Currently sorted column (null if none)
+     * @param {string} direction - Current sort direction ('asc' or 'desc')
+     * @returns {Object} { sortedData, newColumn, newDirection }
+     */
+    window.sortTableData = function(data, column, currentColumn = null, direction = 'asc') {
+        // Toggle direction if same column
+        let newDirection = direction;
+        let newColumn = column;
+        
+        if (currentColumn === column) {
+            newDirection = direction === 'asc' ? 'desc' : 'asc';
+        } else {
+            newDirection = 'asc';
+        }
+        
+        // Sort data
+        const sortedData = [...data].sort((a, b) => {
+            let aVal = a[column] || '';
+            let bVal = b[column] || '';
+            
+            // Handle numeric or string comparison
+            if (typeof aVal === 'string') {
+                aVal = aVal.toLowerCase();
+                bVal = bVal.toLowerCase();
+            }
+            
+            if (newDirection === 'asc') {
+                return aVal > bVal ? 1 : aVal < bVal ? -1 : 0;
+            } else {
+                return aVal < bVal ? 1 : aVal > bVal ? -1 : 0;
+            }
+        });
+        
+        return { sortedData, newColumn, newDirection };
+    };
+    
+    /**
+     * Escape HTML to prevent XSS
+     * @param {string} text - Text to escape
+     * @returns {string} Escaped text
+     */
+    window.escapeHtml = function(text) {
+        if (!text) return '';
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+    };
+    
 })();
 

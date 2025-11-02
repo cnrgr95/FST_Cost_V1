@@ -69,10 +69,25 @@ $t_lang_mgmt = $all_translations['language_mgmt'] ?? [];
                     <!-- Sidebar -->
                     <div class="languages-sidebar">
                         <div class="languages-sidebar-header">
-                            <h2><?php echo $t_lang_mgmt['languages'] ?? 'Languages'; ?></h2>
-                            <button class="btn-add btn-add-small" onclick="openAddModal()">
+                            <h2>
+                                <span class="material-symbols-rounded" style="vertical-align: middle; margin-right: 8px; font-size: 20px;">language</span>
+                                <?php echo $t_lang_mgmt['languages'] ?? 'Languages'; ?>
+                                <span class="table-count-badge" id="languagesCountBadge">0</span>
+                            </h2>
+                            <button class="btn-add btn-add-small" onclick="openAddModal()" title="<?php echo $t_lang_mgmt['add'] ?? 'Add'; ?>">
                                 <span class="material-symbols-rounded icon-small">add</span>
                                 <?php echo $t_lang_mgmt['add'] ?? 'Add'; ?>
+                            </button>
+                        </div>
+                        <div class="search-box" style="margin: 12px 0; padding: 0 12px;">
+                            <span class="material-symbols-rounded search-icon">search</span>
+                            <input type="text" 
+                                   id="languagesSearchInput" 
+                                   placeholder="<?php echo $t_common['search'] ?? 'Search languages...'; ?>" 
+                                   class="search-input"
+                                   onkeyup="filterLanguagesList(this.value)">
+                            <button class="search-clear" id="languagesSearchClear" onclick="clearLanguagesSearch()" style="display: none;">
+                                <span class="material-symbols-rounded">close</span>
                             </button>
                         </div>
                         <div id="languages-list"></div>

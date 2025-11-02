@@ -200,32 +200,101 @@
         }
         
         const typeText = type === 'departments' ? tSidebar.department : tSidebar.position;
+        const totalCount = data.length;
+        const iconMap = {
+            'departments': 'business_center',
+            'positions': 'work'
+        };
         
         let html = '<div class="positions-table-container">';
         html += '<div class="positions-table-header">';
-        html += `<div class="positions-table-title">${typeText}</div>`;
-        html += `<button class="btn-add" onclick="window.openModal('${type}')">
+        html += `<div class="positions-table-title">
+                    <span class="material-symbols-rounded" style="vertical-align: middle; margin-right: 8px; font-size: 24px;">${iconMap[type] || 'list'}</span>
+                    ${typeText} 
+                    <span class="table-count-badge">${totalCount}</span>
+                 </div>`;
+        html += '<div class="table-actions-group">';
+        html += `<div class="search-box">
+                    <span class="material-symbols-rounded search-icon">search</span>
+                    <input type="text" 
+                           id="${type}SearchInput" 
+                           placeholder="${tCommon.search || 'Search...'}" 
+                           class="search-input"
+                           onkeyup="filterPositionsTable('${type}', this.value)">
+                    <button class="search-clear" id="${type}SearchClear" onclick="clearPositionsSearch('${type}')" style="display: none;">
+                        <span class="material-symbols-rounded">close</span>
+                    </button>
+                 </div>`;
+        html += `<button class="btn-add" onclick="window.openModal('${type}')" title="${tPos.add_new_dept || 'Add New'}">
                     <span class="material-symbols-rounded">add</span>
                     ${tPos.add_new_dept || 'Add New'}
                  </button>`;
         html += '</div>';
+        html += '</div>';
         html += '<div class="currencies-table-section">';
-        html += '<table class="currencies-table">';
+        html += `<table class="currencies-table" id="${type}Table">`;
         
-        // Table headers
+        // Table headers with sortable
         if (type === 'departments') {
-            html += `<thead><tr><th>${tPos.department_name || 'Name'}</th><th>${tPos.city || 'City'}</th><th>${tPos.region || 'Region'}</th><th>${tPos.country || 'Country'}</th><th>${tPos.actions || 'Actions'}</th></tr></thead>`;
+            html += `<thead><tr>
+                        <th class="sortable" onclick="sortPositionsTable('${type}', 'name')">
+                            ${tPos.department_name || 'Name'}
+                            <span class="sort-icon">⇅</span>
+                        </th>
+                        <th class="sortable" onclick="sortPositionsTable('${type}', 'city_name')">
+                            ${tPos.city || 'City'}
+                            <span class="sort-icon">⇅</span>
+                        </th>
+                        <th class="sortable" onclick="sortPositionsTable('${type}', 'region_name')">
+                            ${tPos.region || 'Region'}
+                            <span class="sort-icon">⇅</span>
+                        </th>
+                        <th class="sortable" onclick="sortPositionsTable('${type}', 'country_name')">
+                            ${tPos.country || 'Country'}
+                            <span class="sort-icon">⇅</span>
+                        </th>
+                        <th class="no-sort">${tPos.actions || 'Actions'}</th>
+                     </tr></thead>`;
         } else {
-            html += `<thead><tr><th>${tPos.position_name || 'Name'}</th><th>${tSidebar.department || 'Department'}</th><th>${tPos.city || 'City'}</th><th>${tPos.region || 'Region'}</th><th>${tPos.country || 'Country'}</th><th>${tPos.actions || 'Actions'}</th></tr></thead>`;
+            html += `<thead><tr>
+                        <th class="sortable" onclick="sortPositionsTable('${type}', 'name')">
+                            ${tPos.position_name || 'Name'}
+                            <span class="sort-icon">⇅</span>
+                        </th>
+                        <th class="sortable" onclick="sortPositionsTable('${type}', 'department_name')">
+                            ${tSidebar.department || 'Department'}
+                            <span class="sort-icon">⇅</span>
+                        </th>
+                        <th class="sortable" onclick="sortPositionsTable('${type}', 'city_name')">
+                            ${tPos.city || 'City'}
+                            <span class="sort-icon">⇅</span>
+                        </th>
+                        <th class="sortable" onclick="sortPositionsTable('${type}', 'region_name')">
+                            ${tPos.region || 'Region'}
+                            <span class="sort-icon">⇅</span>
+                        </th>
+                        <th class="sortable" onclick="sortPositionsTable('${type}', 'country_name')">
+                            ${tPos.country || 'Country'}
+                            <span class="sort-icon">⇅</span>
+                        </th>
+                        <th class="no-sort">${tPos.actions || 'Actions'}</th>
+                     </tr></thead>`;
         }
         
-        html += '<tbody>';
-        data.forEach(item => {
-            html += buildTableRow(type, item);
+        html += `<tbody id="${type}TableBody">`;
+        data.forEach((item, index) => {
+            html += buildTableRow(type, item, index);
         });
-        html += '</tbody></table></div></div>';
+        html += '</tbody></table>';
+        html += '<div class="table-footer">';
+        html += `<div class="table-info">${tCommon.showing || 'Showing'} <strong>${totalCount}</strong> ${totalCount === 1 ? 'item' : 'items'}</div>`;
+        html += '</div>';
+        html += '</div></div>';
         
         container.innerHTML = html;
+        
+        // Store original data for filtering and sorting
+        window[`${type}TableData`] = data;
         
         // Attach event listeners to action buttons
         attachActionListeners();
@@ -237,30 +306,42 @@
         // Event listeners are now inline via onclick handlers
     }
     
-    // Build table row
-    function buildTableRow(type, item) {
-        let html = '<tr>';
+    // Build table row with data attributes for filtering
+    function buildTableRow(type, item, index) {
+        const escapedName = window.escapeHtml ? window.escapeHtml(item.name) : escapeHtml(item.name);
+        
+        let html = `<tr data-index="${index}" 
+                     data-name="${(item.name || '').toLowerCase()}"`;
         
         if (type === 'departments') {
-            html += `<td>${escapeHtml(item.name)}</td>`;
-            html += `<td>${escapeHtml(item.city_name || '-')}</td>`;
-            html += `<td>${escapeHtml(item.region_name || '-')}</td>`;
-            html += `<td>${escapeHtml(item.country_name || '-')}</td>`;
+            html += ` data-city="${(item.city_name || '').toLowerCase()}" 
+                     data-region="${(item.region_name || '').toLowerCase()}" 
+                     data-country="${(item.country_name || '').toLowerCase()}">`;
+            html += `<td><strong>${escapedName}</strong></td>`;
+            html += `<td>${window.escapeHtml ? window.escapeHtml(item.city_name || '-') : escapeHtml(item.city_name || '-')}</td>`;
+            html += `<td>${window.escapeHtml ? window.escapeHtml(item.region_name || '-') : escapeHtml(item.region_name || '-')}</td>`;
+            html += `<td><span class="location-badge">${window.escapeHtml ? window.escapeHtml(item.country_name || '-') : escapeHtml(item.country_name || '-')}</span></td>`;
         } else {
-            html += `<td>${escapeHtml(item.name)}</td>`;
-            html += `<td>${escapeHtml(item.department_name || '-')}</td>`;
-            html += `<td>${escapeHtml(item.city_name || '-')}</td>`;
-            html += `<td>${escapeHtml(item.region_name || '-')}</td>`;
-            html += `<td>${escapeHtml(item.country_name || '-')}</td>`;
+            html += ` data-department="${(item.department_name || '').toLowerCase()}" 
+                     data-city="${(item.city_name || '').toLowerCase()}" 
+                     data-region="${(item.region_name || '').toLowerCase()}" 
+                     data-country="${(item.country_name || '').toLowerCase()}">`;
+            html += `<td><strong>${escapedName}</strong></td>`;
+            html += `<td>${window.escapeHtml ? window.escapeHtml(item.department_name || '-') : escapeHtml(item.department_name || '-')}</td>`;
+            html += `<td>${window.escapeHtml ? window.escapeHtml(item.city_name || '-') : escapeHtml(item.city_name || '-')}</td>`;
+            html += `<td>${window.escapeHtml ? window.escapeHtml(item.region_name || '-') : escapeHtml(item.region_name || '-')}</td>`;
+            html += `<td><span class="location-badge">${window.escapeHtml ? window.escapeHtml(item.country_name || '-') : escapeHtml(item.country_name || '-')}</span></td>`;
         }
         
         html += '<td>';
-        html += `<button class="btn-icon" onclick="window.editItem('${type}', ${item.id})" title="${tCommon.edit || 'Edit'}">
+        html += `<div class="action-buttons">`;
+        html += `<button class="btn-icon" onclick="window.editItem('${type}', ${item.id})" title="${tCommon.edit || 'Edit'} ${escapedName}">
                     <span class="material-symbols-rounded">edit</span>
                  </button>`;
-        html += `<button class="btn-icon btn-danger" onclick="window.deleteItem('${type}', ${item.id})" title="${tCommon.delete || 'Delete'}">
+        html += `<button class="btn-icon btn-danger" onclick="window.deleteItem('${type}', ${item.id})" title="${tCommon.delete || 'Delete'} ${escapedName}">
                     <span class="material-symbols-rounded">delete</span>
                  </button>`;
+        html += `</div>`;
         html += '</td>';
         html += '</tr>';
         

@@ -367,61 +367,135 @@
     function renderTable(dataToRender = null) {
         const container = document.getElementById('users-content');
         const data = dataToRender !== null ? dataToRender : currentData.users;
+        const escapedHtml = window.escapeHtml || function(text) {
+            if (!text) return '';
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        };
         
         if (!data || data.length === 0) {
             container.innerHTML = `
-                <div class="empty-state">
-                    <span class="material-symbols-rounded">person</span>
-                    <p>${tUsers.no_users}</p>
+                <div class="users-table-container">
+                    <div class="users-table-header">
+                        <div class="users-table-title">
+                            <span class="material-symbols-rounded" style="vertical-align: middle; margin-right: 8px; font-size: 24px;">people</span>
+                            ${tUsers.title || 'Users'}
+                        </div>
+                    </div>
+                    <div class="empty-state">
+                        <span class="material-symbols-rounded">person</span>
+                        <h3>${tUsers.no_users || 'No users found'}</h3>
+                        <p>${tUsers.add_user || 'Add your first user'}</p>
+                    </div>
                 </div>
             `;
             return;
         }
         
+        const totalCount = data.length;
+        
         let html = '<div class="users-table-container">';
         html += '<div class="users-table-header">';
-        html += `<div class="users-table-title">${tUsers.title}</div>`;
+        html += `<div class="users-table-title">
+                    <span class="material-symbols-rounded" style="vertical-align: middle; margin-right: 8px; font-size: 24px;">people</span>
+                    ${tUsers.title || 'Users'} 
+                    <span class="table-count-badge">${totalCount}</span>
+                 </div>`;
+        html += '<div class="table-actions-group">';
+        html += `<div class="search-box">
+                    <span class="material-symbols-rounded search-icon">search</span>
+                    <input type="text" 
+                           id="usersSearchInput" 
+                           placeholder="${tCommon.search || 'Search...'}" 
+                           class="search-input"
+                           onkeyup="filterUsersTable(this.value)">
+                    <button class="search-clear" id="usersSearchClear" onclick="clearUsersSearch()" style="display: none;">
+                        <span class="material-symbols-rounded">close</span>
+                    </button>
+                 </div>`;
+        html += '</div>';
         html += '</div>';
         html += '<div class="currencies-table-section">';
-        html += '<table class="currencies-table">';
+        html += '<table class="currencies-table" id="usersTable">';
         html += '<thead><tr>';
-        html += `<th>${tUsers.username}</th>`;
-        html += `<th>${tUsers.full_name}</th>`;
-        html += `<th>${tUsers.department}</th>`;
-        html += `<th>${tUsers.position}</th>`;
-        html += `<th>${tUsers.city}</th>`;
-        html += `<th>${tUsers.email}</th>`;
-        html += `<th>${tUsers.status}</th>`;
-        html += `<th>${tUsers.actions}</th>`;
+        html += `<th class="sortable" onclick="sortUsersTable('username')">
+                    ${tUsers.username || 'Username'}
+                    <span class="sort-icon">⇅</span>
+                 </th>`;
+        html += `<th class="sortable" onclick="sortUsersTable('full_name')">
+                    ${tUsers.full_name || 'Full Name'}
+                    <span class="sort-icon">⇅</span>
+                 </th>`;
+        html += `<th class="sortable" onclick="sortUsersTable('department_name')">
+                    ${tUsers.department || 'Department'}
+                    <span class="sort-icon">⇅</span>
+                 </th>`;
+        html += `<th class="sortable" onclick="sortUsersTable('position_name')">
+                    ${tUsers.position || 'Position'}
+                    <span class="sort-icon">⇅</span>
+                 </th>`;
+        html += `<th class="sortable" onclick="sortUsersTable('city_name')">
+                    ${tUsers.city || 'City'}
+                    <span class="sort-icon">⇅</span>
+                 </th>`;
+        html += `<th class="sortable" onclick="sortUsersTable('email')">
+                    ${tUsers.email || 'Email'}
+                    <span class="sort-icon">⇅</span>
+                 </th>`;
+        html += `<th class="sortable" onclick="sortUsersTable('status')">
+                    ${tUsers.status || 'Status'}
+                    <span class="sort-icon">⇅</span>
+                 </th>`;
+        html += `<th class="no-sort">${tUsers.actions || 'Actions'}</th>`;
         html += '</tr></thead>';
         
-        html += '<tbody>';
-        data.forEach(item => {
+        html += '<tbody id="usersTableBody">';
+        data.forEach((item, index) => {
+            const escapedUsername = escapedHtml(item.username);
+            const escapedFullName = escapedHtml(item.full_name || '');
+            const escapedEmail = escapedHtml(item.email || '');
             html += `
-                <tr>
-                    <td><strong>${escapeHtml(item.username)}</strong></td>
-                    <td>${escapeHtml(item.full_name || '-')}</td>
-                    <td>${escapeHtml(item.department_name || '-')}</td>
-                    <td>${escapeHtml(item.position_name || '-')}</td>
-                    <td>${escapeHtml(item.city_name || '-')}</td>
-                    <td>${escapeHtml(item.email || '-')}</td>
+                <tr data-index="${index}" 
+                     data-username="${((item.username || '') + '').toLowerCase()}" 
+                     data-full-name="${((item.full_name || '') + '').toLowerCase()}" 
+                     data-department="${((item.department_name || '') + '').toLowerCase()}" 
+                     data-position="${((item.position_name || '') + '').toLowerCase()}" 
+                     data-city="${((item.city_name || '') + '').toLowerCase()}" 
+                     data-email="${((item.email || '') + '').toLowerCase()}" 
+                     data-status="${((item.status || '') + '').toLowerCase()}">
+                    <td><strong>${escapedUsername}</strong></td>
+                    <td>${escapedFullName}</td>
+                    <td>${escapedHtml(item.department_name || '-')}</td>
+                    <td>${escapedHtml(item.position_name || '-')}</td>
+                    <td>${escapedHtml(item.city_name || '-')}</td>
+                    <td>${escapedEmail}</td>
                     <td><span class="status-badge ${item.status === 'active' ? 'active' : 'inactive'}">${item.status === 'active' ? tUsers.active : tUsers.inactive}</span></td>
                     <td>
-                        <button class="btn-icon" onclick="editUser(${item.id})" title="${tCommon.edit || 'Edit'}">
-                            <span class="material-symbols-rounded">edit</span>
-                        </button>
-                        ${item.id === currentUserId ? '' : (item.status === 'active' ? `<button class="btn-icon btn-danger" onclick="toggleUserStatus(${item.id}, 'inactive')" title="${tUsers.deactivate || 'Deactivate'}">
-                            <span class="material-symbols-rounded">block</span>
-                        </button>` : `<button class="btn-icon btn-success" onclick="toggleUserStatus(${item.id}, 'active')" title="${tUsers.activate || 'Activate'}">
-                            <span class="material-symbols-rounded">check_circle</span>
-                        </button>`)}
+                        <div class="action-buttons">
+                            <button class="btn-icon" onclick="editUser(${item.id})" title="${tCommon.edit || 'Edit'} ${escapedUsername}">
+                                <span class="material-symbols-rounded">edit</span>
+                            </button>
+                            ${item.id === currentUserId ? '' : (item.status === 'active' ? `<button class="btn-icon btn-danger" onclick="toggleUserStatus(${item.id}, 'inactive')" title="${tUsers.deactivate || 'Deactivate'} ${escapedUsername}">
+                                <span class="material-symbols-rounded">block</span>
+                            </button>` : `<button class="btn-icon btn-success" onclick="toggleUserStatus(${item.id}, 'active')" title="${tUsers.activate || 'Activate'} ${escapedUsername}">
+                                <span class="material-symbols-rounded">check_circle</span>
+                            </button>`)}
+                        </div>
                     </td>
                 </tr>
             `;
         });
-        html += '</tbody></table></div></div>';
+        html += '</tbody></table>';
+        html += '<div class="table-footer">';
+        html += `<div class="table-info">${tCommon.showing || 'Showing'} <strong>${totalCount}</strong> ${totalCount === 1 ? 'user' : 'users'}</div>`;
+        html += '</div>';
+        html += '</div></div>';
         
         container.innerHTML = html;
+        
+        // Store original data for filtering and sorting
+        window.usersTableData = data;
         
         // Attach event listeners
         attachActionListeners();
@@ -935,5 +1009,74 @@
             });
         }
     });
+    
+    // ============================================
+    // TABLE SEARCH AND SORT FUNCTIONS
+    // ============================================
+    
+    // Filter Users table
+    window.filterUsersTable = function(searchTerm) {
+        const tbody = document.getElementById('usersTableBody');
+        const clearBtn = document.getElementById('usersSearchClear');
+        
+        if (!tbody) return;
+        
+        // Use generic filterTable function
+        window.filterTable('usersTableBody', searchTerm, ['username', 'full-name', 'department', 'position', 'city', 'email', 'status'], 'usersSearchClear', function(visibleCount) {
+            // Update footer count
+            const footer = document.querySelector('#users-content .table-info');
+            if (footer) {
+                footer.innerHTML = `${tCommon.showing || 'Showing'} <strong>${visibleCount}</strong> ${visibleCount === 1 ? 'user' : 'users'}`;
+            }
+        });
+    };
+    
+    // Clear Users search
+    window.clearUsersSearch = function() {
+        const input = document.getElementById('usersSearchInput');
+        const clearBtn = document.getElementById('usersSearchClear');
+        
+        if (input) {
+            input.value = '';
+            filterUsersTable('');
+        }
+        if (clearBtn) {
+            clearBtn.style.display = 'none';
+        }
+    };
+    
+    // Sort Users table
+    let usersSortState = { column: null, direction: 'asc' };
+    
+    window.sortUsersTable = function(column) {
+        const data = window.usersTableData;
+        if (!data || data.length === 0) return;
+        
+        const result = window.sortTableData(data, column, usersSortState.column, usersSortState.direction);
+        
+        // Update sort state
+        usersSortState.column = result.newColumn;
+        usersSortState.direction = result.newDirection;
+        
+        // Re-render table with sorted data
+        renderTable(result.sortedData);
+        
+        // Update sort icons
+        const table = document.getElementById('usersTable');
+        if (table) {
+            const headers = table.querySelectorAll('th.sortable .sort-icon');
+            headers.forEach(icon => {
+                icon.textContent = '⇅';
+                icon.style.color = '';
+            });
+            
+            const activeHeader = table.querySelector(`th[onclick*="${column}"] .sort-icon`);
+            if (activeHeader) {
+                activeHeader.textContent = result.newDirection === 'asc' ? '↑' : '↓';
+                activeHeader.style.color = '#151A2D';
+            }
+        }
+    };
+    
 })();
 

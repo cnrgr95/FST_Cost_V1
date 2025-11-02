@@ -289,35 +289,130 @@
             addText = tVehicles.add_contract;
         }
         
+        const totalCount = data.length;
+        const iconMap = {
+            'companies': 'business',
+            'types': 'directions_car',
+            'contracts': 'description'
+        };
+        
         let html = '<div class="vehicles-table-container">';
         html += '<div class="vehicles-table-header">';
-        html += `<div class="vehicles-table-title">${typeText}</div>`;
-        html += '<div style="display: flex; gap: 10px;">';
-        html += `<button class="btn-add" onclick="window.openModal('${type}')">
+        html += `<div class="vehicles-table-title">
+                    <span class="material-symbols-rounded" style="vertical-align: middle; margin-right: 8px; font-size: 24px;">${iconMap[type] || 'list'}</span>
+                    ${typeText} 
+                    <span class="table-count-badge">${totalCount}</span>
+                 </div>`;
+        html += '<div class="table-actions-group">';
+        html += `<div class="search-box">
+                    <span class="material-symbols-rounded search-icon">search</span>
+                    <input type="text" 
+                           id="${type}SearchInput" 
+                           placeholder="${tCommon.search || 'Search...'}" 
+                           class="search-input"
+                           onkeyup="filterVehiclesTable('${type}', this.value)">
+                    <button class="search-clear" id="${type}SearchClear" onclick="clearVehiclesSearch('${type}')" style="display: none;">
+                        <span class="material-symbols-rounded">close</span>
+                    </button>
+                 </div>`;
+        html += `<button class="btn-add" onclick="window.openModal('${type}')" title="${addText || 'Add New'}">
                     <span class="material-symbols-rounded">add</span>
                     ${addText || 'Add New'}
                  </button>`;
         html += '</div>';
         html += '</div>';
         html += '<div class="currencies-table-section">';
-        html += '<table class="currencies-table">';
+        html += `<table class="currencies-table" id="${type}Table">`;
         
-         // Table headers
+         // Table headers with sortable
          if (type === 'companies') {
-             html += `<thead><tr><th>${tVehicles.company_name || 'Name'}</th><th>${tVehicles.city || 'City'}</th><th>${tVehicles.region || 'Region'}</th><th>${tVehicles.country || 'Country'}</th><th>${tVehicles.actions || 'Actions'}</th></tr></thead>`;
+             html += `<thead><tr>
+                        <th class="sortable" onclick="sortVehiclesTable('${type}', 'name')">
+                            ${tVehicles.company_name || 'Name'}
+                            <span class="sort-icon">⇅</span>
+                        </th>
+                        <th class="sortable" onclick="sortVehiclesTable('${type}', 'city_name')">
+                            ${tVehicles.city || 'City'}
+                            <span class="sort-icon">⇅</span>
+                        </th>
+                        <th class="sortable" onclick="sortVehiclesTable('${type}', 'region_name')">
+                            ${tVehicles.region || 'Region'}
+                            <span class="sort-icon">⇅</span>
+                        </th>
+                        <th class="sortable" onclick="sortVehiclesTable('${type}', 'country_name')">
+                            ${tVehicles.country || 'Country'}
+                            <span class="sort-icon">⇅</span>
+                        </th>
+                        <th class="no-sort">${tVehicles.actions || 'Actions'}</th>
+                     </tr></thead>`;
          } else if (type === 'types') {
-             html += `<thead><tr><th>${tVehicles.type_name || 'Name'}</th><th>${tVehicles.vehicle_company || 'Vehicle Company'}</th><th>${tVehicles.min_pax || 'Min Pax'}</th><th>${tVehicles.max_pax || 'Max Pax'}</th><th>${tVehicles.city || 'City'}</th><th>${tVehicles.region || 'Region'}</th><th>${tVehicles.country || 'Country'}</th><th>${tVehicles.actions || 'Actions'}</th></tr></thead>`;
+             html += `<thead><tr>
+                        <th class="sortable" onclick="sortVehiclesTable('${type}', 'name')">
+                            ${tVehicles.type_name || 'Name'}
+                            <span class="sort-icon">⇅</span>
+                        </th>
+                        <th class="sortable" onclick="sortVehiclesTable('${type}', 'company_name')">
+                            ${tVehicles.vehicle_company || 'Vehicle Company'}
+                            <span class="sort-icon">⇅</span>
+                        </th>
+                        <th class="sortable" onclick="sortVehiclesTable('${type}', 'min_pax')">
+                            ${tVehicles.min_pax || 'Min Pax'}
+                            <span class="sort-icon">⇅</span>
+                        </th>
+                        <th class="sortable" onclick="sortVehiclesTable('${type}', 'max_pax')">
+                            ${tVehicles.max_pax || 'Max Pax'}
+                            <span class="sort-icon">⇅</span>
+                        </th>
+                        <th class="sortable" onclick="sortVehiclesTable('${type}', 'city_name')">
+                            ${tVehicles.city || 'City'}
+                            <span class="sort-icon">⇅</span>
+                        </th>
+                        <th class="sortable" onclick="sortVehiclesTable('${type}', 'region_name')">
+                            ${tVehicles.region || 'Region'}
+                            <span class="sort-icon">⇅</span>
+                        </th>
+                        <th class="sortable" onclick="sortVehiclesTable('${type}', 'country_name')">
+                            ${tVehicles.country || 'Country'}
+                            <span class="sort-icon">⇅</span>
+                        </th>
+                        <th class="no-sort">${tVehicles.actions || 'Actions'}</th>
+                     </tr></thead>`;
         } else if (type === 'contracts') {
-            html += `<thead><tr><th>${tVehicles.contract_code || 'Contract Code'}</th><th>${tVehicles.vehicle_company || 'Company'}</th><th>${tVehicles.start_date || 'Start Date'}</th><th>${tVehicles.end_date || 'End Date'}</th><th>${tVehicles.actions || 'Actions'}</th></tr></thead>`;
+            html += `<thead><tr>
+                        <th class="sortable" onclick="sortVehiclesTable('${type}', 'contract_code')">
+                            ${tVehicles.contract_code || 'Contract Code'}
+                            <span class="sort-icon">⇅</span>
+                        </th>
+                        <th class="sortable" onclick="sortVehiclesTable('${type}', 'company_name')">
+                            ${tVehicles.vehicle_company || 'Company'}
+                            <span class="sort-icon">⇅</span>
+                        </th>
+                        <th class="sortable" onclick="sortVehiclesTable('${type}', 'start_date')">
+                            ${tVehicles.start_date || 'Start Date'}
+                            <span class="sort-icon">⇅</span>
+                        </th>
+                        <th class="sortable" onclick="sortVehiclesTable('${type}', 'end_date')">
+                            ${tVehicles.end_date || 'End Date'}
+                            <span class="sort-icon">⇅</span>
+                        </th>
+                        <th class="no-sort">${tVehicles.actions || 'Actions'}</th>
+                     </tr></thead>`;
          }
         
-        html += '<tbody>';
-        data.forEach(item => {
-            html += buildTableRow(type, item);
+        html += `<tbody id="${type}TableBody">`;
+        data.forEach((item, index) => {
+            html += buildTableRow(type, item, index);
         });
-        html += '</tbody></table></div></div>';
+        html += '</tbody></table>';
+        html += '<div class="table-footer">';
+        html += `<div class="table-info">${tCommon.showing || 'Showing'} <strong>${totalCount}</strong> ${totalCount === 1 ? 'item' : 'items'}</div>`;
+        html += '</div>';
+        html += '</div></div>';
         
         container.innerHTML = html;
+        
+        // Store original data for filtering and sorting
+        window[`${type}TableData`] = data;
         
         // Attach event listeners to action buttons
         attachActionListeners();
@@ -344,42 +439,57 @@
         });
     }
     
-    // Build table row
-    function buildTableRow(type, item) {
-        let html = '<tr>';
+    // Build table row with data attributes for filtering
+    function buildTableRow(type, item, index) {
+        const escapedName = window.escapeHtml ? window.escapeHtml(item.name || '') : (item.name || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+        const escapedCode = item.contract_code ? (window.escapeHtml ? window.escapeHtml(item.contract_code) : item.contract_code.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')) : '';
+        
+        let html = `<tr data-index="${index}" 
+                     data-name="${(item.name || '').toLowerCase()}"`;
         
         if (type === 'companies') {
-            html += `<td>${item.name}</td>`;
-            html += `<td>${item.city_name || '-'}</td>`;
-            html += `<td>${item.region_name || '-'}</td>`;
-            html += `<td>${item.country_name || '-'}</td>`;
+            html += ` data-city="${(item.city_name || '').toLowerCase()}" 
+                     data-region="${(item.region_name || '').toLowerCase()}" 
+                     data-country="${(item.country_name || '').toLowerCase()}">`;
+            html += `<td><strong>${escapedName}</strong></td>`;
+            html += `<td>${window.escapeHtml ? window.escapeHtml(item.city_name || '-') : (item.city_name || '-')}</td>`;
+            html += `<td>${window.escapeHtml ? window.escapeHtml(item.region_name || '-') : (item.region_name || '-')}</td>`;
+            html += `<td><span class="location-badge">${window.escapeHtml ? window.escapeHtml(item.country_name || '-') : (item.country_name || '-')}</span></td>`;
         } else if (type === 'types') {
-            html += `<td>${item.name}</td>`;
-            html += `<td>${item.company_name || '-'}</td>`;
+            html += ` data-company="${(item.company_name || '').toLowerCase()}" 
+                     data-city="${(item.city_name || '').toLowerCase()}" 
+                     data-region="${(item.region_name || '').toLowerCase()}" 
+                     data-country="${(item.country_name || '').toLowerCase()}">`;
+            html += `<td><strong>${escapedName}</strong></td>`;
+            html += `<td>${window.escapeHtml ? window.escapeHtml(item.company_name || '-') : (item.company_name || '-')}</td>`;
             html += `<td>${item.min_pax !== null && item.min_pax !== undefined ? item.min_pax : '-'}</td>`;
             html += `<td>${item.max_pax !== null && item.max_pax !== undefined ? item.max_pax : '-'}</td>`;
-            html += `<td>${item.city_name || '-'}</td>`;
-            html += `<td>${item.region_name || '-'}</td>`;
-            html += `<td>${item.country_name || '-'}</td>`;
+            html += `<td>${window.escapeHtml ? window.escapeHtml(item.city_name || '-') : (item.city_name || '-')}</td>`;
+            html += `<td>${window.escapeHtml ? window.escapeHtml(item.region_name || '-') : (item.region_name || '-')}</td>`;
+            html += `<td><span class="location-badge">${window.escapeHtml ? window.escapeHtml(item.country_name || '-') : (item.country_name || '-')}</span></td>`;
         } else if (type === 'contracts') {
-            html += `<td>${item.contract_code || '-'}</td>`;
-            html += `<td>${item.company_name || '-'}</td>`;
+            html += ` data-code="${((item.contract_code || '') + '').toLowerCase()}" 
+                     data-company="${(item.company_name || '').toLowerCase()}">`;
+            html += `<td><span class="code-badge">${escapedCode || '-'}</span></td>`;
+            html += `<td>${window.escapeHtml ? window.escapeHtml(item.company_name || '-') : (item.company_name || '-')}</td>`;
             html += `<td>${item.start_date || '-'}</td>`;
             html += `<td>${item.end_date || '-'}</td>`;
         }
         
         html += '<td>';
+        html += `<div class="action-buttons">`;
         if (type === 'contracts') {
             html += `<a href="${(pageConfig.basePath || '../../')}app/definitions/contract-detail.php?id=${item.id}" class="btn-icon" title="${tVehicles.manage_contract || 'Manage Contract'}" style="color: #3b82f6;">
                         <span class="material-symbols-rounded">settings</span>
                     </a>`;
         }
-        html += `<button class="btn-icon" onclick="window.editItem('${type}', ${item.id})" title="${tCommon.edit || 'Edit'}">
+        html += `<button class="btn-icon" onclick="window.editItem('${type}', ${item.id})" title="${tCommon.edit || 'Edit'} ${escapedName}">
                     <span class="material-symbols-rounded">edit</span>
                  </button>`;
-        html += `<button class="btn-icon btn-danger" onclick="window.deleteItem('${type}', ${item.id})" title="${tCommon.delete || 'Delete'}">
+        html += `<button class="btn-icon btn-danger" onclick="window.deleteItem('${type}', ${item.id})" title="${tCommon.delete || 'Delete'} ${escapedName}">
                     <span class="material-symbols-rounded">delete</span>
                  </button>`;
+        html += `</div>`;
         html += '</td>';
         html += '</tr>';
         
@@ -965,5 +1075,87 @@
     }
     
     // showToast is from toast.js
+    
+    // ============================================
+    // TABLE SEARCH AND SORT FUNCTIONS
+    // ============================================
+    
+    // Filter Vehicles table
+    window.filterVehiclesTable = function(type, searchTerm) {
+        const tbody = document.getElementById(`${type}TableBody`);
+        const clearBtn = document.getElementById(`${type}SearchClear`);
+        
+        if (!tbody) return;
+        
+        // Get data attributes based on type
+        let dataAttributes = ['name'];
+        if (type === 'companies') {
+            dataAttributes.push('city', 'region', 'country');
+        } else if (type === 'types') {
+            dataAttributes.push('company', 'city', 'region', 'country');
+        } else if (type === 'contracts') {
+            dataAttributes.push('code', 'company');
+        }
+        
+        // Use generic filterTable function
+        window.filterTable(`${type}TableBody`, searchTerm, dataAttributes, `${type}SearchClear`, function(visibleCount) {
+            // Update footer count
+            const footer = document.querySelector(`#${type}-content .table-info`);
+            if (footer) {
+                footer.innerHTML = `${tCommon.showing || 'Showing'} <strong>${visibleCount}</strong> ${visibleCount === 1 ? 'item' : 'items'}`;
+            }
+        });
+    };
+    
+    // Clear Vehicles search
+    window.clearVehiclesSearch = function(type) {
+        const input = document.getElementById(`${type}SearchInput`);
+        const clearBtn = document.getElementById(`${type}SearchClear`);
+        
+        if (input) {
+            input.value = '';
+            filterVehiclesTable(type, '');
+        }
+        if (clearBtn) {
+            clearBtn.style.display = 'none';
+        }
+    };
+    
+    // Sort Vehicles table
+    let vehiclesSortState = {};
+    
+    window.sortVehiclesTable = function(type, column) {
+        const data = window[`${type}TableData`];
+        if (!data || data.length === 0) return;
+        
+        const currentState = vehiclesSortState[type] || { column: null, direction: 'asc' };
+        const result = window.sortTableData(data, column, currentState.column, currentState.direction);
+        
+        // Update sort state
+        vehiclesSortState[type] = {
+            column: result.newColumn,
+            direction: result.newDirection
+        };
+        
+        // Re-render table with sorted data
+        renderTable(type, result.sortedData);
+        
+        // Update sort icons
+        const table = document.getElementById(`${type}Table`);
+        if (table) {
+            const headers = table.querySelectorAll('th.sortable .sort-icon');
+            headers.forEach(icon => {
+                icon.textContent = '⇅';
+                icon.style.color = '';
+            });
+            
+            const activeHeader = table.querySelector(`th[onclick*="${column}"] .sort-icon`);
+            if (activeHeader) {
+                activeHeader.textContent = result.newDirection === 'asc' ? '↑' : '↓';
+                activeHeader.style.color = '#151A2D';
+            }
+        }
+    };
+    
 })();
 

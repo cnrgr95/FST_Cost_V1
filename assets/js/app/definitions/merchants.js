@@ -108,54 +108,103 @@
             return;
         }
         
+        const totalCount = data.length;
+        
         let html = '<div class="merchants-table-container">';
         html += '<div class="merchants-table-header">';
-        html += `<div class="merchants-table-title">${tSidebar.merchants || 'Merchants'}</div>`;
-        html += `<button class="btn-add" onclick="openModal()">
+        html += `<div class="merchants-table-title">
+                    <span class="material-symbols-rounded" style="vertical-align: middle; margin-right: 8px; font-size: 24px;">store</span>
+                    ${tSidebar.merchants || 'Merchants'} 
+                    <span class="table-count-badge">${totalCount}</span>
+                 </div>`;
+        html += '<div class="table-actions-group">';
+        html += `<div class="search-box">
+                    <span class="material-symbols-rounded search-icon">search</span>
+                    <input type="text" 
+                           id="merchantsSearchInput" 
+                           placeholder="${tCommon.search || 'Search...'}" 
+                           class="search-input"
+                           onkeyup="filterMerchantsTable(this.value)">
+                    <button class="search-clear" id="merchantsSearchClear" onclick="clearMerchantsSearch()" style="display: none;">
+                        <span class="material-symbols-rounded">close</span>
+                    </button>
+                 </div>`;
+        html += `<button class="btn-add" onclick="openModal()" title="${tMerchants.add_merchant || 'Add Merchant'}">
                     <span class="material-symbols-rounded">add</span>
                     ${tMerchants.add_merchant || 'Add Merchant'}
                  </button>`;
         html += '</div>';
+        html += '</div>';
         html += '<div class="currencies-table-section">';
-        html += '<table class="currencies-table">';
+        html += '<table class="currencies-table" id="merchantsTable">';
         html += '<thead><tr>';
-        html += `<th>${tMerchants.merchant_name || 'Name'}</th>`;
-        html += `<th>${t.locations.country || 'Country'}</th>`;
-        html += `<th>${t.locations.region || 'Region'}</th>`;
-        html += `<th>${t.locations.city || 'City'}</th>`;
-        html += `<th>${tMerchants.sub_region || 'Sub Region'}</th>`;
+        html += `<th class="sortable" onclick="sortMerchantsTable('name')">
+                    ${tMerchants.merchant_name || 'Name'}
+                    <span class="sort-icon">⇅</span>
+                 </th>`;
+        html += `<th class="sortable" onclick="sortMerchantsTable('country_name')">
+                    ${t.locations.country || 'Country'}
+                    <span class="sort-icon">⇅</span>
+                 </th>`;
+        html += `<th class="sortable" onclick="sortMerchantsTable('region_name')">
+                    ${t.locations.region || 'Region'}
+                    <span class="sort-icon">⇅</span>
+                 </th>`;
+        html += `<th class="sortable" onclick="sortMerchantsTable('city_name')">
+                    ${t.locations.city || 'City'}
+                    <span class="sort-icon">⇅</span>
+                 </th>`;
+        html += `<th class="sortable" onclick="sortMerchantsTable('sub_region_name')">
+                    ${tMerchants.sub_region || 'Sub Region'}
+                    <span class="sort-icon">⇅</span>
+                 </th>`;
         html += `<th>${tMerchants.location || 'Location'}</th>`;
-        html += `<th>${t.locations.actions || 'Actions'}</th>`;
+        html += `<th class="no-sort">${t.locations.actions || 'Actions'}</th>`;
         html += '</tr></thead>';
         
-        html += '<tbody>';
-        data.forEach(item => {
+        html += '<tbody id="merchantsTableBody">';
+        data.forEach((item, index) => {
+            const escapedName = window.escapeHtml ? window.escapeHtml(item.name) : escapeHtml(item.name);
             html += `
-                <tr>
-                    <td><strong>${item.name}</strong></td>
-                    <td>${item.country_name || '-'}</td>
-                    <td>${item.region_name || '-'}</td>
-                    <td>${item.city_name || '-'}</td>
-                    <td>${item.sub_region_name || '-'}</td>
+                <tr data-index="${index}" 
+                     data-name="${(item.name || '').toLowerCase()}" 
+                     data-country="${(item.country_name || '').toLowerCase()}" 
+                     data-region="${(item.region_name || '').toLowerCase()}" 
+                     data-city="${(item.city_name || '').toLowerCase()}" 
+                     data-sub-region="${(item.sub_region_name || '').toLowerCase()}">
+                    <td><strong>${escapedName}</strong></td>
+                    <td><span class="location-badge">${window.escapeHtml ? window.escapeHtml(item.country_name || '-') : escapeHtml(item.country_name || '-')}</span></td>
+                    <td>${window.escapeHtml ? window.escapeHtml(item.region_name || '-') : escapeHtml(item.region_name || '-')}</td>
+                    <td>${window.escapeHtml ? window.escapeHtml(item.city_name || '-') : escapeHtml(item.city_name || '-')}</td>
+                    <td>${window.escapeHtml ? window.escapeHtml(item.sub_region_name || '-') : escapeHtml(item.sub_region_name || '-')}</td>
                     <td>
-                        ${item.location_url ? `<button class="btn-action btn-location-map" data-location-url="${escapeHtml(item.location_url)}" style="background: #3b82f6; color: white;">
+                        ${item.location_url ? `<button class="btn-action btn-location-map" data-location-url="${window.escapeHtml ? window.escapeHtml(item.location_url) : escapeHtml(item.location_url)}" style="background: #3b82f6; color: white;">
                             <span class="material-symbols-rounded">map</span>
                         </button>` : '-'}
                     </td>
                     <td>
-                        <button class="btn-icon" onclick="editItem(${item.id})" title="${tCommon.edit || 'Edit'}">
-                            <span class="material-symbols-rounded">edit</span>
-                        </button>
-                        <button class="btn-icon btn-danger" onclick="deleteItem(${item.id})" title="${tCommon.delete || 'Delete'}">
-                            <span class="material-symbols-rounded">delete</span>
-                        </button>
+                        <div class="action-buttons">
+                            <button class="btn-icon" onclick="editItem(${item.id})" title="${tCommon.edit || 'Edit'} ${escapedName}">
+                                <span class="material-symbols-rounded">edit</span>
+                            </button>
+                            <button class="btn-icon btn-danger" onclick="deleteItem(${item.id})" title="${tCommon.delete || 'Delete'} ${escapedName}">
+                                <span class="material-symbols-rounded">delete</span>
+                            </button>
+                        </div>
                     </td>
                 </tr>
             `;
         });
-        html += '</tbody></table></div></div>';
+        html += '</tbody></table>';
+        html += '<div class="table-footer">';
+        html += `<div class="table-info">${tCommon.showing || 'Showing'} <strong>${totalCount}</strong> ${totalCount === 1 ? 'item' : 'items'}</div>`;
+        html += '</div>';
+        html += '</div></div>';
         
         container.innerHTML = html;
+        
+        // Store original data for filtering and sorting
+        window.merchantsTableData = data;
         
         // Attach event listeners to action buttons
         attachActionListeners();
@@ -461,4 +510,73 @@
         div.textContent = text;
         return div.innerHTML;
     }
+    
+    // ============================================
+    // TABLE SEARCH AND SORT FUNCTIONS
+    // ============================================
+    
+    // Filter Merchants table
+    window.filterMerchantsTable = function(searchTerm) {
+        const tbody = document.getElementById('merchantsTableBody');
+        const clearBtn = document.getElementById('merchantsSearchClear');
+        
+        if (!tbody) return;
+        
+        // Use generic filterTable function
+        window.filterTable('merchantsTableBody', searchTerm, ['name', 'country', 'region', 'city', 'sub-region'], 'merchantsSearchClear', function(visibleCount) {
+            // Update footer count
+            const footer = document.querySelector('#merchants-content .table-info');
+            if (footer) {
+                footer.innerHTML = `${tCommon.showing || 'Showing'} <strong>${visibleCount}</strong> ${visibleCount === 1 ? 'item' : 'items'}`;
+            }
+        });
+    };
+    
+    // Clear Merchants search
+    window.clearMerchantsSearch = function() {
+        const input = document.getElementById('merchantsSearchInput');
+        const clearBtn = document.getElementById('merchantsSearchClear');
+        
+        if (input) {
+            input.value = '';
+            filterMerchantsTable('');
+        }
+        if (clearBtn) {
+            clearBtn.style.display = 'none';
+        }
+    };
+    
+    // Sort Merchants table
+    let merchantsSortState = { column: null, direction: 'asc' };
+    
+    window.sortMerchantsTable = function(column) {
+        const data = window.merchantsTableData;
+        if (!data || data.length === 0) return;
+        
+        const result = window.sortTableData(data, column, merchantsSortState.column, merchantsSortState.direction);
+        
+        // Update sort state
+        merchantsSortState.column = result.newColumn;
+        merchantsSortState.direction = result.newDirection;
+        
+        // Re-render table with sorted data
+        renderTable(result.sortedData);
+        
+        // Update sort icons
+        const table = document.getElementById('merchantsTable');
+        if (table) {
+            const headers = table.querySelectorAll('th.sortable .sort-icon');
+            headers.forEach(icon => {
+                icon.textContent = '⇅';
+                icon.style.color = '';
+            });
+            
+            const activeHeader = table.querySelector(`th[onclick*="${column}"] .sort-icon`);
+            if (activeHeader) {
+                activeHeader.textContent = result.newDirection === 'asc' ? '↑' : '↓';
+                activeHeader.style.color = '#151A2D';
+            }
+        }
+    };
+    
 })();
