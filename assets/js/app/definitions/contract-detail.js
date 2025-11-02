@@ -1376,10 +1376,11 @@
                 const message = saveRes.message || (tVehicles.routes_uploaded || 'Routes uploaded successfully');
                 if (window.DEBUG_MODE) {
                     console.log('✅ Import successful:', {
-                    saved_count: saveRes.saved_count || 0,
-                    skipped_count: saveRes.skipped_count || 0,
-                    skip_reasons: saveRes.skip_reasons || {}
-                });
+                        saved_count: saveRes.saved_count || 0,
+                        skipped_count: saveRes.skipped_count || 0,
+                        skip_reasons: saveRes.skip_reasons || {}
+                    });
+                }
                 showToast('success', message);
                 closeUploadModal();
                 await loadContractRoutes();

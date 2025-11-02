@@ -94,16 +94,23 @@
         // Refresh currencies list before showing
         loadAllCurrencies().then(() => {
             renderMasterCurrenciesTable();
-            modal.style.display = 'flex';
+            modal.classList.add('active');
+            document.body.classList.add('modal-open');
+            document.body.style.overflow = 'hidden';
         });
     }
     
     function closeMasterCurrenciesModal() {
         const modal = document.getElementById('masterCurrenciesModal');
-        if (modal) modal.style.display = 'none';
+        if (modal) {
+            modal.classList.remove('active');
+            document.body.classList.remove('modal-open');
+            document.body.style.overflow = '';
+        }
     }
     
     // Master currency modal helpers
+    // Open modal - Enhanced with body lock and focus management
     async function openModal(currencyId = null) {
         currentCurrencyId = currencyId;
         const modal = document.getElementById('currencyModal');
@@ -123,8 +130,8 @@
                 document.getElementById('is_active').checked = (currency.is_active === true) || (currency.is_active === 't') || (currency.is_active === 1) || (currency.is_active === '1');
             } else {
                 // Currency not found, treat as add
-            form.reset();
-            document.getElementById('is_active').checked = true;
+                form.reset();
+                document.getElementById('is_active').checked = true;
                 currentCurrencyId = null;
                 title.textContent = tCurrencies.add_currency || 'Add Currency';
             }
@@ -135,16 +142,51 @@
             document.getElementById('currencyId').value = '';
             currentCurrencyId = null;
         }
-        modal.style.display = 'flex';
+        
+        modal.classList.add('active');
+        document.body.classList.add('modal-open');
+        document.body.style.overflow = 'hidden';
+        
+        // Focus first input
+        const firstInput = modal.querySelector('input:not([type="hidden"]), select, textarea');
+        if (firstInput) {
+            setTimeout(() => firstInput.focus(), 100);
+        }
     }
 
-    function closeModal() {
-        const modal = document.getElementById('currencyModal');
-        if (modal) modal.style.display = 'none';
-        currentCurrencyId = null;
-        const form = document.getElementById('currencyForm');
-        if (form) form.reset();
+    // Close modal - Enhanced to work with specific modal IDs
+    function closeModal(modalId) {
+        const targetModal = modalId ? document.getElementById(modalId) : document.getElementById('currencyModal');
+        if (targetModal) {
+            targetModal.classList.remove('active');
+            document.body.classList.remove('modal-open');
+            document.body.style.overflow = '';
+            
+            // Reset form
+            const form = targetModal.querySelector('form');
+            if (form) form.reset();
+            
+            if (targetModal.id === 'currencyModal') {
+                currentCurrencyId = null;
+            }
+        }
     }
+    
+    // Setup modal close buttons
+    document.addEventListener('DOMContentLoaded', function() {
+        document.querySelectorAll('.modal .btn-close').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const modal = this.closest('.modal');
+                if (modal) {
+                    if (modal.id === 'masterCurrenciesModal') {
+                        closeMasterCurrenciesModal();
+                    } else {
+                        closeModal(modal.id);
+                    }
+                }
+            });
+        });
+    });
 
     function renderMasterCurrenciesTable() {
         const tbody = document.getElementById('masterCurrenciesTableBody');
@@ -270,7 +312,7 @@
         window.currenciesTableData = data;
     }
     
-    // Manage country modal
+    // Manage country modal - Enhanced with body lock
     async function openCountryManageModal(country) {
         const modal = document.getElementById('countryManageModal');
         const title = document.getElementById('countryManageTitle');
@@ -289,12 +331,18 @@
         fillCurrencySelect();
         fillBaseCurrencySelect(country);
         renderCountryCurrencies();
-        modal.style.display = 'flex';
+        modal.classList.add('active');
+        document.body.classList.add('modal-open');
+        document.body.style.overflow = 'hidden';
     }
     
     function closeCountryManageModal() {
         const modal = document.getElementById('countryManageModal');
-        if (modal) modal.style.display = 'none';
+        if (modal) {
+            modal.classList.remove('active');
+            document.body.classList.remove('modal-open');
+            document.body.style.overflow = '';
+        }
         currentCountryId = null;
         countryCurrencies = [];
     }
@@ -419,16 +467,23 @@
         const modalId = 'unitNameEditModal';
         let modal = document.getElementById(modalId);
         
+        const closeUnitModal = () => {
+            if (modal) {
+                modal.classList.remove('active');
+                document.body.classList.remove('modal-open');
+                document.body.style.overflow = '';
+            }
+        };
+        
         if (!modal) {
             modal = document.createElement('div');
             modal.id = modalId;
             modal.className = 'modal';
-            modal.style.display = 'none';
             modal.innerHTML = `
                 <div class="modal-content">
                     <div class="modal-header">
                         <h2>${tCurrencies.enter_unit_name || 'Enter unit name'}</h2>
-                        <button class="btn-close" id="closeUnitNameModal">
+                        <button class="btn-close" id="closeUnitNameModal" aria-label="${tCommon.close || 'Close'}" title="${tCommon.close || 'Close'}">
                             <span class="material-symbols-rounded">close</span>
                         </button>
                     </div>
@@ -437,38 +492,45 @@
                         <input type="text" id="unitNameInput" placeholder="${tCurrencies.enter_unit_name || 'Enter unit name (leave empty to clear)'}" />
                     </div>
                     <div class="modal-footer">
-                        <button type="button" class="btn-secondary" id="cancelUnitNameModal">${tCommon.cancel || 'Cancel'}</button>
-                        <button type="button" class="btn-primary" id="saveUnitNameModal">${tCommon.save || 'Save'}</button>
+                        <button type="button" class="btn-secondary" id="cancelUnitNameModal">
+                            <span class="material-symbols-rounded" style="font-size: 18px; margin-right: 6px;">close</span>
+                            ${tCommon.cancel || 'Cancel'}
+                        </button>
+                        <button type="button" class="btn-primary" id="saveUnitNameModal">
+                            <span class="material-symbols-rounded" style="font-size: 18px; margin-right: 6px;">save</span>
+                            ${tCommon.save || 'Save'}
+                        </button>
                     </div>
                 </div>
             `;
             document.body.appendChild(modal);
             
-            document.getElementById('closeUnitNameModal').addEventListener('click', () => {
-                modal.style.display = 'none';
-            });
-            document.getElementById('cancelUnitNameModal').addEventListener('click', () => {
-                modal.style.display = 'none';
-            });
+            document.getElementById('closeUnitNameModal').addEventListener('click', closeUnitModal);
+            document.getElementById('cancelUnitNameModal').addEventListener('click', closeUnitModal);
             document.getElementById('saveUnitNameModal').addEventListener('click', async () => {
                 const input = document.getElementById('unitNameInput');
                 const newUnit = input.value.trim();
                 await updateCountryCurrency({ id: row.id, unit_name: newUnit });
-                modal.style.display = 'none';
+                closeUnitModal();
                 await loadCountryCurrencies(currentCountryId);
                 fillCurrencySelect();
                 renderCountryCurrencies();
             });
             modal.addEventListener('click', function(e) {
                 if (e.target === this) {
-                    modal.style.display = 'none';
+                    closeUnitModal();
                 }
             });
         }
         
         document.getElementById('unitNameInput').value = row.unit_name || '';
-        modal.style.display = 'flex';
-        setTimeout(() => document.getElementById('unitNameInput').focus(), 100);
+        modal.classList.add('active');
+        document.body.classList.add('modal-open');
+        document.body.style.overflow = 'hidden';
+        setTimeout(() => {
+            const input = document.getElementById('unitNameInput');
+            if (input) input.focus();
+        }, 100);
     }
 
     function attachCountryCurrenciesActions() {
@@ -623,7 +685,7 @@
                 loadAllCurrencies().then(() => {
                     // Refresh table if master currencies modal is open
                     const masterModal = document.getElementById('masterCurrenciesModal');
-                    if (masterModal && masterModal.style.display === 'flex') {
+                    if (masterModal && masterModal.classList.contains('active')) {
                         renderMasterCurrenciesTable();
                     }
                     if (currentCountryId) {
@@ -675,7 +737,7 @@
                 loadAllCurrencies().then(() => {
                     // Refresh table if master currencies modal is open
                     const masterModal = document.getElementById('masterCurrenciesModal');
-                    if (masterModal && masterModal.style.display === 'flex') {
+                    if (masterModal && masterModal.classList.contains('active')) {
                         renderMasterCurrenciesTable();
                     }
                     if (currentCountryId) {

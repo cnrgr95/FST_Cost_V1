@@ -32,7 +32,7 @@ $t_dependencies = $all_translations['dependencies'] ?? [];
 <html lang="<?php echo $lang; ?>">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes, viewport-fit=cover">
     <title><?php echo $t_vehicles['title'] ?? 'Vehicles'; ?> - <?php echo $all_translations['app']['name'] ?? 'FST Cost Management'; ?></title>
     
     <!-- Google Fonts for Icons -->
@@ -100,7 +100,7 @@ $t_dependencies = $all_translations['dependencies'] ?? [];
         <div class="modal-content">
             <div class="modal-header">
                 <h2 id="companyModalTitle"><?php echo $t_vehicles['add_company'] ?? 'Add Vehicle Company'; ?></h2>
-                <button class="btn-close">
+                <button class="btn-close" aria-label="<?php echo $t_common['close'] ?? 'Close'; ?>" title="<?php echo $t_common['close'] ?? 'Close'; ?>">
                     <span class="material-symbols-rounded">close</span>
                 </button>
             </div>
@@ -128,10 +128,12 @@ $t_dependencies = $all_translations['dependencies'] ?? [];
                     <input type="text" name="contact_phone">
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn-secondary" onclick="closeModal()">
+                    <button type="button" class="btn-secondary" onclick="closeModal('companyModal')">
+                        <span class="material-symbols-rounded" style="font-size: 18px; margin-right: 6px;">close</span>
                         <?php echo $t_common['cancel'] ?? 'Cancel'; ?>
                     </button>
                     <button type="submit" class="btn-primary">
+                        <span class="material-symbols-rounded" style="font-size: 18px; margin-right: 6px;">save</span>
                         <?php echo $t_common['save'] ?? 'Save'; ?>
                     </button>
                 </div>
@@ -144,7 +146,7 @@ $t_dependencies = $all_translations['dependencies'] ?? [];
         <div class="modal-content">
             <div class="modal-header">
                 <h2 id="typeModalTitle"><?php echo $t_vehicles['add_type'] ?? 'Add Vehicle Type'; ?></h2>
-                <button class="btn-close">
+                <button class="btn-close" aria-label="<?php echo $t_common['close'] ?? 'Close'; ?>" title="<?php echo $t_common['close'] ?? 'Close'; ?>">
                     <span class="material-symbols-rounded">close</span>
                 </button>
             </div>
@@ -168,10 +170,12 @@ $t_dependencies = $all_translations['dependencies'] ?? [];
                     <input type="number" name="max_pax" min="0" step="1" placeholder="<?php echo $t_vehicles['max_pax'] ?? 'Max Pax'; ?>">
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn-secondary" onclick="closeModal()">
+                    <button type="button" class="btn-secondary" onclick="closeModal('typeModal')">
+                        <span class="material-symbols-rounded" style="font-size: 18px; margin-right: 6px;">close</span>
                         <?php echo $t_common['cancel'] ?? 'Cancel'; ?>
                     </button>
                     <button type="submit" class="btn-primary">
+                        <span class="material-symbols-rounded" style="font-size: 18px; margin-right: 6px;">save</span>
                         <?php echo $t_common['save'] ?? 'Save'; ?>
                     </button>
                 </div>
@@ -184,7 +188,7 @@ $t_dependencies = $all_translations['dependencies'] ?? [];
         <div class="modal-content modal-large">
             <div class="modal-header">
                 <h2 id="contractModalTitle"><?php echo $t_vehicles['add_contract'] ?? 'Add Contract'; ?></h2>
-                <button class="btn-close">
+                <button class="btn-close" aria-label="<?php echo $t_common['close'] ?? 'Close'; ?>" title="<?php echo $t_common['close'] ?? 'Close'; ?>">
                     <span class="material-symbols-rounded">close</span>
                 </button>
             </div>
@@ -219,10 +223,12 @@ $t_dependencies = $all_translations['dependencies'] ?? [];
                 
                 
                 <div class="modal-footer">
-                    <button type="button" class="btn-secondary" onclick="closeModal()">
+                    <button type="button" class="btn-secondary" onclick="closeModal('contractModal')">
+                        <span class="material-symbols-rounded" style="font-size: 18px; margin-right: 6px;">close</span>
                         <?php echo $t_common['cancel'] ?? 'Cancel'; ?>
                     </button>
                     <button type="submit" class="btn-primary">
+                        <span class="material-symbols-rounded" style="font-size: 18px; margin-right: 6px;">save</span>
                         <?php echo $t_common['save'] ?? 'Save'; ?>
                     </button>
                 </div>

@@ -30,7 +30,7 @@ $t_users = $all_translations['users'] ?? [];
 <html lang="<?php echo $lang; ?>">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes, viewport-fit=cover">
     <title><?php echo $t_users['title'] ?? 'Users'; ?> - <?php echo $all_translations['app']['name'] ?? 'FST Cost Management'; ?></title>
     
     <!-- Google Fonts for Icons -->
@@ -76,7 +76,7 @@ $t_users = $all_translations['users'] ?? [];
         <div class="modal-content">
             <div class="modal-header">
                 <h2 id="userModalTitle"><?php echo $t_users['add_user'] ?? 'Add User'; ?></h2>
-                <button class="btn-close">
+                <button class="btn-close" aria-label="<?php echo $t_common['close'] ?? 'Close'; ?>" title="<?php echo $t_common['close'] ?? 'Close'; ?>">
                     <span class="material-symbols-rounded">close</span>
                 </button>
             </div>
@@ -148,10 +148,12 @@ $t_users = $all_translations['users'] ?? [];
                 </div>
                 
                 <div class="modal-footer">
-                    <button type="button" class="btn-secondary" onclick="closeModal()">
+                    <button type="button" class="btn-secondary" onclick="closeModal('userModal')">
+                        <span class="material-symbols-rounded" style="font-size: 18px; margin-right: 6px;">close</span>
                         <?php echo $t_common['cancel'] ?? 'Cancel'; ?>
                     </button>
                     <button type="submit" class="btn-primary">
+                        <span class="material-symbols-rounded" style="font-size: 18px; margin-right: 6px;">save</span>
                         <?php echo $t_common['save'] ?? 'Save'; ?>
                     </button>
                 </div>

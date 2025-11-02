@@ -388,12 +388,17 @@
         showToast('error', message || tCommon.error || 'Error');
     }
     
-    // Open modal
+    // Open modal - Enhanced with body lock and focus management
     window.openModal = function(type) {
         const modal = document.getElementById(`${type}Modal`);
-        if (!modal) return;
+        if (!modal) {
+            console.warn(`Modal not found: ${type}Modal`);
+            return;
+        }
         
         modal.classList.add('active');
+        document.body.classList.add('modal-open');
+        document.body.style.overflow = 'hidden';
         
         // Reset form
         const formId = getFormId(type);
@@ -417,6 +422,12 @@
             }
         }
         
+        // Focus first input
+        const firstInput = modal.querySelector('input, select, textarea');
+        if (firstInput) {
+            setTimeout(() => firstInput.focus(), 100);
+        }
+        
         // Load dependent data if needed
         if (type === 'regions') {
             loadCountriesForSelect();
@@ -429,16 +440,49 @@
         }
     };
     
-    // Close modal
-    window.closeModal = function() {
-        document.querySelectorAll('.modal').forEach(m => m.classList.remove('active'));
-        
-        // Reset all forms
-        document.querySelectorAll('form').forEach(form => {
-            form.reset();
-            delete form.dataset.id;
-        });
+    // Close modal - Enhanced to work with specific modal IDs or all modals
+    window.closeModal = function(modalId) {
+        if (modalId) {
+            const modal = document.getElementById(modalId);
+            if (modal) {
+                modal.classList.remove('active');
+                document.body.classList.remove('modal-open');
+                document.body.style.overflow = '';
+                
+                // Reset form in this modal
+                const form = modal.querySelector('form');
+                if (form) {
+                    form.reset();
+                    delete form.dataset.id;
+                }
+            }
+        } else {
+            // Close all modals if no ID specified
+            document.querySelectorAll('.modal').forEach(m => {
+                m.classList.remove('active');
+            });
+            document.body.classList.remove('modal-open');
+            document.body.style.overflow = '';
+            
+            // Reset all forms
+            document.querySelectorAll('form').forEach(form => {
+                form.reset();
+                delete form.dataset.id;
+            });
+        }
     };
+    
+    // Setup modal close buttons
+    document.addEventListener('DOMContentLoaded', function() {
+        document.querySelectorAll('.modal .btn-close').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const modal = this.closest('.modal');
+                if (modal) {
+                    closeModal(modal.id);
+                }
+            });
+        });
+    });
     
     // Helper function to get correct form ID based on type
     function getFormId(type) {

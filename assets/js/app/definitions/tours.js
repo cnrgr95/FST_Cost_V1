@@ -402,7 +402,7 @@
         }
     }
     
-    // Open modal for Tours
+    // Open modal for Tours - Enhanced with body lock and focus management
     window.openModal = async function() {
         const modal = document.getElementById('toursModal');
         if (!modal) {
@@ -447,12 +447,49 @@
             
             // Show modal
             modal.classList.add('active');
+            document.body.classList.add('modal-open');
             document.body.style.overflow = 'hidden';
+            
+            // Focus first input
+            const firstInput = modal.querySelector('input:not([type="hidden"]), select:not([disabled]), textarea');
+            if (firstInput) {
+                setTimeout(() => firstInput.focus(), 100);
+            }
         } catch (error) {
             console.error('Error loading modal data:', error);
             showToast('error', tCommon.failed_to_load_data || 'Failed to load data');
         }
     };
+    
+    // Close modal - Enhanced to work with specific modal IDs
+    window.closeModal = function(modalId) {
+        const targetModal = modalId ? document.getElementById(modalId) : document.getElementById('toursModal');
+        if (targetModal) {
+            targetModal.classList.remove('active');
+            document.body.classList.remove('modal-open');
+            document.body.style.overflow = '';
+            
+            // Reset form
+            const form = targetModal.querySelector('form');
+            if (form) {
+                form.reset();
+                delete form.dataset.id;
+                clearFormErrors(form);
+            }
+        }
+    };
+    
+    // Setup modal close buttons
+    document.addEventListener('DOMContentLoaded', function() {
+        document.querySelectorAll('.modal .btn-close').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const modal = this.closest('.modal');
+                if (modal) {
+                    closeModal(modal.id);
+                }
+            });
+        });
+    });
     
     // Edit item
     window.editItem = async function(id) {

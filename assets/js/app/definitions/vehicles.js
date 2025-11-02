@@ -520,7 +520,7 @@
         showToast('error', message || tCommon.error || 'Error');
     }
     
-    // Open modal
+    // Open modal - Enhanced with body lock and focus management
     window.openModal = async function(type) {
         // Fix modal ID - companies -> companyModal, types -> typeModal, contracts -> contractModal
         let modalId, formId;
@@ -533,6 +533,9 @@
         } else if (type === 'contracts') {
             modalId = 'contractModal';
             formId = 'contractForm';
+        } else {
+            console.warn('Unknown modal type:', type);
+            return;
         }
         
         const modal = document.getElementById(modalId);
@@ -548,22 +551,30 @@
         }
         
         modal.classList.add('active');
+        document.body.classList.add('modal-open');
+        document.body.style.overflow = 'hidden';
         
         // Reset form
         form.reset();
         delete form.dataset.id;
         
-         // Update modal title
-         const title = modal.querySelector('h2');
-         if (title) {
-             if (type === 'companies') {
-                 title.textContent = tVehicles.add_company || 'Add Vehicle Company';
-             } else if (type === 'types') {
-                 title.textContent = tVehicles.add_type || 'Add Vehicle Type';
-             } else if (type === 'contracts') {
-                 title.textContent = tVehicles.add_contract || 'Add Contract';
-             }
-         }
+        // Update modal title
+        const title = modal.querySelector('h2');
+        if (title) {
+            if (type === 'companies') {
+                title.textContent = tVehicles.add_company || 'Add Vehicle Company';
+            } else if (type === 'types') {
+                title.textContent = tVehicles.add_type || 'Add Vehicle Type';
+            } else if (type === 'contracts') {
+                title.textContent = tVehicles.add_contract || 'Add Contract';
+            }
+        }
+        
+        // Focus first input
+        const firstInput = modal.querySelector('input:not([type="hidden"]):not([readonly]), select:not([disabled]), textarea');
+        if (firstInput) {
+            setTimeout(() => firstInput.focus(), 100);
+        }
         
         // Load dependent data if needed
         if (type === 'companies') {
@@ -577,28 +588,76 @@
         }
     };
     
-    // Close modal
-    window.closeModal = function() {
-        document.querySelectorAll('.modal').forEach(m => m.classList.remove('active'));
-        
-        // Reset all forms
-        document.querySelectorAll('form').forEach(form => {
-            form.reset();
-            delete form.dataset.id;
-        });
-        
-        // Reset contract form specifically
-        const contractId = document.getElementById('contractId');
-        if (contractId) {
-            contractId.value = '';
+    // Close modal - Enhanced to work with specific modal IDs
+    window.closeModal = function(modalId) {
+        let targetModal;
+        if (modalId) {
+            targetModal = document.getElementById(modalId);
+        } else {
+            // Close all modals if no ID specified
+            document.querySelectorAll('.modal.active').forEach(m => {
+                m.classList.remove('active');
+            });
+            document.body.classList.remove('modal-open');
+            document.body.style.overflow = '';
+            
+            // Reset all forms
+            document.querySelectorAll('form').forEach(form => {
+                form.reset();
+                delete form.dataset.id;
+            });
+            
+            // Reset contract form specifically
+            const contractId = document.getElementById('contractId');
+            if (contractId) {
+                contractId.value = '';
+            }
+            
+            const contractCodeInput = document.getElementById('contract_code');
+            if (contractCodeInput && (!contractId || !contractId.value)) {
+                contractCodeInput.readOnly = true;
+            }
+            return;
         }
         
-        // Reset contract code input readonly state when closing modal
-        const contractCodeInput = document.getElementById('contract_code');
-        if (contractCodeInput && !contractId.value) {
-            contractCodeInput.readOnly = true;
+        if (targetModal) {
+            targetModal.classList.remove('active');
+            document.body.classList.remove('modal-open');
+            document.body.style.overflow = '';
+            
+            // Reset form in this modal
+            const form = targetModal.querySelector('form');
+            if (form) {
+                form.reset();
+                delete form.dataset.id;
+            }
+            
+            // Reset contract form specifically if closing contract modal
+            if (modalId === 'contractModal') {
+                const contractId = document.getElementById('contractId');
+                if (contractId) {
+                    contractId.value = '';
+                }
+                
+                const contractCodeInput = document.getElementById('contract_code');
+                if (contractCodeInput && (!contractId || !contractId.value)) {
+                    contractCodeInput.readOnly = true;
+                }
+            }
         }
     };
+    
+    // Setup modal close buttons
+    document.addEventListener('DOMContentLoaded', function() {
+        document.querySelectorAll('.modal .btn-close').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const modal = this.closest('.modal');
+                if (modal) {
+                    closeModal(modal.id);
+                }
+            });
+        });
+    });
     
     // Edit item
     window.editItem = async function(type, id) {

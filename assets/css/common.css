@@ -1,26 +1,46 @@
-/* Common Page Styles - Sidebar Responsive & Layout */
+/* Common Page Styles - Sidebar Responsive & Layout - Platform Agnostic */
 :root {
   --sidebar-width: 270px;
   --sidebar-collapsed-width: 70px;
+  /* Safe area insets for mobile devices */
+  --safe-area-inset-top: env(safe-area-inset-top, 0px);
+  --safe-area-inset-left: env(safe-area-inset-left, 0px);
+  --safe-area-inset-right: env(safe-area-inset-right, 0px);
+  --safe-area-inset-bottom: env(safe-area-inset-bottom, 0px);
 }
 
-/* Main Content Layout - Responsive to Sidebar Width */
+/* Main Content Layout - Responsive to Sidebar Width - Platform Agnostic */
 .main-content {
   margin-left: var(--sidebar-width);
   transition: margin-left 0.4s ease, width 0.4s ease;
   width: calc(100% - var(--sidebar-width));
   min-width: 0; /* Allow content to shrink */
+  max-width: 100vw; /* Prevent overflow on any device */
+  box-sizing: border-box;
+  /* Respect safe areas on mobile */
+  padding-right: var(--safe-area-inset-right);
 }
 
 .sidebar.collapsed ~ .main-content {
   margin-left: var(--sidebar-collapsed-width);
   width: calc(100% - var(--sidebar-collapsed-width));
+  max-width: calc(100vw - var(--sidebar-collapsed-width) - var(--safe-area-inset-right));
+  padding-right: var(--safe-area-inset-right);
 }
 
 .content-wrapper {
   margin-top: 70px;
   padding: 30px;
+  padding-top: calc(30px + var(--safe-area-inset-top));
+  padding-left: calc(30px + var(--safe-area-inset-left));
+  padding-right: calc(30px + var(--safe-area-inset-right));
+  padding-bottom: calc(30px + var(--safe-area-inset-bottom));
   transition: padding 0.4s ease;
+  box-sizing: border-box;
+  width: 100%;
+  max-width: 100%;
+  /* Prevent horizontal overflow */
+  overflow-x: hidden;
 }
 
 /* Ensure all page content respects sidebar width */
@@ -203,8 +223,10 @@ table tbody tr:last-child td {
   background: rgba(0, 0, 0, 0.5);
   z-index: 1000;
   overflow-y: auto;
-  /* Prevent any click events on modal background */
+  /* Prevent any click events on modal background - user can only close via buttons or ESC */
   pointer-events: none;
+  /* Prevent background scrolling when modal is open */
+  overscroll-behavior: contain;
 }
 
 .modal.active {
@@ -212,8 +234,52 @@ table tbody tr:last-child td {
   align-items: center;
   justify-content: center;
   padding: 20px;
-  /* Modal background doesn't respond to clicks */
+  /* Modal background doesn't respond to clicks - prevent accidental closing */
   pointer-events: none;
+}
+
+/* Prevent all background interactions when modal is active */
+body.modal-open {
+  overflow: hidden !important;
+  position: relative !important;
+}
+
+/* Block all interactions with page content except modal */
+body.modal-open::before {
+  content: '';
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: transparent;
+  z-index: 999;
+  pointer-events: auto;
+}
+
+body.modal-open .sidebar,
+body.modal-open .main-content,
+body.modal-open .topbar,
+body.modal-open .container,
+body.modal-open table,
+body.modal-open button:not(.modal button),
+body.modal-open input:not(.modal input),
+body.modal-open select:not(.modal select),
+body.modal-open a:not(.modal a) {
+  pointer-events: none !important;
+  user-select: none !important;
+}
+
+/* Allow modal and its content to be interactive */
+body.modal-open .modal.active {
+  pointer-events: auto !important;
+  z-index: 1000;
+}
+
+body.modal-open .modal.active .modal-content,
+body.modal-open .modal.active .modal-content * {
+  pointer-events: auto !important;
+  user-select: auto !important;
 }
 
 /* Nested modals have higher z-index */
@@ -234,6 +300,8 @@ table tbody tr:last-child td {
   position: relative;
   /* Modal content responds to clicks, background doesn't */
   pointer-events: auto;
+  /* Ensure modal content is above the overlay */
+  z-index: 1;
 }
 
 .modal-header {
@@ -316,6 +384,25 @@ table tbody tr:last-child td {
   outline: none;
   border-color: #151A2D;
   box-shadow: 0 0 0 3px rgba(21, 26, 45, 0.1);
+}
+
+/* Form Row - for side-by-side form fields */
+.form-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 20px;
+  margin-bottom: 20px;
+}
+
+.form-row .form-group {
+  margin-bottom: 0;
+}
+
+/* Responsive form rows */
+@media (max-width: 768px) {
+  .form-row {
+    grid-template-columns: 1fr;
+  }
 }
 
 
@@ -403,22 +490,35 @@ table tbody tr:last-child td {
     color: #6b7280;
 }
 
-/* Mobile Responsive */
+/* Mobile Responsive - Platform Agnostic */
 @media (max-width: 768px) {
   .main-content {
     margin-left: 0 !important;
-    width: 100% !important;
+    width: calc(100% - var(--safe-area-inset-left) - var(--safe-area-inset-right)) !important;
+    max-width: 100vw !important;
+    padding-left: var(--safe-area-inset-left);
+    padding-right: var(--safe-area-inset-right);
   }
   
   .sidebar.collapsed ~ .main-content,
   .sidebar.active ~ .main-content {
     margin-left: 0 !important;
-    width: 100% !important;
+    width: calc(100% - var(--safe-area-inset-left) - var(--safe-area-inset-right)) !important;
+    max-width: 100vw !important;
+    padding-left: var(--safe-area-inset-left);
+    padding-right: var(--safe-area-inset-right);
   }
   
   .content-wrapper {
     padding: 20px 15px;
-    margin-top: 70px;
+    padding-top: calc(20px + var(--safe-area-inset-top));
+    padding-left: calc(15px + var(--safe-area-inset-left));
+    padding-right: calc(15px + var(--safe-area-inset-right));
+    padding-bottom: calc(20px + var(--safe-area-inset-bottom));
+    margin-top: var(--topbar-height);
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
   }
   
   .page-header {

@@ -41,19 +41,7 @@
     document.addEventListener('DOMContentLoaded', function() {
         loadData();
         
-        // Setup modal close buttons
-        document.querySelectorAll('.btn-close').forEach(btn => {
-            btn.addEventListener('click', closeModal);
-        });
-        
-        // Close modal when clicking outside
-        document.querySelectorAll('.modal').forEach(modal => {
-            modal.addEventListener('click', function(e) {
-                if (e.target === this) {
-                    closeModal();
-                }
-            });
-        });
+        // Modal close buttons are set up in the closeModal setup above
         
         // Setup form submission
         const userForm = document.getElementById('userForm');
@@ -575,54 +563,78 @@
         field.parentElement.appendChild(errorDiv);
     }
     
-    // Open modal
+    // Open modal - Enhanced with body lock and focus management
     window.openModal = function() {
         const modal = document.getElementById('userModal');
         const form = document.getElementById('userForm');
         const title = document.getElementById('userModalTitle');
         
-        if (modal && form && title) {
-            form.reset();
-            delete form.dataset.id;
-            title.textContent = tUsers.add_user;
-            clearFormErrors(form);
-            
-            // Reset all cascade dropdowns
-            const countrySelect = document.getElementById('countrySelect');
-            const regionSelect = document.getElementById('regionSelect');
-            const citySelect = document.getElementById('citySelect');
-            const departmentSelect = document.getElementById('departmentSelect');
-            const positionSelect = document.getElementById('positionSelect');
-            
-            // Reset country (others will be reset by cascade)
-            if (countrySelect) {
-                countrySelect.value = '';
-            }
-            resetDropdown(regionSelect, tUsers.select_region);
-            resetDropdown(citySelect, tUsers.select_city);
-            resetDropdown(departmentSelect, tUsers.select_department);
-            resetDropdown(positionSelect, tUsers.select_position);
-            
-            modal.classList.add('active');
+        if (!modal || !form || !title) {
+            console.warn('Modal elements not found');
+            return;
+        }
+        
+        form.reset();
+        delete form.dataset.id;
+        title.textContent = tUsers.add_user || 'Add User';
+        clearFormErrors(form);
+        
+        // Reset all cascade dropdowns
+        const countrySelect = document.getElementById('countrySelect');
+        const regionSelect = document.getElementById('regionSelect');
+        const citySelect = document.getElementById('citySelect');
+        const departmentSelect = document.getElementById('departmentSelect');
+        const positionSelect = document.getElementById('positionSelect');
+        
+        // Reset country (others will be reset by cascade)
+        if (countrySelect) {
+            countrySelect.value = '';
+        }
+        resetDropdown(regionSelect, tUsers.select_region);
+        resetDropdown(citySelect, tUsers.select_city);
+        resetDropdown(departmentSelect, tUsers.select_department);
+        resetDropdown(positionSelect, tUsers.select_position);
+        
+        modal.classList.add('active');
+        document.body.classList.add('modal-open');
+        document.body.style.overflow = 'hidden';
+        
+        // Focus first input
+        const firstInput = modal.querySelector('input:not([readonly]), select:not([disabled]), textarea');
+        if (firstInput) {
+            setTimeout(() => firstInput.focus(), 100);
         }
     };
     
-    // Close modal
-    window.closeModal = function() {
-        const modal = document.getElementById('userModal');
-        if (modal) {
-            modal.classList.remove('active');
-        }
-        
-        // Reset form
-        const form = document.getElementById('userForm');
-        if (form) {
-            form.reset();
-            delete form.dataset.id;
-            // Clear all errors
-            clearFormErrors(form);
+    // Close modal - Enhanced to work with specific modal IDs
+    window.closeModal = function(modalId) {
+        const targetModal = modalId ? document.getElementById(modalId) : document.getElementById('userModal');
+        if (targetModal) {
+            targetModal.classList.remove('active');
+            document.body.classList.remove('modal-open');
+            document.body.style.overflow = '';
+            
+            // Reset form
+            const form = targetModal.querySelector('form');
+            if (form) {
+                form.reset();
+                delete form.dataset.id;
+                clearFormErrors(form);
+            }
         }
     };
+    
+    // Setup modal close buttons
+    document.addEventListener('DOMContentLoaded', function() {
+        document.querySelectorAll('.modal .btn-close').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const modal = this.closest('.modal');
+                if (modal) {
+                    closeModal(modal.id);
+                }
+            });
+        });
+    });
     
     // Edit user
     async function editUser(id) {

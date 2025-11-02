@@ -33,7 +33,7 @@ $countryId = isset($_GET['id']) ? (int)$_GET['id'] : 0;
 <html lang="<?php echo $lang; ?>">
 <head>
 	<meta charset="UTF-8">
-	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes, viewport-fit=cover">
 	<title><?php echo ($t_currencies['manage_country'] ?? 'Manage Country') . ' - ' . ($all_translations['app']['name'] ?? 'FST Cost Management'); ?></title>
 	
 	<!-- Google Fonts for Icons -->

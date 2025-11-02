@@ -142,13 +142,10 @@
     };
     
     /**
-     * Close modal on overlay click
+     * Close modal on overlay click - DISABLED for costs page
+     * Only ESC and buttons can close modals
      */
-    document.addEventListener('click', function(e) {
-        if (e.target.classList.contains('modal')) {
-            closeModal();
-        }
-    });
+    // Removed - modals should only close via buttons or ESC key
     
     /**
      * Close modal on ESC key
@@ -158,6 +155,8 @@
             const activeModal = document.querySelector('.modal.active');
             if (activeModal) {
                 closeModal();
+                // Ensure modal-open class is removed
+                document.body.classList.remove('modal-open');
             }
         }
     });

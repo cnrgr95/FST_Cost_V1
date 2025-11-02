@@ -365,7 +365,7 @@
         showToast('error', message || tCommon.error || 'Error');
     }
     
-    // Open modal
+    // Open modal - Enhanced with body lock and focus management
     window.openModal = async function(type) {
         // Fix modal ID - departments -> departmentModal, positions -> positionModal
         const modalId = type === 'departments' ? 'departmentModal' : 'positionModal';
@@ -384,6 +384,8 @@
         }
         
         modal.classList.add('active');
+        document.body.classList.add('modal-open');
+        document.body.style.overflow = 'hidden';
         
         // Reset form
         form.reset();
@@ -399,6 +401,12 @@
             }
         }
         
+        // Focus first input
+        const firstInput = modal.querySelector('input:not([type="hidden"]), select:not([disabled]), textarea');
+        if (firstInput) {
+            setTimeout(() => firstInput.focus(), 100);
+        }
+        
         // Load dependent data if needed
         if (type === 'departments') {
             await loadCitiesForSelect();
@@ -407,16 +415,45 @@
         }
     };
     
-    // Close modal
-    window.closeModal = function() {
-        document.querySelectorAll('.modal').forEach(m => m.classList.remove('active'));
-        
-        // Reset all forms
-        document.querySelectorAll('form').forEach(form => {
-            form.reset();
-            delete form.dataset.id;
-        });
+    // Close modal - Enhanced to work with specific modal IDs
+    window.closeModal = function(modalId) {
+        const targetModal = modalId ? document.getElementById(modalId) : document.querySelector('.modal.active');
+        if (targetModal) {
+            targetModal.classList.remove('active');
+            document.body.classList.remove('modal-open');
+            document.body.style.overflow = '';
+            
+            // Reset form in this modal
+            const form = targetModal.querySelector('form');
+            if (form) {
+                form.reset();
+                delete form.dataset.id;
+            }
+        } else {
+            // Close all modals if no active modal found
+            document.querySelectorAll('.modal').forEach(m => m.classList.remove('active'));
+            document.body.classList.remove('modal-open');
+            document.body.style.overflow = '';
+            
+            // Reset all forms
+            document.querySelectorAll('form').forEach(form => {
+                form.reset();
+                delete form.dataset.id;
+            });
+        }
     };
+    
+    // Setup modal close buttons
+    document.addEventListener('DOMContentLoaded', function() {
+        document.querySelectorAll('.modal .btn-close').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const modal = this.closest('.modal');
+                if (modal) {
+                    closeModal(modal.id);
+                }
+            });
+        });
+    });
     
     // Edit item
     window.editItem = async function(type, id) {

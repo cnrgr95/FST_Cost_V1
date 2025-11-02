@@ -1,4 +1,4 @@
-/* Sidebar Styles */
+/* Sidebar Styles - Platform Agnostic */
 :root {
   --sidebar-width: 270px;
   --sidebar-collapsed-width: 70px;
@@ -7,6 +7,17 @@
   --text-color: #fff;
   --hover-color: #EEF2FF;
   --hover-text: #151A2D;
+  /* Platform-agnostic spacing */
+  --sidebar-header-padding: 2px 15px;
+  --sidebar-header-padding-collapsed: 2px 10px 8px 10px;
+  --sidebar-menu-button-offset: 1.25rem; /* 20px equivalent but responsive */
+  --sidebar-toggler-size: 32px;
+  --sidebar-toggler-size-collapsed: 24px;
+  /* Safe area insets for mobile devices */
+  --safe-area-inset-top: env(safe-area-inset-top, 0px);
+  --safe-area-inset-left: env(safe-area-inset-left, 0px);
+  --safe-area-inset-right: env(safe-area-inset-right, 0px);
+  --safe-area-inset-bottom: env(safe-area-inset-bottom, 0px);
 }
 
 * {
@@ -34,11 +45,14 @@ html {
   position: fixed;
   top: 0;
   left: 0;
-  width: 100%;
-  height: 100%;
+  width: calc(100vw + var(--safe-area-inset-left) + var(--safe-area-inset-right));
+  height: calc(100vh + var(--safe-area-inset-top) + var(--safe-area-inset-bottom));
   background: rgba(0, 0, 0, 0.5);
   z-index: 998;
   transition: opacity 0.3s ease;
+  /* Ensure overlay covers entire viewport including safe areas */
+  margin-left: calc(-1 * var(--safe-area-inset-left));
+  margin-top: calc(-1 * var(--safe-area-inset-top));
 }
 
 .sidebar-overlay.active {
@@ -47,12 +61,14 @@ html {
 }
 
 .sidebar-menu-button {
-  display: none;
+  display: none; /* Will be shown via media query */
   position: fixed;
-  left: 20px;
-  top: 20px;
+  top: calc(var(--sidebar-menu-button-offset) + var(--safe-area-inset-top));
+  left: calc(var(--sidebar-menu-button-offset) + var(--safe-area-inset-left));
   height: 40px;
   width: 42px;
+  min-width: 42px;
+  min-height: 40px;
   border-radius: 8px;
   border: 1px solid #e5e7eb;
   cursor: pointer;
@@ -63,6 +79,9 @@ html {
   justify-content: center;
   transition: all 0.3s ease;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  /* Ensure button stays accessible on all devices */
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
 }
 
 .sidebar-menu-button:hover {
@@ -83,10 +102,11 @@ html {
 
 .sidebar {
   position: fixed;
-  top: 0;
-  left: 0;
+  top: var(--safe-area-inset-top);
+  left: var(--safe-area-inset-left);
   width: var(--sidebar-width);
-  height: 100vh;
+  height: calc(100vh - var(--safe-area-inset-top));
+  max-height: calc(100vh - var(--safe-area-inset-top) - var(--safe-area-inset-bottom));
   background: var(--primary-color);
   transition: all 0.4s ease;
   z-index: 999;
@@ -94,6 +114,7 @@ html {
   flex-direction: column;
   box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
   overflow: visible;
+  box-sizing: border-box;
 }
 
 .sidebar.collapsed {
@@ -103,20 +124,27 @@ html {
 .sidebar-header {
   display: flex;
   align-items: center;
+  justify-content: space-between;
   gap: 8px;
-  padding: 2px 15px;
+  padding: var(--sidebar-header-padding);
   border-bottom: 1px solid rgba(255, 255, 255, 0.1);
   min-height: 70px;
+  width: 100%;
+  box-sizing: border-box;
+  /* Ensure header stays within sidebar bounds */
+  overflow: hidden;
 }
 
 .sidebar.collapsed .sidebar-header {
   justify-content: flex-start;
   align-items: center;
   flex-direction: column;
-  gap: 2px;
-  padding: 2px 10px 8px 10px;
+  gap: 6px;
+  padding: 8px 10px;
   min-height: 70px;
-  height: 70px;
+  height: auto;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .sidebar-header .header-logo {
@@ -129,6 +157,8 @@ html {
   justify-content: center;
   width: 100%;
   margin: 0 auto;
+  flex-shrink: 0;
+  order: 1;
 }
 
 .sidebar-header .header-logo img {
@@ -143,8 +173,7 @@ html {
   height: 45px;
   margin: 0 auto;
   border-radius: 8px;
-  margin-top: -6px;
-  margin-bottom: 0;
+  display: block;
 }
 
 .sidebar-header .header-logo .logo-text {
@@ -160,8 +189,10 @@ html {
 }
 
 .sidebar-toggler {
-  width: 32px;
-  height: 32px;
+  width: var(--sidebar-toggler-size);
+  height: var(--sidebar-toggler-size);
+  min-width: var(--sidebar-toggler-size);
+  min-height: var(--sidebar-toggler-size);
   border-radius: 8px;
   border: none;
   background: rgba(255, 255, 255, 0.1);
@@ -173,15 +204,26 @@ html {
   transition: all 0.3s ease;
   margin-left: auto;
   flex-shrink: 0;
+  /* Platform-agnostic button styling */
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+  /* Ensure button is always clickable */
+  position: relative;
+  z-index: 1;
 }
 
 .sidebar.collapsed .sidebar-toggler {
   margin: 0 auto;
   align-self: center;
-  width: 24px;
-  height: 24px;
+  width: var(--sidebar-toggler-size-collapsed);
+  height: var(--sidebar-toggler-size-collapsed);
+  min-width: var(--sidebar-toggler-size-collapsed);
+  min-height: var(--sidebar-toggler-size-collapsed);
   border-radius: 6px;
-  margin-top: 0px;
+  margin-left: auto;
+  margin-right: auto;
+  order: 2;
+  flex-shrink: 0;
 }
 
 .sidebar-toggler:hover {
@@ -653,15 +695,22 @@ html {
   }
 }
 
-/* Responsive */
+/* Responsive - Platform Agnostic */
 @media (max-width: 768px) {
   .sidebar-menu-button {
-    display: flex;
+    display: flex !important;
+    /* Use safe area for mobile devices */
+    top: calc(var(--sidebar-menu-button-offset) + var(--safe-area-inset-top));
+    left: calc(var(--sidebar-menu-button-offset) + var(--safe-area-inset-left));
   }
 
   .sidebar {
     transform: translateX(-100%);
     width: var(--sidebar-width);
+    max-width: 100vw;
+    /* Respect safe area on mobile */
+    padding-left: var(--safe-area-inset-left);
+    padding-right: var(--safe-area-inset-right);
   }
 
   .sidebar.active {
@@ -677,32 +726,46 @@ html {
   .sidebar.collapsed.active {
     transform: translateX(0);
     width: var(--sidebar-width);
+    max-width: min(var(--sidebar-width), calc(100vw - var(--safe-area-inset-left) - var(--safe-area-inset-right)));
   }
 
   /* Override collapsed styles when active on mobile */
   .sidebar.active .sidebar-header {
     flex-direction: row;
     justify-content: space-between;
+    align-items: center;
     padding: 15px;
     gap: 8px;
     height: 70px;
+    min-height: 70px;
+    width: 100%;
+    box-sizing: border-box;
   }
 
   .sidebar.active .sidebar-header .header-logo {
     justify-content: flex-start;
     width: auto;
+    flex-shrink: 0;
+    order: 0;
   }
 
   .sidebar.active .sidebar-header .header-logo img {
     width: 63px;
     height: 63px;
     margin: 0;
+    flex-shrink: 0;
   }
 
   .sidebar.active .sidebar-header .sidebar-toggler {
     margin-left: auto;
-    width: 32px;
-    height: 32px;
+    margin-right: 0;
+    margin-top: 0;
+    width: var(--sidebar-toggler-size);
+    height: var(--sidebar-toggler-size);
+    min-width: var(--sidebar-toggler-size);
+    min-height: var(--sidebar-toggler-size);
+    flex-shrink: 0;
+    order: 0;
   }
 
   .sidebar.active .sidebar-toggler .material-symbols-rounded {

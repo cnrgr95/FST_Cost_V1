@@ -30,7 +30,7 @@ $t_currencies = $all_translations['currencies'] ?? [];
 <html lang="<?php echo $lang; ?>">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes, viewport-fit=cover">
     <title><?php echo $t_currencies['title'] ?? 'Currencies'; ?> - <?php echo $all_translations['app']['name'] ?? 'FST Cost Management'; ?></title>
     
     <!-- Google Fonts for Icons -->
@@ -139,7 +139,7 @@ $t_currencies = $all_translations['currencies'] ?? [];
         <div class="modal-content" style="max-width: 900px;">
             <div class="modal-header">
                 <h2><?php echo $t_currencies['master_currencies'] ?? 'Master Currencies'; ?></h2>
-                <button class="btn-close" id="closeMasterCurrenciesModal">
+                <button class="btn-close" id="closeMasterCurrenciesModal" aria-label="<?php echo $t_common['close'] ?? 'Close'; ?>" title="<?php echo $t_common['close'] ?? 'Close'; ?>">
                     <span class="material-symbols-rounded">close</span>
                 </button>
             </div>
@@ -168,6 +168,7 @@ $t_currencies = $all_translations['currencies'] ?? [];
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn-secondary" id="closeMasterCurrenciesModalFooter">
+                    <span class="material-symbols-rounded" style="font-size: 18px; margin-right: 6px;">close</span>
                     <?php echo $t_common['close'] ?? 'Close'; ?>
                 </button>
             </div>
@@ -179,7 +180,7 @@ $t_currencies = $all_translations['currencies'] ?? [];
         <div class="modal-content">
             <div class="modal-header">
                 <h2 id="currencyModalTitle"><?php echo $t_currencies['add_currency'] ?? 'Add Currency'; ?></h2>
-                <button class="btn-close" id="closeModal">
+                <button class="btn-close" id="closeModal" aria-label="<?php echo $t_common['close'] ?? 'Close'; ?>" title="<?php echo $t_common['close'] ?? 'Close'; ?>">
                     <span class="material-symbols-rounded">close</span>
                 </button>
             </div>
@@ -211,9 +212,11 @@ $t_currencies = $all_translations['currencies'] ?? [];
                 
                 <div class="modal-footer">
                     <button type="button" class="btn-secondary" id="cancelBtn">
+                        <span class="material-symbols-rounded" style="font-size: 18px; margin-right: 6px;">close</span>
                         <?php echo $t_common['cancel'] ?? 'Cancel'; ?>
                     </button>
                     <button type="submit" class="btn-primary">
+                        <span class="material-symbols-rounded" style="font-size: 18px; margin-right: 6px;">save</span>
                         <?php echo $t_common['save'] ?? 'Save'; ?>
                     </button>
                 </div>
@@ -263,6 +266,7 @@ $t_currencies = $all_translations['currencies'] ?? [];
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn-secondary" id="closeCountryManageFooter">
+                    <span class="material-symbols-rounded" style="font-size: 18px; margin-right: 6px;">close</span>
                     <?php echo $t_common['close'] ?? 'Close'; ?>
                 </button>
             </div>
