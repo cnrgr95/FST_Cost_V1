@@ -311,7 +311,7 @@
                            placeholder="${tCommon.search || 'Search...'}" 
                            class="search-input"
                            onkeyup="filterVehiclesTable('${type}', this.value)">
-                    <button class="search-clear" id="${type}SearchClear" onclick="clearVehiclesSearch('${type}')" style="display: none;">
+                    <button class="search-clear search-clear-hidden" id="${type}SearchClear" onclick="clearVehiclesSearch('${type}')">
                         <span class="material-symbols-rounded">close</span>
                     </button>
                  </div>`;
@@ -1639,7 +1639,7 @@
             filterVehiclesTable(type, '');
         }
         if (clearBtn) {
-            clearBtn.style.display = 'none';
+            clearBtn.classList.add('search-clear-hidden');
         }
     };
     

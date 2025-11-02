@@ -36,25 +36,26 @@
     
     // Initialize
     document.addEventListener('DOMContentLoaded', function() {
-        // Setup modal close buttons
-        document.querySelectorAll('.btn-close').forEach(btn => {
-            btn.addEventListener('click', function() {
+        // Setup cancel buttons explicitly
+        const cancelAddBtn = document.getElementById('cancelAddLanguageBtn');
+        if (cancelAddBtn) {
+            cancelAddBtn.addEventListener('click', function(e) {
+                e.preventDefault();
                 closeAddModal();
+            });
+        }
+        
+        const cancelEditBtn = document.getElementById('cancelEditLanguageBtn');
+        if (cancelEditBtn) {
+            cancelEditBtn.addEventListener('click', function(e) {
+                e.preventDefault();
                 closeEditModal();
             });
-        });
+        }
         
         // Setup form submissions
         document.getElementById('addLanguageForm').addEventListener('submit', handleAddLanguage);
         document.getElementById('editLanguageForm').addEventListener('submit', handleEditLanguage);
-        
-        // Close modal when clicking outside
-        document.addEventListener('click', function(e) {
-            if (e.target.classList.contains('modal')) {
-                closeAddModal();
-                closeEditModal();
-            }
-        });
         
         // Load data
         loadData();
@@ -559,13 +560,25 @@
     
     // Open add modal
     window.openAddModal = function() {
-        document.getElementById('addLanguageModal').classList.add('active');
+        const modal = document.getElementById('addLanguageModal');
+        if (modal) {
+            modal.classList.add('active');
+            document.body.classList.add('modal-open');
+        }
     };
     
     // Close add modal
     window.closeAddModal = function() {
-        document.getElementById('addLanguageModal').classList.remove('active');
-        document.getElementById('addLanguageForm').reset();
+        const modal = document.getElementById('addLanguageModal');
+        if (modal) {
+            modal.classList.remove('active');
+            document.body.classList.remove('modal-open');
+            document.body.style.overflow = '';
+        }
+        const form = document.getElementById('addLanguageForm');
+        if (form) {
+            form.reset();
+        }
     };
     
     // Handle add language
@@ -611,15 +624,29 @@
     window.openEditModal = function() {
         const modal = document.getElementById('editLanguageModal');
         const form = document.getElementById('editLanguageForm');
-        form.querySelector('input[name="name"]').value = currentData.editingName;
-        modal.classList.add('active');
+        if (form && form.querySelector('input[name="name"]')) {
+            form.querySelector('input[name="name"]').value = currentData.editingName;
+        }
+        if (modal) {
+            modal.classList.add('active');
+            document.body.classList.add('modal-open');
+        }
     };
     
     // Close edit modal
     window.closeEditModal = function() {
-        document.getElementById('editLanguageModal').classList.remove('active');
+        const modal = document.getElementById('editLanguageModal');
+        if (modal) {
+            modal.classList.remove('active');
+            document.body.classList.remove('modal-open');
+            document.body.style.overflow = '';
+        }
         delete currentData.editingCode;
         delete currentData.editingName;
+        const form = document.getElementById('editLanguageForm');
+        if (form) {
+            form.reset();
+        }
     };
     
     // Handle edit language form submission

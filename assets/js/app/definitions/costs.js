@@ -236,7 +236,7 @@
                     <span class="material-symbols-rounded search-icon">search</span>
                     <input type="text" 
                            id="costsSearchInput" 
-                           placeholder="${tCommon.search || 'Search costs...'}" 
+                           placeholder="${tCommon.search || 'Search...'}" 
                            class="search-input"
                            onkeyup="filterCostsTable(this.value)">
                     <button class="search-clear search-clear-hidden" id="costsSearchClear" onclick="clearCostsSearch()">
@@ -249,7 +249,7 @@
                  </button>`;
         html += '</div>';
         html += '</div>';
-        html += '<div class="costs-table-section">';
+        html += '<div class="currencies-table-section">';
         html += '<table class="costs-table" id="costsTable">';
         html += '<thead><tr>';
         html += `<th class="sortable" onclick="sortTable('cost_code')">

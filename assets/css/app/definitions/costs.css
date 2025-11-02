@@ -169,43 +169,12 @@
     overflow: hidden;
 }
 
-.costs-table-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 20px 24px;
-    border-bottom: 1px solid #e5e7eb;
-    background: #f9fafb;
-}
+/* Table header uses common.css universal styles [class*="-table-header"] */
+/* Table title uses common.css universal styles [class*="-table-title"] */
+/* table-actions-group uses common.css styles */
+/* table-count-badge uses common.css styles */
 
-.costs-table-title {
-    display: flex;
-    align-items: center;
-    font-size: 18px;
-    font-weight: 600;
-    color: #151A2D;
-}
-
-.table-count-badge {
-    display: inline-block;
-    background: #151A2D;
-    color: white;
-    padding: 4px 10px;
-    border-radius: 12px;
-    font-size: 12px;
-    font-weight: 600;
-    margin-left: 10px;
-}
-
-.table-actions-group {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-}
-
-.costs-table-section {
-    overflow-x: auto;
-}
+/* Table section uses common.css universal currencies-table-section styles */
 
 .costs-table {
     width: 100%;
@@ -286,13 +255,7 @@
     font-weight: 500;
 }
 
-/* Table title styles */
-.costs-table-title {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    flex-wrap: wrap;
-}
+/* Table title uses common.css universal styles [class*="-table-title"] */
 
 .costs-title-icon {
     font-size: 24px;
@@ -383,65 +346,7 @@
     color: #dc2626;
 }
 
-/* Search Box */
-.search-box {
-    position: relative;
-    display: flex;
-    align-items: center;
-    background: white;
-    border: 1px solid #d1d5db;
-    border-radius: 8px;
-    padding: 8px 12px;
-    min-width: 250px;
-}
-
-.search-box:focus-within {
-    border-color: #151A2D;
-    box-shadow: 0 0 0 3px rgba(21, 26, 45, 0.1);
-}
-
-.search-icon {
-    color: #9ca3af;
-    font-size: 20px;
-    margin-right: 8px;
-    pointer-events: none;
-}
-
-.search-input {
-    border: none;
-    outline: none;
-    flex: 1;
-    font-size: 14px;
-    color: #374151;
-    background: transparent;
-}
-
-.search-input::placeholder {
-    color: #9ca3af;
-}
-
-.search-clear {
-    background: transparent;
-    border: none;
-    cursor: pointer;
-    padding: 4px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: #9ca3af;
-    border-radius: 4px;
-    margin-left: 4px;
-    transition: all 0.2s;
-}
-
-.search-clear:hover {
-    background: #f3f4f6;
-    color: #374151;
-}
-
-.search-clear .material-symbols-rounded {
-    font-size: 18px;
-}
+/* Search Box - Uses common.css styles, no override needed */
 
 /* Button Add */
 .btn-add {
@@ -934,16 +839,7 @@
         padding: 15px;
     }
     
-    .costs-table-header {
-        flex-direction: column;
-        gap: 16px;
-        align-items: stretch;
-    }
-    
-    .table-actions-group {
-        flex-direction: column;
-        width: 100%;
-    }
+    /* Uses common.css responsive styles for [class*="-table-header"] */
     
     .search-box {
         width: 100%;

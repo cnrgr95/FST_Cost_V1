@@ -130,7 +130,7 @@
                            placeholder="${tCommon.search || 'Search...'}" 
                            class="search-input"
                            onkeyup="filterMerchantsTable(this.value)">
-                    <button class="search-clear" id="merchantsSearchClear" onclick="clearMerchantsSearch()" style="display: none;">
+                    <button class="search-clear search-clear-hidden" id="merchantsSearchClear" onclick="clearMerchantsSearch()">
                         <span class="material-symbols-rounded">close</span>
                     </button>
                  </div>`;
@@ -719,7 +719,7 @@
             filterMerchantsTable('');
         }
         if (clearBtn) {
-            clearBtn.style.display = 'none';
+            clearBtn.classList.add('search-clear-hidden');
         }
     };
     

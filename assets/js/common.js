@@ -131,12 +131,19 @@
         const modal = modalId ? document.getElementById(modalId) : document.querySelector('.modal.active');
         if (modal) {
             modal.classList.remove('active');
+            document.body.classList.remove('modal-open');
             document.body.style.overflow = '';
             
             // Clear form if exists
             const form = modal.querySelector('form');
             if (form) {
                 form.reset();
+                // Clear any error messages
+                form.querySelectorAll('.input-error-message').forEach(el => el.textContent = '');
+                form.querySelectorAll('.error, .invalid, .has-error').forEach(el => {
+                    el.classList.remove('error', 'invalid', 'has-error');
+                    el.removeAttribute('aria-invalid');
+                });
             }
         }
     };
@@ -159,6 +166,86 @@
                 document.body.classList.remove('modal-open');
             }
         }
+    });
+    
+    /**
+     * Setup modal close and cancel buttons globally
+     * This runs on DOMContentLoaded to ensure all buttons are found
+     */
+    document.addEventListener('DOMContentLoaded', function() {
+        // Setup all .btn-close buttons
+        function setupCloseButtons() {
+            document.querySelectorAll('.modal .btn-close').forEach(btn => {
+                // Remove existing listeners to prevent duplicates
+                const newBtn = btn.cloneNode(true);
+                btn.parentNode.replaceChild(newBtn, btn);
+                
+                newBtn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    const modal = this.closest('.modal');
+                    if (modal) {
+                        const modalId = modal.id || null;
+                        closeModal(modalId);
+                        document.body.classList.remove('modal-open');
+                    }
+                });
+            });
+        }
+        
+        // Setup all cancel buttons (buttons with id containing "cancel" and class "btn-secondary")
+        function setupCancelButtons() {
+            document.querySelectorAll('.modal button.btn-secondary[id*="cancel"], .modal button.btn-secondary[id*="Cancel"]').forEach(btn => {
+                // Skip if already has listener (check for data attribute)
+                if (btn.dataset.cancelListener === 'true') return;
+                
+                btn.dataset.cancelListener = 'true';
+                btn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    const modal = this.closest('.modal');
+                    if (modal) {
+                        const modalId = modal.id || null;
+                        closeModal(modalId);
+                        document.body.classList.remove('modal-open');
+                    }
+                });
+            });
+        }
+        
+        // Initial setup
+        setupCloseButtons();
+        setupCancelButtons();
+        
+        // Re-setup when modals are opened (for dynamically added buttons)
+        const originalAddEventListener = EventTarget.prototype.addEventListener;
+        const modalObserver = new MutationObserver(function(mutations) {
+            let shouldSetup = false;
+            mutations.forEach(function(mutation) {
+                if (mutation.addedNodes.length > 0) {
+                    mutation.addedNodes.forEach(function(node) {
+                        if (node.nodeType === 1) { // Element node
+                            if (node.classList && node.classList.contains('modal') || 
+                                node.querySelector && node.querySelector('.modal')) {
+                                shouldSetup = true;
+                            }
+                        }
+                    });
+                }
+            });
+            if (shouldSetup) {
+                setTimeout(function() {
+                    setupCloseButtons();
+                    setupCancelButtons();
+                }, 100);
+            }
+        });
+        
+        // Observe body for modal additions
+        modalObserver.observe(document.body, {
+            childList: true,
+            subtree: true
+        });
     });
     
     // ============================================
@@ -572,7 +659,11 @@
         
         // Show/hide clear button
         if (clearBtn) {
-            clearBtn.style.display = term ? 'flex' : 'none';
+            if (term) {
+                clearBtn.classList.remove('search-clear-hidden');
+            } else {
+                clearBtn.classList.add('search-clear-hidden');
+            }
         }
         
         // Update count via callback

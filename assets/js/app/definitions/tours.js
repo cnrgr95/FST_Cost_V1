@@ -293,10 +293,10 @@
                     <span class="material-symbols-rounded search-icon">search</span>
                     <input type="text" 
                            id="toursSearchInput" 
-                           placeholder="${tCommon.search || 'Search tours...'}" 
+                           placeholder="${tCommon.search || 'Search...'}" 
                            class="search-input"
                            onkeyup="filterToursTable(this.value)">
-                    <button class="search-clear" id="toursSearchClear" onclick="clearToursSearch()" style="display: none;">
+                    <button class="search-clear search-clear-hidden" id="toursSearchClear" onclick="clearToursSearch()">
                         <span class="material-symbols-rounded">close</span>
                     </button>
                  </div>`;
@@ -1290,7 +1290,11 @@
         
         // Show/hide clear button
         if (clearBtn) {
-            clearBtn.style.display = term ? 'flex' : 'none';
+            if (term) {
+                clearBtn.classList.remove('search-clear-hidden');
+            } else {
+                clearBtn.classList.add('search-clear-hidden');
+            }
         }
         
         // Update footer count
@@ -1310,7 +1314,7 @@
             filterToursTable('');
         }
         if (clearBtn) {
-            clearBtn.style.display = 'none';
+            clearBtn.classList.add('search-clear-hidden');
         }
     };
     
