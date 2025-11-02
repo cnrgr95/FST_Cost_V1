@@ -72,7 +72,6 @@
         "success": "Success",
         "saved_successfully": "Saved",
         "deleted_successfully": "Deleted",
-        "fill_required_fields": "Fill required fields",
         "cancel": "Cancel",
         "save": "Save",
         "delete": "Delete",
@@ -516,7 +515,15 @@
         "unauthorized": "Unauthorized",
         "invalid_request_method": "Invalid request method",
         "invalid_action": "Invalid action",
-        "database_query_failed": "Database query failed"
+        "database_query_failed": "Database query failed",
+        "id_required": "ID is required",
+        "language_code_required": "Language code is required",
+        "data_required": "Data is required",
+        "error_occurred": "An error occurred while processing your request",
+        "fatal_error": "A fatal error occurred",
+        "file_processing_error": "An error occurred while processing the file",
+        "invalid_currency_code": "Invalid currency code",
+        "route_already_exists": "A route with the same From/To locations already exists"
     },
     "languages": {
         "en": "English",

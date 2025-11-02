@@ -333,6 +333,9 @@
         "select_currency_manual": "Para Birimi Seçin...",
         "or": "veya",
         "no_contracts": "Kontrat bulunamadı",
+        "select_vehicle_types": "Araç Tiplerini Seçin",
+        "confirm_and_continue": "Onayla ve Devam Et",
+        "select_at_least_one_vehicle_type": "Lütfen en az bir araç tipi seçin",
         "upload_excel": "Excel Yükle",
         "select_vehicle_company": "Araç Firması Seçin",
         "select_excel_file": "Excel Dosyası Seçin",
@@ -512,7 +515,15 @@
         "unauthorized": "Yetkisiz erişim",
         "invalid_request_method": "Geçersiz istek yöntemi",
         "invalid_action": "Geçersiz işlem",
-        "database_query_failed": "Veritabanı sorgusu başarısız"
+        "database_query_failed": "Veritabanı sorgusu başarısız",
+        "id_required": "ID zorunludur",
+        "language_code_required": "Dil kodu zorunludur",
+        "data_required": "Veri zorunludur",
+        "error_occurred": "İsteğiniz işlenirken bir hata oluştu",
+        "fatal_error": "Kritik bir hata oluştu",
+        "file_processing_error": "Dosya işlenirken bir hata oluştu",
+        "invalid_currency_code": "Geçersiz döviz kodu",
+        "route_already_exists": "Aynı Nerden/Nereye konumlarına sahip bir rota zaten mevcut"
     },
     "languages": {
         "en": "English",

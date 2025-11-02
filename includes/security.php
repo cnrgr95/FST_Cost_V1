@@ -83,10 +83,26 @@ function requireCsrfToken() {
     if (!$token || !validateCsrfToken($token)) {
         if (defined('API_REQUEST')) {
             header('Content-Type: application/json');
-            echo json_encode(['success' => false, 'message' => 'CSRF token validation failed']);
+            // Load translations if available
+            if (function_exists('loadTranslations')) {
+                $lang = isset($_SESSION['language']) ? $_SESSION['language'] : 'en';
+                $translations = loadTranslations($lang);
+                $message = $translations['login']['security_token_failed'] ?? 'CSRF token validation failed';
+            } else {
+                $message = 'CSRF token validation failed';
+            }
+            echo json_encode(['success' => false, 'message' => $message]);
             exit;
         } else {
-            die('CSRF token validation failed');
+            // For non-API requests, try to get translated message
+            if (function_exists('loadTranslations')) {
+                $lang = isset($_SESSION['language']) ? $_SESSION['language'] : 'en';
+                $translations = loadTranslations($lang);
+                $message = $translations['login']['security_token_failed'] ?? 'CSRF token validation failed';
+            } else {
+                $message = 'CSRF token validation failed';
+            }
+            die($message);
         }
     }
 }

@@ -2,6 +2,17 @@
 /**
  * Application Configuration File
  * Main configuration settings for FST Cost Management System
+ * 
+ * @version 1.0.0
+ * @author FST Team
+ * @package FST_Cost_V1
+ * 
+ * This file handles:
+ * - Environment configuration (development/production/testing)
+ * - Database connection settings
+ * - Application constants
+ * - Security settings
+ * - Error handling configuration
  */
 
 // Prevent direct access

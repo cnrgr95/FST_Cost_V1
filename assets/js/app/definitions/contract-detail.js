@@ -1184,7 +1184,9 @@
         
         // Validate required fields - check if values are set (can be "0" which is valid)
         if (fromLocationValue === '' || toLocationValue === '') {
-            showToast('warning', tVehicles.map_required_fields || 'Please map all required fields (Nerden, Nereye)');
+            const fromLocationText = tVehicles.from_location || 'From';
+            const toLocationText = tVehicles.to_location || 'To';
+            showToast('warning', tVehicles.map_required_fields || `Please map all required fields (${fromLocationText}, ${toLocationText})`);
             return;
         }
         
@@ -1200,14 +1202,19 @@
                 fromLocationIndex,
                 toLocationIndex
             });
-            showToast('error', 'Invalid column mapping. Please select valid columns for "Nerden" and "Nereye".');
+            const fromLocationText = tVehicles.from_location || 'From';
+            const toLocationText = tVehicles.to_location || 'To';
+            showToast('error', `Invalid column mapping. Please select valid columns for "${fromLocationText}" and "${toLocationText}".`);
             return;
         }
         
-        console.log('Column mapping validated:', {
-            from_location: fromLocationIndex,
-            to_location: toLocationIndex
-        });
+        // Debug logging (only in development)
+        if (window.DEBUG_MODE) {
+            console.log('Column mapping validated:', {
+                from_location: fromLocationIndex,
+                to_location: toLocationIndex
+            });
+        }
         
         // Collect vehicle type mappings dynamically
         // Use the correct selector: rows with data-vehicle-type-row attribute
@@ -1226,7 +1233,7 @@
                         // Store typeId as integer key to match backend expectation
                         vehicleTypeMappings[parseInt(typeId)] = colIndexInt;
                     }
-                } else {
+                } else if (window.DEBUG_MODE) {
                     console.warn('Vehicle type', typeId, 'has no column selected');
                 }
             }
@@ -1242,7 +1249,10 @@
             vehicle_types: vehicleTypeMappings // Object with type_id (int) => column_index (int)
         };
         
-        console.log('Clean mapping:', cleanMapping);
+        // Debug logging (only in development)
+        if (window.DEBUG_MODE) {
+            console.log('Clean mapping:', cleanMapping);
+        }
         
         // Complete mapping prepared
         
@@ -1314,77 +1324,16 @@
                 manual_currency: manualCurrency || null // Manual currency for all rows
             };
             
-            // Debug logging - detailed
-            const firstRow = fullDataRes.excel_rows?.[0] || [];
-            console.log('Sending save request with:', {
-                contract_id: CONTRACT_ID,
-                column_mapping: cleanMapping,
-                excel_rows_count: fullDataRes.excel_rows?.length || 0,
-                has_header: saveData.has_header,
-                first_row_preview: firstRow.slice(0, 10) || []
-            });
-            console.log('First row details:', {
-                total_columns: firstRow.length,
-                from_location_col_0: firstRow[cleanMapping.from_location],
-                to_location_col: firstRow[cleanMapping.to_location],
-                all_values: firstRow
-            });
-            
-            // Check if first few rows have data - show ALL columns for debugging
-            if (fullDataRes.excel_rows && fullDataRes.excel_rows.length > 0) {
-                console.log('First 3 rows preview (ALL COLUMNS):');
-                fullDataRes.excel_rows.slice(0, 3).forEach((row, idx) => {
-                    const rowData = { total_cols: row.length };
-                    for (let i = 0; i < Math.min(row.length, 10); i++) {
-                        rowData[`col_${i}`] = row[i] !== null && row[i] !== undefined ? row[i] : '[NULL/EMPTY]';
-                    }
-                    console.log(`  Row ${idx + 1}:`, rowData);
+            // Debug logging - detailed (only in development mode)
+            if (window.DEBUG_MODE && fullDataRes.excel_rows && fullDataRes.excel_rows.length > 0) {
+                const firstRow = fullDataRes.excel_rows[0] || [];
+                console.log('Sending save request with:', {
+                    contract_id: CONTRACT_ID,
+                    column_mapping: cleanMapping,
+                    excel_rows_count: fullDataRes.excel_rows.length,
+                    has_header: saveData.has_header,
+                    first_row_preview: firstRow.slice(0, 10)
                 });
-                
-                // Show column analysis
-                console.log('Column analysis (which columns have data):');
-                const columnAnalysis = {};
-                fullDataRes.excel_rows.slice(0, 10).forEach(row => {
-                    for (let i = 0; i < row.length; i++) {
-                        if (!columnAnalysis[i]) {
-                            columnAnalysis[i] = { total: 0, nonEmpty: 0, samples: [] };
-                        }
-                        columnAnalysis[i].total++;
-                        if (row[i] !== null && row[i] !== undefined && row[i] !== '' && String(row[i]).trim() !== '') {
-                            columnAnalysis[i].nonEmpty++;
-                            if (columnAnalysis[i].samples.length < 3) {
-                                columnAnalysis[i].samples.push(row[i]);
-                            }
-                        }
-                    }
-                });
-                console.log('Column statistics:', columnAnalysis);
-                
-                // Show recommendation for to_location
-                const currentToLocationCol = cleanMapping.to_location;
-                console.log(`\n⚠️ IMPORTANT: You selected column ${currentToLocationCol + 1} for "Nereye" (to_location)`);
-                if (columnAnalysis[currentToLocationCol]) {
-                    const colStats = columnAnalysis[currentToLocationCol];
-                    console.log(`   Column ${currentToLocationCol + 1} status: ${colStats.nonEmpty}/${colStats.total} rows have data`);
-                    if (colStats.nonEmpty === 0) {
-                        console.log(`   ❌ Column ${currentToLocationCol + 1} is EMPTY!`);
-                        console.log(`   ✅ Recommended: Look for a column with location values like "HAVALİMANI", "MERKEZ", etc.`);
-                        // Find column with most data
-                        let bestCol = null;
-                        let bestNonEmpty = 0;
-                        for (let i = 0; i < Object.keys(columnAnalysis).length; i++) {
-                            if (i !== cleanMapping.from_location && columnAnalysis[i] && columnAnalysis[i].nonEmpty > bestNonEmpty) {
-                                bestNonEmpty = columnAnalysis[i].nonEmpty;
-                                bestCol = i;
-                            }
-                        }
-                        if (bestCol !== null && columnAnalysis[bestCol].samples.length > 0) {
-                            console.log(`   💡 Suggestion: Column ${bestCol + 1} has ${bestNonEmpty} rows with data. Samples:`, columnAnalysis[bestCol].samples);
-                        }
-                    } else {
-                        console.log(`   ✅ Column ${currentToLocationCol + 1} looks good!`);
-                    }
-                }
             }
             
             // Add CSRF token to saveData
@@ -1418,11 +1367,15 @@
             }
             
             // Debug: Log save response
-            console.log('Save response:', saveRes);
+            // Debug logging (only in development)
+            if (window.DEBUG_MODE) {
+                console.log('Save response:', saveRes);
+            }
             
             if (saveRes.success) {
                 const message = saveRes.message || (tVehicles.routes_uploaded || 'Routes uploaded successfully');
-                console.log('✅ Import successful:', {
+                if (window.DEBUG_MODE) {
+                    console.log('✅ Import successful:', {
                     saved_count: saveRes.saved_count || 0,
                     skipped_count: saveRes.skipped_count || 0,
                     skip_reasons: saveRes.skip_reasons || {}

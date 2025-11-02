@@ -18,11 +18,13 @@ error_reporting(E_ALL); // Still log errors but don't display
 session_start();
 header('Content-Type: application/json; charset=utf-8');
 
+// Load API helper for translations
+require_once __DIR__ . '/../../includes/ApiHelper.php';
+
 // Check if user is logged in
 if (!isset($_SESSION['user_id'])) {
     ob_end_clean();
-    echo json_encode(['success' => false, 'message' => 'Unauthorized']);
-    exit;
+    sendApiError('unauthorized', 401);
 }
 
 // Load central configuration with error handling
@@ -33,13 +35,16 @@ try {
     
     // Initialize CSRF token in session if not exists
     generateCsrfToken();
-} catch (Throwable $e) {
+    } catch (Throwable $e) {
     if (ob_get_level() > 0) {
         ob_end_clean();
     }
     header('Content-Type: application/json; charset=utf-8');
-    $msg = defined('APP_DEBUG') && APP_DEBUG ? $e->getMessage() . ' in ' . $e->getFile() . ':' . $e->getLine() : 'Configuration error';
-    echo json_encode(['success' => false, 'message' => $msg]);
+    if (!function_exists('sendApiError')) {
+        require_once __DIR__ . '/../../includes/ApiHelper.php';
+    }
+    $msg = defined('APP_DEBUG') && APP_DEBUG ? $e->getMessage() . ' in ' . $e->getFile() . ':' . $e->getLine() : getApiTranslation('error_occurred');
+    echo json_encode(['success' => false, 'message' => $msg], JSON_UNESCAPED_UNICODE);
     exit;
 }
 
@@ -97,12 +102,12 @@ try {
             handleDelete($conn, $action);
             break;
         default:
-            echo json_encode(['success' => false, 'message' => 'Invalid request method']);
+            sendApiError('invalid_request_method', 405);
     }
 } catch (Exception $e) {
     error_log("API Error in tours.php: " . $e->getMessage());
-    $message = APP_DEBUG ? $e->getMessage() : 'An error occurred while processing your request';
-    echo json_encode(['success' => false, 'message' => $message]);
+    $message = APP_DEBUG ? $e->getMessage() : getApiTranslation('error_occurred');
+    echo json_encode(['success' => false, 'message' => $message], JSON_UNESCAPED_UNICODE);
 } finally {
     // Always close database connection
     if (isset($conn)) {
@@ -154,7 +159,7 @@ function handleGet($conn, $action) {
             getTourGroup($conn, $id);
             break;
         default:
-            echo json_encode(['success' => false, 'message' => 'Invalid action']);
+            sendApiError('invalid_action', 400);
     }
 }
 
@@ -170,7 +175,7 @@ function handlePost($conn, $action) {
             createTourGroup($conn, $data);
             break;
         default:
-            echo json_encode(['success' => false, 'message' => 'Invalid action']);
+            sendApiError('invalid_action', 400);
     }
 }
 
@@ -192,7 +197,7 @@ function handlePut($conn, $action) {
             updateTourGroup($conn, $data);
             break;
         default:
-            echo json_encode(['success' => false, 'message' => 'Invalid action']);
+            sendApiError('invalid_action', 400);
     }
 }
 
@@ -213,7 +218,7 @@ function handleDelete($conn, $action) {
             deleteTourGroup($conn, $id);
             break;
         default:
-            echo json_encode(['success' => false, 'message' => 'Invalid action']);
+            sendApiError('invalid_action', 400);
     }
 }
 

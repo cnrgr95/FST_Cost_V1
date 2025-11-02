@@ -218,6 +218,7 @@ class BaseApiController {
             
             return $result;
         } catch (Exception $e) {
+            $error = getDbErrorMessage($this->conn);
             error_log("Database query failed: {$error}");
             throw $e;
         }
