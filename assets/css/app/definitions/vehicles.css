@@ -532,28 +532,86 @@ select.error:focus {
     
     .currencies-table {
         font-size: 13px;
-        min-width: max-content;
-        width: max-content;
+        min-width: 600px;
     }
     
     .currencies-table th,
     .currencies-table td {
         padding: 10px 12px;
         font-size: 13px;
-        white-space: nowrap;
+    }
+    
+    /* Sticky actions column */
+    .currencies-table thead th:last-child,
+    .currencies-table tbody td:last-child {
+        position: sticky;
+        right: 0;
+        background: white;
+        z-index: 5;
+        box-shadow: -2px 0 8px rgba(0, 0, 0, 0.08);
+        min-width: 100px;
+    }
+    
+    .currencies-table thead th:last-child {
+        background: #f9fafb;
+        z-index: 6;
+    }
+    
+    /* Sticky first column */
+    .currencies-table thead th:first-child,
+    .currencies-table tbody td:first-child {
+        position: sticky;
+        left: 0;
+        background: white;
+        z-index: 4;
+        box-shadow: 2px 0 8px rgba(0, 0, 0, 0.08);
+    }
+    
+    .currencies-table thead th:first-child {
+        background: #f9fafb;
+        z-index: 6;
     }
     
     .table {
         font-size: 13px;
-        min-width: max-content;
-        width: max-content;
+        min-width: 600px;
     }
     
     .table thead th,
     .table tbody td {
         padding: 10px 12px;
         font-size: 13px;
-        white-space: nowrap;
+    }
+    
+    /* Sticky actions column */
+    .table thead th:last-child,
+    .table tbody td:last-child {
+        position: sticky;
+        right: 0;
+        background: white;
+        z-index: 5;
+        box-shadow: -2px 0 8px rgba(0, 0, 0, 0.08);
+        min-width: 100px;
+    }
+    
+    .table thead th:last-child {
+        background: #f9fafb;
+        z-index: 6;
+    }
+    
+    /* Sticky first column */
+    .table thead th:first-child,
+    .table tbody td:first-child {
+        position: sticky;
+        left: 0;
+        background: white;
+        z-index: 4;
+        box-shadow: 2px 0 8px rgba(0, 0, 0, 0.08);
+    }
+    
+    .table thead th:first-child {
+        background: #f9fafb;
+        z-index: 6;
     }
     
     .table-actions {
@@ -588,6 +646,62 @@ select.error:focus {
     }
 }
 
+/* Contract Detail Specific Styles */
+.contract-info {
+    background: #f9fafb;
+    padding: 20px;
+    border-radius: 8px;
+    margin-bottom: 30px;
+}
+
+.contract-info-content {
+    display: flex;
+    gap: 20px;
+    flex-wrap: wrap;
+    align-items: center;
+}
+
+.contract-action-buttons {
+    margin-bottom: 20px;
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.modal-content-medium {
+    max-width: 700px;
+    width: 90%;
+}
+
+.modal-content-large {
+    max-width: 900px;
+    width: 90%;
+}
+
+.modal-body-scrollable {
+    max-height: 80vh;
+    overflow-y: auto;
+    padding: 0;
+}
+
+.mapping-header {
+    margin-bottom: 15px;
+}
+
+.mapping-header h3 {
+    margin: 0 0 10px 0;
+    font-size: 18px;
+}
+
+.mapping-hint {
+    color: #6b7280;
+    margin: 0;
+}
+
+.hidden {
+    display: none !important;
+}
+
 @media (max-width: 480px) {
     .vehicles-header h1 {
         font-size: 22px;
@@ -595,15 +709,18 @@ select.error:focus {
     
     .currencies-table {
         font-size: 12px;
-        min-width: max-content;
-        width: max-content;
+        min-width: 500px;
     }
     
     .currencies-table th,
     .currencies-table td {
         padding: 8px 10px;
         font-size: 12px;
-        white-space: nowrap;
+    }
+    
+    .currencies-table thead th:last-child,
+    .currencies-table tbody td:last-child {
+        min-width: 80px;
     }
     
     .table {

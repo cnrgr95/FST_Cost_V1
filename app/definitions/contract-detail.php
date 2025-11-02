@@ -75,8 +75,8 @@ $t_vehicles = $all_translations['vehicles'] ?? [];
                 </div>
                 
                 <!-- Contract Info -->
-                <div id="contractInfo" style="background: #f9fafb; padding: 20px; border-radius: 8px; margin-bottom: 30px;">
-                    <div style="display: flex; gap: 20px; flex-wrap: wrap; align-items: center;">
+                <div id="contractInfo" class="contract-info">
+                    <div class="contract-info-content">
                         <div>
                             <strong><?php echo $t_vehicles['contract_code'] ?? 'Contract Code'; ?>:</strong>
                             <span id="contractCodeDisplay">-</span>
@@ -97,7 +97,7 @@ $t_vehicles = $all_translations['vehicles'] ?? [];
                 </div>
                 
                 <!-- Action Buttons -->
-                <div style="margin-bottom: 20px; display: flex; gap: 10px; flex-wrap: wrap;">
+                <div class="contract-action-buttons">
                     <button type="button" class="btn-primary" id="openAddRouteModalBtn">
                         <span class="material-symbols-rounded">add</span>
                         <?php echo $t_vehicles['add_route'] ?? 'Add Route'; ?>
@@ -125,8 +125,8 @@ $t_vehicles = $all_translations['vehicles'] ?? [];
     </div>
     
     <!-- Add Route Modal -->
-    <div class="modal" id="addRouteModal" style="display:none;">
-        <div class="modal-content" style="max-width: 700px; width: 90%;">
+    <div class="modal" id="addRouteModal">
+        <div class="modal-content modal-content-medium">
             <div class="modal-header">
                 <h2><?php echo $t_vehicles['add_route'] ?? 'Add Route'; ?></h2>
                 <button class="btn-close" id="closeAddRouteModal">
@@ -173,8 +173,8 @@ $t_vehicles = $all_translations['vehicles'] ?? [];
     </div>
     
     <!-- Edit Route Modal -->
-    <div class="modal" id="editRouteModal" style="display:none;">
-        <div class="modal-content" style="max-width: 700px; width: 90%;">
+    <div class="modal" id="editRouteModal">
+        <div class="modal-content modal-content-medium">
             <div class="modal-header">
                 <h2><?php echo $t_vehicles['edit_route'] ?? 'Edit Route'; ?></h2>
                 <button class="btn-close" id="closeEditRouteModal">
@@ -222,8 +222,8 @@ $t_vehicles = $all_translations['vehicles'] ?? [];
     </div>
     
     <!-- Upload and Mapping Modal -->
-    <div class="modal" id="uploadMappingModal" style="display:none;">
-        <div class="modal-content" style="max-width: 900px; width: 90%;">
+    <div class="modal" id="uploadMappingModal">
+        <div class="modal-content modal-content-large">
             <div class="modal-header">
                 <h2 id="uploadModalTitle"><?php echo $t_vehicles['upload_price_list'] ?? 'Upload Price List'; ?></h2>
                 <button class="btn-close" id="closeUploadModal">
@@ -231,14 +231,14 @@ $t_vehicles = $all_translations['vehicles'] ?? [];
                 </button>
             </div>
             
-            <div class="modal-body" style="max-height: 80vh; overflow-y: auto; padding: 0;">
+            <div class="modal-body modal-body-scrollable">
                 <!-- Step 1: Excel Upload Section -->
                 <div id="uploadStepSection">
                     <form id="excelUploadForm" enctype="multipart/form-data">
                         <div class="form-group">
                             <label><?php echo $t_vehicles['excel_file'] ?? 'Excel File'; ?> *</label>
                             <input type="file" id="excelFile" name="excel_file" accept=".xlsx,.xls" required>
-                            <small style="display: block; margin-top: 8px; color: #6b7280;">
+                            <small class="form-hint">
                                 <?php echo $t_vehicles['excel_format_hint'] ?? 'Excel dosyasında gerekli alanlar: Nerden, Nereye, Vip Vito, Vip Mini, Vito, Mini, Midi, Bus. Sütunlar farklı sırada olabilir, yüklemeden sonra eşleştirme yapabilirsiniz.'; ?>
                             </small>
                         </div>
@@ -255,10 +255,10 @@ $t_vehicles = $all_translations['vehicles'] ?? [];
                 </div>
                 
                 <!-- Step 2: Column Mapping Section -->
-                <div id="mappingStepSection" style="display: none;">
-                    <div style="margin-bottom: 15px;">
-                        <h3 style="margin: 0 0 10px 0; font-size: 18px;"><?php echo $t_vehicles['map_columns'] ?? 'Map Columns'; ?></h3>
-                        <p style="color: #6b7280; margin: 0;">
+                <div id="mappingStepSection" class="hidden">
+                    <div class="mapping-header">
+                        <h3><?php echo $t_vehicles['map_columns'] ?? 'Map Columns'; ?></h3>
+                        <p class="mapping-hint">
                             <?php echo $t_vehicles['map_columns_hint'] ?? 'Excel dosyasındaki sütunları sistem alanlarıyla eşleştirin:'; ?>
                         </p>
                     </div>

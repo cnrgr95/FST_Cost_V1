@@ -169,6 +169,17 @@
     text-transform: lowercase;
 }
 
+.languages-table-icon {
+    vertical-align: middle;
+    margin-right: 8px;
+    font-size: 20px;
+}
+
+.languages-search-box {
+    margin: 12px 0;
+    padding: 0 12px;
+}
+
 /* Responsive */
 @media (max-width: 768px) {
     .languages-container {

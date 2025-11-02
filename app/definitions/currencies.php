@@ -61,7 +61,7 @@ $t_currencies = $all_translations['currencies'] ?? [];
                 <!-- Page Header -->
                 <div class="currencies-header">
                     <h1><?php echo $t_currencies['title'] ?? 'Currencies'; ?></h1>
-                    <div style="display: flex; gap: 12px; flex-wrap: wrap;">
+                    <div class="currencies-header-actions">
                         <button class="btn-add" id="manageMasterCurrenciesBtn">
                             <span class="material-symbols-rounded">currency_exchange</span>
                             <?php echo $t_currencies['master_currencies'] ?? 'Master Currencies'; ?>
@@ -74,10 +74,10 @@ $t_currencies = $all_translations['currencies'] ?? [];
                 </div>
                 
                 <!-- Countries Section -->
-                <div class="currencies-table-container" style="margin-top: 40px;">
+                <div class="currencies-table-container currencies-table-container-spaced">
                     <div class="currencies-table-header">
                         <div class="currencies-table-title">
-                            <span class="material-symbols-rounded" style="vertical-align: middle; margin-right: 8px; font-size: 24px;">public</span>
+                            <span class="material-symbols-rounded currencies-table-icon">public</span>
                             <?php echo $t_currencies['countries'] ?? 'Countries'; ?>
                             <span class="table-count-badge" id="currenciesCountBadge">0</span>
                         </div>
@@ -87,9 +87,8 @@ $t_currencies = $all_translations['currencies'] ?? [];
                                 <input type="text" 
                                        id="currenciesSearchInput" 
                                        placeholder="<?php echo $t_common['search'] ?? 'Search...'; ?>" 
-                                       class="search-input"
-                                       onkeyup="filterCurrenciesTable(this.value)">
-                                <button class="search-clear" id="currenciesSearchClear" onclick="clearCurrenciesSearch()" style="display: none;">
+                                       class="search-input">
+                                <button class="search-clear hidden" id="currenciesSearchClear">
                                     <span class="material-symbols-rounded">close</span>
                                 </button>
                             </div>
@@ -99,15 +98,15 @@ $t_currencies = $all_translations['currencies'] ?? [];
                         <table class="currencies-table" id="currenciesTable">
                             <thead>
                                 <tr>
-                                    <th class="sortable" onclick="sortCurrenciesTable('name')">
+                                    <th class="sortable" data-sort="name">
                                         <?php echo $t_currencies['country'] ?? 'Country'; ?>
                                         <span class="sort-icon">⇅</span>
                                     </th>
-                                    <th class="sortable" onclick="sortCurrenciesTable('code')">
+                                    <th class="sortable" data-sort="code">
                                         <?php echo $t_currencies['country_code'] ?? 'Code'; ?>
                                         <span class="sort-icon">⇅</span>
                                     </th>
-                                    <th class="sortable" onclick="sortCurrenciesTable('local_currency_code')">
+                                    <th class="sortable" data-sort="local_currency_code">
                                         <?php echo $t_currencies['local_currency'] ?? 'Local Currency'; ?>
                                         <span class="sort-icon">⇅</span>
                                     </th>
@@ -116,7 +115,7 @@ $t_currencies = $all_translations['currencies'] ?? [];
                             </thead>
                             <tbody id="currenciesTableBody">
                                 <tr>
-                                    <td colspan="4" style="text-align: center; padding: 40px;">
+                                    <td colspan="4" class="table-loading-cell">
                                         <div class="loading">
                                             <span class="material-symbols-rounded">sync</span>
                                             <p><?php echo $t_currencies['loading_data'] ?? 'Loading data...'; ?></p>
@@ -136,14 +135,14 @@ $t_currencies = $all_translations['currencies'] ?? [];
     
     <!-- Master Currencies Modal -->
     <div class="modal" id="masterCurrenciesModal">
-        <div class="modal-content" style="max-width: 900px;">
+        <div class="modal-content modal-content-large">
             <div class="modal-header">
                 <h2><?php echo $t_currencies['master_currencies'] ?? 'Master Currencies'; ?></h2>
                 <button class="btn-close" id="closeMasterCurrenciesModal" aria-label="<?php echo $t_common['close'] ?? 'Close'; ?>" title="<?php echo $t_common['close'] ?? 'Close'; ?>">
                     <span class="material-symbols-rounded">close</span>
                 </button>
             </div>
-            <div style="padding: 20px;">
+            <div class="modal-body-padded">
                 <div class="currencies-table-section">
                     <table class="currencies-table">
                         <thead>
@@ -157,9 +156,9 @@ $t_currencies = $all_translations['currencies'] ?? [];
                         </thead>
                         <tbody id="masterCurrenciesTableBody">
                             <tr>
-                                <td colspan="5" style="text-align: center; padding: 40px;">
-                                    <span class="material-symbols-rounded" style="font-size: 48px; color: #9ca3af;">currency_exchange</span>
-                                    <p style="color: #9ca3af; margin-top: 10px;"><?php echo $t_currencies['loading_data'] ?? 'Loading data...'; ?></p>
+                                <td colspan="5" class="table-loading-cell">
+                                    <span class="material-symbols-rounded loading-icon-large">currency_exchange</span>
+                                    <p class="loading-text"><?php echo $t_currencies['loading_data'] ?? 'Loading data...'; ?></p>
                                 </td>
                             </tr>
                         </tbody>
@@ -168,7 +167,7 @@ $t_currencies = $all_translations['currencies'] ?? [];
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn-secondary" id="closeMasterCurrenciesModalFooter">
-                    <span class="material-symbols-rounded" style="font-size: 18px; margin-right: 6px;">close</span>
+                    <span class="material-symbols-rounded">close</span>
                     <?php echo $t_common['close'] ?? 'Close'; ?>
                 </button>
             </div>
@@ -189,7 +188,7 @@ $t_currencies = $all_translations['currencies'] ?? [];
                 
                 <div class="form-group">
                     <label for="code"><?php echo $t_currencies['code'] ?? 'Code'; ?> *</label>
-                    <input type="text" id="code" name="code" placeholder="<?php echo $t_currencies['code'] ?? 'Code'; ?>" required maxlength="3" style="text-transform: uppercase;">
+                    <input type="text" id="code" name="code" placeholder="<?php echo $t_currencies['code'] ?? 'Code'; ?>" required maxlength="3" class="input-uppercase">
                     <small><?php echo $t_currencies['code_hint'] ?? 'ISO 4217 currency code (3 letters)'; ?></small>
                 </div>
                 
@@ -212,11 +211,11 @@ $t_currencies = $all_translations['currencies'] ?? [];
                 
                 <div class="modal-footer">
                     <button type="button" class="btn-secondary" id="cancelBtn">
-                        <span class="material-symbols-rounded" style="font-size: 18px; margin-right: 6px;">close</span>
+                        <span class="material-symbols-rounded">close</span>
                         <?php echo $t_common['cancel'] ?? 'Cancel'; ?>
                     </button>
                     <button type="submit" class="btn-primary">
-                        <span class="material-symbols-rounded" style="font-size: 18px; margin-right: 6px;">save</span>
+                        <span class="material-symbols-rounded">save</span>
                         <?php echo $t_common['save'] ?? 'Save'; ?>
                     </button>
                 </div>
@@ -225,7 +224,7 @@ $t_currencies = $all_translations['currencies'] ?? [];
     </div>
 
     <!-- Country Manage Modal -->
-    <div class="modal" id="countryManageModal" style="display:none;">
+    <div class="modal hidden" id="countryManageModal">
         <div class="modal-content">
             <div class="modal-header">
                 <h2 id="countryManageTitle"><?php echo $t_currencies['manage_country'] ?? 'Manage Country'; ?></h2>
@@ -234,12 +233,12 @@ $t_currencies = $all_translations['currencies'] ?? [];
                 </button>
             </div>
             <div class="form-group">
-                <div id="countryManageBody" style="padding:8px 0; color:#4b5563;"></div>
+                <div id="countryManageBody" class="country-manage-body"></div>
             </div>
             <div class="form-group">
                 <label><?php echo $t_currencies['base_currency'] ?? 'Base currency of country'; ?></label>
-                <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
-                    <select id="manageBaseCurrencySelect" style="min-width:220px;"></select>
+                <div class="manage-selects-row">
+                    <select id="manageBaseCurrencySelect" class="manage-select"></select>
                     <button class="btn-primary" id="manageSaveBaseCurrencyBtn">
                         <span class="material-symbols-rounded">save</span>
                         <?php echo $t_common['save'] ?? 'Save'; ?>
@@ -248,10 +247,10 @@ $t_currencies = $all_translations['currencies'] ?? [];
             </div>
             <div class="form-group">
                 <label><?php echo $t_currencies['add_country_currency'] ?? 'Add currency to country'; ?></label>
-                <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
-                    <select id="manageCurrencySelect" style="min-width:220px;"></select>
-                    <input id="manageUnitName" type="text" placeholder="<?php echo ($t_currencies['unit_name_placeholder'] ?? $t_currencies['unit_name'] ?? 'Unit name (optional)'); ?>" style="min-width:200px;" />
-                    <label style="display:flex; align-items:center; gap:6px;">
+                <div class="manage-selects-row">
+                    <select id="manageCurrencySelect" class="manage-select"></select>
+                    <input id="manageUnitName" type="text" placeholder="<?php echo ($t_currencies['unit_name_placeholder'] ?? $t_currencies['unit_name'] ?? 'Unit name (optional)'); ?>" class="manage-input" />
+                    <label class="manage-checkbox-label">
                         <input id="manageIsActive" type="checkbox" checked />
                         <?php echo $t_currencies['active'] ?? 'Active'; ?>
                     </label>
@@ -266,7 +265,7 @@ $t_currencies = $all_translations['currencies'] ?? [];
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn-secondary" id="closeCountryManageFooter">
-                    <span class="material-symbols-rounded" style="font-size: 18px; margin-right: 6px;">close</span>
+                    <span class="material-symbols-rounded">close</span>
                     <?php echo $t_common['close'] ?? 'Close'; ?>
                 </button>
             </div>

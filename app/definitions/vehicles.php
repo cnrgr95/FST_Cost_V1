@@ -128,12 +128,12 @@ $t_dependencies = $all_translations['dependencies'] ?? [];
                     <input type="text" name="contact_phone">
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn-secondary" onclick="closeModal('companyModal')">
-                        <span class="material-symbols-rounded" style="font-size: 18px; margin-right: 6px;">close</span>
+                    <button type="button" class="btn-secondary" id="cancelCompanyBtn">
+                        <span class="material-symbols-rounded">close</span>
                         <?php echo $t_common['cancel'] ?? 'Cancel'; ?>
                     </button>
                     <button type="submit" class="btn-primary">
-                        <span class="material-symbols-rounded" style="font-size: 18px; margin-right: 6px;">save</span>
+                        <span class="material-symbols-rounded">save</span>
                         <?php echo $t_common['save'] ?? 'Save'; ?>
                     </button>
                 </div>
@@ -170,12 +170,12 @@ $t_dependencies = $all_translations['dependencies'] ?? [];
                     <input type="number" name="max_pax" min="0" step="1" placeholder="<?php echo $t_vehicles['max_pax'] ?? 'Max Pax'; ?>">
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn-secondary" onclick="closeModal('typeModal')">
-                        <span class="material-symbols-rounded" style="font-size: 18px; margin-right: 6px;">close</span>
+                    <button type="button" class="btn-secondary" id="cancelTypeBtn">
+                        <span class="material-symbols-rounded">close</span>
                         <?php echo $t_common['cancel'] ?? 'Cancel'; ?>
                     </button>
                     <button type="submit" class="btn-primary">
-                        <span class="material-symbols-rounded" style="font-size: 18px; margin-right: 6px;">save</span>
+                        <span class="material-symbols-rounded">save</span>
                         <?php echo $t_common['save'] ?? 'Save'; ?>
                     </button>
                 </div>
@@ -205,30 +205,30 @@ $t_dependencies = $all_translations['dependencies'] ?? [];
                     
                     <div class="form-group">
                         <label><?php echo $t_vehicles['contract_code'] ?? 'Contract Code'; ?> *</label>
-                        <input type="text" id="contract_code" name="contract_code" required readonly style="background-color: #f3f4f6; cursor: not-allowed;">
+                        <input type="text" id="contract_code" name="contract_code" required readonly class="input-readonly">
                     </div>
                 </div>
                 
                 <div class="form-row">
-                    <div class="form-group" style="flex: 1;">
+                    <div class="form-group form-group-flex">
                         <label><?php echo ($t_vehicles['start_date'] ?? 'Start Date') . ' - ' . ($t_vehicles['end_date'] ?? 'End Date'); ?> *</label>
-                        <div class="date-range-wrapper" style="position: relative;">
-                            <input type="text" id="contract_date_range" placeholder="<?php echo $t_common['date_range_placeholder'] ?? 'Tarih seçin'; ?>" required style="width: 100%; padding: 10px 12px; border: 1px solid #d1d5db; border-radius: 8px; font-size: 14px;" />
-                            <input type="date" id="contract_start_date" name="start_date" required style="display: none;" />
-                            <input type="date" id="contract_end_date" name="end_date" required style="display: none;" />
-                            <div id="contractRangePicker" class="range-picker" style="display: none; position: absolute; top: 100%; left: 0; z-index: 2000; background: white; border: 1px solid #d1d5db; border-radius: 8px; padding: 16px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); margin-top: 4px;"></div>
+                        <div class="date-range-wrapper">
+                            <input type="text" id="contract_date_range" placeholder="<?php echo $t_common['date_range_placeholder'] ?? 'Tarih seçin'; ?>" required class="date-range-input" />
+                            <input type="date" id="contract_start_date" name="start_date" required class="hidden" />
+                            <input type="date" id="contract_end_date" name="end_date" required class="hidden" />
+                            <div id="contractRangePicker" class="range-picker hidden"></div>
                         </div>
                     </div>
                 </div>
                 
                 
                 <div class="modal-footer">
-                    <button type="button" class="btn-secondary" onclick="closeModal('contractModal')">
-                        <span class="material-symbols-rounded" style="font-size: 18px; margin-right: 6px;">close</span>
+                    <button type="button" class="btn-secondary" id="cancelContractBtn">
+                        <span class="material-symbols-rounded">close</span>
                         <?php echo $t_common['cancel'] ?? 'Cancel'; ?>
                     </button>
                     <button type="submit" class="btn-primary">
-                        <span class="material-symbols-rounded" style="font-size: 18px; margin-right: 6px;">save</span>
+                        <span class="material-symbols-rounded">save</span>
                         <?php echo $t_common['save'] ?? 'Save'; ?>
                     </button>
                 </div>

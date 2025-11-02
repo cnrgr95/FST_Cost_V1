@@ -70,6 +70,22 @@
             });
         }
         
+        // Setup cancel button
+        const cancelCostBtn = document.getElementById('cancelCostBtn');
+        if (cancelCostBtn) {
+            cancelCostBtn.addEventListener('click', function() {
+                closeModal('costsModal');
+            });
+        }
+        
+        // Setup add period button
+        const addPeriodBtn = document.getElementById('addPeriodBtn');
+        if (addPeriodBtn) {
+            addPeriodBtn.addEventListener('click', function() {
+                window.addPeriod();
+            });
+        }
+        
         // Setup form submission
         const costForm = document.getElementById('costForm');
         if (costForm) {

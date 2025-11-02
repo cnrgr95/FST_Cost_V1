@@ -119,12 +119,12 @@ $t_dependencies = $all_translations['dependencies'] ?? [];
                     <input type="text" name="code" maxlength="3" placeholder="<?php echo $t_locations['code_placeholder'] ?? 'e.g., TR, US'; ?>">
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn-secondary" onclick="closeModal('countriesModal')">
-                        <span class="material-symbols-rounded" style="font-size: 18px; margin-right: 6px;">close</span>
+                    <button type="button" class="btn-secondary" id="cancelCountriesBtn">
+                        <span class="material-symbols-rounded">close</span>
                         <?php echo $t_common['cancel'] ?? 'Cancel'; ?>
                     </button>
                     <button type="submit" class="btn-primary">
-                        <span class="material-symbols-rounded" style="font-size: 18px; margin-right: 6px;">save</span>
+                        <span class="material-symbols-rounded">save</span>
                         <?php echo $t_common['save'] ?? 'Save'; ?>
                     </button>
                 </div>
@@ -153,12 +153,12 @@ $t_dependencies = $all_translations['dependencies'] ?? [];
                     </select>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn-secondary" onclick="closeModal('regionsModal')">
-                        <span class="material-symbols-rounded" style="font-size: 18px; margin-right: 6px;">close</span>
+                    <button type="button" class="btn-secondary" id="cancelRegionsBtn">
+                        <span class="material-symbols-rounded">close</span>
                         <?php echo $t_common['cancel'] ?? 'Cancel'; ?>
                     </button>
                     <button type="submit" class="btn-primary">
-                        <span class="material-symbols-rounded" style="font-size: 18px; margin-right: 6px;">save</span>
+                        <span class="material-symbols-rounded">save</span>
                         <?php echo $t_common['save'] ?? 'Save'; ?>
                     </button>
                 </div>
@@ -187,12 +187,12 @@ $t_dependencies = $all_translations['dependencies'] ?? [];
                     </select>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn-secondary" onclick="closeModal('citiesModal')">
-                        <span class="material-symbols-rounded" style="font-size: 18px; margin-right: 6px;">close</span>
+                    <button type="button" class="btn-secondary" id="cancelCitiesBtn">
+                        <span class="material-symbols-rounded">close</span>
                         <?php echo $t_common['cancel'] ?? 'Cancel'; ?>
                     </button>
                     <button type="submit" class="btn-primary">
-                        <span class="material-symbols-rounded" style="font-size: 18px; margin-right: 6px;">save</span>
+                        <span class="material-symbols-rounded">save</span>
                         <?php echo $t_common['save'] ?? 'Save'; ?>
                     </button>
                 </div>
@@ -221,12 +221,12 @@ $t_dependencies = $all_translations['dependencies'] ?? [];
                     </select>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn-secondary" onclick="closeModal('sub_regionsModal')">
-                        <span class="material-symbols-rounded" style="font-size: 18px; margin-right: 6px;">close</span>
+                    <button type="button" class="btn-secondary" id="cancelSubRegionsBtn">
+                        <span class="material-symbols-rounded">close</span>
                         <?php echo $t_common['cancel'] ?? 'Cancel'; ?>
                     </button>
                     <button type="submit" class="btn-primary">
-                        <span class="material-symbols-rounded" style="font-size: 18px; margin-right: 6px;">save</span>
+                        <span class="material-symbols-rounded">save</span>
                         <?php echo $t_common['save'] ?? 'Save'; ?>
                     </button>
                 </div>

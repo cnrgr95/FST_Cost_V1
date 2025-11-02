@@ -98,7 +98,7 @@ $t_dependencies = $all_translations['dependencies'] ?? [];
                     </select>
                 </div>
                 
-                <h3 style="margin-top: 20px; color: #151A2D;"><?php echo $t_merchants['authorized_person'] ?? 'Authorized Person'; ?></h3>
+                <h3 class="form-section-title"><?php echo $t_merchants['authorized_person'] ?? 'Authorized Person'; ?></h3>
                 
                 <div class="form-group">
                     <label><?php echo $t_merchants['authorized_person'] ?? 'Person'; ?></label>
@@ -110,10 +110,10 @@ $t_dependencies = $all_translations['dependencies'] ?? [];
                 </div>
                 <div class="form-group">
                     <label><?php echo $t_merchants['authorized_phone'] ?? 'Phone'; ?></label>
-                    <input type="tel" name="authorized_phone" pattern="[0-9+\-\s()]+" title="<?php echo htmlspecialchars($t_common['invalid_phone'] ?? 'Only numbers, +, -, (), and spaces are allowed'); ?>" onkeypress="return (event.charCode >= 48 && event.charCode <= 57) || event.charCode === 43 || event.charCode === 45 || event.charCode === 40 || event.charCode === 41 || event.charCode === 32">
+                    <input type="tel" name="authorized_phone" pattern="[0-9+\-\s()]+" title="<?php echo htmlspecialchars($t_common['invalid_phone'] ?? 'Only numbers, +, -, (), and spaces are allowed'); ?>" class="phone-input">
                 </div>
                 
-                <h3 style="margin-top: 20px; color: #151A2D;"><?php echo $t_merchants['operasyon'] ?? 'Operasyon'; ?></h3>
+                <h3 class="form-section-title"><?php echo $t_merchants['operasyon'] ?? 'Operasyon'; ?></h3>
                 
                 <div class="form-group">
                     <label><?php echo $t_merchants['operasyon_name'] ?? 'Operasyon Adı'; ?></label>
@@ -125,20 +125,20 @@ $t_dependencies = $all_translations['dependencies'] ?? [];
                 </div>
                 <div class="form-group">
                     <label><?php echo $t_merchants['operasyon_phone'] ?? 'Operasyon Telefon'; ?></label>
-                    <input type="tel" name="operasyon_phone" pattern="[0-9+\-\s()]+" title="<?php echo htmlspecialchars($t_common['invalid_phone'] ?? 'Only numbers, +, -, (), and spaces are allowed'); ?>" onkeypress="return (event.charCode >= 48 && event.charCode <= 57) || event.charCode === 43 || event.charCode === 45 || event.charCode === 40 || event.charCode === 41 || event.charCode === 32">
+                    <input type="tel" name="operasyon_phone" pattern="[0-9+\-\s()]+" title="<?php echo htmlspecialchars($t_common['invalid_phone'] ?? 'Only numbers, +, -, (), and spaces are allowed'); ?>" class="phone-input">
                 </div>
                 
-                <h3 style="margin-top: 20px; color: #151A2D;"><?php echo $t_merchants['location'] ?? 'Location'; ?></h3>
+                <h3 class="form-section-title"><?php echo $t_merchants['location'] ?? 'Location'; ?></h3>
                 
                 <div class="form-group">
                     <label><?php echo $t_merchants['location_url'] ?? 'Location URL'; ?></label>
                     <input type="text" name="location_url" placeholder="https://www.google.com/maps/...">
-                    <div class="location-buttons" style="margin-top: 10px;">
-                        <button type="button" class="btn-location" onclick="getCurrentLocation()">
+                    <div class="location-buttons">
+                        <button type="button" class="btn-location" id="getCurrentLocationBtn">
                             <span class="material-symbols-rounded">my_location</span>
                             <?php echo $t_merchants['get_location'] ?? 'Get Location'; ?>
                         </button>
-                        <button type="button" class="btn-location" onclick="openLocationInMaps('<?php echo htmlspecialchars($t_merchants['location_url'] ?? ''); ?>')">
+                        <button type="button" class="btn-location" id="openLocationInMapsBtn">
                             <span class="material-symbols-rounded">map</span>
                             <?php echo $t_merchants['open_in_maps'] ?? 'Open in Maps'; ?>
                         </button>
@@ -146,12 +146,12 @@ $t_dependencies = $all_translations['dependencies'] ?? [];
                 </div>
                 
                 <div class="modal-footer">
-                    <button type="button" class="btn-secondary" onclick="closeModal('merchantsModal')">
-                        <span class="material-symbols-rounded" style="font-size: 18px; margin-right: 6px;">close</span>
+                    <button type="button" class="btn-secondary" id="cancelMerchantsBtn">
+                        <span class="material-symbols-rounded">close</span>
                         <?php echo $t_common['cancel'] ?? 'Cancel'; ?>
                     </button>
                     <button type="submit" class="btn-primary">
-                        <span class="material-symbols-rounded" style="font-size: 18px; margin-right: 6px;">save</span>
+                        <span class="material-symbols-rounded">save</span>
                         <?php echo $t_common['save'] ?? 'Save'; ?>
                     </button>
                 </div>

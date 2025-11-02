@@ -50,6 +50,12 @@ function togglePassword() {
 
 // Language change handler
 document.addEventListener('DOMContentLoaded', function() {
+    // Password toggle button
+    const togglePasswordBtn = document.getElementById('togglePasswordBtn');
+    if (togglePasswordBtn) {
+        togglePasswordBtn.addEventListener('click', togglePassword);
+    }
+    
     const languageSelect = document.getElementById('language');
     if (languageSelect) {
         languageSelect.addEventListener('change', function() {

@@ -518,6 +518,22 @@ select:invalid {
         font-size: 13px;
     }
     
+    /* Sticky actions column */
+    .currencies-table thead th:last-child,
+    .currencies-table tbody td:last-child {
+        position: sticky;
+        right: 0;
+        background: white;
+        z-index: 5;
+        box-shadow: -2px 0 8px rgba(0, 0, 0, 0.08);
+        min-width: 100px;
+    }
+    
+    .currencies-table thead th:last-child {
+        background: #f9fafb;
+        z-index: 6;
+    }
+    
     .locations-table-wrapper,
     .table-wrapper {
         width: 100%;
@@ -528,7 +544,7 @@ select:invalid {
     
     .table {
         width: max-content !important;
-        min-width: max-content !important;
+        min-width: 600px !important;
         display: table;
         font-size: 13px;
     }
@@ -537,23 +553,46 @@ select:invalid {
     .table tbody td {
         padding: 10px 12px;
         font-size: 13px;
-        white-space: nowrap;
     }
     
     .table thead th {
         font-size: 13px;
     }
     
+    /* Sticky actions column */
+    .table thead th:last-child,
+    .table tbody td:last-child {
+        position: sticky;
+        right: 0;
+        background: white;
+        z-index: 5;
+        box-shadow: -2px 0 8px rgba(0, 0, 0, 0.08);
+        min-width: 100px;
+    }
+    
+    .table thead th:last-child {
+        background: #f9fafb;
+        z-index: 6;
+    }
+    
+    /* Sticky first column */
+    .table thead th:first-child,
+    .table tbody td:first-child {
+        position: sticky;
+        left: 0;
+        background: white;
+        z-index: 4;
+        box-shadow: 2px 0 8px rgba(0, 0, 0, 0.08);
+    }
+    
+    .table thead th:first-child {
+        background: #f9fafb;
+        z-index: 6;
+    }
+    
     .table-actions {
         flex-wrap: wrap;
         gap: 4px;
-    }
-    
-    /* Actions column stays compact */
-    .table tbody td:last-child {
-        white-space: nowrap;
-        width: auto;
-        min-width: 100px;
     }
     
     .modal-content {
@@ -591,14 +630,21 @@ select:invalid {
         font-size: 12px;
     }
     
+    .currencies-table thead th:last-child,
+    .currencies-table tbody td:last-child {
+        min-width: 80px;
+    }
+    
     .locations-table-wrapper,
     .table-wrapper {
         width: 100%;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
     }
     
     .table {
         width: max-content !important;
-        min-width: max-content !important;
+        min-width: 500px !important;
         font-size: 12px;
     }
     
@@ -612,21 +658,14 @@ select:invalid {
         font-size: 12px;
     }
     
+    .table thead th:last-child,
+    .table tbody td:last-child {
+        min-width: 80px;
+    }
+    
     .table-actions {
         flex-direction: column;
         gap: 4px;
-    }
-    
-    /* Show all columns - use horizontal scroll */
-    .table {
-        min-width: max-content;
-        width: max-content;
-    }
-    
-    .locations-table-wrapper,
-    .table-wrapper {
-        overflow-x: auto;
-        -webkit-overflow-scrolling: touch;
     }
 }
 

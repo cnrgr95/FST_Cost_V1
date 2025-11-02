@@ -46,10 +46,21 @@
     color: #151A2D;
 }
 
+.info-icon-small {
+    font-size: 16px;
+    vertical-align: middle;
+    color: #6b7280;
+}
+
 .btn-loading-spinner {
-    display: inline-flex;
-    align-items: center;
+    display: none;
     margin-left: 8px;
+    align-items: center;
+}
+
+.btn-loading-spinner .loading-spinner {
+    animation: spin 1s linear infinite;
+    font-size: 18px;
 }
 
 @keyframes spin {
@@ -892,6 +903,65 @@
     
     .modal-content {
         max-width: 95% !important;
+    }
+    
+    /* Responsive table */
+    .costs-table {
+        min-width: 600px;
+    }
+    
+    .costs-table th,
+    .costs-table td {
+        padding: 10px 12px;
+        font-size: 13px;
+    }
+    
+    /* Sticky actions column */
+    .costs-table thead th:last-child,
+    .costs-table tbody td:last-child {
+        position: sticky;
+        right: 0;
+        background: white;
+        z-index: 5;
+        box-shadow: -2px 0 8px rgba(0, 0, 0, 0.08);
+        min-width: 100px;
+    }
+    
+    .costs-table thead th:last-child {
+        background: #f9fafb;
+        z-index: 6;
+    }
+    
+    /* Sticky first column (cost code/name) */
+    .costs-table thead th:first-child,
+    .costs-table tbody td:first-child {
+        position: sticky;
+        left: 0;
+        background: white;
+        z-index: 4;
+        box-shadow: 2px 0 8px rgba(0, 0, 0, 0.08);
+    }
+    
+    .costs-table thead th:first-child {
+        background: #f9fafb;
+        z-index: 6;
+    }
+}
+
+@media (max-width: 480px) {
+    .costs-table {
+        min-width: 500px;
+    }
+    
+    .costs-table th,
+    .costs-table td {
+        padding: 8px 10px;
+        font-size: 12px;
+    }
+    
+    .costs-table thead th:last-child,
+    .costs-table tbody td:last-child {
+        min-width: 80px;
     }
 }
 

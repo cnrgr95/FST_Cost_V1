@@ -263,6 +263,70 @@
 /* Table wrapper */
 .currency-country-table-wrapper {
     margin-top: 20px;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    width: 100%;
+}
+
+.currency-country-table-wrapper .table-wrapper {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+/* Responsive tables */
+@media (max-width: 768px) {
+    .currency-country-table-wrapper {
+        margin-left: calc(-1 * var(--safe-area-inset-left, 0));
+        margin-right: calc(-1 * var(--safe-area-inset-right, 0));
+        padding-left: calc(15px + var(--safe-area-inset-left, 0));
+        padding-right: calc(15px + var(--safe-area-inset-right, 0));
+        width: calc(100% + var(--safe-area-inset-left, 0) + var(--safe-area-inset-right, 0));
+    }
+    
+    .currency-country-table-wrapper table {
+        min-width: 600px;
+    }
+    
+    /* Sticky columns */
+    .currency-country-table-wrapper table thead th:last-child,
+    .currency-country-table-wrapper table tbody td:last-child {
+        position: sticky;
+        right: 0;
+        background: white;
+        z-index: 5;
+        box-shadow: -2px 0 8px rgba(0, 0, 0, 0.08);
+        min-width: 100px;
+    }
+    
+    .currency-country-table-wrapper table thead th:last-child {
+        background: #f9fafb;
+        z-index: 6;
+    }
+    
+    .currency-country-table-wrapper table thead th:first-child,
+    .currency-country-table-wrapper table tbody td:first-child {
+        position: sticky;
+        left: 0;
+        background: white;
+        z-index: 4;
+        box-shadow: 2px 0 8px rgba(0, 0, 0, 0.08);
+    }
+    
+    .currency-country-table-wrapper table thead th:first-child {
+        background: #f9fafb;
+        z-index: 6;
+    }
+}
+
+@media (max-width: 480px) {
+    .currency-country-table-wrapper table {
+        min-width: 500px;
+    }
+    
+    .currency-country-table-wrapper table thead th:last-child,
+    .currency-country-table-wrapper table tbody td:last-child {
+        min-width: 80px;
+    }
 }
 
 /* Button group spacing */

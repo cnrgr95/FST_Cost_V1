@@ -70,23 +70,22 @@ $t_lang_mgmt = $all_translations['language_mgmt'] ?? [];
                     <div class="languages-sidebar">
                         <div class="languages-sidebar-header">
                             <h2>
-                                <span class="material-symbols-rounded" style="vertical-align: middle; margin-right: 8px; font-size: 20px;">language</span>
+                                <span class="material-symbols-rounded languages-table-icon">language</span>
                                 <?php echo $t_lang_mgmt['languages'] ?? 'Languages'; ?>
                                 <span class="table-count-badge" id="languagesCountBadge">0</span>
                             </h2>
-                            <button class="btn-add btn-add-small" onclick="openAddModal()" title="<?php echo $t_lang_mgmt['add'] ?? 'Add'; ?>">
+                            <button class="btn-add btn-add-small" id="openAddLanguageModalBtn" title="<?php echo $t_lang_mgmt['add'] ?? 'Add'; ?>">
                                 <span class="material-symbols-rounded icon-small">add</span>
                                 <?php echo $t_lang_mgmt['add'] ?? 'Add'; ?>
                             </button>
                         </div>
-                        <div class="search-box" style="margin: 12px 0; padding: 0 12px;">
+                        <div class="search-box languages-search-box">
                             <span class="material-symbols-rounded search-icon">search</span>
                             <input type="text" 
                                    id="languagesSearchInput" 
                                    placeholder="<?php echo $t_common['search'] ?? 'Search languages...'; ?>" 
-                                   class="search-input"
-                                   onkeyup="filterLanguagesList(this.value)">
-                            <button class="search-clear" id="languagesSearchClear" onclick="clearLanguagesSearch()" style="display: none;">
+                                   class="search-input">
+                            <button class="search-clear hidden" id="languagesSearchClear">
                                 <span class="material-symbols-rounded">close</span>
                             </button>
                         </div>
@@ -128,12 +127,12 @@ $t_lang_mgmt = $all_translations['language_mgmt'] ?? [];
                 </div>
                 
                 <div class="modal-footer">
-                    <button type="button" class="btn-secondary" onclick="closeAddModal()">
-                        <span class="material-symbols-rounded" style="font-size: 18px; margin-right: 6px;">close</span>
+                    <button type="button" class="btn-secondary" id="cancelAddLanguageBtn">
+                        <span class="material-symbols-rounded">close</span>
                         <?php echo $t_common['cancel'] ?? 'Cancel'; ?>
                     </button>
                     <button type="submit" class="btn-primary">
-                        <span class="material-symbols-rounded" style="font-size: 18px; margin-right: 6px;">save</span>
+                        <span class="material-symbols-rounded">save</span>
                         <?php echo $t_common['save'] ?? 'Save'; ?>
                     </button>
                 </div>
@@ -157,10 +156,12 @@ $t_lang_mgmt = $all_translations['language_mgmt'] ?? [];
                 </div>
                 
                 <div class="modal-footer">
-                    <button type="button" class="btn-secondary" onclick="closeEditModal()">
+                    <button type="button" class="btn-secondary" id="cancelEditLanguageBtn">
+                        <span class="material-symbols-rounded">close</span>
                         <?php echo $t_common['cancel'] ?? 'Cancel'; ?>
                     </button>
                     <button type="submit" class="btn-primary">
+                        <span class="material-symbols-rounded">save</span>
                         <?php echo $t_common['save'] ?? 'Save'; ?>
                     </button>
                 </div>

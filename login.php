@@ -218,7 +218,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 <div class="input-with-icon">
                     <i class="fas fa-lock"></i>
                     <input type="password" id="password" name="password" class="form-control" placeholder="<?php echo $t_login['password'] ?? 'Password'; ?>" required>
-                    <i class="fas fa-eye password-toggle" onclick="togglePassword()"></i>
+                    <i class="fas fa-eye password-toggle" id="togglePasswordBtn"></i>
                 </div>
             </div>
             

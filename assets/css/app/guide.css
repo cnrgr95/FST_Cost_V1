@@ -323,7 +323,7 @@
     
     .guide-table,
     .currencies-table {
-        min-width: max-content !important;
+        min-width: 800px !important;
         width: max-content !important;
         display: table !important;
         table-layout: auto;
@@ -338,6 +338,65 @@
     
     .guide-table th {
         font-size: 13px;
+    }
+    
+    /* Sticky actions column (if exists) */
+    .guide-table thead th:last-child,
+    .guide-table tbody td:last-child {
+        position: sticky;
+        right: 0;
+        background: white;
+        z-index: 5;
+        box-shadow: -2px 0 8px rgba(0, 0, 0, 0.08);
+    }
+    
+    .guide-table thead th:last-child {
+        background: #f9fafb;
+        z-index: 6;
+    }
+    
+    /* Sticky first column */
+    .guide-table thead th:first-child,
+    .guide-table tbody td:first-child {
+        position: sticky;
+        left: 0;
+        background: white;
+        z-index: 4;
+        box-shadow: 2px 0 8px rgba(0, 0, 0, 0.08);
+    }
+    
+    .guide-table thead th:first-child {
+        background: #f9fafb;
+        z-index: 6;
+    }
+    
+    /* Same for currencies-table */
+    .currencies-table thead th:last-child,
+    .currencies-table tbody td:last-child {
+        position: sticky;
+        right: 0;
+        background: white;
+        z-index: 5;
+        box-shadow: -2px 0 8px rgba(0, 0, 0, 0.08);
+    }
+    
+    .currencies-table thead th:last-child {
+        background: #f9fafb;
+        z-index: 6;
+    }
+    
+    .currencies-table thead th:first-child,
+    .currencies-table tbody td:first-child {
+        position: sticky;
+        left: 0;
+        background: white;
+        z-index: 4;
+        box-shadow: 2px 0 8px rgba(0, 0, 0, 0.08);
+    }
+    
+    .currencies-table thead th:first-child {
+        background: #f9fafb;
+        z-index: 6;
     }
     
     .guide-table-header {
@@ -405,7 +464,7 @@
     
     .guide-table,
     .currencies-table {
-        min-width: max-content !important;
+        min-width: 700px !important;
         width: max-content !important;
     }
     
@@ -418,6 +477,17 @@
     
     .guide-table th {
         font-size: 12px;
+    }
+    
+    /* Sticky columns work on small screens too */
+    .guide-table thead th:last-child,
+    .guide-table tbody td:last-child {
+        min-width: 80px;
+    }
+    
+    .currencies-table thead th:last-child,
+    .currencies-table tbody td:last-child {
+        min-width: 80px;
     }
     
     .guide-table-header {

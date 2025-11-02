@@ -710,28 +710,86 @@ form[novalidate] input:invalid:focus:not(:placeholder-shown) {
     
     .currencies-table {
         font-size: 13px;
-        min-width: max-content;
-        width: max-content;
+        min-width: 600px;
     }
     
     .currencies-table th,
     .currencies-table td {
         padding: 10px 12px;
         font-size: 13px;
-        white-space: nowrap;
+    }
+    
+    /* Sticky actions column */
+    .currencies-table thead th:last-child,
+    .currencies-table tbody td:last-child {
+        position: sticky;
+        right: 0;
+        background: white;
+        z-index: 5;
+        box-shadow: -2px 0 8px rgba(0, 0, 0, 0.08);
+        min-width: 100px;
+    }
+    
+    .currencies-table thead th:last-child {
+        background: #f9fafb;
+        z-index: 6;
+    }
+    
+    /* Sticky first column */
+    .currencies-table thead th:first-child,
+    .currencies-table tbody td:first-child {
+        position: sticky;
+        left: 0;
+        background: white;
+        z-index: 4;
+        box-shadow: 2px 0 8px rgba(0, 0, 0, 0.08);
+    }
+    
+    .currencies-table thead th:first-child {
+        background: #f9fafb;
+        z-index: 6;
     }
     
     .table {
         font-size: 13px;
-        min-width: max-content;
-        width: max-content;
+        min-width: 600px;
     }
     
     .table thead th,
     .table tbody td {
         padding: 10px 12px;
         font-size: 13px;
-        white-space: nowrap;
+    }
+    
+    /* Sticky actions column */
+    .table thead th:last-child,
+    .table tbody td:last-child {
+        position: sticky;
+        right: 0;
+        background: white;
+        z-index: 5;
+        box-shadow: -2px 0 8px rgba(0, 0, 0, 0.08);
+        min-width: 100px;
+    }
+    
+    .table thead th:last-child {
+        background: #f9fafb;
+        z-index: 6;
+    }
+    
+    /* Sticky first column */
+    .table thead th:first-child,
+    .table tbody td:first-child {
+        position: sticky;
+        left: 0;
+        background: white;
+        z-index: 4;
+        box-shadow: 2px 0 8px rgba(0, 0, 0, 0.08);
+    }
+    
+    .table thead th:first-child {
+        background: #f9fafb;
+        z-index: 6;
     }
     
     .table-actions {
@@ -765,8 +823,12 @@ form[novalidate] input:invalid:focus:not(:placeholder-shown) {
     
     .currencies-table {
         font-size: 12px;
-        min-width: max-content;
-        width: max-content;
+        min-width: 500px;
+    }
+    
+    .currencies-table thead th:last-child,
+    .currencies-table tbody td:last-child {
+        min-width: 80px;
     }
     
     .currencies-table th,

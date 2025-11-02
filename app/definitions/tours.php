@@ -120,23 +120,23 @@ $t_vehicles = $all_translations['vehicles'] ?? [];
                         <span class="input-error-message"></span>
                     </div>
                     
-                    <div class="form-group" id="subRegionsGroup" style="display: none;">
+                    <div class="form-group hidden" id="subRegionsGroup">
                         <label><?php echo $t_tours['sub_regions'] ?? 'Sub Regions'; ?></label>
                         <div class="checkbox-group-header">
                             <label><?php echo $t_tours['select_sub_regions'] ?? 'Select Sub Regions'; ?></label>
                             <div class="checkbox-actions">
-                                <button type="button" class="btn-select-all" onclick="selectAllSubRegions()" style="display: none;">
+                                <button type="button" class="btn-select-all hidden" id="selectAllSubRegionsBtn">
                                     <span class="material-symbols-rounded">check_box</span>
                                     <?php echo $t_tours['select_all'] ?? 'Select All'; ?>
                                 </button>
-                                <button type="button" class="btn-deselect-all" onclick="deselectAllSubRegions()" style="display: none;">
+                                <button type="button" class="btn-deselect-all hidden" id="deselectAllSubRegionsBtn">
                                     <span class="material-symbols-rounded">check_box_outline_blank</span>
                                     <?php echo $t_tours['deselect_all'] ?? 'Deselect All'; ?>
                                 </button>
                             </div>
                         </div>
-                        <div class="checkbox-search" style="display: none;">
-                            <input type="text" id="sub_region_search" placeholder="<?php echo $t_tours['search_sub_regions'] ?? 'Search sub regions...'; ?>" onkeyup="filterSubRegions(this.value)">
+                        <div class="checkbox-search hidden">
+                            <input type="text" id="sub_region_search" placeholder="<?php echo $t_tours['search_sub_regions'] ?? 'Search sub regions...'; ?>" class="checkbox-search-input">
                             <span class="material-symbols-rounded">search</span>
                         </div>
                         <div id="sub_regions_checkbox_container" class="checkbox-container">
@@ -146,12 +146,12 @@ $t_vehicles = $all_translations['vehicles'] ?? [];
                 </div>
                 
                 <div class="modal-footer">
-                    <button type="button" class="btn-secondary" onclick="closeModal('toursModal')">
-                        <span class="material-symbols-rounded" style="font-size: 18px; margin-right: 6px;">close</span>
+                    <button type="button" class="btn-secondary" id="cancelToursBtn">
+                        <span class="material-symbols-rounded">close</span>
                         <?php echo $t_common['cancel'] ?? 'Cancel'; ?>
                     </button>
                     <button type="submit" class="btn-primary">
-                        <span class="material-symbols-rounded" style="font-size: 18px; margin-right: 6px;">save</span>
+                        <span class="material-symbols-rounded">save</span>
                         <?php echo $t_common['save'] ?? 'Save'; ?>
                     </button>
                 </div>
