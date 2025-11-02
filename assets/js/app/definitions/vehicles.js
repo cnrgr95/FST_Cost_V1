@@ -583,8 +583,11 @@
             await loadCompaniesForSelect();
         } else if (type === 'contracts') {
             await loadCompaniesForContractSelect();
-            // Generate and set contract code automatically
-            await generateAndSetContractCode();
+            // Clear contract code to show placeholder (code will be generated on save)
+            const contractCodeInput = document.getElementById('contract_code');
+            if (contractCodeInput) {
+                contractCodeInput.value = '';
+            }
             // Initialize date range picker when modal opens (important for contract modal)
             // Use setTimeout to ensure DOM is ready after modal opens
             setTimeout(() => {
@@ -627,6 +630,7 @@
             const contractCodeInput = document.getElementById('contract_code');
             if (contractCodeInput && (!contractId || !contractId.value)) {
                 contractCodeInput.readOnly = true;
+                contractCodeInput.value = ''; // Clear value to show placeholder
             }
             return;
         }
@@ -653,6 +657,7 @@
                 const contractCodeInput = document.getElementById('contract_code');
                 if (contractCodeInput && (!contractId || !contractId.value)) {
                     contractCodeInput.readOnly = true;
+                    contractCodeInput.value = ''; // Clear value to show placeholder
                 }
             }
         }
@@ -938,7 +943,7 @@
         }
     }
     
-    function handleContractSubmit(e) {
+    async function handleContractSubmit(e) {
         e.preventDefault();
         const form = e.target;
         
@@ -964,9 +969,29 @@
             return;
         }
         
+        // Generate contract code if empty
+        let contractCode = document.getElementById('contract_code').value;
+        if (!contractCode || contractCode.trim() === '') {
+            try {
+                const response = await fetch(`${API_BASE}?action=generate_contract_code`);
+                const result = await response.json();
+                if (result.success && result.contract_code) {
+                    contractCode = result.contract_code;
+                    document.getElementById('contract_code').value = contractCode;
+                } else {
+                    showToast('error', tCommon.error || 'Failed to generate contract code');
+                    return;
+                }
+            } catch (error) {
+                console.error('Error generating contract code:', error);
+                showToast('error', tCommon.error || 'Failed to generate contract code');
+                return;
+            }
+        }
+        
         const data = {
             vehicle_company_id: document.getElementById('contract_vehicle_company_id').value,
-            contract_code: document.getElementById('contract_code').value,
+            contract_code: contractCode,
             start_date: startDateInput.value,
             end_date: endDateInput.value
         };

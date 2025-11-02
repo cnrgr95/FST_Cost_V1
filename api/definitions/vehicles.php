@@ -645,7 +645,7 @@ function getContracts($conn, $company_id = null) {
 
 function generateContractCode($conn) {
     try {
-        // Get the highest contract code number
+        // Get the highest contract code number with FST-02- prefix or old format FST-XXX
         $query = "SELECT contract_code FROM vehicle_contracts 
                   WHERE contract_code LIKE 'FST-%' 
                   ORDER BY contract_code DESC LIMIT 1";
@@ -656,14 +656,18 @@ function generateContractCode($conn) {
         if ($result && pg_num_rows($result) > 0) {
             $row = pg_fetch_assoc($result);
             $lastCode = $row['contract_code'];
-            // Extract number from format FST-001
-            if (preg_match('/FST-(\d+)$/', $lastCode, $matches)) {
+            // Extract number from format FST-02-00001 or old format FST-XXX
+            if (preg_match('/FST-02-(\d+)$/', $lastCode, $matches)) {
                 $nextNumber = (int)$matches[1] + 1;
+            } elseif (preg_match('/FST-(\d+)$/', $lastCode, $matches)) {
+                // Handle old format FST-XXX and convert to new format starting from highest old number
+                $oldNumber = (int)$matches[1];
+                $nextNumber = $oldNumber + 1;
             }
         }
         
-        // Format with leading zeros (e.g., 001, 002, ... 999)
-        $contractCode = 'FST-' . str_pad($nextNumber, 3, '0', STR_PAD_LEFT);
+        // Format: FST-02-00001 (5 digits)
+        $contractCode = 'FST-02-' . str_pad($nextNumber, 5, '0', STR_PAD_LEFT);
         
         echo json_encode(['success' => true, 'contract_code' => $contractCode]);
     } catch (Exception $e) {

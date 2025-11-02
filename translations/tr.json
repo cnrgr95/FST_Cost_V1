@@ -301,6 +301,8 @@
         "add_contract": "Kontrat Ekle",
         "edit_contract": "Kontrat Düzenle",
         "contract_code": "Kontrat Kodu",
+        "contract_code_auto": "Otomatik oluşturulacak (FST...)",
+        "contract_code_info": "Kontrat kodu sistem tarafından otomatik olarak oluşturulur",
         "start_date": "Başlangıç Tarihi",
         "end_date": "Bitiş Tarihi",
         "vip_mini": "Vip Mini",
