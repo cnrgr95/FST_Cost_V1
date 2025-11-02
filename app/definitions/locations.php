@@ -63,7 +63,7 @@ $t_dependencies = $all_translations['dependencies'] ?? [];
                 
                 <!-- Tabs -->
                 <div class="locations-tabs">
-                    <button class="locations-tab active" data-tab="countries">
+                    <button class="locations-tab" data-tab="countries">
                         <?php echo $t_sidebar['country'] ?? 'Countries'; ?>
                     </button>
                     <button class="locations-tab" data-tab="regions">
@@ -78,7 +78,7 @@ $t_dependencies = $all_translations['dependencies'] ?? [];
                 </div>
                 
                 <!-- Tab Content -->
-                <div class="locations-content active" id="countries-content">
+                <div class="locations-content" id="countries-content">
                     <!-- Content will be loaded by JavaScript -->
                 </div>
                 

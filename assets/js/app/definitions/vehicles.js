@@ -27,7 +27,25 @@
     const tCommon = t.common || {};
     const tSidebar = t.sidebar || {};
     
-    let currentTab = 'companies';
+    // Get initial tab from URL hash or localStorage, default to 'companies'
+    function getInitialTab() {
+        // First, try URL hash
+        if (window.location.hash) {
+            const hashTab = window.location.hash.replace('#', '');
+            if (['companies', 'types', 'contracts'].includes(hashTab)) {
+                return hashTab;
+            }
+        }
+        // Then, try localStorage
+        const savedTab = localStorage.getItem('vehicles_active_tab');
+        if (savedTab && ['companies', 'types', 'contracts'].includes(savedTab)) {
+            return savedTab;
+        }
+        // Default to companies
+        return 'companies';
+    }
+    
+    let currentTab = getInitialTab();
     let currentData = {
         cities: [],
         companies: [],
@@ -54,7 +72,17 @@
     // Initialize
     document.addEventListener('DOMContentLoaded', function() {
         initTabs();
-        loadData(currentTab);
+        
+        // Set initial tab based on saved state
+        switchTab(currentTab);
+        
+        // Listen for hash changes (browser back/forward)
+        window.addEventListener('hashchange', function() {
+            const hashTab = window.location.hash.replace('#', '');
+            if (['companies', 'types', 'contracts'].includes(hashTab) && hashTab !== currentTab) {
+                switchTab(hashTab);
+            }
+        });
         
         // Initialize date range picker for contract form
         if (typeof window.initializeDateRangePicker === 'function') {
@@ -112,15 +140,29 @@
     
     // Switch tabs
     function switchTab(tab) {
+        if (!['companies', 'types', 'contracts'].includes(tab)) {
+            tab = 'companies'; // Fallback to default
+        }
+        
         currentTab = tab;
+        
+        // Save tab state to localStorage and URL hash
+        localStorage.setItem('vehicles_active_tab', tab);
+        window.location.hash = tab;
         
         // Update active tab
         document.querySelectorAll('.vehicles-tab').forEach(t => t.classList.remove('active'));
-        document.querySelector(`[data-tab="${tab}"]`).classList.add('active');
+        const activeTabButton = document.querySelector(`[data-tab="${tab}"]`);
+        if (activeTabButton) {
+            activeTabButton.classList.add('active');
+        }
         
         // Update active content
         document.querySelectorAll('.vehicles-content').forEach(c => c.classList.remove('active'));
-        document.getElementById(`${tab}-content`).classList.add('active');
+        const activeContent = document.getElementById(`${tab}-content`);
+        if (activeContent) {
+            activeContent.classList.add('active');
+        }
         
         // Load data
         loadData(tab);

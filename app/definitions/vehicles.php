@@ -65,7 +65,7 @@ $t_dependencies = $all_translations['dependencies'] ?? [];
                 
                 <!-- Tabs -->
                 <div class="vehicles-tabs">
-                    <button class="vehicles-tab active" data-tab="companies">
+                    <button class="vehicles-tab" data-tab="companies">
                         <?php echo $t_vehicles['vehicle_company'] ?? 'Vehicle Companies'; ?>
                     </button>
                     <button class="vehicles-tab" data-tab="types">
@@ -77,7 +77,7 @@ $t_dependencies = $all_translations['dependencies'] ?? [];
                 </div>
                 
                 <!-- Tab Content -->
-                <div class="vehicles-content active" id="companies-content">
+                <div class="vehicles-content" id="companies-content">
                     <!-- Content will be loaded by JavaScript -->
                 </div>
                 

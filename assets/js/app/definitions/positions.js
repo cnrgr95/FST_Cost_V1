@@ -27,7 +27,26 @@
     const tCommon = t.common || {};
     const tSidebar = t.sidebar || {};
     
-    let currentTab = 'departments';
+    // Get initial tab from URL hash or localStorage, default to 'departments'
+    function getInitialTab() {
+        const validTabs = ['departments', 'positions'];
+        // First, try URL hash
+        if (window.location.hash) {
+            const hashTab = window.location.hash.replace('#', '');
+            if (validTabs.includes(hashTab)) {
+                return hashTab;
+            }
+        }
+        // Then, try localStorage
+        const savedTab = localStorage.getItem('positions_active_tab');
+        if (savedTab && validTabs.includes(savedTab)) {
+            return savedTab;
+        }
+        // Default to departments
+        return 'departments';
+    }
+    
+    let currentTab = getInitialTab();
     let currentData = {
         cities: [],
         departments: [],
@@ -37,7 +56,18 @@
     // Initialize
     document.addEventListener('DOMContentLoaded', function() {
         initTabs();
-        loadData(currentTab);
+        
+        // Set initial tab based on saved state
+        switchTab(currentTab);
+        
+        // Listen for hash changes (browser back/forward)
+        window.addEventListener('hashchange', function() {
+            const hashTab = window.location.hash.replace('#', '');
+            const validTabs = ['departments', 'positions'];
+            if (validTabs.includes(hashTab) && hashTab !== currentTab) {
+                switchTab(hashTab);
+            }
+        });
         
         // Setup modal close buttons
         document.querySelectorAll('.btn-close').forEach(btn => {
@@ -76,15 +106,30 @@
     
     // Switch tabs
     function switchTab(tab) {
+        const validTabs = ['departments', 'positions'];
+        if (!validTabs.includes(tab)) {
+            tab = 'departments'; // Fallback to default
+        }
+        
         currentTab = tab;
+        
+        // Save tab state to localStorage and URL hash
+        localStorage.setItem('positions_active_tab', tab);
+        window.location.hash = tab;
         
         // Update active tab
         document.querySelectorAll('.positions-tab').forEach(t => t.classList.remove('active'));
-        document.querySelector(`[data-tab="${tab}"]`).classList.add('active');
+        const activeTabButton = document.querySelector(`[data-tab="${tab}"]`);
+        if (activeTabButton) {
+            activeTabButton.classList.add('active');
+        }
         
         // Update active content
         document.querySelectorAll('.positions-content').forEach(c => c.classList.remove('active'));
-        document.getElementById(`${tab}-content`).classList.add('active');
+        const activeContent = document.getElementById(`${tab}-content`);
+        if (activeContent) {
+            activeContent.classList.add('active');
+        }
         
         // Load data
         loadData(tab);

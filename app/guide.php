@@ -60,7 +60,7 @@ $t_guide = $all_translations['guide'] ?? [];
                 
                 <!-- Tabs -->
                 <div class="guide-tabs">
-                    <button class="guide-tab active" data-tab="merchants">
+                    <button class="guide-tab" data-tab="merchants">
                         <?php echo $t_guide['merchants'] ?? 'Merchants'; ?>
                     </button>
                     <button class="guide-tab" data-tab="companies">
@@ -72,7 +72,7 @@ $t_guide = $all_translations['guide'] ?? [];
                 </div>
                 
                 <!-- Tab Content -->
-                <div class="guide-content active" id="merchants-content">
+                <div class="guide-content" id="merchants-content">
                     <!-- Content will be loaded by JavaScript -->
                 </div>
                 

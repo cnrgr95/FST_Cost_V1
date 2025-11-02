@@ -24,7 +24,26 @@
     const tGuide = t.guide || {};
     const tCommon = t.common || {};
     
-    let currentTab = 'merchants';
+    // Get initial tab from URL hash or localStorage, default to 'merchants'
+    function getInitialTab() {
+        const validTabs = ['merchants', 'companies', 'users'];
+        // First, try URL hash
+        if (window.location.hash) {
+            const hashTab = window.location.hash.replace('#', '');
+            if (validTabs.includes(hashTab)) {
+                return hashTab;
+            }
+        }
+        // Then, try localStorage
+        const savedTab = localStorage.getItem('guide_active_tab');
+        if (savedTab && validTabs.includes(savedTab)) {
+            return savedTab;
+        }
+        // Default to merchants
+        return 'merchants';
+    }
+    
+    let currentTab = getInitialTab();
     let currentData = {
         merchants: [],
         companies: [],
@@ -34,7 +53,18 @@
     // Initialize
     document.addEventListener('DOMContentLoaded', function() {
         initTabs();
-        loadData(currentTab);
+        
+        // Set initial tab based on saved state
+        switchTab(currentTab);
+        
+        // Listen for hash changes (browser back/forward)
+        window.addEventListener('hashchange', function() {
+            const hashTab = window.location.hash.replace('#', '');
+            const validTabs = ['merchants', 'companies', 'users'];
+            if (validTabs.includes(hashTab) && hashTab !== currentTab) {
+                switchTab(hashTab);
+            }
+        });
     });
     
     // Tab initialization
@@ -48,15 +78,30 @@
     
     // Switch tabs
     function switchTab(tab) {
+        const validTabs = ['merchants', 'companies', 'users'];
+        if (!validTabs.includes(tab)) {
+            tab = 'merchants'; // Fallback to default
+        }
+        
         currentTab = tab;
+        
+        // Save tab state to localStorage and URL hash
+        localStorage.setItem('guide_active_tab', tab);
+        window.location.hash = tab;
         
         // Update active tab
         document.querySelectorAll('.guide-tab').forEach(t => t.classList.remove('active'));
-        document.querySelector(`[data-tab="${tab}"]`).classList.add('active');
+        const activeTabButton = document.querySelector(`[data-tab="${tab}"]`);
+        if (activeTabButton) {
+            activeTabButton.classList.add('active');
+        }
         
         // Update active content
         document.querySelectorAll('.guide-content').forEach(c => c.classList.remove('active'));
-        document.getElementById(`${tab}-content`).classList.add('active');
+        const activeContent = document.getElementById(`${tab}-content`);
+        if (activeContent) {
+            activeContent.classList.add('active');
+        }
         
         // Load data
         loadData(tab);
