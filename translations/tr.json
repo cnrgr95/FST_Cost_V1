@@ -489,7 +489,9 @@
         "fatal_error": "Kritik bir hata oluştu",
         "file_processing_error": "Dosya işlenirken bir hata oluştu",
         "invalid_currency_code": "Geçersiz döviz kodu",
-        "route_already_exists": "Aynı Nerden/Nereye konumlarına sahip bir rota zaten mevcut"
+        "route_already_exists": "Aynı Nerden/Nereye konumlarına sahip bir rota zaten mevcut",
+        "rate_limit_exceeded": "İstek limiti aşıldı. Lütfen daha sonra tekrar deneyin.",
+        "cannot_delete_cost_with_periods": "Bu maliyet dönemleri olduğu için silinemez. Önce tüm dönemleri silin."
     },
     "languages": {
         "en": "English",

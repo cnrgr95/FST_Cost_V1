@@ -32,6 +32,11 @@ try {
     require_once __DIR__ . '/../../config.php';
     // Load security helpers for CSRF protection
     require_once __DIR__ . '/../../includes/security.php';
+    // Load rate limiter
+    require_once __DIR__ . '/../../includes/RateLimiter.php';
+    
+    // Initialize rate limiter
+    RateLimiter::init();
     
     // Initialize CSRF token in session if not exists
     generateCsrfToken();
@@ -78,6 +83,38 @@ try {
 // Get request method
 $method = $_SERVER['REQUEST_METHOD'];
 $action = $_GET['action'] ?? '';
+
+// Rate limiting for API requests
+$clientId = RateLimiter::getClientId();
+// More restrictive limits for state-changing methods
+if (in_array($method, ['POST', 'PUT', 'DELETE', 'PATCH'])) {
+    $limit = RateLimiter::check($clientId . '_write', 50, 60); // 50 requests per minute for writes
+} else {
+    $limit = RateLimiter::check($clientId . '_read', 200, 60); // 200 requests per minute for reads
+}
+
+if (!$limit['allowed']) {
+    header('Content-Type: application/json; charset=utf-8');
+    header('X-RateLimit-Limit: ' . ($method === 'POST' || $method === 'PUT' || $method === 'DELETE' || $method === 'PATCH' ? 50 : 200));
+    header('X-RateLimit-Remaining: 0');
+    header('X-RateLimit-Reset: ' . $limit['reset']);
+    http_response_code(429);
+    echo json_encode([
+        'success' => false, 
+        'message' => getApiTranslation('rate_limit_exceeded'),
+        'retry_after' => $limit['reset'] - time()
+    ], JSON_UNESCAPED_UNICODE);
+    exit;
+}
+
+// Set rate limit headers
+if (in_array($method, ['POST', 'PUT', 'DELETE', 'PATCH'])) {
+    header('X-RateLimit-Limit: 50');
+} else {
+    header('X-RateLimit-Limit: 200');
+}
+header('X-RateLimit-Remaining: ' . $limit['remaining']);
+header('X-RateLimit-Reset: ' . $limit['reset']);
 
 // Require CSRF token for state-changing requests
 if ($method === 'POST' || $method === 'PUT' || $method === 'DELETE' || $method === 'PATCH') {
@@ -209,12 +246,12 @@ function getCountries($conn) {
 function getRegions($conn, $country_id = null) {
     if ($country_id) {
         $country_id = (int)$country_id;
-        $query = "SELECT * FROM regions WHERE country_id = $country_id ORDER BY name ASC";
+        $query = "SELECT * FROM regions WHERE country_id = $1 ORDER BY name ASC";
+        $result = pg_query_params($conn, $query, [$country_id]);
     } else {
         $query = "SELECT r.*, c.name as country_name FROM regions r LEFT JOIN countries c ON r.country_id = c.id ORDER BY r.name ASC";
+        $result = pg_query($conn, $query);
     }
-    
-    $result = pg_query($conn, $query);
     
     if ($result) {
         $regions = pg_fetch_all($result) ?: [];
@@ -232,17 +269,17 @@ function getCities($conn, $region_id = null) {
                   FROM cities c 
                   LEFT JOIN regions r ON c.region_id = r.id 
                   LEFT JOIN countries co ON r.country_id = co.id 
-                  WHERE c.region_id = $region_id
+                  WHERE c.region_id = $1
                   ORDER BY c.name ASC";
+        $result = pg_query_params($conn, $query, [$region_id]);
     } else {
         $query = "SELECT c.*, r.name as region_name, r.country_id, co.name as country_name 
                   FROM cities c 
                   LEFT JOIN regions r ON c.region_id = r.id 
                   LEFT JOIN countries co ON r.country_id = co.id 
                   ORDER BY c.name ASC";
+        $result = pg_query($conn, $query);
     }
-    
-    $result = pg_query($conn, $query);
     
     if ($result) {
         $cities = pg_fetch_all($result) ?: [];
@@ -261,8 +298,9 @@ function getSubRegions($conn, $city_id = null) {
                   LEFT JOIN cities c ON sr.city_id = c.id 
                   LEFT JOIN regions r ON c.region_id = r.id 
                   LEFT JOIN countries co ON r.country_id = co.id 
-                  WHERE sr.city_id = $city_id 
+                  WHERE sr.city_id = $1 
                   ORDER BY sr.name ASC";
+        $result = pg_query_params($conn, $query, [$city_id]);
     } else {
         $query = "SELECT sr.*, c.name as city_name, r.name as region_name, co.name as country_name 
                   FROM sub_regions sr 
@@ -270,9 +308,8 @@ function getSubRegions($conn, $city_id = null) {
                   LEFT JOIN regions r ON c.region_id = r.id 
                   LEFT JOIN countries co ON r.country_id = co.id 
                   ORDER BY sr.name ASC";
+        $result = pg_query($conn, $query);
     }
-    
-    $result = pg_query($conn, $query);
     
     if ($result) {
         $subRegions = pg_fetch_all($result) ?: [];
@@ -329,12 +366,12 @@ function getCostPeriods($conn, $cost_id) {
     $cost_id = (int)$cost_id;
     
     // Order: First periods with dates (by start_date DESC - newest first), then periods without dates (by created_at DESC - newest first)
-    $query = "SELECT * FROM cost_periods WHERE cost_id = $cost_id 
+    $query = "SELECT * FROM cost_periods WHERE cost_id = $1 
               ORDER BY 
                 CASE WHEN start_date IS NULL THEN 1 ELSE 0 END,
                 start_date DESC NULLS LAST,
                 created_at DESC";
-    $result = pg_query($conn, $query);
+    $result = pg_query_params($conn, $query, [$cost_id]);
     
     if (!$result) {
         if (defined('APP_DEBUG') && APP_DEBUG) {
@@ -367,8 +404,8 @@ function getCostPeriods($conn, $cost_id) {
 function getCostItems($conn, $period_id) {
     $period_id = (int)$period_id;
     
-    $query = "SELECT * FROM cost_items WHERE cost_period_id = $period_id ORDER BY id ASC";
-    $result = pg_query($conn, $query);
+    $query = "SELECT * FROM cost_items WHERE cost_period_id = $1 ORDER BY id ASC";
+    $result = pg_query_params($conn, $query, [$period_id]);
     
     if (!$result) {
         if (defined('APP_DEBUG') && APP_DEBUG) {
@@ -411,55 +448,59 @@ function getCostItems($conn, $period_id) {
 
 // Get general prices
 function getCostGeneralPrices($conn, $item_id) {
+    $item_id = (int)$item_id;
     $query = "SELECT cgp.*, cu.code as currency_code, cu.name as currency_name
               FROM cost_general_prices cgp
               LEFT JOIN currencies cu ON cgp.currency_id = cu.id
-              WHERE cgp.cost_item_id = $item_id";
-    $result = pg_query($conn, $query);
+              WHERE cgp.cost_item_id = $1";
+    $result = pg_query_params($conn, $query, [$item_id]);
     return $result ? pg_fetch_all($result) ?: [] : [];
 }
 
 // Get person prices
 function getCostPersonPrices($conn, $item_id) {
+    $item_id = (int)$item_id;
     $query = "SELECT cpp.*, cu.code as currency_code, cu.name as currency_name
               FROM cost_person_prices cpp
               LEFT JOIN currencies cu ON cpp.currency_id = cu.id
-              WHERE cpp.cost_item_id = $item_id
+              WHERE cpp.cost_item_id = $1
               ORDER BY CASE cpp.age_group 
                   WHEN 'adult' THEN 1 
                   WHEN 'child' THEN 2 
                   WHEN 'infant' THEN 3 
               END";
-    $result = pg_query($conn, $query);
+    $result = pg_query_params($conn, $query, [$item_id]);
     return $result ? pg_fetch_all($result) ?: [] : [];
 }
 
 // Get regional general prices
 function getCostRegionalGeneralPrices($conn, $item_id) {
+    $item_id = (int)$item_id;
     $query = "SELECT crgp.*, sr.name as sub_region_name, cu.code as currency_code, cu.name as currency_name
               FROM cost_regional_general_prices crgp
               LEFT JOIN sub_regions sr ON crgp.sub_region_id = sr.id
               LEFT JOIN currencies cu ON crgp.currency_id = cu.id
-              WHERE crgp.cost_item_id = $item_id
+              WHERE crgp.cost_item_id = $1
               ORDER BY sr.name ASC";
-    $result = pg_query($conn, $query);
+    $result = pg_query_params($conn, $query, [$item_id]);
     return $result ? pg_fetch_all($result) ?: [] : [];
 }
 
 // Get regional person prices
 function getCostRegionalPersonPrices($conn, $item_id) {
+    $item_id = (int)$item_id;
     $query = "SELECT crpp.*, sr.name as sub_region_name, cu.code as currency_code, cu.name as currency_name
               FROM cost_regional_person_prices crpp
               LEFT JOIN sub_regions sr ON crpp.sub_region_id = sr.id
               LEFT JOIN currencies cu ON crpp.currency_id = cu.id
-              WHERE crpp.cost_item_id = $item_id
+              WHERE crpp.cost_item_id = $1
               ORDER BY sr.name ASC, 
                        CASE crpp.age_group 
                            WHEN 'adult' THEN 1 
                            WHEN 'child' THEN 2 
                            WHEN 'infant' THEN 3 
                        END";
-    $result = pg_query($conn, $query);
+    $result = pg_query_params($conn, $query, [$item_id]);
     return $result ? pg_fetch_all($result) ?: [] : [];
 }
 
@@ -924,6 +965,18 @@ function updateCost($conn, $data) {
 // Delete cost
 function deleteCost($conn, $id) {
     $id = (int)$id;
+    
+    // Check if cost has periods
+    $checkQuery = "SELECT COUNT(*) as count FROM cost_periods WHERE cost_id = $1";
+    $checkResult = pg_query_params($conn, $checkQuery, [$id]);
+    
+    if ($checkResult) {
+        $row = pg_fetch_assoc($checkResult);
+        if ($row && $row['count'] > 0) {
+            sendApiError('cannot_delete_cost_with_periods', 400);
+            return;
+        }
+    }
     
     $query = "DELETE FROM costs WHERE id = $1";
     $result = pg_query_params($conn, $query, [$id]);

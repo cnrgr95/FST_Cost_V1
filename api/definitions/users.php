@@ -472,8 +472,8 @@ function updateUser($conn, $data) {
 function deleteUser($conn, $id) {
     $id = (int)$id;
     
-    $query = "DELETE FROM users WHERE id = $id";
-    $result = pg_query($conn, $query);
+    $query = "DELETE FROM users WHERE id = $1";
+    $result = pg_query_params($conn, $query, [$id]);
     
     if ($result) {
         echo json_encode(['success' => true]);

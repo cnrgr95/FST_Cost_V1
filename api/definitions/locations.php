@@ -279,12 +279,12 @@ function updateCountry($conn, $data) {
 function deleteCountry($conn, $id) {
     $id = (int)$id;
     // Check if country has regions
-    $checkQuery = "SELECT COUNT(*) as count FROM regions WHERE country_id = $id";
-    $checkResult = pg_query($conn, $checkQuery);
+    $checkQuery = "SELECT COUNT(*) as count FROM regions WHERE country_id = $1";
+    $checkResult = pg_query_params($conn, $checkQuery, [$id]);
     
     if ($checkResult) {
         $row = pg_fetch_assoc($checkResult);
-        if ($row['count'] > 0) {
+        if ($row && $row['count'] > 0) {
             echo json_encode([
                 'success' => false, 
                 'message' => 'This country cannot be deleted because it has ' . $row['count'] . ' region(s) associated with it. Please delete all regions first.'
@@ -293,8 +293,8 @@ function deleteCountry($conn, $id) {
         }
     }
     
-    $query = "DELETE FROM countries WHERE id = $id";
-    $result = pg_query($conn, $query);
+    $query = "DELETE FROM countries WHERE id = $1";
+    $result = pg_query_params($conn, $query, [$id]);
     
     if ($result) {
         echo json_encode(['success' => true]);
@@ -307,12 +307,12 @@ function deleteCountry($conn, $id) {
 function getRegions($conn, $country_id = null) {
     if ($country_id) {
         $country_id = (int)$country_id;
-        $query = "SELECT * FROM regions WHERE country_id = $country_id ORDER BY name ASC";
+        $query = "SELECT * FROM regions WHERE country_id = $1 ORDER BY name ASC";
+        $result = pg_query_params($conn, $query, [$country_id]);
     } else {
         $query = "SELECT r.*, c.name as country_name FROM regions r LEFT JOIN countries c ON r.country_id = c.id ORDER BY r.name ASC";
+        $result = pg_query($conn, $query);
     }
-    
-    $result = pg_query($conn, $query);
     
     if ($result) {
         $regions = pg_fetch_all($result);
@@ -373,12 +373,12 @@ function updateRegion($conn, $data) {
 function deleteRegion($conn, $id) {
     $id = (int)$id;
     // Check if region has cities
-    $checkQuery = "SELECT COUNT(*) as count FROM cities WHERE region_id = $id";
-    $checkResult = pg_query($conn, $checkQuery);
+    $checkQuery = "SELECT COUNT(*) as count FROM cities WHERE region_id = $1";
+    $checkResult = pg_query_params($conn, $checkQuery, [$id]);
     
     if ($checkResult) {
         $row = pg_fetch_assoc($checkResult);
-        if ($row['count'] > 0) {
+        if ($row && $row['count'] > 0) {
             echo json_encode([
                 'success' => false, 
                 'message' => 'This region cannot be deleted because it has ' . $row['count'] . ' city/cities associated with it. Please delete all cities first.'
@@ -387,8 +387,8 @@ function deleteRegion($conn, $id) {
         }
     }
     
-    $query = "DELETE FROM regions WHERE id = $id";
-    $result = pg_query($conn, $query);
+    $query = "DELETE FROM regions WHERE id = $1";
+    $result = pg_query_params($conn, $query, [$id]);
     
     if ($result) {
         echo json_encode(['success' => true]);
@@ -401,16 +401,16 @@ function deleteRegion($conn, $id) {
 function getCities($conn, $region_id = null) {
     if ($region_id) {
         $region_id = (int)$region_id;
-        $query = "SELECT * FROM cities WHERE region_id = $region_id ORDER BY name ASC";
+        $query = "SELECT * FROM cities WHERE region_id = $1 ORDER BY name ASC";
+        $result = pg_query_params($conn, $query, [$region_id]);
     } else {
         $query = "SELECT c.*, r.name as region_name, co.name as country_name 
                   FROM cities c 
                   LEFT JOIN regions r ON c.region_id = r.id 
                   LEFT JOIN countries co ON r.country_id = co.id 
                   ORDER BY c.name ASC";
+        $result = pg_query($conn, $query);
     }
-    
-    $result = pg_query($conn, $query);
     
     if ($result) {
         $cities = pg_fetch_all($result);
@@ -471,12 +471,12 @@ function updateCity($conn, $data) {
 function deleteCity($conn, $id) {
     $id = (int)$id;
     // Check if city has sub regions
-    $checkQuery = "SELECT COUNT(*) as count FROM sub_regions WHERE city_id = $id";
-    $checkResult = pg_query($conn, $checkQuery);
+    $checkQuery = "SELECT COUNT(*) as count FROM sub_regions WHERE city_id = $1";
+    $checkResult = pg_query_params($conn, $checkQuery, [$id]);
     
     if ($checkResult) {
         $row = pg_fetch_assoc($checkResult);
-        if ($row['count'] > 0) {
+        if ($row && $row['count'] > 0) {
             echo json_encode([
                 'success' => false, 
                 'message' => 'This city cannot be deleted because it has ' . $row['count'] . ' sub region(s) associated with it. Please delete all sub regions first.'
@@ -485,8 +485,8 @@ function deleteCity($conn, $id) {
         }
     }
     
-    $query = "DELETE FROM cities WHERE id = $id";
-    $result = pg_query($conn, $query);
+    $query = "DELETE FROM cities WHERE id = $1";
+    $result = pg_query_params($conn, $query, [$id]);
     
     if ($result) {
         echo json_encode(['success' => true]);
@@ -504,8 +504,9 @@ function getSubRegions($conn, $city_id = null) {
                   LEFT JOIN cities c ON sr.city_id = c.id 
                   LEFT JOIN regions r ON c.region_id = r.id 
                   LEFT JOIN countries co ON r.country_id = co.id
-                  WHERE sr.city_id = $city_id 
+                  WHERE sr.city_id = $1 
                   ORDER BY sr.name ASC";
+        $result = pg_query_params($conn, $query, [$city_id]);
     } else {
         $query = "SELECT sr.*, c.name as city_name, r.name as region_name, co.name as country_name 
                   FROM sub_regions sr 
@@ -513,9 +514,8 @@ function getSubRegions($conn, $city_id = null) {
                   LEFT JOIN regions r ON c.region_id = r.id 
                   LEFT JOIN countries co ON r.country_id = co.id
                   ORDER BY sr.name ASC";
+        $result = pg_query($conn, $query);
     }
-    
-    $result = pg_query($conn, $query);
     
     if ($result) {
         $subRegions = pg_fetch_all($result);
@@ -576,12 +576,12 @@ function updateSubRegion($conn, $data) {
 function deleteSubRegion($conn, $id) {
     $id = (int)$id;
     // Check if sub region has merchants
-    $checkQuery = "SELECT COUNT(*) as count FROM merchants WHERE sub_region_id = $id";
-    $checkResult = pg_query($conn, $checkQuery);
+    $checkQuery = "SELECT COUNT(*) as count FROM merchants WHERE sub_region_id = $1";
+    $checkResult = pg_query_params($conn, $checkQuery, [$id]);
     
     if ($checkResult) {
         $row = pg_fetch_assoc($checkResult);
-        if ($row['count'] > 0) {
+        if ($row && $row['count'] > 0) {
             echo json_encode([
                 'success' => false, 
                 'message' => 'This sub region cannot be deleted because it has ' . $row['count'] . ' merchant(s) associated with it. Please delete all merchants first.'
@@ -590,8 +590,8 @@ function deleteSubRegion($conn, $id) {
         }
     }
     
-    $query = "DELETE FROM sub_regions WHERE id = $id";
-    $result = pg_query($conn, $query);
+    $query = "DELETE FROM sub_regions WHERE id = $1";
+    $result = pg_query_params($conn, $query, [$id]);
     
     if ($result) {
         echo json_encode(['success' => true]);

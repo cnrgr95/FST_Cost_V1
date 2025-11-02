@@ -489,7 +489,9 @@
         "fatal_error": "A fatal error occurred",
         "file_processing_error": "An error occurred while processing the file",
         "invalid_currency_code": "Invalid currency code",
-        "route_already_exists": "A route with the same From/To locations already exists"
+        "route_already_exists": "A route with the same From/To locations already exists",
+        "rate_limit_exceeded": "Rate limit exceeded. Please try again later.",
+        "cannot_delete_cost_with_periods": "This cost cannot be deleted because it has periods. Please delete all periods first."
     },
     "languages": {
         "en": "English",
