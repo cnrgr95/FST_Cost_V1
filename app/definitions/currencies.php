@@ -190,16 +190,19 @@ $t_currencies = $all_translations['currencies'] ?? [];
                     <label for="code"><?php echo $t_currencies['code'] ?? 'Code'; ?> *</label>
                     <input type="text" id="code" name="code" placeholder="<?php echo $t_currencies['code'] ?? 'Code'; ?>" required maxlength="3" class="input-uppercase">
                     <small><?php echo $t_currencies['code_hint'] ?? 'ISO 4217 currency code (3 letters)'; ?></small>
+                    <span class="input-error-message"></span>
                 </div>
                 
                 <div class="form-group">
                     <label for="name"><?php echo $t_currencies['name'] ?? 'Name'; ?> *</label>
                     <input type="text" id="name" name="name" placeholder="<?php echo $t_currencies['name'] ?? 'Name'; ?>" required>
+                    <span class="input-error-message"></span>
                 </div>
                 
                 <div class="form-group">
-                    <label for="symbol"><?php echo $t_currencies['symbol'] ?? 'Symbol'; ?></label>
-                    <input type="text" id="symbol" name="symbol" placeholder="<?php echo $t_currencies['symbol'] ?? 'Symbol'; ?>" maxlength="10">
+                    <label for="symbol"><?php echo $t_currencies['symbol'] ?? 'Symbol'; ?> *</label>
+                    <input type="text" id="symbol" name="symbol" placeholder="<?php echo $t_currencies['symbol'] ?? 'Symbol'; ?>" required maxlength="10">
+                    <span class="input-error-message"></span>
                 </div>
                 
                 <div class="form-group">

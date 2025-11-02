@@ -551,21 +551,62 @@ function deleteRatesByDate($conn, $country_id, $date) {
 
 // Create currency
 function createCurrency($conn, $data) {
-    $code = strtoupper(pg_escape_string($conn, $data['code'] ?? ''));
-    $name = pg_escape_string($conn, $data['name'] ?? '');
-    $symbol = pg_escape_string($conn, $data['symbol'] ?? '');
+    $code = strtoupper(trim($data['code'] ?? ''));
+    $name = trim($data['name'] ?? '');
+    $symbol = trim($data['symbol'] ?? '');
     $is_active = isset($data['is_active']) ? ($data['is_active'] ? 'true' : 'false') : 'true';
     
-    if (empty($code) || empty($name)) {
-        echo json_encode(['success' => false, 'message' => 'Code and name are required']);
+    // Validate required fields
+    if (empty($code)) {
+        echo json_encode(['success' => false, 'message' => 'Currency code is required.']);
         return;
     }
+    
+    if (empty($name)) {
+        echo json_encode(['success' => false, 'message' => 'Currency name is required.']);
+        return;
+    }
+    
+    if (empty($symbol)) {
+        echo json_encode(['success' => false, 'message' => 'Currency symbol is required.']);
+        return;
+    }
+    
+    $code = pg_escape_string($conn, $code);
+    $name = pg_escape_string($conn, $name);
+    $symbol = pg_escape_string($conn, $symbol);
     
     // Check if code already exists - use parameterized query
     $checkQuery = "SELECT id FROM currencies WHERE code = $1";
     $checkResult = pg_query_params($conn, $checkQuery, [$code]);
     if ($checkResult && pg_num_rows($checkResult) > 0) {
-        echo json_encode(['success' => false, 'message' => 'Currency code already exists']);
+        echo json_encode(['success' => false, 'message' => 'A currency with this code already exists. Currency codes must be unique.']);
+        return;
+    }
+    
+    if (!$checkResult) {
+        echo json_encode(['success' => false, 'message' => getDbErrorMessage($conn)]);
+        return;
+    }
+    
+    // Check if name already exists - use parameterized query
+    $checkQuery = "SELECT id FROM currencies WHERE name = $1";
+    $checkResult = pg_query_params($conn, $checkQuery, [$name]);
+    if ($checkResult && pg_num_rows($checkResult) > 0) {
+        echo json_encode(['success' => false, 'message' => 'A currency with this name already exists. Currency names must be unique.']);
+        return;
+    }
+    
+    if (!$checkResult) {
+        echo json_encode(['success' => false, 'message' => getDbErrorMessage($conn)]);
+        return;
+    }
+    
+    // Check if symbol already exists - use parameterized query
+    $checkQuery = "SELECT id FROM currencies WHERE symbol = $1";
+    $checkResult = pg_query_params($conn, $checkQuery, [$symbol]);
+    if ($checkResult && pg_num_rows($checkResult) > 0) {
+        echo json_encode(['success' => false, 'message' => 'A currency with this symbol already exists. Currency symbols must be unique.']);
         return;
     }
     
@@ -581,7 +622,7 @@ function createCurrency($conn, $data) {
     $result = pg_query_params($conn, $query, [
         $code,
         $name,
-        empty($symbol) ? null : $symbol,
+        $symbol,
         $is_active === 'true'
     ]);
     
@@ -596,21 +637,62 @@ function createCurrency($conn, $data) {
 // Update currency
 function updateCurrency($conn, $data) {
     $id = (int)$data['id'];
-    $code = strtoupper(pg_escape_string($conn, $data['code'] ?? ''));
-    $name = pg_escape_string($conn, $data['name'] ?? '');
-    $symbol = pg_escape_string($conn, $data['symbol'] ?? '');
+    $code = strtoupper(trim($data['code'] ?? ''));
+    $name = trim($data['name'] ?? '');
+    $symbol = trim($data['symbol'] ?? '');
     $is_active = isset($data['is_active']) ? ($data['is_active'] ? 'true' : 'false') : 'true';
     
-    if (empty($code) || empty($name)) {
-        echo json_encode(['success' => false, 'message' => 'Code and name are required']);
+    // Validate required fields
+    if (empty($code)) {
+        echo json_encode(['success' => false, 'message' => 'Currency code is required.']);
         return;
     }
+    
+    if (empty($name)) {
+        echo json_encode(['success' => false, 'message' => 'Currency name is required.']);
+        return;
+    }
+    
+    if (empty($symbol)) {
+        echo json_encode(['success' => false, 'message' => 'Currency symbol is required.']);
+        return;
+    }
+    
+    $code = pg_escape_string($conn, $code);
+    $name = pg_escape_string($conn, $name);
+    $symbol = pg_escape_string($conn, $symbol);
     
     // Check if code already exists for another currency - use parameterized query
     $checkQuery = "SELECT id FROM currencies WHERE code = $1 AND id != $2";
     $checkResult = pg_query_params($conn, $checkQuery, [$code, $id]);
     if ($checkResult && pg_num_rows($checkResult) > 0) {
-        echo json_encode(['success' => false, 'message' => 'Currency code already exists']);
+        echo json_encode(['success' => false, 'message' => 'A currency with this code already exists. Currency codes must be unique.']);
+        return;
+    }
+    
+    if (!$checkResult) {
+        echo json_encode(['success' => false, 'message' => getDbErrorMessage($conn)]);
+        return;
+    }
+    
+    // Check if name already exists for another currency - use parameterized query
+    $checkQuery = "SELECT id FROM currencies WHERE name = $1 AND id != $2";
+    $checkResult = pg_query_params($conn, $checkQuery, [$name, $id]);
+    if ($checkResult && pg_num_rows($checkResult) > 0) {
+        echo json_encode(['success' => false, 'message' => 'A currency with this name already exists. Currency names must be unique.']);
+        return;
+    }
+    
+    if (!$checkResult) {
+        echo json_encode(['success' => false, 'message' => getDbErrorMessage($conn)]);
+        return;
+    }
+    
+    // Check if symbol already exists for another currency - use parameterized query
+    $checkQuery = "SELECT id FROM currencies WHERE symbol = $1 AND id != $2";
+    $checkResult = pg_query_params($conn, $checkQuery, [$symbol, $id]);
+    if ($checkResult && pg_num_rows($checkResult) > 0) {
+        echo json_encode(['success' => false, 'message' => 'A currency with this symbol already exists. Currency symbols must be unique.']);
         return;
     }
     
@@ -631,7 +713,7 @@ function updateCurrency($conn, $data) {
     $result = pg_query_params($conn, $query, [
         $code,
         $name,
-        empty($symbol) ? null : $symbol,
+        $symbol,
         $is_active === 'true',
         $id
     ]);

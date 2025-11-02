@@ -17,13 +17,20 @@
     }
     
     function parseDDMMYYYY(str){
+        if (!str || typeof str !== 'string') return null;
         const parts = str.trim().split('/');
         if (parts.length !== 3) return null;
         const day = parseInt(parts[0], 10);
         const month = parseInt(parts[1], 10) - 1;
         const year = parseInt(parts[2], 10);
         if (isNaN(day) || isNaN(month) || isNaN(year)) return null;
+        // Validate month range
+        if (month < 0 || month > 11) return null;
+        // Create date and validate
         const d = new Date(year, month, day);
+        // Check if date is valid (handles invalid dates like 31/11/2025)
+        if (isNaN(d.getTime())) return null;
+        // Verify the date components match (catches invalid dates like 31/11)
         if (d.getDate() !== day || d.getMonth() !== month || d.getFullYear() !== year) return null;
         return d;
     }
@@ -185,10 +192,42 @@
             picker.classList.remove('hidden');
             picker.style.display = 'block';
             const rect = anchor.getBoundingClientRect();
-            picker.style.top = `${rect.bottom + 6}px`;
-            picker.style.left = `${rect.left}px`;
+            
+            // Use fixed position to escape modal overflow constraints
             picker.style.position = 'fixed';
-            picker.style.zIndex = '2000';
+            
+            // Calculate position ensuring picker stays within viewport
+            const pickerHeight = picker.offsetHeight || 400; // Approximate height
+            const pickerWidth = picker.offsetWidth || 600; // Approximate width
+            const viewportHeight = window.innerHeight;
+            const viewportWidth = window.innerWidth;
+            
+            let top = rect.bottom + 6;
+            let left = rect.left;
+            
+            // If picker would go below viewport, show it above the input
+            if (top + pickerHeight > viewportHeight) {
+                top = rect.top - pickerHeight - 6;
+                // If still doesn't fit above, position at bottom of viewport
+                if (top < 0) {
+                    top = viewportHeight - pickerHeight - 10;
+                }
+            }
+            
+            // If picker would go beyond right edge, align to right
+            if (left + pickerWidth > viewportWidth) {
+                left = viewportWidth - pickerWidth - 10;
+            }
+            
+            // Ensure picker doesn't go beyond left edge
+            if (left < 10) {
+                left = 10;
+            }
+            
+            picker.style.top = `${Math.max(10, top)}px`;
+            picker.style.left = `${left}px`;
+            // Higher z-index than modal (1000) to ensure visibility
+            picker.style.zIndex = '10000';
             document.addEventListener('click', outsideClose, true);
             document.addEventListener('keydown', escClose, true);
         }
@@ -214,18 +253,45 @@
             const raw = (rangeInput.value || '').trim();
             const parts = raw.split(/\s*(?:-|–|—|to)\s*/i).filter(Boolean);
             if (parts.length >= 2) {
-                const startISO = toISOFromDDMMYYYY(parts[0].trim()) || parts[0].trim();
-                const endISO = toISOFromDDMMYYYY(parts[1].trim()) || parts[1].trim();
-                startInput.value = startISO;
-                endInput.value = endISO;
-                rpStart = startISO; rpEnd = endISO;
-                rpBaseMonth = rpStart ? (parseDDMMYYYY(formatDateDisplay(rpStart)) || new Date(rpStart)) : new Date();
+                let startISO = toISOFromDDMMYYYY(parts[0].trim());
+                let endISO = toISOFromDDMMYYYY(parts[1].trim());
+                
+                // If DD/MM/YYYY parse failed, try YYYY-MM-DD format
+                if (!startISO && /^\d{4}-\d{2}-\d{2}$/.test(parts[0].trim())) {
+                    startISO = parts[0].trim();
+                }
+                if (!endISO && /^\d{4}-\d{2}-\d{2}$/.test(parts[1].trim())) {
+                    endISO = parts[1].trim();
+                }
+                
+                // Only set values if valid ISO dates
+                if (startISO && /^\d{4}-\d{2}-\d{2}$/.test(startISO)) {
+                    startInput.value = startISO;
+                    rpStart = startISO;
+                }
+                if (endISO && /^\d{4}-\d{2}-\d{2}$/.test(endISO)) {
+                    endInput.value = endISO;
+                    rpEnd = endISO;
+                }
+                
+                if (rpStart) {
+                    rpBaseMonth = parseDDMMYYYY(formatDateDisplay(rpStart)) || new Date(rpStart);
+                } else {
+                    rpBaseMonth = new Date();
+                }
             } else if (parts.length === 1) {
-                const dateISO = toISOFromDDMMYYYY(parts[0].trim()) || (/^\d{4}-\d{2}-\d{2}$/.test(parts[0].trim()) ? parts[0].trim() : null);
-                if (dateISO) {
+                let dateISO = toISOFromDDMMYYYY(parts[0].trim());
+                
+                // If DD/MM/YYYY parse failed, try YYYY-MM-DD format
+                if (!dateISO && /^\d{4}-\d{2}-\d{2}$/.test(parts[0].trim())) {
+                    dateISO = parts[0].trim();
+                }
+                
+                if (dateISO && /^\d{4}-\d{2}-\d{2}$/.test(dateISO)) {
                     startInput.value = dateISO;
                     endInput.value = dateISO;
-                    rpStart = dateISO; rpEnd = dateISO;
+                    rpStart = dateISO; 
+                    rpEnd = dateISO;
                     rpBaseMonth = parseDDMMYYYY(formatDateDisplay(dateISO)) || new Date(dateISO);
                 }
             }

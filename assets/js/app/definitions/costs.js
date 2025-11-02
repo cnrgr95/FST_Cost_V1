@@ -1680,7 +1680,9 @@
             }
         } catch (error) {
             console.error('Error submitting form:', error);
-            showToast('error', tCommon.save_failed || 'Failed to save. Please try again.');
+            const errorMessage = error.message || tCommon.save_failed || 'Failed to save. Please try again.';
+            showToast('error', errorMessage);
+            handleApiError('costForm', errorMessage);
         } finally {
             // Reset loading state
             if (saveBtn) {
@@ -1854,6 +1856,13 @@
             });
             const result = await response.json();
             
+            // Handle CSRF token errors
+            if (!result.success && result.message && result.message.toLowerCase().includes('csrf')) {
+                showToast('error', tCommon.security_token_expired || 'Security token expired. Please refresh the page and try again.');
+                console.error('CSRF token error:', result.message);
+                return;
+            }
+            
             if (result.success) {
                 currentData.costs = [];
                 clearFormErrors(document.getElementById('costForm'));
@@ -1861,12 +1870,30 @@
                 showToast('success', tCosts.cost_added || 'Cost created successfully');
                 await loadData();
             } else {
-                const errorMessage = result.message || 'Failed to create cost';
-                showToast('error', errorMessage);
+                // Ensure we have an error message
+                const errorMsg = result.message || 'An error occurred while creating the cost.';
+                console.error('Create cost error:', result);
+                console.log('Create cost - calling handleApiError with:', errorMsg);
+                
+                // Ensure showToast is available
+                if (typeof window.showToast !== 'function') {
+                    console.error('showToast is not available! Checking toast.js loading...');
+                }
+                
+                handleApiError('costForm', errorMsg);
+                
+                // Also show toast directly as backup
+                if (typeof window.showToast === 'function') {
+                    setTimeout(() => {
+                        window.showToast('error', errorMsg);
+                    }, 100);
+                }
             }
         } catch (error) {
             console.error('Error creating cost:', error);
-            showToast('error', tCommon.save_failed || 'Failed to create cost');
+            const errorMessage = error.message || tCommon.save_failed || 'Failed to create cost';
+            showToast('error', errorMessage);
+            handleApiError('costForm', errorMessage);
         }
     }
     
@@ -1897,6 +1924,13 @@
             });
             const result = await response.json();
             
+            // Handle CSRF token errors
+            if (!result.success && result.message && result.message.toLowerCase().includes('csrf')) {
+                showToast('error', tCommon.security_token_expired || 'Security token expired. Please refresh the page and try again.');
+                console.error('CSRF token error:', result.message);
+                return;
+            }
+            
             if (result.success) {
                 currentData.costs = [];
                 clearFormErrors(document.getElementById('costForm'));
@@ -1904,15 +1938,30 @@
                 await loadData();
                 closeModal('costsModal');
             } else {
-                const errorMessage = result.message || 'Failed to update cost';
-                showToast('error', errorMessage);
-                // Focus on first input on error
-                const firstInput = document.querySelector('#costsModal input[name="name"]');
-                if (firstInput) firstInput.focus();
+                // Ensure we have an error message
+                const errorMsg = result.message || 'An error occurred while updating the cost.';
+                console.error('Update cost error:', result);
+                console.log('Update cost - calling handleApiError with:', errorMsg);
+                
+                // Ensure showToast is available
+                if (typeof window.showToast !== 'function') {
+                    console.error('showToast is not available! Checking toast.js loading...');
+                }
+                
+                handleApiError('costForm', errorMsg);
+                
+                // Also show toast directly as backup
+                if (typeof window.showToast === 'function') {
+                    setTimeout(() => {
+                        window.showToast('error', errorMsg);
+                    }, 100);
+                }
             }
         } catch (error) {
             console.error('Error updating cost:', error);
-            showToast('error', tCommon.update_failed || 'Failed to update cost');
+            const errorMessage = error.message || tCommon.update_failed || 'Failed to update cost';
+            showToast('error', errorMessage);
+            handleApiError('costForm', errorMessage);
         }
     }
     
@@ -2017,6 +2066,7 @@
         errorFields.forEach(field => {
             if (field && (field.tagName === 'INPUT' || field.tagName === 'SELECT' || field.tagName === 'TEXTAREA')) {
                 field.classList.remove('error', 'invalid', 'has-error');
+                field.style.borderColor = '';
                 field.removeAttribute('aria-invalid');
                 if (typeof field.setCustomValidity === 'function') {
                     field.setCustomValidity('');
@@ -2031,6 +2081,179 @@
                 msg.removeAttribute('role');
             }
         });
+        // Clear period errors
+        const periodErrors = form.querySelectorAll('.period-error');
+        periodErrors.forEach(err => err.remove());
+    }
+    
+    function highlightFieldError(formId, fieldName) {
+        const form = document.getElementById(formId);
+        if (!form) return;
+        const field = form.querySelector(`[name="${fieldName}"]`);
+        if (field) {
+            field.classList.add('error');
+            field.style.borderColor = '#dc3545';
+            field.setAttribute('aria-invalid', 'true');
+            // Scroll to field
+            setTimeout(() => {
+                field.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }, 100);
+        }
+    }
+    
+    function handleApiError(formId, errorMessage) {
+        console.log('handleApiError called:', { formId, errorMessage });
+        
+        if (!errorMessage) {
+            console.warn('handleApiError: No error message provided');
+            return;
+        }
+        
+        const form = document.getElementById(formId);
+        if (!form) {
+            console.warn('handleApiError: Form not found:', formId);
+            // Still show toast even if form not found
+        }
+        
+        const errorMsgLower = errorMessage.toLowerCase();
+        console.log('handleApiError: Processing error message:', errorMsgLower);
+        
+        // Handle period name duplicate errors - CHECK THIS FIRST (most specific)
+        if (errorMsgLower.includes('period name') && (errorMsgLower.includes('duplicate') || errorMsgLower.includes('already exists'))) {
+            console.log('handleApiError: Period name duplicate detected');
+            
+            // Highlight all period name fields that have duplicate
+            const periodItems = document.querySelectorAll('.period-item');
+            periodItems.forEach(periodItem => {
+                const periodNameInput = periodItem.querySelector('input[name*="[period_name]"]');
+                if (periodNameInput) {
+                    periodNameInput.classList.add('error');
+                    periodNameInput.style.borderColor = '#dc3545';
+                    periodNameInput.setAttribute('aria-invalid', 'true');
+                }
+            });
+            
+            // Show toast
+            console.log('handleApiError: Calling showToast for period name duplicate');
+            console.log('showToast available?', typeof window.showToast);
+            console.log('toastContainer exists?', !!document.getElementById('toastContainer'));
+            
+            if (typeof window.showToast === 'function') {
+                try {
+                    window.showToast('error', errorMessage, 8000); // Longer duration
+                    console.log('showToast called successfully');
+                } catch (toastError) {
+                    console.error('Error calling showToast:', toastError);
+                    alert(errorMessage); // Fallback
+                }
+            } else {
+                console.error('showToast function not available!');
+                alert(errorMessage); // Fallback
+            }
+            
+            // Scroll to periods container
+            const periodsContainer = document.getElementById('periodsContainer');
+            if (periodsContainer) {
+                setTimeout(() => {
+                    periodsContainer.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }, 100);
+            }
+            return;
+        }
+        
+        // Handle period date overlap errors
+        if ((errorMsgLower.includes('date range') || errorMsgLower.includes('date')) && (errorMsgLower.includes('overlap') || errorMsgLower.includes('overlaps'))) {
+            console.log('handleApiError: Date overlap detected');
+            
+            // Highlight all date range inputs
+            const dateRangeInputs = document.querySelectorAll('#periodsContainer input[type="text"][id^="period_date_range_"]');
+            dateRangeInputs.forEach(input => {
+                input.classList.add('error');
+                input.style.borderColor = '#dc3545';
+                input.setAttribute('aria-invalid', 'true');
+            });
+            
+            console.log('handleApiError: Calling showToast for date overlap');
+            console.log('showToast available?', typeof window.showToast);
+            console.log('toastContainer exists?', !!document.getElementById('toastContainer'));
+            
+            if (typeof window.showToast === 'function') {
+                try {
+                    window.showToast('error', errorMessage, 8000); // Longer duration
+                    console.log('showToast called successfully');
+                } catch (toastError) {
+                    console.error('Error calling showToast:', toastError);
+                    alert(errorMessage); // Fallback
+                }
+            } else {
+                console.error('showToast function not available!');
+                alert(errorMessage); // Fallback
+            }
+            
+            // Scroll to periods container
+            const periodsContainer = document.getElementById('periodsContainer');
+            if (periodsContainer) {
+                setTimeout(() => {
+                    periodsContainer.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }, 100);
+            }
+            return;
+        }
+        
+        // Handle cost name + city uniqueness errors
+        if (errorMsgLower.includes('cost with this name already exists') && errorMsgLower.includes('city')) {
+            console.log('handleApiError: Cost name duplicate detected');
+            if (form) {
+                highlightFieldError('costForm', 'name');
+                highlightFieldError('costForm', 'city_id');
+            }
+            console.log('handleApiError: Calling showToast for cost name');
+            if (typeof window.showToast === 'function') {
+                window.showToast('error', errorMessage);
+            } else {
+                console.error('showToast function not available!');
+                alert(errorMessage); // Fallback
+            }
+            return;
+        }
+        
+        // Handle required field errors
+        if (errorMsgLower.includes('is required') || errorMsgLower.includes('required')) {
+            console.log('handleApiError: Required field error detected');
+            if (errorMsgLower.includes('period name')) {
+                const periodItems = document.querySelectorAll('.period-item');
+                periodItems.forEach(periodItem => {
+                    const periodNameInput = periodItem.querySelector('input[name*="[period_name]"]');
+                    if (periodNameInput && !periodNameInput.value.trim()) {
+                        periodNameInput.classList.add('error');
+                        periodNameInput.style.borderColor = '#dc3545';
+                        periodNameInput.setAttribute('aria-invalid', 'true');
+                    }
+                });
+            } else if (errorMsgLower.includes('cost name')) {
+                if (form) {
+                    highlightFieldError('costForm', 'name');
+                }
+            }
+            
+            console.log('handleApiError: Calling showToast for required field');
+            if (typeof window.showToast === 'function') {
+                window.showToast('error', errorMessage);
+            } else {
+                console.error('showToast function not available!');
+                alert(errorMessage); // Fallback
+            }
+            return;
+        }
+        
+        // Other errors - show toast only
+        console.log('handleApiError: Generic error, showing toast');
+        if (typeof window.showToast === 'function') {
+            window.showToast('error', errorMessage);
+        } else {
+            console.error('showToast function not available!');
+            alert(errorMessage); // Fallback
+        }
     }
     
     // Validate form

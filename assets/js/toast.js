@@ -4,8 +4,19 @@
     
     // Toast notification function
     window.showToast = function(type, message, duration = 5000) {
+        console.log('showToast called:', { type, message, duration });
         const container = document.getElementById('toastContainer');
-        if (!container) return;
+        console.log('toastContainer found?', !!container);
+        if (!container) {
+            console.error('toastContainer not found in DOM!');
+            // Try to create it if it doesn't exist
+            const newContainer = document.createElement('div');
+            newContainer.id = 'toastContainer';
+            newContainer.className = 'toast-container';
+            document.body.appendChild(newContainer);
+            console.log('Created toastContainer');
+            return window.showToast(type, message, duration); // Retry
+        }
         
         const toast = document.createElement('div');
         toast.className = `toast ${type}`;
@@ -38,10 +49,119 @@
         `;
         
         container.appendChild(toast);
-        toast.querySelector('.toast-close').addEventListener('click', () => closeToast(toast));
-        if (duration > 0) {
-            setTimeout(() => closeToast(toast), duration);
+        console.log('Toast appended to container');
+        console.log('Toast element:', toast);
+        console.log('Toast classes:', toast.className);
+        
+        // Force a reflow to ensure styles are applied
+        void toast.offsetHeight;
+        
+        // Add show class first
+        toast.classList.add('show');
+        
+        // Force immediate display with inline styles - override everything
+        const existingStyle = toast.getAttribute('style') || '';
+        toast.setAttribute('style', existingStyle + `
+            display: flex !important;
+            align-items: flex-start !important;
+            gap: 12px !important;
+            padding: 16px !important;
+            background: white !important;
+            border-radius: 8px !important;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15) !important;
+            min-width: 320px !important;
+            max-width: 500px !important;
+            pointer-events: auto !important;
+            opacity: 1 !important;
+            transform: translateX(0) !important;
+            visibility: visible !important;
+            position: relative !important;
+            z-index: 100001 !important;
+            margin-bottom: 12px !important;
+        `);
+        
+        // Use requestAnimationFrame to check and force visibility
+        requestAnimationFrame(() => {
+            const computed = window.getComputedStyle(toast);
+            console.log('Toast computed styles check:');
+            console.log('  opacity:', computed.opacity);
+            console.log('  transform:', computed.transform);
+            console.log('  display:', computed.display);
+            console.log('  visibility:', computed.visibility);
+            console.log('  z-index:', computed.zIndex);
+            console.log('  position:', computed.position);
+            
+            const containerComputed = window.getComputedStyle(container);
+            console.log('Container computed styles:');
+            console.log('  z-index:', containerComputed.zIndex);
+            console.log('  display:', containerComputed.display);
+            console.log('  visibility:', containerComputed.visibility);
+            
+            // Check if toast is actually in viewport first
+            const rect = toast.getBoundingClientRect();
+            
+            // Force visibility if needed - use setAttribute to fully override
+            if (computed.opacity === '0' || computed.visibility === 'hidden' || computed.display === 'none' || rect.width === 0 || rect.height === 0) {
+                console.warn('Toast not visible, forcing with inline styles');
+                toast.setAttribute('style', `
+                    display: flex !important;
+                    align-items: flex-start !important;
+                    gap: 12px !important;
+                    padding: 16px !important;
+                    background: white !important;
+                    border-radius: 8px !important;
+                    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15) !important;
+                    min-width: 320px !important;
+                    max-width: 500px !important;
+                    pointer-events: auto !important;
+                    opacity: 1 !important;
+                    transform: translateX(0) !important;
+                    visibility: visible !important;
+                    position: relative !important;
+                    z-index: 100001 !important;
+                    margin-bottom: 12px !important;
+                `);
+                
+                // Also force container visibility
+                container.setAttribute('style', `
+                    position: fixed !important;
+                    top: 20px !important;
+                    right: 20px !important;
+                    z-index: 999999 !important;
+                    display: flex !important;
+                    flex-direction: column !important;
+                    gap: 12px !important;
+                    pointer-events: none !important;
+                    visibility: visible !important;
+                    overflow: visible !important;
+                `);
+            }
+            console.log('Toast position:', {
+                top: rect.top,
+                right: rect.right,
+                bottom: rect.bottom,
+                left: rect.left,
+                width: rect.width,
+                height: rect.height,
+                visible: rect.width > 0 && rect.height > 0 && rect.top >= 0 && rect.left >= 0
+            });
+        });
+        
+        const closeBtn = toast.querySelector('.toast-close');
+        if (closeBtn) {
+            closeBtn.addEventListener('click', () => closeToast(toast));
+        } else {
+            console.warn('Toast close button not found!');
         }
+        
+        if (duration > 0) {
+            setTimeout(() => {
+                console.log('Closing toast after duration');
+                closeToast(toast);
+            }, duration);
+        }
+        
+        console.log('Toast created and displayed - check DOM:', container.innerHTML);
     };
 
     function closeToast(toast) {

@@ -14,6 +14,11 @@
             if (pageConfig.translations) {
                 window.Translations = pageConfig.translations;
             }
+            // Store CSRF token in page config for easy access
+            if (pageConfig.csrfToken) {
+                window.pageConfig = window.pageConfig || {};
+                window.pageConfig.csrfToken = pageConfig.csrfToken;
+            }
         } catch (e) {
             console.error('Failed to parse page config:', e);
         }
@@ -432,6 +437,14 @@
             
             const resp = await fetch(`${API_BASE}?action=country`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id: currentCountryId, local_currency_code: code, csrf_token: token }) });
             const res = await resp.json();
+            
+            // Handle CSRF token errors
+            if (!res.success && res.message && res.message.toLowerCase().includes('csrf')) {
+                showToast('error', tCommon.security_token_expired || 'Security token expired. Please refresh the page and try again.');
+                console.error('CSRF token error:', res.message);
+                return;
+            }
+            
             if (res.success) {
                 showToast('success', tCommon.saved_successfully || 'Saved');
                 // update countries array so table shows new base currency immediately
@@ -646,6 +659,14 @@
             payload.csrf_token = token;
             const resp = await fetch(`${API_BASE}?action=country_currency`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
             const res = await resp.json();
+            
+            // Handle CSRF token errors
+            if (!res.success && res.message && res.message.toLowerCase().includes('csrf')) {
+                showToast('error', tCommon.security_token_expired || 'Security token expired. Please refresh the page and try again.');
+                console.error('CSRF token error:', res.message);
+                return;
+            }
+            
             if (res.success) {
                 showToast('success', tCommon.saved_successfully || 'Saved');
             } else {
@@ -678,6 +699,14 @@
             payload.csrf_token = token;
             const resp = await fetch(`${API_BASE}?action=country_currency`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
             const res = await resp.json();
+            
+            // Handle CSRF token errors
+            if (!res.success && res.message && res.message.toLowerCase().includes('csrf')) {
+                showToast('error', tCommon.security_token_expired || 'Security token expired. Please refresh the page and try again.');
+                console.error('CSRF token error:', res.message);
+                return;
+            }
+            
             if (res.success) {
                 showToast('success', tCommon.saved_successfully || 'Saved');
             } else {
@@ -691,8 +720,36 @@
 
     async function deleteCountryCurrency(id) {
         try {
-            const resp = await window.apiFetch(`${API_BASE}?action=country_currency&id=${id}`, { method: 'DELETE' });
+            // Get CSRF token
+            let token = null;
+            if (typeof window.getCsrfToken === 'function') {
+                token = window.getCsrfToken();
+            } else if (window.pageConfig && window.pageConfig.csrfToken) {
+                token = window.pageConfig.csrfToken;
+            } else if (pageConfig && pageConfig.csrfToken) {
+                token = pageConfig.csrfToken;
+            }
+            
+            if (!token) {
+                console.error('CSRF token not found');
+                showToast('error', tCommon.security_token_expired || 'Security token expired. Please refresh the page and try again.');
+                return;
+            }
+            
+            const resp = await window.apiFetch(`${API_BASE}?action=country_currency&id=${id}`, { 
+                method: 'DELETE',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ csrf_token: token })
+            });
             const res = await resp.json();
+            
+            // Handle CSRF token errors
+            if (!res.success && res.message && res.message.toLowerCase().includes('csrf')) {
+                showToast('error', tCommon.security_token_expired || 'Security token expired. Please refresh the page and try again.');
+                console.error('CSRF token error:', res.message);
+                return;
+            }
+            
             if (res.success) {
                 showToast('success', tCommon.deleted_successfully || 'Deleted');
             } else {
@@ -704,8 +761,89 @@
         }
     }
     
+    // Error handling functions
+    function clearFormErrors(form) {
+        if (!form) return;
+        const errorMessages = form.querySelectorAll('.input-error-message');
+        errorMessages.forEach(msg => {
+            msg.textContent = '';
+            msg.style.display = 'none';
+        });
+        const inputs = form.querySelectorAll('input, select');
+        inputs.forEach(input => {
+            input.classList.remove('error');
+            input.style.borderColor = '';
+        });
+    }
+    
+    function highlightFieldError(formId, fieldName) {
+        const form = document.getElementById(formId);
+        if (!form) return;
+        const field = form.querySelector(`[name="${fieldName}"]`);
+        if (field) {
+            field.classList.add('error');
+            field.style.borderColor = '#dc3545';
+            const errorSpan = field.parentElement.querySelector('.input-error-message');
+            if (errorSpan) {
+                errorSpan.style.display = 'block';
+                errorSpan.textContent = '';
+            }
+        }
+    }
+    
+    function handleApiError(formId, errorMessage) {
+        if (!errorMessage) return;
+        
+        const form = document.getElementById(formId);
+        if (!form) return;
+        
+        const errorMsgLower = errorMessage.toLowerCase();
+        
+        // Handle required field errors
+        if (errorMsgLower.includes('is required')) {
+            if (formId === 'currencyForm') {
+                if (errorMsgLower.includes('code')) {
+                    highlightFieldError('currencyForm', 'code');
+                } else if (errorMsgLower.includes('name')) {
+                    highlightFieldError('currencyForm', 'name');
+                } else if (errorMsgLower.includes('symbol')) {
+                    highlightFieldError('currencyForm', 'symbol');
+                }
+                showToast('error', errorMessage);
+            } else {
+                showToast('error', errorMessage);
+            }
+            return;
+        }
+        
+        // Handle uniqueness errors
+        if (errorMsgLower.includes('already exists') || errorMsgLower.includes('must be unique')) {
+            if (formId === 'currencyForm') {
+                if (errorMsgLower.includes('code')) {
+                    highlightFieldError('currencyForm', 'code');
+                } else if (errorMsgLower.includes('name')) {
+                    highlightFieldError('currencyForm', 'name');
+                } else if (errorMsgLower.includes('symbol')) {
+                    highlightFieldError('currencyForm', 'symbol');
+                }
+                showToast('error', errorMessage);
+            } else {
+                showToast('error', errorMessage);
+            }
+            return;
+        }
+        
+        // Other errors - show toast only
+        showToast('error', errorMessage);
+    }
+    
     function handleSubmit(e) {
         e.preventDefault();
+        
+        // Clear previous errors
+        const form = e.target;
+        clearFormErrors(form);
+        
         const formData = new FormData(e.target);
         const currencyId = document.getElementById('currencyId').value;
         const data = Object.fromEntries(formData);
@@ -715,6 +853,24 @@
         if (currencyId) {
             data.id = parseInt(currencyId);
         }
+        
+        // Get CSRF token from multiple sources
+        let token = null;
+        if (typeof window.getCsrfToken === 'function') {
+            token = window.getCsrfToken();
+        } else if (window.pageConfig && window.pageConfig.csrfToken) {
+            token = window.pageConfig.csrfToken;
+        } else if (pageConfig && pageConfig.csrfToken) {
+            token = pageConfig.csrfToken;
+        }
+        
+        if (!token) {
+            console.error('CSRF token not found');
+            showToast('error', tCommon.security_token_expired || 'Security token expired. Please refresh the page and try again.');
+            return;
+        }
+        
+        data.csrf_token = token;
         
         const url = `${API_BASE}?action=currency`;
         const method = currencyId ? 'PUT' : 'POST';
@@ -728,6 +884,13 @@
         })
         .then(response => response.json())
         .then(result => {
+            // Handle CSRF token errors
+            if (!result.success && result.message && result.message.toLowerCase().includes('csrf')) {
+                showToast('error', tCommon.security_token_expired || 'Security token expired. Please refresh the page and try again.');
+                console.error('CSRF token error:', result.message);
+                return;
+            }
+            
             if (result.success) {
                 showToast('success', result.message || (currencyId ? (tCurrencies.currency_updated || 'Currency updated') : (tCurrencies.currency_added || 'Currency added')));
                 closeModal();
@@ -743,7 +906,7 @@
                     }
                 });
             } else {
-                showToast('error', result.message || tCurrencies.error_saving_currency || 'Error saving currency');
+                handleApiError('currencyForm', result.message);
             }
         })
         .catch(error => {
@@ -777,8 +940,26 @@
     };
         
     function performDeleteCurrency(id) {
+        // Get CSRF token
+        let token = null;
+        if (typeof window.getCsrfToken === 'function') {
+            token = window.getCsrfToken();
+        } else if (window.pageConfig && window.pageConfig.csrfToken) {
+            token = window.pageConfig.csrfToken;
+        } else if (pageConfig && pageConfig.csrfToken) {
+            token = pageConfig.csrfToken;
+        }
+        
+        if (!token) {
+            console.error('CSRF token not found');
+            showToast('error', tCommon.security_token_expired || 'Security token expired. Please refresh the page and try again.');
+            return;
+        }
+        
         window.apiFetch(`${API_BASE}?action=currency&id=${id}`, {
-            method: 'DELETE'
+            method: 'DELETE',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ csrf_token: token })
         })
         .then(response => response.json())
         .then(result => {

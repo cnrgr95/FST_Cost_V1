@@ -379,26 +379,18 @@ function createTour($conn, $data) {
         return;
     }
     
-    // Check if sejour tour code already exists
-    $checkCodeQuery = "SELECT id FROM tours WHERE sejour_tour_code = $1";
-    $checkCodeResult = pg_query_params($conn, $checkCodeQuery, [$sejour_tour_code]);
-    if ($checkCodeResult && pg_num_rows($checkCodeResult) > 0) {
-        echo json_encode(['success' => false, 'message' => 'A tour with this Sejour Tour Code already exists']);
-        return;
-    }
-    
-    // Check if tour name already exists
-    $checkNameQuery = "SELECT id FROM tours WHERE LOWER(name) = LOWER($1)";
-    $checkNameResult = pg_query_params($conn, $checkNameQuery, [$name]);
-    if ($checkNameResult && pg_num_rows($checkNameResult) > 0) {
-        echo json_encode(['success' => false, 'message' => 'A tour with this name already exists']);
-        return;
-    }
-    
     // Get location IDs
     $country_id = isset($data['country_id']) && !empty($data['country_id']) ? (int)$data['country_id'] : null;
     $region_id = isset($data['region_id']) && !empty($data['region_id']) ? (int)$data['region_id'] : null;
     $city_id = isset($data['city_id']) && !empty($data['city_id']) ? (int)$data['city_id'] : null;
+    
+    // Check if combination of sejour_tour_code + name + city_id already exists
+    $checkQuery = "SELECT id FROM tours WHERE sejour_tour_code = $1 AND LOWER(TRIM(name)) = LOWER(TRIM($2)) AND city_id = $3";
+    $checkResult = pg_query_params($conn, $checkQuery, [$sejour_tour_code, $name, $city_id]);
+    if ($checkResult && pg_num_rows($checkResult) > 0) {
+        echo json_encode(['success' => false, 'message' => 'A tour with this Sejour Tour Code, Tour Name, and City combination already exists']);
+        return;
+    }
     
     // Validate required fields
     if (empty($name)) {
@@ -450,26 +442,18 @@ function updateTour($conn, $data) {
         return;
     }
     
-    // Check if sejour tour code already exists for another tour
-    $checkCodeQuery = "SELECT id FROM tours WHERE sejour_tour_code = $1 AND id != $2";
-    $checkCodeResult = pg_query_params($conn, $checkCodeQuery, [$sejour_tour_code, $id]);
-    if ($checkCodeResult && pg_num_rows($checkCodeResult) > 0) {
-        echo json_encode(['success' => false, 'message' => 'A tour with this Sejour Tour Code already exists']);
-        return;
-    }
-    
-    // Check if tour name already exists for another tour
-    $checkNameQuery = "SELECT id FROM tours WHERE LOWER(name) = LOWER($1) AND id != $2";
-    $checkNameResult = pg_query_params($conn, $checkNameQuery, [$name, $id]);
-    if ($checkNameResult && pg_num_rows($checkNameResult) > 0) {
-        echo json_encode(['success' => false, 'message' => 'A tour with this name already exists']);
-        return;
-    }
-    
     // Get location IDs
     $country_id = isset($data['country_id']) && !empty($data['country_id']) ? (int)$data['country_id'] : null;
     $region_id = isset($data['region_id']) && !empty($data['region_id']) ? (int)$data['region_id'] : null;
     $city_id = isset($data['city_id']) && !empty($data['city_id']) ? (int)$data['city_id'] : null;
+    
+    // Check if combination of sejour_tour_code + name + city_id already exists for another tour
+    $checkQuery = "SELECT id FROM tours WHERE sejour_tour_code = $1 AND LOWER(TRIM(name)) = LOWER(TRIM($2)) AND city_id = $3 AND id != $4";
+    $checkResult = pg_query_params($conn, $checkQuery, [$sejour_tour_code, $name, $city_id, $id]);
+    if ($checkResult && pg_num_rows($checkResult) > 0) {
+        echo json_encode(['success' => false, 'message' => 'A tour with this Sejour Tour Code, Tour Name, and City combination already exists']);
+        return;
+    }
     
     // Validate required fields
     if (empty($name)) {

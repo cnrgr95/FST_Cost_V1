@@ -324,6 +324,14 @@ body.modal-open .modal.active .modal-content * {
   user-select: auto !important;
 }
 
+/* Ensure toast container is always visible, even when modal is open */
+body.modal-open .toast-container,
+body.modal-open .toast-container * {
+  pointer-events: auto !important;
+  z-index: 999999 !important;
+  visibility: visible !important;
+}
+
 /* Nested modals have higher z-index */
 .modal.active ~ .modal.active {
   z-index: 1100;
@@ -338,6 +346,7 @@ body.modal-open .modal.active .modal-content * {
   width: 100%;
   max-height: 90vh;
   overflow-y: auto;
+  overflow-x: visible; /* Allow date picker to overflow horizontally if needed */
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
   position: relative;
   /* Modal content responds to clicks, background doesn't */
@@ -359,7 +368,20 @@ body.modal-open .modal.active .modal-content * {
 .modal-body-scrollable {
   max-height: 80vh;
   overflow-y: auto;
+  overflow-x: visible; /* Allow date picker to overflow horizontally if needed */
   padding: 0;
+}
+
+/* Ensure date range picker is visible in modals */
+.modal-body .date-range-wrapper,
+.modal-content .date-range-wrapper {
+  overflow: visible !important;
+  z-index: 10; /* Higher than modal body content */
+}
+
+.modal-body .range-picker,
+.modal-content .range-picker {
+  z-index: 10001 !important; /* Higher than modal (1000) to ensure visibility */
 }
 
 .modal-header {

@@ -9,7 +9,7 @@
     border-radius: 8px;
     box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
     padding: 16px;
-    z-index: 2000;
+    z-index: 10000 !important; /* Higher than modal (1000) to ensure visibility */
     min-width: 600px;
     margin-top: 4px;
 }
@@ -130,6 +130,8 @@
 
 .date-range-wrapper {
     position: relative;
+    z-index: 1; /* Establish stacking context */
+    overflow: visible !important; /* Ensure picker is not clipped */
 }
 
 .date-range-input {

@@ -33,17 +33,15 @@
     const tSidebar = t.sidebar || {};
     const tVehicles = t.vehicles || {};
     
-    // Get initial tab from URL hash or localStorage, default to 'tours'
+    // Get initial tab from localStorage, default to 'tours'
+    // Note: URL hash is no longer used for this page
     function getInitialTab() {
         const validTabs = ['tours'];
-        // First, try URL hash
+        // Remove any existing hash from URL
         if (window.location.hash) {
-            const hashTab = window.location.hash.replace('#', '');
-            if (validTabs.includes(hashTab)) {
-                return hashTab;
-            }
+            window.history.replaceState(null, null, window.location.pathname + window.location.search);
         }
-        // Then, try localStorage
+        // Try localStorage
         const savedTab = localStorage.getItem('tours_active_tab');
         if (savedTab && validTabs.includes(savedTab)) {
             return savedTab;
@@ -59,17 +57,21 @@
     
     // Initialize
     document.addEventListener('DOMContentLoaded', function() {
+        // Remove any hash from URL immediately on page load
+        if (window.location.hash) {
+            window.history.replaceState(null, null, window.location.pathname + window.location.search);
+        }
+        
         initTabs();
         
         // Set initial tab based on saved state
         switchTab(currentTab);
         
-        // Listen for hash changes (browser back/forward)
+        // Listen for hash changes (browser back/forward) - always remove hash
         window.addEventListener('hashchange', function() {
-            const hashTab = window.location.hash.replace('#', '');
-            const validTabs = ['tours'];
-            if (validTabs.includes(hashTab) && hashTab !== currentTab) {
-                switchTab(hashTab);
+            // Always remove hash as it's no longer used
+            if (window.location.hash) {
+                window.history.replaceState(null, null, window.location.pathname + window.location.search);
             }
         });
         
@@ -160,9 +162,12 @@
         
         currentTab = tab;
         
-        // Save tab state to localStorage and URL hash
+        // Save tab state to localStorage only (no URL hash)
         localStorage.setItem('tours_active_tab', tab);
-        window.location.hash = tab;
+        // Remove hash completely - #tours is no longer used
+        if (window.location.hash) {
+            window.history.replaceState(null, null, window.location.pathname + window.location.search);
+        }
         
         // Update active tab
         document.querySelectorAll('.tours-tab').forEach(t => t.classList.remove('active'));
@@ -386,18 +391,26 @@
     
     // Close modal
     function closeModal(modalId) {
-        const modal = document.getElementById(modalId);
-        if (modal) {
-            modal.classList.remove('active');
-        }
-        document.body.style.overflow = '';
-        
-        // Reset forms
-        if (modalId === 'toursModal') {
-            const tourForm = document.getElementById('tourForm');
-            if (tourForm) {
-                tourForm.reset();
-                delete tourForm.dataset.id;
+        // Use the global closeModal function for consistency
+        if (typeof window.closeModal === 'function') {
+            window.closeModal(modalId);
+        } else {
+            // Fallback implementation
+            const modal = document.getElementById(modalId);
+            if (modal) {
+                modal.classList.remove('active');
+            }
+            // CRITICAL: Remove modal-open class from body
+            document.body.classList.remove('modal-open');
+            document.body.style.overflow = '';
+            
+            // Reset forms
+            if (modalId === 'toursModal') {
+                const tourForm = document.getElementById('tourForm');
+                if (tourForm) {
+                    tourForm.reset();
+                    delete tourForm.dataset.id;
+                }
             }
         }
     }
@@ -462,19 +475,46 @@
     };
     
     // Close modal - Enhanced to work with specific modal IDs
+    // This overrides the common.js closeModal to ensure modal-open is always removed
+    const originalCloseModal = window.closeModal;
     window.closeModal = function(modalId) {
         const targetModal = modalId ? document.getElementById(modalId) : document.getElementById('toursModal');
+        
+        // Remove active class from all modals first
+        document.querySelectorAll('.modal.active').forEach(m => {
+            m.classList.remove('active');
+        });
+        
+        // CRITICAL: Always remove modal-open class and reset overflow
+        // This prevents the page from being locked after modal closes
+        document.body.classList.remove('modal-open');
+        document.body.style.overflow = '';
+        document.body.style.position = '';
+        
+        // Also check for any remaining modal-open classes on other elements
+        document.querySelectorAll('.modal-open').forEach(el => {
+            el.classList.remove('modal-open');
+        });
+        
+        // Remove the ::before pseudo-element by removing the class that creates it
+        // The body.modal-open::before creates an overlay that blocks clicks
+        
+        // Reset form in target modal
         if (targetModal) {
-            targetModal.classList.remove('active');
-            document.body.classList.remove('modal-open');
-            document.body.style.overflow = '';
-            
-            // Reset form
             const form = targetModal.querySelector('form');
             if (form) {
                 form.reset();
                 delete form.dataset.id;
                 clearFormErrors(form);
+            }
+        }
+        
+        // Call original closeModal if it exists (from common.js)
+        if (typeof originalCloseModal === 'function' && originalCloseModal !== window.closeModal) {
+            try {
+                originalCloseModal(modalId);
+            } catch (e) {
+                console.warn('Error calling original closeModal:', e);
             }
         }
     };
@@ -618,12 +658,25 @@
         
         // Tour-specific errors
         if (formId === 'tourForm') {
-            // Sejour Tour Code errors
-            if (lowerMessage.includes('sejour tour code') || lowerMessage.includes('sejour_tour_code') || 
+            // Combined uniqueness error: sejour_tour_code + name + city combination
+            if (lowerMessage.includes('sejour tour code') && lowerMessage.includes('tour name') && lowerMessage.includes('city') && lowerMessage.includes('combination') && lowerMessage.includes('already exists')) {
+                // Highlight all three fields
+                highlightFieldError('sejour_tour_code');
+                highlightFieldError('name');
+                highlightFieldError('city_id');
+                // Show toast error
+                if (typeof window.showToast === 'function') {
+                    showToast('error', errorMessage);
+                } else {
+                    alert(errorMessage);
+                }
+            }
+            // Sejour Tour Code errors (individual)
+            else if (lowerMessage.includes('sejour tour code') || lowerMessage.includes('sejour_tour_code') || 
                 (lowerMessage.includes('code') && lowerMessage.includes('already exists') && !lowerMessage.includes('tour group'))) {
                 showFieldError('sejour_tour_code', errorMessage);
             }
-            // Tour Name errors
+            // Tour Name errors (individual)
             else if ((lowerMessage.includes('tour') && lowerMessage.includes('name') && lowerMessage.includes('already exists')) ||
                      (lowerMessage.includes('tour name') && lowerMessage.includes('already exists'))) {
                 showFieldError('name', errorMessage);
@@ -679,6 +732,46 @@
         
         // Apply error IMMEDIATELY using applyFieldError
         applyFieldError(field, message);
+    }
+    
+    // Highlight field error (only red border/background, no message below)
+    function highlightFieldError(fieldName) {
+        // Try to find field by name first
+        const activeModal = document.querySelector('.modal.active');
+        let field = null;
+        
+        if (activeModal) {
+            field = activeModal.querySelector(`[name="${fieldName}"]`);
+        }
+        
+        // Fallback to global search
+        if (!field) {
+            field = document.querySelector(`[name="${fieldName}"]`);
+        }
+        
+        if (!field) {
+            console.warn('Field not found for highlighting:', fieldName);
+            return;
+        }
+        
+        // Add error classes and style
+        field.classList.add('error');
+        field.classList.add('invalid');
+        field.classList.add('has-error');
+        field.setAttribute('aria-invalid', 'true');
+        field.style.borderColor = '#dc3545';
+        
+        // Clear error when user starts typing
+        const clearError = () => {
+            field.classList.remove('error', 'invalid', 'has-error');
+            field.removeAttribute('aria-invalid');
+            field.style.borderColor = '';
+            field.removeEventListener('input', clearError);
+            field.removeEventListener('change', clearError);
+        };
+        
+        field.addEventListener('input', clearError, { once: true });
+        field.addEventListener('change', clearError, { once: true });
     }
     
     // Validate single field - SYNC VERSION FOR IMMEDIATE FEEDBACK
@@ -878,7 +971,18 @@
             if (result.success) {
                 currentData.tours = [];
                 clearFormErrors(document.getElementById('tourForm'));
-                closeModal('toursModal');
+                // Use window.closeModal to ensure modal-open class is removed
+                if (typeof window.closeModal === 'function') {
+                    window.closeModal('toursModal');
+                } else {
+                    // Fallback
+                    const modal = document.getElementById('toursModal');
+                    if (modal) {
+                        modal.classList.remove('active');
+                    }
+                    document.body.classList.remove('modal-open');
+                    document.body.style.overflow = '';
+                }
                 showToast('success', tTours.tour_added || 'Tour created successfully');
                 if (currentTab === 'tours') {
                     await loadData('tours');
@@ -933,7 +1037,18 @@
             if (result.success) {
                 currentData.tours = [];
                 clearFormErrors(document.getElementById('tourForm'));
-                closeModal('toursModal');
+                // Use window.closeModal to ensure modal-open class is removed
+                if (typeof window.closeModal === 'function') {
+                    window.closeModal('toursModal');
+                } else {
+                    // Fallback
+                    const modal = document.getElementById('toursModal');
+                    if (modal) {
+                        modal.classList.remove('active');
+                    }
+                    document.body.classList.remove('modal-open');
+                    document.body.style.overflow = '';
+                }
                 showToast('success', tTours.tour_updated || 'Tour updated successfully');
                 if (currentTab === 'tours') {
                     await loadData('tours');
