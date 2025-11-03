@@ -246,6 +246,24 @@
         return { country_id: COUNTRY_ID, currency_code: code, rate: rateVal, rate_date: date||undefined, start_date: start||undefined, end_date: end||undefined };
     }
 
+    // Expand date range to array of dates
+    function expandDateRange(start, end) {
+        const dates = [];
+        const startDate = new Date(start + 'T00:00:00');
+        const endDate = new Date(end + 'T00:00:00');
+        if (isNaN(startDate.getTime()) || isNaN(endDate.getTime())) return dates;
+        
+        const current = new Date(startDate);
+        while (current <= endDate) {
+            const year = current.getFullYear();
+            const month = String(current.getMonth() + 1).padStart(2, '0');
+            const day = String(current.getDate()).padStart(2, '0');
+            dates.push(`${year}-${month}-${day}`);
+            current.setDate(current.getDate() + 1);
+        }
+        return dates;
+    }
+
     async function addRateRange(){
         const code = (document.getElementById('ccRateCurrency')?.value)||'';
         const start = (document.getElementById('ccRateStart')?.value)||'';
@@ -253,6 +271,23 @@
         const rateStr = (document.getElementById('ccRateValue')?.value)||'';
         if (!code || !start || !end || !rateStr) { showToast('warning', tCommon.fill_required_fields || 'Fill required fields'); return; }
         if (new Date(start) > new Date(end)) { showToast('warning', (tCurrencies.invalid_date_range||'Start date cannot be after end date')); return; }
+        
+        // Check if any dates in the range already exist for this currency
+        if (window.__ccRates && window.__ccRates.length > 0) {
+            const existingRates = window.__ccRates.filter(r => 
+                (r.currency_code || '').toUpperCase() === code.toUpperCase()
+            );
+            const dateRange = expandDateRange(start, end);
+            const existingDates = new Set(existingRates.map(r => r.rate_date));
+            const conflictingDates = dateRange.filter(d => existingDates.has(d));
+            
+            if (conflictingDates.length > 0) {
+                const conflictingDatesFormatted = conflictingDates.slice(0, 5).map(d => formatDateDisplay(d)).join(', ') + (conflictingDates.length > 5 ? '...' : '');
+                showToast('error', (tCurrencies.duplicate_rates_error || 'Bu tarihler için kur zaten mevcut') + ': ' + conflictingDatesFormatted);
+                return;
+            }
+        }
+        
         const payload = addRatePayload(null, start, end);
         try {
             // Get CSRF token
@@ -578,7 +613,9 @@
         });
         html += `<th>${tCurrencies.actions||'Actions'}</th></tr></thead><tbody>`;
         dates.forEach(d => {
-            html += `<tr><td>${d}</td>`;
+            // Format date as DD/MM/YYYY
+            const formattedDate = formatDateDisplay(d) || d;
+            html += `<tr><td>${formattedDate}</td>`;
             codes.forEach(c => {
                 const obj = byDate[d][c];
                 if (obj && obj.id) {

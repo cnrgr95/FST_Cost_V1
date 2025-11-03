@@ -109,9 +109,6 @@ $t_vehicles = $all_translations['vehicles'] ?? [];
                 </div>
                 
                 <!-- Routes List Table -->
-                <div class="section-header">
-                    <h2><?php echo $t_vehicles['routes_price_list'] ?? 'Routes & Price List'; ?></h2>
-                </div>
                 <div class="vehicles-table-section">
                     <div id="contractRoutesContainer">
                         <div class="loading">
@@ -139,11 +136,11 @@ $t_vehicles = $all_translations['vehicles'] ?? [];
                     <div class="form-row">
                         <div class="form-group">
                             <label><?php echo $t_vehicles['from_location'] ?? 'Nerden'; ?> *</label>
-                            <input type="text" id="add_from_location" name="from_location" required>
+                            <input type="text" id="add_from_location" name="from_location">
                         </div>
                         <div class="form-group">
                             <label><?php echo $t_vehicles['to_location'] ?? 'Nereye'; ?> *</label>
-                            <input type="text" id="add_to_location" name="to_location" required>
+                            <input type="text" id="add_to_location" name="to_location">
                         </div>
                     </div>
                     
@@ -188,11 +185,11 @@ $t_vehicles = $all_translations['vehicles'] ?? [];
                     <div class="form-row">
                         <div class="form-group">
                             <label><?php echo $t_vehicles['from_location'] ?? 'Nerden'; ?> *</label>
-                            <input type="text" id="edit_from_location" name="from_location" required>
+                            <input type="text" id="edit_from_location" name="from_location">
                         </div>
                         <div class="form-group">
                             <label><?php echo $t_vehicles['to_location'] ?? 'Nereye'; ?> *</label>
-                            <input type="text" id="edit_to_location" name="to_location" required>
+                            <input type="text" id="edit_to_location" name="to_location">
                         </div>
                     </div>
                     
@@ -237,8 +234,27 @@ $t_vehicles = $all_translations['vehicles'] ?? [];
                     <form id="excelUploadForm" enctype="multipart/form-data">
                         <div class="form-group">
                             <label><?php echo $t_vehicles['excel_file'] ?? 'Excel File'; ?> *</label>
-                            <input type="file" id="excelFile" name="excel_file" accept=".xlsx,.xls" required>
+                            <div class="file-upload-container">
+                                <div class="file-upload-area" id="fileUploadArea">
+                                    <input type="file" id="excelFile" name="excel_file" accept=".xlsx,.xls" required style="display: none;">
+                                    <div class="file-upload-content">
+                                        <span class="material-symbols-rounded file-upload-icon">cloud_upload</span>
+                                        <div class="file-upload-text">
+                                            <span class="file-upload-primary-text"><?php echo $t_vehicles['drag_drop_file'] ?? 'Drag & drop your Excel file here'; ?></span>
+                                            <span class="file-upload-secondary-text"><?php echo $t_vehicles['or_click_to_select'] ?? 'or click to select'; ?></span>
+                                        </div>
+                                    </div>
+                                    <div class="file-upload-selected" id="fileUploadSelected" style="display: none;">
+                                        <span class="material-symbols-rounded">description</span>
+                                        <span class="file-name" id="fileNameDisplay"></span>
+                                        <button type="button" class="file-remove-btn" id="fileRemoveBtn">
+                                            <span class="material-symbols-rounded">close</span>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
                             <small class="form-hint">
+                                <span class="material-symbols-rounded" style="font-size: 14px; vertical-align: middle;">info</span>
                                 <?php echo $t_vehicles['excel_format_hint'] ?? 'Excel dosyasında gerekli alanlar: Nerden, Nereye, Vip Vito, Vip Mini, Vito, Mini, Midi, Bus. Sütunlar farklı sırada olabilir, yüklemeden sonra eşleştirme yapabilirsiniz.'; ?>
                             </small>
                         </div>
@@ -246,7 +262,7 @@ $t_vehicles = $all_translations['vehicles'] ?? [];
                             <button type="button" class="btn-secondary" id="cancelUploadBtn">
                                 <?php echo $t_common['cancel'] ?? 'Cancel'; ?>
                             </button>
-                            <button type="submit" class="btn-primary">
+                            <button type="submit" class="btn-primary" id="uploadSubmitBtn">
                                 <span class="material-symbols-rounded">upload_file</span>
                                 <?php echo $t_vehicles['upload_and_map'] ?? 'Upload and Map Columns'; ?>
                             </button>

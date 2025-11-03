@@ -39,10 +39,12 @@
     let excelData = []; // Raw Excel data
     let excelFileData = null; // Store uploaded file for reuse
     let hasHeader = false; // Whether Excel has header row
+    let routesSortState = { column: null, direction: 'asc' }; // For sorting
     
     // Initialize
     document.addEventListener('DOMContentLoaded', function() {
         setupEventListeners();
+        setupFileUploadUI();
         loadContractInfo();
         loadVehicleTypes();
         loadContractRoutes();
@@ -173,10 +175,26 @@
         const mappingSection = document.getElementById('mappingStepSection');
         const modalTitle = document.getElementById('uploadModalTitle');
         
-        if (uploadSection) uploadSection.style.display = 'block';
-        if (mappingSection) mappingSection.style.display = 'none';
+        if (uploadSection) {
+            uploadSection.classList.remove('hidden');
+            uploadSection.style.display = 'block';
+        }
+        if (mappingSection) {
+            mappingSection.classList.add('hidden');
+            mappingSection.style.display = 'none';
+        }
         if (modalTitle) {
             modalTitle.textContent = tVehicles.upload_price_list || 'Upload Price List';
+        }
+        
+        // Reset file input
+        const fileInput = document.getElementById('excelFile');
+        if (fileInput) {
+            fileInput.value = '';
+            const fileUploadContent = document.querySelector('#fileUploadArea .file-upload-content');
+            const fileUploadSelected = document.getElementById('fileUploadSelected');
+            if (fileUploadContent) fileUploadContent.style.display = 'flex';
+            if (fileUploadSelected) fileUploadSelected.style.display = 'none';
         }
     }
     
@@ -185,8 +203,14 @@
         const mappingSection = document.getElementById('mappingStepSection');
         const modalTitle = document.getElementById('uploadModalTitle');
         
-        if (uploadSection) uploadSection.style.display = 'none';
-        if (mappingSection) mappingSection.style.display = 'block';
+        if (uploadSection) {
+            uploadSection.classList.add('hidden');
+            uploadSection.style.display = 'none';
+        }
+        if (mappingSection) {
+            mappingSection.classList.remove('hidden');
+            mappingSection.style.display = 'block';
+        }
         if (modalTitle) {
             modalTitle.textContent = tVehicles.map_columns || 'Map Columns';
         }
@@ -204,8 +228,22 @@
                 contractData = res.data[0];
                 document.getElementById('contractCodeDisplay').textContent = contractData.contract_code || '-';
                 document.getElementById('companyNameDisplay').textContent = contractData.company_name || '-';
-                document.getElementById('startDateDisplay').textContent = contractData.start_date || '-';
-                document.getElementById('endDateDisplay').textContent = contractData.end_date || '-';
+                // Format dates as DD/MM/YYYY
+                const formatDate = (dateStr) => {
+                    if (!dateStr) return '-';
+                    if (/^\d{2}\/\d{2}\/\d{4}$/.test(dateStr)) return dateStr;
+                    if (/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) {
+                        const d = new Date(dateStr + 'T00:00:00');
+                        if (d && !isNaN(d.getTime())) {
+                            const day = d.getDate().toString().padStart(2, '0');
+                            const m = (d.getMonth() + 1).toString().padStart(2, '0');
+                            return `${day}/${m}/${d.getFullYear()}`;
+                        }
+                    }
+                    return dateStr;
+                };
+                document.getElementById('startDateDisplay').textContent = formatDate(contractData.start_date);
+                document.getElementById('endDateDisplay').textContent = formatDate(contractData.end_date);
                 
                 const title = document.getElementById('contractDetailTitle');
                 if (title) {
@@ -312,29 +350,68 @@
             name: typeInfo.name
         }));
         
+        const totalCount = contractRoutes.length;
+        
+        let html = '<div class="vehicles-table-container">';
+        html += '<div class="vehicles-table-header">';
+        html += `<div class="vehicles-table-title">
+                    <span class="material-symbols-rounded" style="vertical-align: middle; margin-right: 8px; font-size: 24px;">route</span>
+                    ${tVehicles.routes_price_list || 'Routes & Price List'} 
+                    <span class="table-count-badge">${totalCount}</span>
+                 </div>`;
+        html += '<div class="table-actions-group">';
+        html += `<div class="search-box">
+                    <span class="material-symbols-rounded search-icon">search</span>
+                    <input type="text" 
+                           id="routesSearchInput" 
+                           placeholder="${tCommon.search || 'Search...'}" 
+                           class="search-input"
+                           onkeyup="filterRoutesTable(this.value)">
+                    <button class="search-clear search-clear-hidden" id="routesSearchClear" onclick="clearRoutesSearch()">
+                        <span class="material-symbols-rounded">close</span>
+                    </button>
+                 </div>`;
+        html += '</div>';
+        html += '</div>';
+        
         if (contractRoutes.length === 0) {
-            container.innerHTML = `
-                <div class="empty-state">
-                    <span class="material-symbols-rounded">route</span>
-                    <h3>${tVehicles.no_routes || 'No routes found'}</h3>
-                    <p>${tVehicles.upload_price_list_hint_routes || 'Upload an Excel file to add routes and prices'}</p>
-                </div>
-            `;
+            html += `<div class="empty-state">
+                        <span class="material-symbols-rounded">route</span>
+                        <h3>${tVehicles.no_routes || 'No routes found'}</h3>
+                        <p>${tVehicles.upload_price_list_hint_routes || 'Upload an Excel file to add routes and prices'}</p>
+                     </div>`;
+            html += '</div>';
+            container.innerHTML = html;
             return;
         }
         
-        let html = '<div class="table-wrapper" style="overflow-x: auto;"><table class="table" style="font-size: 13px; min-width: 900px;"><thead><tr>';
-        html += `<th style="min-width: 120px;">${tVehicles.from_location || 'Nerden'}</th>`;
-        html += `<th style="min-width: 120px;">${tVehicles.to_location || 'Nereye'}</th>`;
+        html += '<div class="currencies-table-section">';
+        html += '<table class="currencies-table" id="routesTable">';
+        html += '<thead><tr>';
+        html += `<th class="sortable" onclick="sortRoutesTable('from_location')">
+                    ${tVehicles.from_location || 'Nerden'}
+                    <span class="sort-icon">⇅</span>
+                 </th>`;
+        html += `<th class="sortable" onclick="sortRoutesTable('to_location')">
+                    ${tVehicles.to_location || 'Nereye'}
+                    <span class="sort-icon">⇅</span>
+                 </th>`;
         
         // Only show columns for selected vehicle types
         displayTypes.forEach(type => {
-            html += `<th style="min-width: 80px;">${type.name || '-'}</th>`;
+            html += `<th class="sortable" onclick="sortRoutesTable('type_${type.id}')">
+                        ${type.name || '-'}
+                        <span class="sort-icon">⇅</span>
+                     </th>`;
         });
         
-        html += `<th style="min-width: 60px;">${tVehicles.currency || 'Currency'}</th>`;
-        html += `<th style="min-width: 100px;">${tVehicles.actions || 'Actions'}</th>`;
-        html += '</tr></thead><tbody>';
+        html += `<th class="sortable" onclick="sortRoutesTable('currency_code')">
+                    ${tVehicles.currency || 'Currency'}
+                    <span class="sort-icon">⇅</span>
+                 </th>`;
+        html += `<th class="no-sort">${tVehicles.actions || 'Actions'}</th>`;
+        html += '</tr></thead>';
+        html += '<tbody id="routesTableBody">';
         
         contractRoutes.forEach(route => {
             const formatPrice = (price) => {
@@ -363,9 +440,14 @@
                 }
             }
             
-            html += `<tr>
-                <td><strong>${route.from_location || '-'}</strong></td>
-                <td><strong>${route.to_location || '-'}</strong></td>`;
+            // Build searchable text for row
+            let searchableText = `${(route.from_location || '').toLowerCase()} ${(route.to_location || '').toLowerCase()} ${(route.currency_code || '').toLowerCase()} `;
+            
+            html += `<tr data-from-location="${(route.from_location || '').toLowerCase()}" 
+                          data-to-location="${(route.to_location || '').toLowerCase()}"
+                          data-currency="${(route.currency_code || '').toLowerCase()}">`;
+            html += `<td><strong>${route.from_location || '-'}</strong></td>`;
+            html += `<td><strong>${route.to_location || '-'}</strong></td>`;
             
             // Only show prices for selected vehicle types (from JSONB vehicle_type_prices)
             displayTypes.forEach(type => {
@@ -379,12 +461,15 @@
                     || vehicleTypePrices[type.id] 
                     || null;
                 
+                const priceText = formatPrice(price);
+                searchableText += `${priceText} `;
+                
                 // Vehicle type price processing
                 if (Object.keys(vehicleTypePrices).length > 0 && price === null) {
                     // Price not found for vehicle type (handled gracefully with default)
                 }
                 
-                html += `<td>${formatPrice(price)}</td>`;
+                html += `<td data-type-${type.id}="${priceText}">${priceText}</td>`;
             });
             
             html += `<td>${route.currency_code || '-'}</td>
@@ -402,11 +487,143 @@
         });
         
         html += '</tbody></table></div>';
+        html += '</div>';
         container.innerHTML = html;
         
         // Attach event listeners to buttons after rendering
         attachRouteActionListeners();
     }
+    
+    // Filter routes table
+    window.filterRoutesTable = function(searchTerm) {
+        const tbody = document.getElementById('routesTableBody');
+        if (!tbody) return;
+        
+        const searchLower = searchTerm.toLowerCase().trim();
+        const rows = tbody.querySelectorAll('tr');
+        let visibleCount = 0;
+        
+        rows.forEach(row => {
+            // Search in from_location, to_location, currency
+            const fromLocation = (row.getAttribute('data-from-location') || '').toLowerCase();
+            const toLocation = (row.getAttribute('data-to-location') || '').toLowerCase();
+            const currency = (row.getAttribute('data-currency') || '').toLowerCase();
+            
+            // Search in all cell text content (including vehicle type prices)
+            const cells = row.querySelectorAll('td');
+            let cellText = '';
+            cells.forEach(cell => {
+                cellText += ' ' + (cell.textContent || '').toLowerCase();
+            });
+            
+            const matches = searchLower === '' || 
+                fromLocation.includes(searchLower) ||
+                toLocation.includes(searchLower) ||
+                currency.includes(searchLower) ||
+                cellText.includes(searchLower);
+            
+            if (matches) {
+                row.style.display = '';
+                visibleCount++;
+            } else {
+                row.style.display = 'none';
+            }
+        });
+        
+        // Update search clear button visibility
+        const clearBtn = document.getElementById('routesSearchClear');
+        if (clearBtn) {
+            if (searchLower) {
+                clearBtn.classList.remove('search-clear-hidden');
+            } else {
+                clearBtn.classList.add('search-clear-hidden');
+            }
+        }
+        
+        // Update count badge
+        const badge = document.querySelector('.vehicles-table-title .table-count-badge');
+        if (badge) {
+            const totalCount = contractRoutes.length;
+            badge.textContent = visibleCount === totalCount ? totalCount : `${visibleCount} / ${totalCount}`;
+        }
+    };
+    
+    // Clear routes search
+    window.clearRoutesSearch = function() {
+        const searchInput = document.getElementById('routesSearchInput');
+        if (searchInput) {
+            searchInput.value = '';
+            filterRoutesTable('');
+        }
+    };
+    
+    // Sort routes table
+    window.sortRoutesTable = function(column) {
+        if (!contractRoutes || contractRoutes.length === 0) return;
+        
+        // Toggle direction if same column
+        if (routesSortState.column === column) {
+            routesSortState.direction = routesSortState.direction === 'asc' ? 'desc' : 'asc';
+        } else {
+            routesSortState.column = column;
+            routesSortState.direction = 'asc';
+        }
+        
+        // Sort the data
+        const sorted = [...contractRoutes].sort((a, b) => {
+            let aVal, bVal;
+            
+            if (column === 'from_location') {
+                aVal = (a.from_location || '').toLowerCase();
+                bVal = (b.from_location || '').toLowerCase();
+            } else if (column === 'to_location') {
+                aVal = (a.to_location || '').toLowerCase();
+                bVal = (b.to_location || '').toLowerCase();
+            } else if (column === 'currency_code') {
+                aVal = (a.currency_code || '').toLowerCase();
+                bVal = (b.currency_code || '').toLowerCase();
+            } else if (column.startsWith('type_')) {
+                // Vehicle type column sorting
+                const typeId = parseInt(column.replace('type_', ''));
+                const aPrices = typeof a.vehicle_type_prices === 'object' && a.vehicle_type_prices ? a.vehicle_type_prices : {};
+                const bPrices = typeof b.vehicle_type_prices === 'object' && b.vehicle_type_prices ? b.vehicle_type_prices : {};
+                aVal = parseFloat(aPrices[typeId] || aPrices[String(typeId)] || 0) || 0;
+                bVal = parseFloat(bPrices[typeId] || bPrices[String(typeId)] || 0) || 0;
+            } else {
+                return 0;
+            }
+            
+            if (typeof aVal === 'string') {
+                return routesSortState.direction === 'asc' 
+                    ? aVal.localeCompare(bVal)
+                    : bVal.localeCompare(aVal);
+            } else {
+                return routesSortState.direction === 'asc' 
+                    ? aVal - bVal
+                    : bVal - aVal;
+            }
+        });
+        
+        contractRoutes = sorted;
+        renderRoutesTable();
+        
+        // Update sort icons
+        const table = document.getElementById('routesTable');
+        if (table) {
+            const headers = table.querySelectorAll('thead th.sortable');
+            headers.forEach(header => {
+                const sortIcon = header.querySelector('.sort-icon');
+                if (sortIcon) {
+                    const headerColumn = header.getAttribute('onclick');
+                    if (headerColumn && headerColumn.includes(`'${column}'`)) {
+                        sortIcon.textContent = routesSortState.direction === 'asc' ? '↑' : '↓';
+                    } else {
+                        sortIcon.textContent = '⇅';
+                    }
+                }
+            });
+        }
+    };
     
     // Attach event listeners to route action buttons
     function attachRouteActionListeners() {
@@ -459,12 +676,88 @@
         });
     }
     
+    // Setup file upload UI
+    function setupFileUploadUI() {
+        const fileInput = document.getElementById('excelFile');
+        const fileUploadArea = document.getElementById('fileUploadArea');
+        const fileUploadContent = fileUploadArea?.querySelector('.file-upload-content');
+        const fileUploadSelected = document.getElementById('fileUploadSelected');
+        const fileNameDisplay = document.getElementById('fileNameDisplay');
+        const fileRemoveBtn = document.getElementById('fileRemoveBtn');
+        
+        if (!fileInput || !fileUploadArea || !fileUploadSelected || !fileNameDisplay) return;
+        
+        // Click to select file
+        fileUploadArea.addEventListener('click', () => {
+            fileInput.click();
+        });
+        
+        // Drag and drop handlers
+        fileUploadArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            fileUploadArea.classList.add('drag-over');
+        });
+        
+        fileUploadArea.addEventListener('dragleave', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            fileUploadArea.classList.remove('drag-over');
+        });
+        
+        fileUploadArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            fileUploadArea.classList.remove('drag-over');
+            
+            const files = e.dataTransfer.files;
+            if (files.length > 0) {
+                fileInput.files = files;
+                updateFileDisplay();
+            }
+        });
+        
+        // File input change
+        fileInput.addEventListener('change', () => {
+            updateFileDisplay();
+        });
+        
+        // Remove file button
+        if (fileRemoveBtn) {
+            fileRemoveBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                fileInput.value = '';
+                updateFileDisplay();
+            });
+        }
+        
+        function updateFileDisplay() {
+            if (fileInput.files && fileInput.files.length > 0) {
+                const file = fileInput.files[0];
+                fileNameDisplay.textContent = file.name;
+                if (fileUploadContent) fileUploadContent.style.display = 'none';
+                fileUploadSelected.style.display = 'flex';
+            } else {
+                if (fileUploadContent) fileUploadContent.style.display = 'flex';
+                fileUploadSelected.style.display = 'none';
+            }
+        }
+    }
+    
     async function handleExcelUpload(e) {
         e.preventDefault();
         const fileInput = document.getElementById('excelFile');
+        const uploadBtn = document.getElementById('uploadSubmitBtn');
+        
         if (!fileInput || !fileInput.files || !fileInput.files[0]) {
             showToast('warning', tVehicles.select_file || 'Please select a file');
             return;
+        }
+        
+        // Add loading state
+        if (uploadBtn) {
+            uploadBtn.classList.add('loading');
+            uploadBtn.disabled = true;
         }
         
         const file = fileInput.files[0];
@@ -532,6 +825,13 @@
         } catch (e) {
             console.error('Error uploading Excel:', e);
             showToast('error', `${tCommon.upload_failed || 'Upload failed'}: ${e.message || 'Unknown error'}`);
+        } finally {
+            // Remove loading state
+            const uploadBtn = document.getElementById('uploadSubmitBtn');
+            if (uploadBtn) {
+                uploadBtn.classList.remove('loading');
+                uploadBtn.disabled = false;
+            }
         }
     }
     
@@ -562,6 +862,12 @@
             });
             const res = await resp.json();
             
+            // Handle CSRF token errors
+            if (!res.success && res.message && res.message.toLowerCase().includes('csrf')) {
+                showToast('error', tCommon.security_token_expired || 'Security token expired. Please refresh the page and try again.');
+                return;
+            }
+            
             if (res.success) {
                 showToast('success', tCommon.deleted_successfully || 'Deleted');
                 await loadContractRoutes();
@@ -576,8 +882,12 @@
     
     // Open add route modal
     window.openAddRouteModal = async function() {
+        const form = document.getElementById('addRouteForm');
         // Clear form
-        document.getElementById('addRouteForm').reset();
+        if (form) {
+            form.reset();
+            clearFormErrors(form);
+        }
         document.getElementById('addVehicleTypesContainer').innerHTML = '';
         
         // Load currencies
@@ -667,6 +977,7 @@
             const form = document.getElementById('addRouteForm');
             if (form) {
                 form.reset();
+                clearFormErrors(form);
             }
             document.getElementById('addVehicleTypesContainer').innerHTML = '';
         }
@@ -680,8 +991,22 @@
         const toLocation = document.getElementById('add_to_location').value.trim();
         const currencyCode = document.getElementById('add_currency_code').value.trim();
         
-        if (!fromLocation || !toLocation) {
-            showToast('warning', tVehicles.map_required_fields || 'Please fill all required fields');
+        // Clear previous errors
+        clearFormErrors(document.getElementById('addRouteForm'));
+        
+        // Validate: From ve To ikisi de dolu ve aynıysa girilemez
+        if (fromLocation && toLocation && fromLocation === toLocation) {
+            highlightFieldError('add_from_location');
+            highlightFieldError('add_to_location');
+            showToast('error', tVehicles.from_to_same_error || 'From and To locations cannot be the same');
+            return;
+        }
+        
+        // Validate: En az biri dolu olmalı
+        if (!fromLocation && !toLocation) {
+            highlightFieldError('add_from_location');
+            highlightFieldError('add_to_location');
+            showToast('warning', tVehicles.at_least_one_location_required || 'At least one location (From or To) is required');
             return;
         }
         
@@ -699,12 +1024,20 @@
             }
         });
         
+        // Get CSRF token
+        const token = getCsrfToken();
+        if (!token) {
+            showToast('error', tCommon.security_token_expired || 'Security token expired. Please refresh the page and try again.');
+            return;
+        }
+        
         const createData = {
             contract_id: CONTRACT_ID,
             from_location: fromLocation,
             to_location: toLocation,
             vehicle_type_prices: vehicleTypePrices,
-            currency_code: currencyCode || null
+            currency_code: currencyCode || null,
+            csrf_token: token
         };
         
         try {
@@ -722,12 +1055,18 @@
             
             const res = await resp.json();
             
+            // Handle CSRF token errors
+            if (!res.success && res.message && res.message.toLowerCase().includes('csrf')) {
+                showToast('error', tCommon.security_token_expired || 'Security token expired. Please refresh the page and try again.');
+                return;
+            }
+            
             if (res.success) {
                 showToast('success', res.message || (tCommon.saved_successfully || 'Route added successfully'));
                 closeAddRouteModal();
                 await loadContractRoutes();
             } else {
-                showToast('error', res.message || (tCommon.save_failed || 'Save failed'));
+                handleApiError('addRouteForm', res.message || (tCommon.save_failed || 'Save failed'));
             }
         } catch (e) {
             console.error('Error adding route:', e);
@@ -883,6 +1222,7 @@
             const form = document.getElementById('editRouteForm');
             if (form) {
                 form.reset();
+                clearFormErrors(form);
             }
         }
     };
@@ -896,8 +1236,22 @@
         const toLocation = document.getElementById('edit_to_location').value.trim();
         const currencyCode = document.getElementById('edit_currency_code').value.trim();
         
-        if (!fromLocation || !toLocation) {
-            showToast('warning', tVehicles.map_required_fields || 'Please fill all required fields');
+        // Clear previous errors
+        clearFormErrors(document.getElementById('editRouteForm'));
+        
+        // Validate: From ve To ikisi de dolu ve aynıysa girilemez
+        if (fromLocation && toLocation && fromLocation === toLocation) {
+            highlightFieldError('edit_from_location');
+            highlightFieldError('edit_to_location');
+            showToast('error', tVehicles.from_to_same_error || 'From and To locations cannot be the same');
+            return;
+        }
+        
+        // Validate: En az biri dolu olmalı
+        if (!fromLocation && !toLocation) {
+            highlightFieldError('edit_from_location');
+            highlightFieldError('edit_to_location');
+            showToast('warning', tVehicles.at_least_one_location_required || 'At least one location (From or To) is required');
             return;
         }
         
@@ -915,6 +1269,13 @@
             }
         });
         
+        // Get CSRF token
+        const token = getCsrfToken();
+        if (!token) {
+            showToast('error', tCommon.security_token_expired || 'Security token expired. Please refresh the page and try again.');
+            return;
+        }
+        
         // Updating route with new prices
         
         const updateData = {
@@ -922,7 +1283,8 @@
             from_location: fromLocation,
             to_location: toLocation,
             vehicle_type_prices: vehicleTypePrices,
-            currency_code: currencyCode || null
+            currency_code: currencyCode || null,
+            csrf_token: token
         };
         
         try {
@@ -940,12 +1302,18 @@
             
             const res = await resp.json();
             
+            // Handle CSRF token errors
+            if (!res.success && res.message && res.message.toLowerCase().includes('csrf')) {
+                showToast('error', tCommon.security_token_expired || 'Security token expired. Please refresh the page and try again.');
+                return;
+            }
+            
             if (res.success) {
                 showToast('success', res.message || (tCommon.saved_successfully || 'Saved successfully'));
                 closeEditRouteModal();
                 await loadContractRoutes();
             } else {
-                showToast('error', res.message || (tCommon.save_failed || 'Save failed'));
+                handleApiError('editRouteForm', res.message || (tCommon.save_failed || 'Save failed'));
             }
         } catch (e) {
             console.error('Error updating route:', e);
@@ -1186,6 +1554,8 @@
         if (fromLocationValue === '' || toLocationValue === '') {
             const fromLocationText = tVehicles.from_location || 'From';
             const toLocationText = tVehicles.to_location || 'To';
+            highlightFieldError('map_from_location');
+            highlightFieldError('map_to_location');
             showToast('warning', tVehicles.map_required_fields || `Please map all required fields (${fromLocationText}, ${toLocationText})`);
             return;
         }
@@ -1204,7 +1574,17 @@
             });
             const fromLocationText = tVehicles.from_location || 'From';
             const toLocationText = tVehicles.to_location || 'To';
+            highlightFieldError('map_from_location');
+            highlightFieldError('map_to_location');
             showToast('error', `Invalid column mapping. Please select valid columns for "${fromLocationText}" and "${toLocationText}".`);
+            return;
+        }
+        
+        // Validate: From ve To aynı kolonu seçerse eklemesin
+        if (fromLocationIndex === toLocationIndex) {
+            highlightFieldError('map_from_location');
+            highlightFieldError('map_to_location');
+            showToast('error', tVehicles.from_to_same_error || 'From and To locations cannot be mapped to the same column');
             return;
         }
         
@@ -1396,6 +1776,161 @@
         }
     }
     
+    // ============================================
+    // FORM ERROR HANDLING FUNCTIONS
+    // ============================================
+    
+    // Clear form errors
+    function clearFormErrors(form) {
+        if (!form) return;
+        const errorFields = form.querySelectorAll('input.error, select.error, textarea.error, input.invalid, select.invalid, textarea.invalid');
+        errorFields.forEach(field => {
+            if (field && (field.tagName === 'INPUT' || field.tagName === 'SELECT' || field.tagName === 'TEXTAREA')) {
+                field.classList.remove('error', 'invalid', 'has-error');
+                field.style.borderColor = '';
+                field.style.backgroundColor = '';
+                field.removeAttribute('aria-invalid');
+            }
+        });
+    }
+    
+    // Highlight field error (red border/background)
+    function highlightFieldError(fieldName) {
+        // Try to find field by ID first
+        let field = document.getElementById(fieldName);
+        
+        // If not found by ID, try by name attribute in active modal
+        if (!field) {
+            const activeModal = document.querySelector('.modal.active');
+            if (activeModal) {
+                field = activeModal.querySelector(`[name="${fieldName}"]`);
+            }
+        }
+        
+        // Fallback to global search
+        if (!field) {
+            field = document.querySelector(`[name="${fieldName}"]`);
+        }
+        
+        // If still not found, try by ID without prefix
+        if (!field && fieldName.startsWith('add_')) {
+            field = document.getElementById(fieldName.replace('add_', ''));
+        }
+        if (!field && fieldName.startsWith('edit_')) {
+            field = document.getElementById(fieldName.replace('edit_', ''));
+        }
+        
+        if (!field) {
+            console.warn('Field not found:', fieldName);
+            return;
+        }
+        
+        // Add error classes for red border/background
+        field.classList.add('error');
+        field.classList.add('invalid');
+        field.classList.add('has-error');
+        field.setAttribute('aria-invalid', 'true');
+        
+        // Force redraw with inline styles
+        field.style.borderColor = '#dc2626';
+        field.style.backgroundColor = '#fef2f2';
+        field.offsetHeight; // Force reflow
+        
+        // Clear error when user starts typing
+        const clearError = () => {
+            field.classList.remove('error', 'invalid', 'has-error');
+            field.removeAttribute('aria-invalid');
+            field.style.borderColor = '';
+            field.style.backgroundColor = '';
+            field.removeEventListener('input', clearError);
+            field.removeEventListener('change', clearError);
+        };
+        
+        field.addEventListener('input', clearError, { once: true });
+        field.addEventListener('change', clearError, { once: true });
+        
+        // Scroll to error field
+        setTimeout(() => {
+            field.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            setTimeout(() => {
+                field.focus();
+            }, 200);
+        }, 50);
+    }
+    
+    // Handle API errors and show on appropriate field
+    function handleApiError(formId, errorMessage) {
+        if (!errorMessage) return;
+        
+        const lowerMessage = errorMessage.toLowerCase();
+        const form = document.getElementById(formId);
+        
+        if (!form) {
+            // Fallback to toast if form not found
+            showToast('error', errorMessage);
+            return;
+        }
+        
+        // Clear previous errors first
+        clearFormErrors(form);
+        
+        // Route form errors
+        if (formId === 'addRouteForm' || formId === 'editRouteForm') {
+            // From/To location errors
+            if (lowerMessage.includes('from') || lowerMessage.includes('to') || lowerMessage.includes('location')) {
+                if (formId === 'addRouteForm') {
+                    if (lowerMessage.includes('from')) highlightFieldError('add_from_location');
+                    if (lowerMessage.includes('to')) highlightFieldError('add_to_location');
+                    if (!lowerMessage.includes('from') && !lowerMessage.includes('to')) {
+                        highlightFieldError('add_from_location');
+                        highlightFieldError('add_to_location');
+                    }
+                } else {
+                    if (lowerMessage.includes('from')) highlightFieldError('edit_from_location');
+                    if (lowerMessage.includes('to')) highlightFieldError('edit_to_location');
+                    if (!lowerMessage.includes('from') && !lowerMessage.includes('to')) {
+                        highlightFieldError('edit_from_location');
+                        highlightFieldError('edit_to_location');
+                    }
+                }
+                showToast('error', errorMessage);
+            }
+            // Same location error
+            else if (lowerMessage.includes('same') || lowerMessage.includes('cannot be the same')) {
+                if (formId === 'addRouteForm') {
+                    highlightFieldError('add_from_location');
+                    highlightFieldError('add_to_location');
+                } else {
+                    highlightFieldError('edit_from_location');
+                    highlightFieldError('edit_to_location');
+                }
+                showToast('error', errorMessage);
+            }
+            // Duplicate route error
+            else if (lowerMessage.includes('already exists') || lowerMessage.includes('duplicate')) {
+                if (formId === 'addRouteForm') {
+                    highlightFieldError('add_from_location');
+                    highlightFieldError('add_to_location');
+                } else {
+                    highlightFieldError('edit_from_location');
+                    highlightFieldError('edit_to_location');
+                }
+                showToast('error', errorMessage);
+            }
+            // Show toast as fallback
+            else {
+                showToast('error', errorMessage);
+            }
+        } else {
+            // Fallback to toast for unknown forms
+            showToast('error', errorMessage);
+        }
+    }
+    
     // Toast notifications use global showToast from toast.js
+    // Ensure showToast is available globally
+    if (typeof window.showToast !== 'function') {
+        console.error('showToast function not available. Make sure toast.js is loaded before this script.');
+    }
 })();
 

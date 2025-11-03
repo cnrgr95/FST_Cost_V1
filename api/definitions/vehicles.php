@@ -1164,8 +1164,15 @@ function updateContractRoute($conn, $data) {
             return;
         }
         
-        if (empty($from_location) || empty($to_location)) {
-            echo json_encode(['success' => false, 'message' => 'From and To locations are required']);
+        // Validate: En az biri dolu olmalı
+        if (empty($from_location) && empty($to_location)) {
+            echo json_encode(['success' => false, 'message' => 'At least one location (From or To) is required']);
+            return;
+        }
+        
+        // Validate: From ve To ikisi de dolu ve aynıysa girilemez
+        if (!empty($from_location) && !empty($to_location) && $from_location === $to_location) {
+            echo json_encode(['success' => false, 'message' => 'From and To locations cannot be the same']);
             return;
         }
         
@@ -1256,8 +1263,15 @@ function createContractRoute($conn, $data) {
             return;
         }
         
-        if (empty($from_location) || empty($to_location)) {
-            echo json_encode(['success' => false, 'message' => 'From and To locations are required']);
+        // Validate: En az biri dolu olmalı
+        if (empty($from_location) && empty($to_location)) {
+            echo json_encode(['success' => false, 'message' => 'At least one location (From or To) is required']);
+            return;
+        }
+        
+        // Validate: From ve To ikisi de dolu ve aynıysa girilemez
+        if (!empty($from_location) && !empty($to_location) && $from_location === $to_location) {
+            echo json_encode(['success' => false, 'message' => 'From and To locations cannot be the same']);
             return;
         }
         
@@ -1394,7 +1408,7 @@ function saveContractRoutes($conn, $data) {
         
         $savedCount = 0;
         $skippedCount = 0;
-        $skipReasons = ['empty_location' => 0, 'insert_failed' => 0, 'no_prices' => 0];
+        $skipReasons = ['empty_location' => 0, 'insert_failed' => 0, 'no_prices' => 0, 'same_location' => 0, 'duplicate' => 0];
         
         // Get vehicle type mappings: { type_id => excel_column_index }
         $vehicleTypeMappings = $columnMapping['vehicle_types'] ?? [];
@@ -1532,6 +1546,16 @@ function saveContractRoutes($conn, $data) {
                 continue;
             }
             
+            // Validate: From ve To aynıysa eklemesin
+            if ($fromLocation === $toLocation) {
+                $skippedCount++;
+                $skipReasons['same_location'] = ($skipReasons['same_location'] ?? 0) + 1;
+                if ($rowNum <= 5) {
+                    error_log("Row $rowNum skipped: From and To locations are the same ($fromLocation)");
+                }
+                continue;
+            }
+            
             // Get currency: manual > default
             $currencyCode = $defaultCurrencyCode;
             if (!empty($manualCurrency)) {
@@ -1572,6 +1596,27 @@ function saveContractRoutes($conn, $data) {
                 }
             }
             
+            // Check if route already exists - skip if duplicate (only add new routes)
+            $duplicateQuery = "SELECT id FROM vehicle_contract_routes 
+                              WHERE vehicle_contract_id = $1 
+                              AND from_location = $2 
+                              AND to_location = $3";
+            $duplicateResult = pg_query_params($conn, $duplicateQuery, [
+                $contract_id,
+                $fromLocation,
+                $toLocation
+            ]);
+            
+            if ($duplicateResult && pg_num_rows($duplicateResult) > 0) {
+                // Route already exists - skip it (only add new routes)
+                $skippedCount++;
+                $skipReasons['duplicate'] = ($skipReasons['duplicate'] ?? 0) + 1;
+                if ($rowNum <= 5) {
+                    error_log("Row $rowNum skipped: Route already exists ($fromLocation -> $toLocation)");
+                }
+                continue;
+            }
+            
             // Convert PHP array to JSONB string
             $vehicleTypePricesJson = json_encode($vehicleTypePrices, JSON_UNESCAPED_UNICODE | JSON_NUMERIC_CHECK);
             
@@ -1579,12 +1624,7 @@ function saveContractRoutes($conn, $data) {
             $query = "INSERT INTO vehicle_contract_routes 
                      (vehicle_contract_id, from_location, to_location, 
                       vehicle_type_prices, currency_code, created_at)
-                     VALUES ($1, $2, $3, $4::jsonb, $5, NOW())
-                     ON CONFLICT (vehicle_contract_id, from_location, to_location) 
-                     DO UPDATE SET 
-                         vehicle_type_prices = $4::jsonb,
-                         currency_code = $5,
-                         updated_at = NOW()";
+                     VALUES ($1, $2, $3, $4::jsonb, $5, NOW())";
             
             $insertResult = pg_query_params($conn, $query, [
                 $contract_id,
@@ -1615,6 +1655,12 @@ function saveContractRoutes($conn, $data) {
             $details = [];
             if ($skipReasons['empty_location'] > 0) {
                 $details[] = $skipReasons['empty_location'] . " with empty locations";
+            }
+            if ($skipReasons['same_location'] > 0) {
+                $details[] = $skipReasons['same_location'] . " with same From/To locations";
+            }
+            if ($skipReasons['duplicate'] > 0) {
+                $details[] = $skipReasons['duplicate'] . " duplicates (already exist)";
             }
             if ($skipReasons['insert_failed'] > 0) {
                 $details[] = $skipReasons['insert_failed'] . " failed to insert";

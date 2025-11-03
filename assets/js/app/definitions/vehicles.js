@@ -472,8 +472,8 @@
                      data-company="${(item.company_name || '').toLowerCase()}">`;
             html += `<td><span class="code-badge">${escapedCode || '-'}</span></td>`;
             html += `<td>${window.escapeHtml ? window.escapeHtml(item.company_name || '-') : (item.company_name || '-')}</td>`;
-            html += `<td>${item.start_date || '-'}</td>`;
-            html += `<td>${item.end_date || '-'}</td>`;
+            html += `<td>${formatDateDisplay(item.start_date) || '-'}</td>`;
+            html += `<td>${formatDateDisplay(item.end_date) || '-'}</td>`;
         }
         
         html += '<td>';

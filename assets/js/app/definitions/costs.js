@@ -757,8 +757,23 @@
         }
         
            const periodName = period.period_name || '';
+           // Format period date range as DD/MM/YYYY
+           const formatPeriodDate = (dateStr) => {
+               if (!dateStr) return '';
+               const datePart = dateStr.split(' ')[0] || dateStr;
+               if (/^\d{2}\/\d{2}\/\d{4}$/.test(datePart)) return datePart;
+               if (/^\d{4}-\d{2}-\d{2}$/.test(datePart)) {
+                   const d = new Date(datePart + 'T00:00:00');
+                   if (d && !isNaN(d.getTime())) {
+                       const day = d.getDate().toString().padStart(2, '0');
+                       const m = (d.getMonth() + 1).toString().padStart(2, '0');
+                       return `${day}/${m}/${d.getFullYear()}`;
+                   }
+               }
+               return datePart;
+           };
            const periodDateRange = period.start_date || period.end_date 
-               ? `${period.start_date ? (period.start_date.split(' ')[0] || period.start_date) : ''} ${period.end_date ? ' - ' + (period.end_date.split(' ')[0] || period.end_date) : ''}`
+               ? `${formatPeriodDate(period.start_date)}${period.end_date ? ' - ' + formatPeriodDate(period.end_date) : ''}`
                : '';
            const periodTitle = periodName || `${tCosts.period || 'Period'} ${periodCounter}`;
            
