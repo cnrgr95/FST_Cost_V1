@@ -266,10 +266,34 @@
 
     async function addRateRange(){
         const code = (document.getElementById('ccRateCurrency')?.value)||'';
-        const start = (document.getElementById('ccRateStart')?.value)||'';
-        const end = (document.getElementById('ccRateEnd')?.value)||'';
+        let start = (document.getElementById('ccRateStart')?.value)||'';
+        let end = (document.getElementById('ccRateEnd')?.value)||'';
         const rateStr = (document.getElementById('ccRateValue')?.value)||'';
-        if (!code || !start || !end || !rateStr) { showToast('warning', tCommon.fill_required_fields || 'Fill required fields'); return; }
+        
+        // Both start and end date are required
+        if (!code || !rateStr) { 
+            showToast('warning', tCommon.fill_required_fields || 'Fill required fields'); 
+            return; 
+        }
+        
+        // Validate start date is required
+        if (!start) {
+            showToast('warning', tCommon.start_date_required || 'Start date is required'); 
+            return; 
+        }
+        
+        // If start is set but end is not, auto-fill end with same date (single day)
+        if (start && !end) {
+            end = start;
+            const endInput = document.getElementById('ccRateEnd');
+            if (endInput) endInput.value = start;
+        }
+        
+        // Final validation - end date must be set
+        if (!end) {
+            showToast('warning', tCommon.end_date_required || 'End date is required'); 
+            return; 
+        }
         if (new Date(start) > new Date(end)) { showToast('warning', (tCurrencies.invalid_date_range||'Start date cannot be after end date')); return; }
         
         // Check if any dates in the range already exist for this currency

@@ -221,7 +221,7 @@ $t_dependencies = $all_translations['dependencies'] ?? [];
                     <div class="form-group">
                         <label><?php echo ($t_vehicles['start_date'] ?? 'Start Date') . ' - ' . ($t_vehicles['end_date'] ?? 'End Date'); ?> *</label>
                         <div class="date-range-wrapper">
-                            <input type="text" id="contract_date_range" placeholder="<?php echo $t_common['date_range_placeholder'] ?? 'Tarih seçin'; ?>" required class="date-range-input" />
+                            <input type="text" id="contract_date_range" placeholder="<?php echo $t_common['date_range_placeholder'] ?? 'GG/AA/YYYY veya GG/AA/YYYY - GG/AA/YYYY'; ?>" required class="date-range-input" />
                             <input type="date" id="contract_start_date" name="start_date" class="hidden" />
                             <input type="date" id="contract_end_date" name="end_date" class="hidden" />
                             <div id="contractRangePicker" class="range-picker hidden"></div>

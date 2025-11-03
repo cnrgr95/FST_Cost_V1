@@ -799,7 +799,7 @@
                             <label>${(tCosts.start_date || 'Start Date') + ' - ' + (tCosts.end_date || 'End Date')}</label>
                             <div class="date-range-wrapper" style="position: relative;">
                                 <input type="text" id="period_date_range_${periodCounter}" 
-                                       placeholder="${tCommon.date_range_placeholder || 'Select date range'}" 
+                                       placeholder="${tCommon.date_range_placeholder || 'GG/AA/YYYY veya GG/AA/YYYY - GG/AA/YYYY'}" 
                                        style="width: 100%; padding: 10px 12px; border: 1px solid #d1d5db; border-radius: 8px; font-size: 14px;" 
                                        value="${getPeriodDateRangeDisplay(period.start_date, period.end_date)}" />
                                 <input type="date" id="period_start_date_${periodCounter}" 
@@ -1641,6 +1641,65 @@
         const form = e.target;
         clearFormErrors(form);
         
+        // Validate all period dates - both start and end are REQUIRED (no auto-fill)
+        const periodCounters = new Set();
+        form.querySelectorAll('input[id^="period_date_range_"]').forEach(input => {
+            const match = input.id.match(/period_date_range_(\d+)/);
+            if (match) {
+                periodCounters.add(parseInt(match[1]));
+            }
+        });
+        
+        let periodDateError = false;
+        let missingStartCount = 0;
+        let missingEndCount = 0;
+        
+        for (const counter of periodCounters) {
+            const startInput = document.getElementById(`period_start_date_${counter}`);
+            const endInput = document.getElementById(`period_end_date_${counter}`);
+            const rangeInput = document.getElementById(`period_date_range_${counter}`);
+            
+            // Validate start date is filled
+            if (!startInput || !startInput.value) {
+                if (rangeInput) {
+                    rangeInput.classList.add('error');
+                    rangeInput.style.borderColor = '#dc3545';
+                    periodDateError = true;
+                    missingStartCount++;
+                }
+            }
+            
+            // If start is set but end is not, auto-fill end with same date (single day)
+            if (startInput && startInput.value && (!endInput || !endInput.value)) {
+                if (endInput) {
+                    endInput.value = startInput.value;
+                }
+            }
+            
+            // Validate end date is filled (after auto-fill)
+            if (!endInput || !endInput.value) {
+                if (rangeInput) {
+                    rangeInput.classList.add('error');
+                    rangeInput.style.borderColor = '#dc3545';
+                    periodDateError = true;
+                    missingEndCount++;
+                }
+            }
+        }
+        
+        if (periodDateError) {
+            let errorMsg = tCommon.end_date_required || 'End date is required for all periods';
+            if (missingStartCount > 0 && missingEndCount > 0) {
+                errorMsg = tCommon.fill_required_fields || 'All periods must have both start and end dates';
+            } else if (missingEndCount > 0) {
+                errorMsg = tCommon.end_date_required || 'End date is required for all periods';
+            } else if (missingStartCount > 0) {
+                errorMsg = tCommon.start_date_required || 'Start date is required for all periods';
+            }
+            showToast('error', errorMsg);
+            return false;
+        }
+        
         // Validate form
         const isValid = validateForm(form);
         if (!isValid) {
@@ -1717,6 +1776,27 @@
     // Build periods data from form
     function buildPeriodsData(formData) {
         const periods = {};
+        
+        // Auto-fill end date with start date if only start is set (single day)
+        const periodCounters = new Set();
+        formData.forEach((value, key) => {
+            const match = key.match(/^periods\[(\d+)\]/);
+            if (match) {
+                periodCounters.add(parseInt(match[1]));
+            }
+        });
+        
+        // Auto-fill end date for single day selection
+        for (const counter of periodCounters) {
+            const startDate = formData.get(`periods[${counter}][start_date]`);
+            const endDate = formData.get(`periods[${counter}][end_date]`);
+            
+            // If start is set but end is not, auto-fill end with same date (single day)
+            if (startDate && !endDate) {
+                formData.set(`periods[${counter}][end_date]`, startDate);
+            }
+        }
+        
         const periodsArray = [];
         
         const formEntries = Array.from(formData.entries());

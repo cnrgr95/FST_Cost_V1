@@ -962,10 +962,22 @@
             return;
         }
         
-        // Validate that hidden date inputs have values (set by date range picker)
-        if (!startDateInput || !startDateInput.value || !endDateInput || !endDateInput.value) {
+        // Validate that start date is filled
+        if (!startDateInput || !startDateInput.value) {
             highlightFieldError('contract_date_range');
-            showToast('error', tCommon.fill_required_fields || 'Please select a date range');
+            showToast('error', tCommon.fill_required_fields || 'Start date is required');
+            return;
+        }
+        
+        // If start is set but end is not, auto-fill end with same date (single day)
+        if (startDateInput.value && !endDateInput.value) {
+            endDateInput.value = startDateInput.value;
+        }
+        
+        // Final validation - both must be set
+        if (!endDateInput || !endDateInput.value) {
+            highlightFieldError('contract_date_range');
+            showToast('error', tCommon.end_date_required || 'End date is required');
             return;
         }
         

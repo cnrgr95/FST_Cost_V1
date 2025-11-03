@@ -121,17 +121,33 @@
             picker.querySelector('[data-rp-act="next"]').onclick = () => { rpBaseMonth = addMonths(base, 1); renderRangePicker(); };
             picker.querySelector('[data-rp-act="clear"]').onclick = () => { rpStart=''; rpEnd=''; startInput.value=''; endInput.value=''; rangeInput.value=''; closeRangePicker(); };
             picker.querySelector('[data-rp-act="apply"]').onclick = () => { 
-                if (rpStart) {
-                    const startDisplay = formatDateDisplay(rpStart);
-                    const endDisplay = rpEnd && rpEnd !== rpStart ? formatDateDisplay(rpEnd) : startDisplay;
-                    startInput.value = rpStart;
-                    endInput.value = rpEnd || rpStart;
-                    if (rpEnd && rpEnd !== rpStart) {
-                        rangeInput.value = `${startDisplay} - ${endDisplay}`;
-                    } else {
-                        rangeInput.value = startDisplay;
-                    }
+                // Start date is required
+                if (!rpStart) {
+                    closeRangePicker();
+                    return;
                 }
+                
+                // If end date is not set but start is set, auto-fill end with same date (single day)
+                if (rpStart && !rpEnd) {
+                    rpEnd = rpStart; // Auto-fill end date for single day selection
+                }
+                
+                // Final check - both must be set
+                if (!rpStart || !rpEnd) {
+                    closeRangePicker();
+                    return;
+                }
+                
+                const startDisplay = formatDateDisplay(rpStart);
+                const endDisplay = formatDateDisplay(rpEnd);
+                
+                // Set both hidden inputs
+                startInput.value = rpStart;
+                endInput.value = rpEnd;
+                
+                // Always show with " - " format
+                rangeInput.value = `${startDisplay} - ${endDisplay}`;
+                
                 closeRangePicker(); 
             };
             picker.querySelectorAll('button[data-rp-date]').forEach(btn => {
@@ -161,24 +177,30 @@
         }
 
         function handleDateClick(iso){
-            // Support single date: if clicking the same date again when start=end, keep as single date
-            if (!rpStart || (rpStart && rpEnd)) { 
-                // No selection or both selected - start fresh
-                rpStart = iso; 
-                rpEnd = ''; 
+            // Strategy for single date selection:
+            // - First click: set both start and end to same date (single day - auto-fill end)
+            // - Second click (different date): set end date (range selection)
+            // - Third click: reset to new single date (both same)
+            
+            if (!rpStart) {
+                // No start date - set both to same date (single day - auto-fill end)
+                rpStart = iso;
+                rpEnd = iso; // Auto-fill end date with same date
             } else if (rpStart && !rpEnd) {
-                // Start is set but end is not - clicking another date sets the end
+                // Start is set but end is not - set end date
                 if (new Date(iso) < new Date(rpStart)) {
                     // If clicked date is before start, swap them
                     rpEnd = rpStart;
                     rpStart = iso;
-                } else if (iso === rpStart) {
-                    // Same date clicked - keep as single date
-                    rpEnd = iso;
                 } else {
-                    rpEnd = iso;
+                    rpEnd = iso; // End date is now set
                 }
+            } else if (rpStart && rpEnd) {
+                // Both dates are set - clicking resets to new single date (both same - auto-fill)
+                rpStart = iso;
+                rpEnd = iso; // Auto-fill end date with same date for single day selection
             }
+            
             renderRangePicker();
         }
 
@@ -249,8 +271,115 @@
 
         function escClose(e){ if (e.key === 'Escape') closeRangePicker(); }
 
+        // Auto-format date input: automatically add slashes
+        function autoFormatDateInput(input, event) {
+            let value = input.value;
+            // Remove all non-numeric characters
+            const numbers = value.replace(/\D/g, '');
+            
+            if (numbers.length <= 2) {
+                input.value = numbers;
+            } else if (numbers.length <= 4) {
+                input.value = numbers.slice(0, 2) + '/' + numbers.slice(2);
+            } else {
+                input.value = numbers.slice(0, 2) + '/' + numbers.slice(2, 4) + '/' + numbers.slice(4, 8);
+            }
+        }
+
+        // Auto-format date range input: handle single date or range
+        function autoFormatDateRangeInput(input, event) {
+            let value = input.value;
+            const cursorPos = input.selectionStart || 0;
+            
+            // Remove all non-numeric characters except dash to count pure numbers
+            const numOnly = value.replace(/\D/g, '');
+            
+            // If contains dash or "to", it's a range
+            if (value.includes('-') || value.includes('–') || value.includes('—') || /to/i.test(value)) {
+                const parts = value.split(/\s*(?:-|–|—|to)\s*/i);
+                if (parts.length >= 2) {
+                    // Format first date
+                    let first = parts[0].trim().replace(/\D/g, '');
+                    if (first.length <= 2) {
+                        parts[0] = first;
+                    } else if (first.length <= 4) {
+                        parts[0] = first.slice(0, 2) + '/' + first.slice(2);
+                    } else {
+                        parts[0] = first.slice(0, 2) + '/' + first.slice(2, 4) + '/' + first.slice(4, 8);
+                    }
+                    
+                    // Format second date
+                    let second = parts[1].trim().replace(/\D/g, '');
+                    if (second.length <= 2) {
+                        parts[1] = second;
+                    } else if (second.length <= 4) {
+                        parts[1] = second.slice(0, 2) + '/' + second.slice(2);
+                    } else {
+                        parts[1] = second.slice(0, 2) + '/' + second.slice(2, 4) + '/' + second.slice(4, 8);
+                    }
+                    
+                    input.value = parts[0] + ' - ' + parts[1];
+                    
+                    // Set cursor position after the dash
+                    setTimeout(() => {
+                        const formatted = parts[0] + ' - ' + parts[1];
+                        const newCursorPos = formatted.length;
+                        input.setSelectionRange(newCursorPos, newCursorPos);
+                    }, 0);
+                } else {
+                    // Single date with dash - format it
+                    if (numOnly.length <= 2) {
+                        input.value = numOnly;
+                    } else if (numOnly.length <= 4) {
+                        input.value = numOnly.slice(0, 2) + '/' + numOnly.slice(2);
+                    } else {
+                        input.value = numOnly.slice(0, 2) + '/' + numOnly.slice(2, 4) + '/' + numOnly.slice(4, 8);
+                    }
+                }
+            } else {
+                // Single date - format it
+                if (numOnly.length <= 2) {
+                    input.value = numOnly;
+                } else if (numOnly.length <= 4) {
+                    input.value = numOnly.slice(0, 2) + '/' + numOnly.slice(2);
+                } else if (numOnly.length === 8) {
+                    // Complete first date - automatically add " - " and force end date input
+                    const formattedDate = numOnly.slice(0, 2) + '/' + numOnly.slice(2, 4) + '/' + numOnly.slice(4, 8);
+                    input.value = formattedDate + ' - ';
+                    
+                    // Set cursor position after " - " to force end date entry
+                    setTimeout(() => {
+                        const newCursorPos = input.value.length;
+                        input.setSelectionRange(newCursorPos, newCursorPos);
+                        input.focus();
+                    }, 0);
+                } else if (numOnly.length > 8) {
+                    // First date complete and second date started
+                    const firstDate = numOnly.slice(0, 8);
+                    const secondDate = numOnly.slice(8);
+                    const formattedFirst = firstDate.slice(0, 2) + '/' + firstDate.slice(2, 4) + '/' + firstDate.slice(4, 8);
+                    
+                    if (secondDate.length <= 2) {
+                        input.value = formattedFirst + ' - ' + secondDate;
+                    } else if (secondDate.length <= 4) {
+                        input.value = formattedFirst + ' - ' + secondDate.slice(0, 2) + '/' + secondDate.slice(2);
+                    } else {
+                        input.value = formattedFirst + ' - ' + secondDate.slice(0, 2) + '/' + secondDate.slice(2, 4) + '/' + secondDate.slice(4, 8);
+                    }
+                } else {
+                    input.value = numOnly.slice(0, 2) + '/' + numOnly.slice(2, 4) + '/' + numOnly.slice(4, 8);
+                }
+            }
+        }
+
         const parseRangeFromInput = () => {
             const raw = (rangeInput.value || '').trim();
+            
+            // If input ends with " - " (with space), user is still typing end date - don't parse yet
+            if (raw.endsWith(' - ')) {
+                return; // Wait for user to complete end date
+            }
+            
             const parts = raw.split(/\s*(?:-|–|—|to)\s*/i).filter(Boolean);
             if (parts.length >= 2) {
                 let startISO = toISOFromDDMMYYYY(parts[0].trim());
@@ -280,6 +409,7 @@
                     rpBaseMonth = new Date();
                 }
             } else if (parts.length === 1) {
+                // Single date entered - set both start and end to same date (single day - auto-fill end)
                 let dateISO = toISOFromDDMMYYYY(parts[0].trim());
                 
                 // If DD/MM/YYYY parse failed, try YYYY-MM-DD format
@@ -287,34 +417,116 @@
                     dateISO = parts[0].trim();
                 }
                 
-                if (dateISO && /^\d{4}-\d{2}-\d{2}$/.test(dateISO)) {
+                // If we have a complete first date but no dash yet, we're waiting for "- " to be added
+                // But still set both dates for single day selection (auto-fill end)
+                if (dateISO && /^\d{4}-\d{2}-\d{2}$/.test(dateISO) && !raw.includes('-')) {
+                    // Complete date but no range indicator - set both to same date (single day - auto-fill end)
                     startInput.value = dateISO;
-                    endInput.value = dateISO;
+                    endInput.value = dateISO; // Auto-fill end date with same date
                     rpStart = dateISO; 
-                    rpEnd = dateISO;
+                    rpEnd = dateISO; // Auto-fill end date for single day
+                    rpBaseMonth = parseDDMMYYYY(formatDateDisplay(dateISO)) || new Date(dateISO);
+                    return;
+                }
+                
+                if (dateISO && /^\d{4}-\d{2}-\d{2}$/.test(dateISO)) {
+                    // Single date entered - set both to same date (auto-fill end)
+                    startInput.value = dateISO;
+                    endInput.value = dateISO; // Auto-fill end date with same date
+                    rpStart = dateISO;
+                    rpEnd = dateISO; // Auto-fill end date for single day selection
                     rpBaseMonth = parseDDMMYYYY(formatDateDisplay(dateISO)) || new Date(dateISO);
                 }
             }
+            
+            // Final check: if start is set but end is not, auto-fill end with same date (single day)
+            if (rpStart && !rpEnd) {
+                rpEnd = rpStart;
+                if (endInput) endInput.value = rpStart;
+            }
         };
 
+        // Add auto-format on input event
+        rangeInput.addEventListener('input', function(e) {
+            const beforeValue = rangeInput.value;
+            autoFormatDateRangeInput(rangeInput, e);
+            const afterValue = rangeInput.value;
+            
+            // If auto-format added " - ", parse immediately so date picker can work
+            if (afterValue.includes(' - ') && !beforeValue.includes(' - ')) {
+                setTimeout(parseRangeFromInput, 50);
+            } else {
+                // Parse after a short delay to allow user to finish typing
+                setTimeout(parseRangeFromInput, 100);
+            }
+        });
+        
         rangeInput.addEventListener('change', function(){ parseRangeFromInput(); openRangePicker(rangeInput); });
-        rangeInput.addEventListener('input', parseRangeFromInput);
         rangeInput.addEventListener('focus', function(){ openRangePicker(rangeInput); });
         rangeInput.addEventListener('click', function(){ openRangePicker(rangeInput); });
         startInput.addEventListener('change', function(){
-            if (!endInput.value || new Date(endInput.value) < new Date(startInput.value)) {
-                setTimeout(() => openRangePicker(rangeInput), 0);
+            // Update internal state
+            rpStart = startInput.value || '';
+            
+            // If start is set but end is not, auto-fill end with same date (single day)
+            if (startInput.value && !endInput.value) {
+                endInput.value = startInput.value;
+                rpEnd = startInput.value;
             }
-        });
-        endInput.addEventListener('change', function(){
+            
+            // Update display if both are set
             if (startInput.value && endInput.value) {
-                if (startInput.value === endInput.value) {
-                    rangeInput.value = formatDateDisplay(startInput.value);
-                } else {
-                    rangeInput.value = `${formatDateDisplay(startInput.value)} - ${formatDateDisplay(endInput.value)}`;
+                const startDisplay = formatDateDisplay(startInput.value);
+                const endDisplay = formatDateDisplay(endInput.value);
+                rangeInput.value = `${startDisplay} - ${endDisplay}`;
+                
+                // If end is before start, show warning
+                if (new Date(endInput.value) < new Date(startInput.value)) {
+                    if (typeof window.showToast === 'function') {
+                        window.showToast('warning', translations.invalid_date_range || translations.common?.invalid_date_range || 'End date cannot be before start date');
+                    }
                 }
             } else if (startInput.value) {
-                rangeInput.value = formatDateDisplay(startInput.value);
+                // Start is set but end is not - auto-fill end (already done above)
+                const startDisplay = formatDateDisplay(startInput.value);
+                const endDisplay = formatDateDisplay(endInput.value);
+                rangeInput.value = `${startDisplay} - ${endDisplay}`;
+            } else if (endInput.value) {
+                // Start is empty but end is set - invalid state, clear end
+                endInput.value = '';
+                rpEnd = '';
+                rangeInput.value = '';
+            }
+        });
+        
+        endInput.addEventListener('change', function(){
+            // Update internal state
+            rpEnd = endInput.value || '';
+            
+            // If end is set but start is not, auto-fill start with same date (single day)
+            if (endInput.value && !startInput.value) {
+                startInput.value = endInput.value;
+                rpStart = endInput.value;
+            }
+            
+            // Update display if both are set
+            if (startInput.value && endInput.value) {
+                const startDisplay = formatDateDisplay(startInput.value);
+                const endDisplay = formatDateDisplay(endInput.value);
+                rangeInput.value = `${startDisplay} - ${endDisplay}`;
+                
+                // If end is before start, show warning
+                if (new Date(endInput.value) < new Date(startInput.value)) {
+                    if (typeof window.showToast === 'function') {
+                        window.showToast('warning', translations.invalid_date_range || translations.common?.invalid_date_range || 'End date cannot be before start date');
+                    }
+                }
+            } else if (!endInput.value && startInput.value) {
+                // End is cleared but start is set - auto-fill end with start (single day)
+                endInput.value = startInput.value;
+                rpEnd = startInput.value;
+                const startDisplay = formatDateDisplay(startInput.value);
+                rangeInput.value = `${startDisplay} - ${startDisplay}`;
             }
         });
     };

@@ -95,7 +95,7 @@ $countryId = isset($_GET['id']) ? (int)$_GET['id'] : 0;
 						</div>
 						<div class="currency-country-date-wrapper">
 							<label><?php echo ($t_currencies['start_date'] ?? 'Start Date') . ' - ' . ($t_currencies['end_date'] ?? 'End Date'); ?></label>
-							<input type="text" id="ccRateRange" placeholder="<?php echo $t_currencies['date_range_placeholder'] ?? 'YYYY-MM-DD veya YYYY-MM-DD - YYYY-MM-DD'; ?>" class="currency-country-input" />
+							<input type="text" id="ccRateRange" placeholder="<?php echo $t_currencies['date_range_placeholder'] ?? 'GG/AA/YYYY veya GG/AA/YYYY - GG/AA/YYYY'; ?>" class="currency-country-input" />
 							<!-- hidden native date inputs to use single-calendar flow -->
 							<input type="date" id="ccRateStart" class="currency-country-date-input" />
 							<input type="date" id="ccRateEnd" class="currency-country-date-input" />
