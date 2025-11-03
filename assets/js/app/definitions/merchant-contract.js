@@ -1138,20 +1138,21 @@
             
             container.innerHTML = html;
         } else if (amountType === 'person_based' && pricingType === 'person_based') {
-            // Kişi bazlı + Kişi Bazlı: Yaş aralıkları ve fiyatlar (genel)
-            let html = '<div class="age-ranges-section">';
-            html += '<h5>' + (tMerchants.age_ranges || 'Yaş Aralıkları') + '</h5>';
-            html += '<div class="form-row-inline">';
-            
+            // Kişi bazlı + Kişi Bazlı: Yaş aralıkları ve fiyatlar (genel) - Kompakt layout
             const ageTypes = [
                 { key: 'adult', label: tMerchants.adult || 'Yetişkin', default: { min: 18, max: 100 } },
                 { key: 'child', label: tMerchants.child || 'Çocuk', default: { min: 2, max: 17 } },
                 { key: 'baby', label: tMerchants.baby || 'Bebek', default: { min: 0, max: 1 } }
             ];
             
+            let html = '<div class="compact-pricing-section">';
+            
+            // Yaş aralıkları - kompakt yan yana
+            html += '<div class="age-ranges-compact">';
+            html += '<div class="form-row-inline">';
             ageTypes.forEach(ageType => {
                 const savedAgeRange = item.fields.ageRanges && item.fields.ageRanges[ageType.key] ? item.fields.ageRanges[ageType.key] : null;
-                html += '<div class="form-group-inline age-range-group">';
+                html += '<div class="form-group-inline age-range-compact">';
                 html += '<label>' + ageType.label + '</label>';
                 html += '<div class="age-inputs-inline">';
                 html += '<input type="number" name="cost_age_range[' + costId + '][' + ageType.key + '][min]" placeholder="' + (tMerchants.min_age || 'Min') + '" value="' + (savedAgeRange ? savedAgeRange.min : ageType.default.min) + '" min="0" max="150" required />';
@@ -1160,16 +1161,25 @@
                 html += '</div>';
                 html += '</div>';
             });
-            
             html += '</div>';
             html += '</div>';
             
-            html += '<div class="prices-section">';
-            html += '<h5>' + (tMerchants.prices || 'Fiyatlar') + '</h5>';
+            // Fiyatlar ve Döviz - yan yana kompakt
+            html += '<div class="prices-compact">';
+            html += '<div class="form-row-inline prices-currency-row">';
             
-            // Single currency selection for all age types
+            // Fiyat alanları
+            ageTypes.forEach(ageType => {
+                const savedPrice = item.fields.prices && item.fields.prices[ageType.key] ? item.fields.prices[ageType.key] : null;
+                html += '<div class="form-group-inline price-group-compact">';
+                html += '<label>' + ageType.label + ' ' + (tMerchants.price || 'Fiyat') + ' *</label>';
+                html += '<input type="number" step="0.01" name="cost_price[' + costId + '][' + ageType.key + ']" placeholder="0.00" min="0" value="' + (savedPrice ? savedPrice.price : '') + '" required />';
+                html += '</div>';
+            });
+            
+            // Döviz seçimi - fiyatların yanında
             const savedCurrency = item.fields.currency || '';
-            html += '<div class="form-group">';
+            html += '<div class="form-group-inline currency-group-compact">';
             html += '<label>' + (tMerchants.currency || 'Döviz') + ' *</label>';
             html += '<select name="cost_currency[' + costId + ']" required>';
             html += '<option value="">' + (tCommon.select || 'Select') + '</option>';
@@ -1180,21 +1190,13 @@
             html += '</select>';
             html += '</div>';
             
-            html += '<div class="form-row-inline">';
-            ageTypes.forEach(ageType => {
-                const savedPrice = item.fields.prices && item.fields.prices[ageType.key] ? item.fields.prices[ageType.key] : null;
-                html += '<div class="form-group-inline price-group">';
-                html += '<label>' + ageType.label + ' ' + (tMerchants.price || 'Fiyat') + ' *</label>';
-                html += '<input type="number" step="0.01" name="cost_price[' + costId + '][' + ageType.key + ']" placeholder="0.00" min="0" value="' + (savedPrice ? savedPrice.price : '') + '" required />';
-                html += '</div>';
-            });
             html += '</div>';
             html += '</div>';
             html += '</div>';
             
             container.innerHTML = html;
         } else if (amountType === 'region_based' && pricingType === 'fixed') {
-            // Sabit tutar + Genel Bölge Bazlı: Her bölge için sadece tutar ve döviz
+            // Sabit tutar + Genel Bölge Bazlı: Her bölge için sadece tutar ve dövi
             if (!selectedTourId || tourRegions.length === 0) {
                 container.innerHTML = '<div class="form-notice"><span class="material-symbols-rounded">info</span> ' + (tMerchants.select_tour_first || 'Please select a tour first') + '</div>';
                 return;
@@ -1270,12 +1272,22 @@
                 html += '</div>';
                 html += '</div>';
                 
-                // Prices - Single currency for all age types per region
-                html += '<div class="prices-section">';
-                html += '<h6>' + (tMerchants.prices || 'Fiyatlar') + '</h6>';
+                // Prices - Kompakt: Fiyatlar ve döviz yan yana
+                html += '<div class="prices-compact">';
+                html += '<div class="form-row-inline prices-currency-row">';
                 
+                // Fiyat alanları
+                ageTypes.forEach(ageType => {
+                    const savedPrice = item.fields.regionalPrices && item.fields.regionalPrices[region.id] && item.fields.regionalPrices[region.id][ageType.key] ? item.fields.regionalPrices[region.id][ageType.key] : null;
+                    html += '<div class="form-group-inline price-group-compact">';
+                    html += '<label>' + ageType.label + ' ' + (tMerchants.price || 'Fiyat') + ' *</label>';
+                    html += '<input type="number" step="0.01" name="cost_regional_price[' + costId + '][' + region.id + '][' + ageType.key + ']" placeholder="0.00" min="0" value="' + (savedPrice ? savedPrice.price : '') + '" required />';
+                    html += '</div>';
+                });
+                
+                // Döviz seçimi - fiyatların yanında
                 const savedRegionalCurrency = item.fields.regionalCurrencies && item.fields.regionalCurrencies[region.id] ? item.fields.regionalCurrencies[region.id] : '';
-                html += '<div class="form-group">';
+                html += '<div class="form-group-inline currency-group-compact">';
                 html += '<label>' + (tMerchants.currency || 'Döviz') + ' *</label>';
                 html += '<select name="cost_regional_currency[' + costId + '][' + region.id + ']" required>';
                 html += '<option value="">' + (tCommon.select || 'Select') + '</option>';
@@ -1286,14 +1298,6 @@
                 html += '</select>';
                 html += '</div>';
                 
-                html += '<div class="form-row-inline">';
-                ageTypes.forEach(ageType => {
-                    const savedPrice = item.fields.regionalPrices && item.fields.regionalPrices[region.id] && item.fields.regionalPrices[region.id][ageType.key] ? item.fields.regionalPrices[region.id][ageType.key] : null;
-                    html += '<div class="form-group-inline price-group">';
-                    html += '<label>' + ageType.label + ' ' + (tMerchants.price || 'Fiyat') + ' *</label>';
-                    html += '<input type="number" step="0.01" name="cost_regional_price[' + costId + '][' + region.id + '][' + ageType.key + ']" placeholder="0.00" min="0" value="' + (savedPrice ? savedPrice.price : '') + '" required />';
-                    html += '</div>';
-                });
                 html += '</div>';
                 html += '</div>';
                 html += '</div>';
@@ -1796,20 +1800,21 @@
         }
     }
     
-    // Render age ranges and prices - with single currency selection
+    // Render age ranges and prices - with single currency selection (compact layout)
     function renderAgeRangesAndPrices(container, prefix = '') {
-        let html = '<div class="age-ranges-section">';
-        html += '<h4>' + (tMerchants.age_ranges || 'Yaş Aralıkları') + '</h4>';
-        html += '<div class="form-row-inline">';
-        
         const ageTypes = [
             { key: 'adult', label: tMerchants.adult || 'Yetişkin', default: { min: 18, max: 100 } },
             { key: 'child', label: tMerchants.child || 'Çocuk', default: { min: 2, max: 17 } },
             { key: 'baby', label: tMerchants.baby || 'Bebek', default: { min: 0, max: 1 } }
         ];
         
+        let html = '<div class="compact-pricing-section">';
+        
+        // Yaş aralıkları - kompakt yan yana
+        html += '<div class="age-ranges-compact">';
+        html += '<div class="form-row-inline">';
         ageTypes.forEach(ageType => {
-            html += '<div class="form-group-inline age-range-group">';
+            html += '<div class="form-group-inline age-range-compact">';
             html += '<label>' + ageType.label + '</label>';
             html += '<div class="age-inputs-inline">';
             html += '<input type="number" name="' + prefix + '_age_range[' + ageType.key + '][min]" placeholder="' + (tMerchants.min_age || 'Min') + '" value="' + ageType.default.min + '" min="0" max="150" required />';
@@ -1818,15 +1823,23 @@
             html += '</div>';
             html += '</div>';
         });
-        
         html += '</div>';
         html += '</div>';
         
-        html += '<div class="prices-section">';
-        html += '<h4>' + (tMerchants.prices || 'Fiyatlar') + '</h4>';
+        // Fiyatlar ve Döviz - yan yana kompakt
+        html += '<div class="prices-compact">';
+        html += '<div class="form-row-inline prices-currency-row">';
         
-        // Single currency selection for all age types
-        html += '<div class="form-group">';
+        // Fiyat alanları
+        ageTypes.forEach(ageType => {
+            html += '<div class="form-group-inline price-group-compact">';
+            html += '<label>' + ageType.label + ' ' + (tMerchants.price || 'Fiyat') + ' *</label>';
+            html += '<input type="number" step="0.01" name="' + prefix + '_price[' + ageType.key + ']" placeholder="0.00" min="0" required />';
+            html += '</div>';
+        });
+        
+        // Döviz seçimi - fiyatların yanında
+        html += '<div class="form-group-inline currency-group-compact">';
         html += '<label>' + (tMerchants.currency || 'Döviz') + ' *</label>';
         html += '<select name="' + prefix + '_currency" id="' + prefix + 'Currency" required>';
         html += '<option value="">' + (tCommon.select || 'Select') + '</option>';
@@ -1836,13 +1849,7 @@
         html += '</select>';
         html += '</div>';
         
-        html += '<div class="form-row-inline">';
-        ageTypes.forEach(ageType => {
-            html += '<div class="form-group-inline price-group">';
-            html += '<label>' + ageType.label + ' ' + (tMerchants.price || 'Fiyat') + ' *</label>';
-            html += '<input type="number" step="0.01" name="' + prefix + '_price[' + ageType.key + ']" placeholder="0.00" min="0" required />';
-            html += '</div>';
-        });
+        html += '</div>';
         html += '</div>';
         html += '</div>';
         
@@ -1858,34 +1865,45 @@
             html += '<div class="region-pricing-block" data-region-id="' + region.id + '">';
             html += '<h5>' + (region.name || 'Region ' + (regionIndex + 1)) + '</h5>';
             
-            // Age ranges
-            html += '<div class="age-ranges-section">';
-            html += '<h5>' + (tMerchants.age_ranges || 'Yaş Aralıkları') + '</h5>';
-            
+            // Kompakt layout: Yaş aralıkları ve fiyatlar
             const ageTypes = [
                 { key: 'adult', label: tMerchants.adult || 'Yetişkin', default: { min: 18, max: 100 } },
                 { key: 'child', label: tMerchants.child || 'Çocuk', default: { min: 2, max: 17 } },
                 { key: 'baby', label: tMerchants.baby || 'Bebek', default: { min: 0, max: 1 } }
             ];
             
+            html += '<div class="compact-pricing-section">';
+            
+            // Yaş aralıkları - kompakt yan yana
+            html += '<div class="age-ranges-compact">';
+            html += '<div class="form-row-inline">';
             ageTypes.forEach(ageType => {
-                html += '<div class="age-range-row">';
+                html += '<div class="form-group-inline age-range-compact">';
                 html += '<label>' + ageType.label + '</label>';
-                html += '<div class="age-inputs">';
+                html += '<div class="age-inputs-inline">';
                 html += '<input type="number" name="regional_person_age_range[' + region.id + '][' + ageType.key + '][min]" placeholder="' + (tMerchants.min_age || 'Min') + '" value="' + ageType.default.min + '" min="0" max="150" required />';
                 html += '<span class="age-separator">-</span>';
                 html += '<input type="number" name="regional_person_age_range[' + region.id + '][' + ageType.key + '][max]" placeholder="' + (tMerchants.max_age || 'Max') + '" value="' + ageType.default.max + '" min="0" max="150" required />';
                 html += '</div>';
                 html += '</div>';
             });
-            
+            html += '</div>';
             html += '</div>';
             
-            // Prices - Single currency for all age types per region
-            html += '<div class="prices-section">';
-            html += '<h5>' + (tMerchants.prices || 'Fiyatlar') + '</h5>';
+            // Fiyatlar ve Döviz - yan yana kompakt
+            html += '<div class="prices-compact">';
+            html += '<div class="form-row-inline prices-currency-row">';
             
-            html += '<div class="form-group">';
+            // Fiyat alanları
+            ageTypes.forEach(ageType => {
+                html += '<div class="form-group-inline price-group-compact">';
+                html += '<label>' + ageType.label + ' ' + (tMerchants.price || 'Fiyat') + ' *</label>';
+                html += '<input type="number" step="0.01" name="regional_person_price[' + region.id + '][' + ageType.key + ']" placeholder="0.00" min="0" required />';
+                html += '</div>';
+            });
+            
+            // Döviz seçimi - fiyatların yanında
+            html += '<div class="form-group-inline currency-group-compact">';
             html += '<label>' + (tMerchants.currency || 'Döviz') + ' *</label>';
             html += '<select name="regional_person_currency[' + region.id + ']" required>';
             html += '<option value="">' + (tCommon.select || 'Select') + '</option>';
@@ -1895,15 +1913,8 @@
             html += '</select>';
             html += '</div>';
             
-            html += '<div class="form-row-inline">';
-            ageTypes.forEach(ageType => {
-                html += '<div class="form-group-inline price-group">';
-                html += '<label>' + ageType.label + ' ' + (tMerchants.price || 'Fiyat') + ' *</label>';
-                html += '<input type="number" step="0.01" name="regional_person_price[' + region.id + '][' + ageType.key + ']" placeholder="0.00" min="0" required />';
-                html += '</div>';
-            });
             html += '</div>';
-            
+            html += '</div>';
             html += '</div>';
             html += '</div>';
         });
@@ -2030,34 +2041,45 @@
             html += '<div class="region-pricing-block" data-region-id="' + region.id + '">';
             html += '<h5>' + (region.name || 'Region ' + (regionIndex + 1)) + '</h5>';
             
-            // Age ranges
-            html += '<div class="age-ranges-section">';
-            html += '<h5>' + (tMerchants.age_ranges || 'Yaş Aralıkları') + '</h5>';
-            
+            // Kompakt layout: Yaş aralıkları ve fiyatlar
             const ageTypes = [
                 { key: 'adult', label: tMerchants.adult || 'Yetişkin', default: { min: 18, max: 100 } },
                 { key: 'child', label: tMerchants.child || 'Çocuk', default: { min: 2, max: 17 } },
                 { key: 'baby', label: tMerchants.baby || 'Bebek', default: { min: 0, max: 1 } }
             ];
             
+            html += '<div class="compact-pricing-section">';
+            
+            // Yaş aralıkları - kompakt yan yana
+            html += '<div class="age-ranges-compact">';
+            html += '<div class="form-row-inline">';
             ageTypes.forEach(ageType => {
-                html += '<div class="age-range-row">';
+                html += '<div class="form-group-inline age-range-compact">';
                 html += '<label>' + ageType.label + '</label>';
-                html += '<div class="age-inputs">';
+                html += '<div class="age-inputs-inline">';
                 html += '<input type="number" name="regional_group_age_range[' + region.id + '][' + ageType.key + '][min]" placeholder="' + (tMerchants.min_age || 'Min') + '" value="' + ageType.default.min + '" min="0" max="150" required />';
                 html += '<span class="age-separator">-</span>';
                 html += '<input type="number" name="regional_group_age_range[' + region.id + '][' + ageType.key + '][max]" placeholder="' + (tMerchants.max_age || 'Max') + '" value="' + ageType.default.max + '" min="0" max="150" required />';
                 html += '</div>';
                 html += '</div>';
             });
-            
+            html += '</div>';
             html += '</div>';
             
-            // Prices - Single currency for all age types per region
-            html += '<div class="prices-section">';
-            html += '<h5>' + (tMerchants.prices || 'Fiyatlar') + '</h5>';
+            // Fiyatlar ve Döviz - yan yana kompakt
+            html += '<div class="prices-compact">';
+            html += '<div class="form-row-inline prices-currency-row">';
             
-            html += '<div class="form-group">';
+            // Fiyat alanları
+            ageTypes.forEach(ageType => {
+                html += '<div class="form-group-inline price-group-compact">';
+                html += '<label>' + ageType.label + ' ' + (tMerchants.price || 'Fiyat') + ' *</label>';
+                html += '<input type="number" step="0.01" name="regional_group_price[' + region.id + '][' + ageType.key + ']" placeholder="0.00" min="0" required />';
+                html += '</div>';
+            });
+            
+            // Döviz seçimi - fiyatların yanında
+            html += '<div class="form-group-inline currency-group-compact">';
             html += '<label>' + (tMerchants.currency || 'Döviz') + ' *</label>';
             html += '<select name="regional_group_currency[' + region.id + ']" required>';
             html += '<option value="">' + (tCommon.select || 'Select') + '</option>';
@@ -2067,15 +2089,8 @@
             html += '</select>';
             html += '</div>';
             
-            html += '<div class="form-row-inline">';
-            ageTypes.forEach(ageType => {
-                html += '<div class="form-group-inline price-group">';
-                html += '<label>' + ageType.label + ' ' + (tMerchants.price || 'Fiyat') + ' *</label>';
-                html += '<input type="number" step="0.01" name="regional_group_price[' + region.id + '][' + ageType.key + ']" placeholder="0.00" min="0" required />';
-                html += '</div>';
-            });
             html += '</div>';
-            
+            html += '</div>';
             html += '</div>';
             html += '</div>';
         });

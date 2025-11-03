@@ -1159,6 +1159,96 @@
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
 }
 
+/* Compact Pricing Layout - Space Saving */
+.compact-pricing-section {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.age-ranges-compact {
+    margin-bottom: 0;
+}
+
+.age-ranges-compact .form-row-inline {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.age-range-compact {
+    flex: 1;
+    min-width: 140px;
+}
+
+.prices-compact {
+    margin-top: 0;
+}
+
+.prices-currency-row {
+    display: flex;
+    gap: 12px;
+    align-items: flex-end;
+    flex-wrap: wrap;
+}
+
+.price-group-compact {
+    flex: 1;
+    min-width: 120px;
+}
+
+.currency-group-compact {
+    flex: 0 0 auto;
+    min-width: 150px;
+    max-width: 200px;
+}
+
+.price-group-compact label,
+.currency-group-compact label {
+    display: block;
+    font-size: 13px;
+    font-weight: 500;
+    color: #374151;
+    margin-bottom: 6px;
+}
+
+.price-group-compact input,
+.currency-group-compact select {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px solid #d1d5db;
+    border-radius: 8px;
+    font-size: 14px;
+    transition: all 0.2s ease;
+}
+
+.price-group-compact input:focus,
+.currency-group-compact select:focus {
+    outline: none;
+    border-color: #151A2D;
+    box-shadow: 0 0 0 3px rgba(21, 26, 45, 0.1);
+}
+
+.age-range-compact label {
+    display: block;
+    font-size: 13px;
+    font-weight: 500;
+    color: #374151;
+    margin-bottom: 6px;
+}
+
+/* Regional Pricing Compact */
+.region-pricing-block .prices-compact {
+    margin-top: 16px;
+}
+
+.region-pricing-block .prices-currency-row {
+    display: flex;
+    gap: 12px;
+    align-items: flex-end;
+    flex-wrap: wrap;
+}
+
 /* Responsive */
 @media (max-width: 768px) {
     .merchant-contract-container {
@@ -1187,6 +1277,16 @@
     .btn-secondary {
         width: 100%;
         justify-content: center;
+    }
+    
+    .prices-currency-row {
+        flex-direction: column;
+    }
+    
+    .price-group-compact,
+    .currency-group-compact {
+        width: 100%;
+        max-width: none;
     }
 }
 
