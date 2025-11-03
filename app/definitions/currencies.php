@@ -297,6 +297,10 @@ $t_currencies = $all_translations['currencies'] ?? [];
     <script src="<?php echo $basePath; ?>assets/js/includes/sidebar.js"></script>
     <script src="<?php echo $basePath; ?>assets/js/toast.js"></script>
     <script src="<?php echo $basePath; ?>assets/js/common.js"></script>
+    <!-- Modal, Form Validation & Handler Utilities -->
+    <script src="<?php echo $basePath; ?>assets/js/modal-manager.js"></script>
+    <script src="<?php echo $basePath; ?>assets/js/form-validator.js"></script>
+    <script src="<?php echo $basePath; ?>assets/js/form-handler.js"></script>
     <script src="<?php echo $basePath; ?>assets/js/select-search.js"></script>
     <script src="<?php echo $basePath; ?>assets/js/app/definitions/currencies.js"></script>
 </body>
