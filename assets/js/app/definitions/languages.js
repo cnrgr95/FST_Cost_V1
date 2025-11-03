@@ -36,6 +36,15 @@
     
     // Initialize
     document.addEventListener('DOMContentLoaded', function() {
+        // Setup add language button
+        const addBtn = document.getElementById('openAddLanguageModalBtn');
+        if (addBtn) {
+            addBtn.addEventListener('click', function(e) {
+                e.preventDefault();
+                openAddModal();
+            });
+        }
+        
         // Setup cancel buttons explicitly
         const cancelAddBtn = document.getElementById('cancelAddLanguageBtn');
         if (cancelAddBtn) {
@@ -54,8 +63,34 @@
         }
         
         // Setup form submissions
-        document.getElementById('addLanguageForm').addEventListener('submit', handleAddLanguage);
-        document.getElementById('editLanguageForm').addEventListener('submit', handleEditLanguage);
+        const addForm = document.getElementById('addLanguageForm');
+        if (addForm) {
+            addForm.addEventListener('submit', handleAddLanguage);
+        }
+        
+        const editForm = document.getElementById('editLanguageForm');
+        if (editForm) {
+            editForm.addEventListener('submit', handleEditLanguage);
+        }
+        
+        // Setup search input
+        const searchInput = document.getElementById('languagesSearchInput');
+        if (searchInput) {
+            searchInput.addEventListener('input', function() {
+                filterLanguagesList(this.value);
+            });
+            searchInput.addEventListener('keyup', function() {
+                filterLanguagesList(this.value);
+            });
+        }
+        
+        // Setup search clear button
+        const searchClearBtn = document.getElementById('languagesSearchClear');
+        if (searchClearBtn) {
+            searchClearBtn.addEventListener('click', function() {
+                clearLanguagesSearch();
+            });
+        }
         
         // Load data
         loadData();
@@ -216,7 +251,8 @@
     // Save language order
     async function saveLanguageOrder(order) {
         try {
-            const response = await fetch(`${API_BASE}?action=language_order`, {
+            // Use apiFetch to automatically include CSRF token
+            const response = await window.apiFetch(`${API_BASE}?action=language_order`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
@@ -538,7 +574,8 @@
         });
         
         try {
-            const response = await fetch(`${API_BASE}?action=translation&code=${lang.code}`, {
+            // Use apiFetch to automatically include CSRF token
+            const response = await window.apiFetch(`${API_BASE}?action=translation&code=${lang.code}`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(editedData)
@@ -564,6 +601,23 @@
         if (modal) {
             modal.classList.add('active');
             document.body.classList.add('modal-open');
+            document.body.style.overflow = 'hidden';
+            
+            // Reset form
+            const form = document.getElementById('addLanguageForm');
+            if (form) {
+                form.reset();
+                // Clear any errors
+                if (window.FormValidator) {
+                    window.FormValidator.clearErrors(form);
+                }
+            }
+            
+            // Focus first input
+            const firstInput = modal.querySelector('input:not([type="hidden"]):not([readonly])');
+            if (firstInput) {
+                setTimeout(() => firstInput.focus(), 100);
+            }
         }
     };
     
@@ -592,7 +646,8 @@
         };
         
         try {
-            const response = await fetch(`${API_BASE}?action=language`, {
+            // Use apiFetch to automatically include CSRF token
+            const response = await window.apiFetch(`${API_BASE}?action=language`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(data)
@@ -665,7 +720,8 @@
     // Update language name
     async function updateLanguageName(code, name) {
         try {
-            const response = await fetch(`${API_BASE}?action=language`, {
+            // Use apiFetch to automatically include CSRF token
+            const response = await window.apiFetch(`${API_BASE}?action=language`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ code, name })
@@ -751,7 +807,13 @@
         
         // Show/hide clear button
         if (clearBtn) {
-            clearBtn.style.display = term ? 'flex' : 'none';
+            if (term) {
+                clearBtn.classList.remove('hidden');
+                clearBtn.style.display = 'flex';
+            } else {
+                clearBtn.classList.add('hidden');
+                clearBtn.style.display = 'none';
+            }
         }
         
         // Update count badge
@@ -769,8 +831,10 @@
         if (input) {
             input.value = '';
             filterLanguagesList('');
+            input.focus(); // Keep focus on input after clearing
         }
         if (clearBtn) {
+            clearBtn.classList.add('hidden');
             clearBtn.style.display = 'none';
         }
     };

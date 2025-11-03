@@ -13,6 +13,18 @@
             const newContainer = document.createElement('div');
             newContainer.id = 'toastContainer';
             newContainer.className = 'toast-container';
+            // Set position styles immediately
+            newContainer.style.cssText = `
+                position: fixed !important;
+                top: 20px !important;
+                right: 20px !important;
+                z-index: 999999 !important;
+                display: flex !important;
+                flex-direction: column !important;
+                gap: 12px !important;
+                pointer-events: none !important;
+                max-width: 400px !important;
+            `;
             document.body.appendChild(newContainer);
             console.log('Created toastContainer');
             return window.showToast(type, message, duration); // Retry

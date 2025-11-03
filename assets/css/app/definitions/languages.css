@@ -147,12 +147,37 @@
 }
 
 .btn-add-small {
-    padding: 6px 12px;
+    padding: 8px 16px;
     font-size: 14px;
+    background: #151A2D !important;
+    color: white !important;
+    border: none;
+    border-radius: 8px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    white-space: nowrap;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.btn-add-small:hover {
+    background: #1f2937 !important;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+.btn-add-small:active {
+    transform: translateY(0);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .btn-add-small .icon-small {
     font-size: 18px;
+    color: white !important;
 }
 
 .languages-editor-empty {
@@ -177,7 +202,87 @@
 
 .languages-search-box {
     margin: 12px 0;
-    padding: 0 12px;
+    padding: 0;
+    position: relative;
+    background: #f9fafb;
+    border-radius: 12px;
+    border: 2px solid #e5e7eb;
+    transition: all 0.3s ease;
+    overflow: hidden;
+}
+
+.languages-search-box:focus-within {
+    background: white;
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.languages-search-box .search-icon {
+    position: absolute;
+    left: 14px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #6b7280;
+    font-size: 20px;
+    pointer-events: none;
+    transition: color 0.3s ease;
+    z-index: 1;
+}
+
+.languages-search-box:focus-within .search-icon {
+    color: #3b82f6;
+}
+
+.languages-search-box .search-input {
+    width: 100%;
+    padding: 12px 16px 12px 48px;
+    border: none;
+    background: transparent;
+    font-size: 14px;
+    color: #1f2937;
+    outline: none;
+    transition: all 0.3s ease;
+}
+
+.languages-search-box .search-input::placeholder {
+    color: #9ca3af;
+    font-weight: 400;
+}
+
+.languages-search-box .search-input:focus {
+    color: #1f2937;
+}
+
+.languages-search-box .search-clear {
+    position: absolute;
+    right: 8px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 28px;
+    height: 28px;
+    border-radius: 6px;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #6b7280;
+    transition: all 0.2s ease;
+    z-index: 2;
+}
+
+.languages-search-box .search-clear:hover {
+    background: #f3f4f6;
+    color: #1f2937;
+}
+
+.languages-search-box .search-clear.hidden {
+    display: none;
+}
+
+.languages-search-box .search-clear span {
+    font-size: 18px;
 }
 
 /* Responsive */

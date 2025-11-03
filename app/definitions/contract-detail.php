@@ -51,6 +51,7 @@ $t_vehicles = $all_translations['vehicles'] ?? [];
     <link rel="stylesheet" href="<?php echo $basePath; ?>assets/css/includes/topbar.css">
     <link rel="stylesheet" href="<?php echo $basePath; ?>assets/css/common.css">
     <link rel="stylesheet" href="<?php echo $basePath; ?>assets/css/confirm-dialog.css">
+    <link rel="stylesheet" href="<?php echo $basePath; ?>assets/css/toast.css">
     <link rel="stylesheet" href="<?php echo $basePath; ?>assets/css/select-search.css">
     <link rel="stylesheet" href="<?php echo $basePath; ?>assets/css/app/definitions/vehicles.css">
     
