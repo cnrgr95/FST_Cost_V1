@@ -188,6 +188,14 @@ select.error:focus {
     color: #065f46;
 }
 
+.btn-icon.btn-info:hover {
+    background: #dbeafe;
+}
+
+.btn-icon.btn-info .material-symbols-rounded {
+    color: #2563eb;
+}
+
 /* Legacy support */
 .table {
     width: 100%;

@@ -337,7 +337,8 @@ function getCosts($conn) {
     $query = "SELECT c.*, 
                      co.name as country_name, 
                      r.name as region_name, 
-                     ci.name as city_name
+                     ci.name as city_name,
+                     c.is_vat_category
               FROM costs c 
               LEFT JOIN countries co ON c.country_id = co.id 
               LEFT JOIN regions r ON c.region_id = r.id 
@@ -349,13 +350,23 @@ function getCosts($conn) {
     if ($result) {
         $costs = pg_fetch_all($result) ?: [];
         
-        // Get periods for each cost
+        // Get periods for each cost and normalize boolean values
         foreach ($costs as &$cost) {
             $cost_id = $cost['id'];
             $cost['periods'] = getCostPeriods($conn, $cost_id);
+            
+            // Normalize is_vat_category to boolean
+            // PostgreSQL returns 't'/'f' as strings, or true/false as boolean, or NULL
+            $is_vat_category = $cost['is_vat_category'] ?? null;
+            if ($is_vat_category === 't' || $is_vat_category === true || $is_vat_category === 1 || $is_vat_category === '1') {
+                $cost['is_vat_category'] = true;
+            } else {
+                // Default to false for 'f', false, 0, '0', NULL, or any other value
+                $cost['is_vat_category'] = false;
+            }
         }
         
-        echo json_encode(['success' => true, 'data' => $costs]);
+        echo json_encode(['success' => true, 'data' => $costs], JSON_NUMERIC_CHECK);
     } else {
         echo json_encode(['success' => false, 'message' => getDbErrorMessage($conn)]);
     }
@@ -515,7 +526,8 @@ function getCost($conn, $id) {
     $query = "SELECT c.*, 
                      co.name as country_name, 
                      r.name as region_name, 
-                     ci.name as city_name
+                     ci.name as city_name,
+                     c.is_vat_category
               FROM costs c 
               LEFT JOIN countries co ON c.country_id = co.id 
               LEFT JOIN regions r ON c.region_id = r.id 
@@ -534,6 +546,16 @@ function getCost($conn, $id) {
                 $cost['periods'] = [];
             }
             
+            // Normalize is_vat_category to boolean
+            // PostgreSQL returns 't'/'f' as strings, or true/false as boolean, or NULL
+            $is_vat_category = $cost['is_vat_category'] ?? null;
+            if ($is_vat_category === 't' || $is_vat_category === true || $is_vat_category === 1 || $is_vat_category === '1') {
+                $cost['is_vat_category'] = true;
+            } else {
+                // Default to false for 'f', false, 0, '0', NULL, or any other value
+                $cost['is_vat_category'] = false;
+            }
+            
             echo json_encode(['success' => true, 'data' => $cost], JSON_NUMERIC_CHECK);
         } else {
             echo json_encode(['success' => false, 'message' => getApiTranslation('cost_not_found')]);
@@ -543,50 +565,57 @@ function getCost($conn, $id) {
     }
 }
 
-// Generate cost code with format FST-01-00001 (5 digits)
-function generateCostCode($conn) {
+// Generate cost code based on type
+// VAT Categories: FST-05-00001 (5 digits)
+// Costs: FST-06-00001 (5 digits)
+function generateCostCode($conn, $is_vat_category = false) {
     try {
-        // Get the highest cost code number with FST-01- prefix or old format FST-XXX
+        // Determine prefix based on type
+        $prefix = $is_vat_category ? '05' : '06';
+        $codePrefix = 'FST-' . $prefix . '-';
+        
+        // Get the highest cost code number with the appropriate prefix
+        $likePattern = $codePrefix . '%';
         $query = "SELECT cost_code FROM costs 
-                  WHERE cost_code LIKE 'FST-%' 
+                  WHERE cost_code LIKE $1 
                   ORDER BY cost_code DESC LIMIT 1";
         
-        $result = pg_query($conn, $query);
+        $result = pg_query_params($conn, $query, [$likePattern]);
         
         $nextNumber = 1;
         if ($result && pg_num_rows($result) > 0) {
             $row = pg_fetch_assoc($result);
             $lastCode = $row['cost_code'];
-            // Extract number from format FST-01-00001 or old format FST-XXX
-            if (preg_match('/FST-01-(\d+)$/', $lastCode, $matches)) {
+            // Extract number from format FST-XX-00001
+            $pattern = '/FST-' . preg_quote($prefix, '/') . '-(\d+)$/';
+            if (preg_match($pattern, $lastCode, $matches)) {
                 $nextNumber = (int)$matches[1] + 1;
-            } elseif (preg_match('/FST-(\d+)$/', $lastCode, $matches)) {
-                // Handle old format FST-XXX and convert to new format starting from highest old number
-                $oldNumber = (int)$matches[1];
-                $nextNumber = $oldNumber + 1;
             }
         }
         
-        // Format: FST-01-00001 (5 digits)
-        return 'FST-01-' . str_pad($nextNumber, 5, '0', STR_PAD_LEFT);
+        // Format: FST-XX-00001 (5 digits)
+        return $codePrefix . str_pad($nextNumber, 5, '0', STR_PAD_LEFT);
     } catch (Exception $e) {
         error_log("Error generating cost code: " . $e->getMessage());
         // Fallback: use timestamp-based code if query fails
-        return 'FST-01-' . str_pad(time() % 100000, 5, '0', STR_PAD_LEFT);
+        $prefix = $is_vat_category ? '05' : '06';
+        return 'FST-' . $prefix . '-' . str_pad(time() % 100000, 5, '0', STR_PAD_LEFT);
     }
 }
 
 // Create cost
 function createCost($conn, $data) {
-    pg_query($conn, "BEGIN");
+    // Start transaction
+    if (pg_query($conn, "BEGIN") === false) {
+        echo json_encode(['success' => false, 'message' => 'Failed to start transaction: ' . getDbErrorMessage($conn)]);
+        return;
+    }
     
     try {
         $name = trim($data['name'] ?? '');
         
         if (empty($name)) {
-            echo json_encode(['success' => false, 'message' => getApiTranslation('cost_name_required')]);
-            pg_query($conn, "ROLLBACK");
-            return;
+            throw new Exception(getApiTranslation('cost_name_required'));
         }
         
         // Get location IDs
@@ -594,58 +623,77 @@ function createCost($conn, $data) {
         $region_id = isset($data['region_id']) && !empty($data['region_id']) ? (int)$data['region_id'] : null;
         $city_id = isset($data['city_id']) && !empty($data['city_id']) ? (int)$data['city_id'] : null;
         
-        // Check if cost name already exists in the same city
+        // Get is_vat_category flag
+        $is_vat_category = isset($data['is_vat_category']) && ($data['is_vat_category'] == 1 || $data['is_vat_category'] === true) ? true : false;
+        
+        // Check if cost name already exists in the same city with same type
         if ($city_id) {
-            $checkQuery = "SELECT id FROM costs WHERE LOWER(name) = LOWER($1) AND city_id = $2";
-            $checkResult = pg_query_params($conn, $checkQuery, [$name, $city_id]);
-            if ($checkResult && pg_num_rows($checkResult) > 0) {
-                echo json_encode(['success' => false, 'message' => 'A cost with this name already exists in this city. Cost names must be unique within a city.']);
-                pg_query($conn, "ROLLBACK");
-                return;
+            $checkQuery = "SELECT id FROM costs WHERE LOWER(TRIM(name)) = LOWER(TRIM($1)) AND city_id = $2 AND is_vat_category = $3";
+            $checkResult = pg_query_params($conn, $checkQuery, [$name, $city_id, $is_vat_category ? 'true' : 'false']);
+            if (!$checkResult) {
+                throw new Exception(getDbErrorMessage($conn));
+            }
+            if (pg_num_rows($checkResult) > 0) {
+                $costType = $is_vat_category ? 'VAT category' : 'cost';
+                throw new Exception("A {$costType} with this name already exists in this city. {$costType} names must be unique within a city.");
             }
         } else {
-            // If no city specified, check globally
-            $checkQuery = "SELECT id FROM costs WHERE LOWER(name) = LOWER($1) AND city_id IS NULL";
-            $checkResult = pg_query_params($conn, $checkQuery, [$name]);
-            if ($checkResult && pg_num_rows($checkResult) > 0) {
-                echo json_encode(['success' => false, 'message' => 'A cost with this name already exists without a city. Cost names must be unique.']);
-                pg_query($conn, "ROLLBACK");
-                return;
+            // If no city specified, check globally for same type
+            $checkQuery = "SELECT id FROM costs WHERE LOWER(TRIM(name)) = LOWER(TRIM($1)) AND (city_id IS NULL OR city_id = 0) AND is_vat_category = $2";
+            $checkResult = pg_query_params($conn, $checkQuery, [$name, $is_vat_category ? 'true' : 'false']);
+            if (!$checkResult) {
+                throw new Exception(getDbErrorMessage($conn));
+            }
+            if (pg_num_rows($checkResult) > 0) {
+                $costType = $is_vat_category ? 'VAT category' : 'cost';
+                throw new Exception("A {$costType} with this name already exists without a city. {$costType} names must be unique.");
             }
         }
         
-        // Generate cost code: FST-01-00001 (5 digits)
-        $costCode = generateCostCode($conn);
+        // Generate cost code based on type
+        // VAT Categories: FST-05-00001, Costs: FST-06-00001
+        $costCode = generateCostCode($conn, $is_vat_category);
         
         // Insert cost with generated cost_code
-        $query = "INSERT INTO costs (name, cost_code, country_id, region_id, city_id, created_at) 
-                  VALUES ($1, $2, $3, $4, $5, NOW()) 
+        $query = "INSERT INTO costs (name, cost_code, country_id, region_id, city_id, is_vat_category, created_at) 
+                  VALUES ($1, $2, $3, $4, $5, $6, NOW()) 
                   RETURNING id, cost_code";
         $result = pg_query_params($conn, $query, [
             $name,
             $costCode,
             $country_id,
             $region_id,
-            $city_id
+            $city_id,
+            $is_vat_category ? 'true' : 'false'
         ]);
+        
+        // For VAT categories, don't save periods
+        $savePeriods = !$is_vat_category;
         
         if (!$result) {
             throw new Exception(getDbErrorMessage($conn));
         }
         
         $row = pg_fetch_assoc($result);
+        if (!$row) {
+            throw new Exception('Failed to get inserted cost ID');
+        }
         $cost_id = $row['id'];
         
-        // Save periods if provided
-        if (isset($data['periods']) && is_array($data['periods'])) {
+        // Save periods if provided and not a VAT category
+        if ($savePeriods && isset($data['periods']) && is_array($data['periods']) && count($data['periods']) > 0) {
             saveCostPeriods($conn, $cost_id, $data['periods']);
         }
         
-        pg_query($conn, "COMMIT");
+        // Commit transaction
+        if (pg_query($conn, "COMMIT") === false) {
+            throw new Exception('Failed to commit transaction: ' . getDbErrorMessage($conn));
+        }
         
         echo json_encode(['success' => true, 'id' => $cost_id, 'cost_code' => $row['cost_code']]);
     } catch (Exception $e) {
-        pg_query($conn, "ROLLBACK");
+        // Always rollback on error
+        @pg_query($conn, "ROLLBACK");
         error_log("Error creating cost: " . $e->getMessage());
         echo json_encode(['success' => false, 'message' => $e->getMessage()]);
     }
@@ -743,18 +791,14 @@ function saveCostPeriods($conn, $cost_id, $periods, $skipDbChecks = false) {
         $result = pg_query_params($conn, $query, [$cost_id, $period_name, $start_date, $end_date]);
         
         if (!$result) {
-            if (defined('APP_DEBUG') && APP_DEBUG) {
-                error_log("Failed to insert cost_period: " . pg_last_error($conn));
-            }
-            continue;
+            $errorMsg = getDbErrorMessage($conn);
+            error_log("Failed to insert cost_period: " . $errorMsg);
+            throw new Exception("Failed to save period '{$period_name}': " . $errorMsg);
         }
         
         $period_row = pg_fetch_assoc($result);
         if (!$period_row) {
-            if (defined('APP_DEBUG') && APP_DEBUG) {
-                error_log("Failed to get inserted period_id");
-            }
-            continue;
+            throw new Exception("Failed to get inserted period ID for '{$period_name}'");
         }
         
         $period_id = $period_row['id'];
@@ -782,18 +826,14 @@ function saveCostItems($conn, $period_id, $items) {
         $result = pg_query_params($conn, $query, [$period_id, $item_type, $pricing_type]);
         
         if (!$result) {
-            if (defined('APP_DEBUG') && APP_DEBUG) {
-                error_log("Failed to insert cost_item: " . pg_last_error($conn));
-            }
-            continue;
+            $errorMsg = getDbErrorMessage($conn);
+            error_log("Failed to insert cost_item: " . $errorMsg);
+            throw new Exception("Failed to save cost item: " . $errorMsg);
         }
         
         $item_row = pg_fetch_assoc($result);
         if (!$item_row) {
-            if (defined('APP_DEBUG') && APP_DEBUG) {
-                error_log("Failed to get inserted item_id");
-            }
-            continue;
+            throw new Exception("Failed to get inserted item ID");
         }
         
         $item_id = $item_row['id'];
@@ -826,11 +866,17 @@ function saveCostGeneralPrices($conn, $item_id, $prices) {
         if ($currency_id && $amount > 0) {
             // Delete existing general price if any (only one allowed per item)
             $deleteQuery = "DELETE FROM cost_general_prices WHERE cost_item_id = $1";
-            pg_query_params($conn, $deleteQuery, [$item_id]);
+            $deleteResult = pg_query_params($conn, $deleteQuery, [$item_id]);
+            if (!$deleteResult) {
+                error_log("Warning: Failed to delete existing general price: " . getDbErrorMessage($conn));
+            }
             
             $query = "INSERT INTO cost_general_prices (cost_item_id, amount, currency_id, created_at)
                       VALUES ($1, $2, $3, NOW())";
-            pg_query_params($conn, $query, [$item_id, $amount, $currency_id]);
+            $insertResult = pg_query_params($conn, $query, [$item_id, $amount, $currency_id]);
+            if (!$insertResult) {
+                throw new Exception("Failed to save general price: " . getDbErrorMessage($conn));
+            }
         }
     }
 }
@@ -849,7 +895,10 @@ function saveCostPersonPrices($conn, $item_id, $prices) {
                       VALUES ($1, $2, $3, $4, NOW())
                       ON CONFLICT (cost_item_id, age_group) 
                       DO UPDATE SET amount = $3, currency_id = $4";
-            pg_query_params($conn, $query, [$item_id, $age_group, $amount, $currency_id]);
+            $result = pg_query_params($conn, $query, [$item_id, $age_group, $amount, $currency_id]);
+            if (!$result) {
+                throw new Exception("Failed to save person price for {$age_group}: " . getDbErrorMessage($conn));
+            }
         }
     }
 }
@@ -868,7 +917,10 @@ function saveCostRegionalGeneralPrices($conn, $item_id, $prices) {
                       VALUES ($1, $2, $3, $4, NOW())
                       ON CONFLICT (cost_item_id, sub_region_id) 
                       DO UPDATE SET amount = $3, currency_id = $4";
-            pg_query_params($conn, $query, [$item_id, $sub_region_id, $amount, $currency_id]);
+            $result = pg_query_params($conn, $query, [$item_id, $sub_region_id, $amount, $currency_id]);
+            if (!$result) {
+                throw new Exception("Failed to save regional general price: " . getDbErrorMessage($conn));
+            }
         }
     }
 }
@@ -888,23 +940,28 @@ function saveCostRegionalPersonPrices($conn, $item_id, $prices) {
                       VALUES ($1, $2, $3, $4, $5, NOW())
                       ON CONFLICT (cost_item_id, sub_region_id, age_group) 
                       DO UPDATE SET amount = $4, currency_id = $5";
-            pg_query_params($conn, $query, [$item_id, $sub_region_id, $age_group, $amount, $currency_id]);
+            $result = pg_query_params($conn, $query, [$item_id, $sub_region_id, $age_group, $amount, $currency_id]);
+            if (!$result) {
+                throw new Exception("Failed to save regional person price for {$age_group}: " . getDbErrorMessage($conn));
+            }
         }
     }
 }
 
 // Update cost
 function updateCost($conn, $data) {
-    pg_query($conn, "BEGIN");
+    // Start transaction
+    if (pg_query($conn, "BEGIN") === false) {
+        echo json_encode(['success' => false, 'message' => 'Failed to start transaction: ' . getDbErrorMessage($conn)]);
+        return;
+    }
     
     try {
         $id = (int)$data['id'];
         $name = trim($data['name'] ?? '');
         
         if (empty($name)) {
-            echo json_encode(['success' => false, 'message' => getApiTranslation('cost_name_required')]);
-            pg_query($conn, "ROLLBACK");
-            return;
+            throw new Exception(getApiTranslation('cost_name_required'));
         }
         
         // Get location IDs
@@ -912,49 +969,53 @@ function updateCost($conn, $data) {
         $region_id = isset($data['region_id']) && !empty($data['region_id']) ? (int)$data['region_id'] : null;
         $city_id = isset($data['city_id']) && !empty($data['city_id']) ? (int)$data['city_id'] : null;
         
+        // Get is_vat_category flag
+        $is_vat_category = isset($data['is_vat_category']) && ($data['is_vat_category'] == 1 || $data['is_vat_category'] === true) ? true : false;
+        
         // Get current cost data to check if name or city is actually changing
-        $currentQuery = "SELECT name, city_id FROM costs WHERE id = $1";
+        $currentQuery = "SELECT name, city_id, is_vat_category FROM costs WHERE id = $1";
         $currentResult = pg_query_params($conn, $currentQuery, [$id]);
-        if (!$currentResult || pg_num_rows($currentResult) === 0) {
-            echo json_encode(['success' => false, 'message' => 'Cost not found.']);
-            pg_query($conn, "ROLLBACK");
-            return;
+        if (!$currentResult) {
+            throw new Exception(getDbErrorMessage($conn));
+        }
+        if (pg_num_rows($currentResult) === 0) {
+            throw new Exception('Cost not found.');
         }
         $current = pg_fetch_assoc($currentResult);
         $currentName = trim($current['name'] ?? '');
         $currentCityId = $current['city_id'];
+        $currentIsVatCategory = ($current['is_vat_category'] === true || $current['is_vat_category'] === 't' || $current['is_vat_category'] == 1);
         
-        // Only check for duplicates if name or city is actually changing
+        // Only check for duplicates if name, city, or type is actually changing
         $nameChanged = strtolower(trim($name)) !== strtolower($currentName);
         // Compare city_id properly handling NULL values
         $currentCityIdInt = $currentCityId !== null ? (int)$currentCityId : null;
         $cityChanged = ($city_id !== $currentCityIdInt);
+        $typeChanged = ($is_vat_category !== $currentIsVatCategory);
         
-        // Only perform duplicate check if name or city is changing
-        if ($nameChanged || $cityChanged) {
-            // Check if cost name already exists in the same city for another cost
+        // Only perform duplicate check if name, city, or type is changing
+        if ($nameChanged || $cityChanged || $typeChanged) {
+            // Check if cost name already exists in the same city with same type for another cost
             if ($city_id) {
-                $checkQuery = "SELECT id FROM costs WHERE LOWER(TRIM(name)) = LOWER(TRIM($1)) AND city_id = $2 AND id != $3";
-                $checkResult = pg_query_params($conn, $checkQuery, [$name, $city_id, $id]);
+                $checkQuery = "SELECT id FROM costs WHERE LOWER(TRIM(name)) = LOWER(TRIM($1)) AND city_id = $2 AND is_vat_category = $3 AND id != $4";
+                $checkResult = pg_query_params($conn, $checkQuery, [$name, $city_id, $is_vat_category ? 'true' : 'false', $id]);
                 if (!$checkResult) {
                     throw new Exception(getDbErrorMessage($conn));
                 }
                 if (pg_num_rows($checkResult) > 0) {
-                    echo json_encode(['success' => false, 'message' => 'A cost with this name already exists in this city. Cost names must be unique within a city.']);
-                    pg_query($conn, "ROLLBACK");
-                    return;
+                    $costType = $is_vat_category ? 'VAT category' : 'cost';
+                    throw new Exception("A {$costType} with this name already exists in this city. {$costType} names must be unique within a city.");
                 }
             } else {
                 // If no city specified, check globally
-                $checkQuery = "SELECT id FROM costs WHERE LOWER(TRIM(name)) = LOWER(TRIM($1)) AND (city_id IS NULL OR city_id = 0) AND id != $2";
-                $checkResult = pg_query_params($conn, $checkQuery, [$name, $id]);
+                $checkQuery = "SELECT id FROM costs WHERE LOWER(TRIM(name)) = LOWER(TRIM($1)) AND (city_id IS NULL OR city_id = 0) AND is_vat_category = $2 AND id != $3";
+                $checkResult = pg_query_params($conn, $checkQuery, [$name, $is_vat_category ? 'true' : 'false', $id]);
                 if (!$checkResult) {
                     throw new Exception(getDbErrorMessage($conn));
                 }
                 if (pg_num_rows($checkResult) > 0) {
-                    echo json_encode(['success' => false, 'message' => 'A cost with this name already exists without a city. Cost names must be unique.']);
-                    pg_query($conn, "ROLLBACK");
-                    return;
+                    $costType = $is_vat_category ? 'VAT category' : 'cost';
+                    throw new Exception("A {$costType} with this name already exists without a city. {$costType} names must be unique.");
                 }
             }
         }
@@ -965,13 +1026,15 @@ function updateCost($conn, $data) {
                     country_id = $2,
                     region_id = $3,
                     city_id = $4,
+                    is_vat_category = $5,
                     updated_at = NOW() 
-                  WHERE id = $5";
+                  WHERE id = $6";
         $result = pg_query_params($conn, $query, [
             $name,
             $country_id,
             $region_id,
             $city_id,
+            $is_vat_category ? 'true' : 'false',
             $id
         ]);
         
@@ -979,21 +1042,29 @@ function updateCost($conn, $data) {
             throw new Exception(getDbErrorMessage($conn));
         }
         
-        // Delete existing periods and recreate
-        // But first, we need to exclude existing periods from validation
-        $deleteQuery = "DELETE FROM cost_periods WHERE cost_id = $1";
-        pg_query_params($conn, $deleteQuery, [$id]);
-        
-        // Save periods if provided
-        if (isset($data['periods']) && is_array($data['periods'])) {
-            saveCostPeriods($conn, $id, $data['periods'], true); // Pass flag to skip DB checks (since we just deleted all)
+        // Delete existing periods and recreate - only for normal costs (not VAT categories)
+        if (!$is_vat_category) {
+            $deleteQuery = "DELETE FROM cost_periods WHERE cost_id = $1";
+            $deleteResult = pg_query_params($conn, $deleteQuery, [$id]);
+            if (!$deleteResult) {
+                throw new Exception('Failed to delete existing periods: ' . getDbErrorMessage($conn));
+            }
+            
+            // Save periods if provided
+            if (isset($data['periods']) && is_array($data['periods']) && count($data['periods']) > 0) {
+                saveCostPeriods($conn, $id, $data['periods'], true); // Pass flag to skip DB checks (since we just deleted all)
+            }
         }
         
-        pg_query($conn, "COMMIT");
+        // Commit transaction
+        if (pg_query($conn, "COMMIT") === false) {
+            throw new Exception('Failed to commit transaction: ' . getDbErrorMessage($conn));
+        }
         
         echo json_encode(['success' => true]);
     } catch (Exception $e) {
-        pg_query($conn, "ROLLBACK");
+        // Always rollback on error
+        @pg_query($conn, "ROLLBACK");
         error_log("Error updating cost: " . $e->getMessage());
         echo json_encode(['success' => false, 'message' => $e->getMessage()]);
     }

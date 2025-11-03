@@ -138,6 +138,10 @@ function handleGet($conn, $action) {
             $sub_region_id = isset($_GET['sub_region_id']) ? (int)$_GET['sub_region_id'] : null;
             getMerchants($conn, $sub_region_id);
             break;
+        case 'merchant':
+            $merchant_id = isset($_GET['id']) ? (int)$_GET['id'] : 0;
+            getMerchant($conn, $merchant_id);
+            break;
         default:
             echo json_encode(['success' => false, 'message' => 'Invalid action']);
     }
@@ -245,6 +249,45 @@ function getMerchants($conn, $sub_region_id = null) {
             logError($e->getMessage(), __FILE__, __LINE__);
         }
         echo json_encode(['success' => false, 'message' => 'An error occurred while fetching merchants']);
+    }
+}
+
+function getMerchant($conn, $merchant_id) {
+    try {
+        if ($merchant_id <= 0) {
+            echo json_encode(['success' => false, 'message' => 'Invalid merchant ID']);
+            return;
+        }
+        
+        $query = "SELECT m.*, sr.name as sub_region_name, sr.city_id, c.name as city_name, r.name as region_name, co.name as country_name 
+                  FROM merchants m 
+                  LEFT JOIN sub_regions sr ON m.sub_region_id = sr.id 
+                  LEFT JOIN cities c ON sr.city_id = c.id 
+                  LEFT JOIN regions r ON c.region_id = r.id 
+                  LEFT JOIN countries co ON r.country_id = co.id
+                  WHERE m.id = $1";
+        
+        $result = pg_query_params($conn, $query, [$merchant_id]);
+        
+        if ($result && pg_num_rows($result) > 0) {
+            $merchant = pg_fetch_assoc($result);
+            // Ensure all fields are present, even if NULL (convert NULL to empty string for consistency)
+            $merchant['authorized_person'] = $merchant['authorized_person'] ?? '';
+            $merchant['authorized_email'] = $merchant['authorized_email'] ?? '';
+            $merchant['authorized_phone'] = $merchant['authorized_phone'] ?? '';
+            $merchant['operasyon_name'] = $merchant['operasyon_name'] ?? '';
+            $merchant['operasyon_email'] = $merchant['operasyon_email'] ?? '';
+            $merchant['operasyon_phone'] = $merchant['operasyon_phone'] ?? '';
+            $merchant['official_title'] = $merchant['official_title'] ?? '';
+            echo json_encode(['success' => true, 'data' => [$merchant]]);
+        } else {
+            echo json_encode(['success' => false, 'message' => 'Merchant not found']);
+        }
+    } catch (Exception $e) {
+        if (function_exists('logError')) {
+            logError($e->getMessage(), __FILE__, __LINE__);
+        }
+        echo json_encode(['success' => false, 'message' => 'An error occurred while fetching merchant']);
     }
 }
 

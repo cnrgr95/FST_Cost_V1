@@ -6,6 +6,44 @@
     margin: 0 auto;
 }
 
+/* Costs Tabs - Matching locations.css */
+.costs-tabs {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 30px;
+    border-bottom: 2px solid #e5e7eb;
+}
+
+.costs-tab {
+    padding: 12px 24px;
+    background: none;
+    border: none;
+    color: #6b7280;
+    font-size: 15px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    border-bottom: 2px solid transparent;
+    margin-bottom: -2px;
+}
+
+.costs-tab:hover {
+    color: #151A2D;
+}
+
+.costs-tab.active {
+    color: #151A2D;
+    border-bottom-color: #151A2D;
+}
+
+.costs-content {
+    display: none;
+}
+
+.costs-content.active {
+    display: block;
+}
+
 /* Modal Improvements */
 .modal-title-wrapper {
     display: flex;
@@ -177,7 +215,7 @@
     background: white;
     border-radius: 12px;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-    overflow: hidden;
+    overflow: visible; /* Changed from hidden to visible for responsive scrolling */
 }
 
 /* Table header uses common.css universal styles [class*="-table-header"] */
@@ -186,26 +224,7 @@
 /* table-count-badge uses common.css styles */
 
 /* Table section uses common.css universal currencies-table-section styles */
-
-.costs-table {
-    width: 100%;
-    border-collapse: collapse;
-}
-
-.costs-table thead {
-    background: #f9fafb;
-}
-
-.costs-table th {
-    padding: 14px 16px;
-    text-align: left;
-    font-weight: 600;
-    font-size: 13px;
-    color: #6b7280;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    border-bottom: 2px solid #e5e7eb;
-}
+/* Table styles matching locations.css */
 
 .costs-table th.sortable {
     cursor: pointer;

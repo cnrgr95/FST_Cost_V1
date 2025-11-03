@@ -62,8 +62,22 @@ $t_costs = $all_translations['costs'] ?? [];
                     <h1 id="costsPageTitle"><?php echo $t_costs['costs'] ?? 'Costs'; ?></h1>
                 </div>
                 
+                <!-- Tabs -->
+                <div class="costs-tabs">
+                    <button class="costs-tab" data-tab="costs">
+                        <?php echo $t_costs['costs'] ?? 'Maliyetler'; ?>
+                    </button>
+                    <button class="costs-tab" data-tab="vat-categories">
+                        <?php echo $t_costs['vat_categories'] ?? 'KDV Kategorisi'; ?>
+                    </button>
+                </div>
+                
                 <!-- Tab Content -->
                 <div class="costs-content" id="costs-content">
+                    <!-- Content will be loaded by JavaScript -->
+                </div>
+                
+                <div class="costs-content" id="vat-categories-content">
                     <!-- Content will be loaded by JavaScript -->
                 </div>
             </div>
@@ -109,8 +123,8 @@ $t_costs = $all_translations['costs'] ?? [];
                         </div>
                     </div>
                     
-                    <!-- Location Selection - Side by Side -->
-                    <div class="form-row">
+                    <!-- Location Selection for Costs -->
+                    <div class="form-row" id="costsLocationRow">
                         <div class="form-group">
                             <label><?php echo $t_sidebar['country'] ?? 'Country'; ?> *</label>
                             <select name="country_id" id="countrySelect" required data-error="<?php echo ($t_sidebar['country'] ?? 'Country') . ' ' . ($t_common['is_required'] ?? 'is required'); ?>">
@@ -136,8 +150,9 @@ $t_costs = $all_translations['costs'] ?? [];
                         </div>
                     </div>
                     
-                    <!-- Periods Section -->
-                    <div class="form-group">
+                    
+                    <!-- Periods Section (Hidden for VAT Categories) -->
+                    <div class="form-group" id="periodsSection">
                         <div class="form-group-header">
                             <label><?php echo $t_costs['periods'] ?? 'Periods'; ?></label>
                             <button type="button" class="btn-secondary btn-sm" id="addPeriodBtn">
@@ -149,6 +164,9 @@ $t_costs = $all_translations['costs'] ?? [];
                             <!-- Periods will be added here dynamically -->
                         </div>
                     </div>
+                    
+                    <!-- Hidden field to track if this is a VAT category -->
+                    <input type="hidden" name="is_vat_category" id="isVatCategoryInput" value="0">
                 </div>
                 
                 <div class="modal-footer">
@@ -174,6 +192,7 @@ $t_costs = $all_translations['costs'] ?? [];
     echo json_encode([
         'basePath' => $basePath,
         'apiBase' => $basePath . 'api/definitions/costs.php',
+        'locationsApiBase' => $basePath . 'api/definitions/locations.php',
         'csrfToken' => csrfToken(),
         'translations' => [
             'costs' => $t_costs,

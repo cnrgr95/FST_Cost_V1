@@ -31,8 +31,30 @@
     const tCommon = t.common || {};
     const tSidebar = t.sidebar || {};
     
+    // Get initial tab from URL hash or localStorage, default to 'costs'
+    function getInitialTab() {
+        const validTabs = ['costs', 'vat-categories'];
+        // First, try URL hash
+        if (window.location.hash) {
+            const hashTab = window.location.hash.replace('#', '');
+            if (validTabs.includes(hashTab)) {
+                return hashTab;
+            }
+        }
+        // Then, try localStorage
+        const savedTab = localStorage.getItem('costs_active_tab');
+        if (savedTab && validTabs.includes(savedTab)) {
+            return savedTab;
+        }
+        // Default to costs
+        return 'costs';
+    }
+    
+    let currentTab = getInitialTab();
     let currentData = {
-        costs: []
+        costs: [],
+        vatCategories: [],
+        'vat-categories': [] // Also store with hyphenated key for direct access
     };
     
     let currencies = [];
@@ -60,7 +82,19 @@
     
     // Initialize
     document.addEventListener('DOMContentLoaded', function() {
-        loadData();
+        initTabs();
+        
+        // Set initial tab based on saved state
+        switchTab(currentTab);
+        
+        // Listen for hash changes (browser back/forward)
+        window.addEventListener('hashchange', function() {
+            const hashTab = window.location.hash.replace('#', '');
+            const validTabs = ['costs', 'vat-categories'];
+            if (validTabs.includes(hashTab) && hashTab !== currentTab) {
+                switchTab(hashTab);
+            }
+        });
         
         // Setup modal close button
         const costModalCloseBtn = document.querySelector('#costsModal .btn-close');
@@ -162,24 +196,78 @@
             const result = await response.json();
             
             if (result.success) {
-                currentData.costs = result.data || [];
+                const allData = result.data || [];
+                // Separate costs and VAT categories
+                // If API doesn't have is_vat_category field, we'll need to add logic
+                // For now, assume all are costs unless specified
+                currentData.costs = allData.filter(item => !item.is_vat_category || item.is_vat_category === false);
+                currentData.vatCategories = allData.filter(item => item.is_vat_category === true);
                 renderTable();
             } else {
                 currentData.costs = [];
+                currentData.vatCategories = [];
                 renderTable();
                 showToast('error', result.message);
             }
         } catch (error) {
             console.error('Error fetching data:', error);
             currentData.costs = [];
+            currentData.vatCategories = [];
             renderTable();
             showToast('error', tCommon.failed_to_load_data || 'Failed to load data');
         }
     }
     
+    // Tab initialization
+    function initTabs() {
+        document.querySelectorAll('.costs-tab').forEach(tab => {
+            tab.addEventListener('click', function() {
+                switchTab(this.dataset.tab);
+            });
+        });
+    }
+    
+    // Switch between tabs
+    function switchTab(tab) {
+        const validTabs = ['costs', 'vat-categories'];
+        if (!validTabs.includes(tab)) {
+            tab = 'costs'; // Fallback to default
+        }
+        
+        currentTab = tab;
+        
+        // Save tab state to localStorage and URL hash
+        localStorage.setItem('costs_active_tab', tab);
+        window.location.hash = tab;
+        
+        // Update active tab
+        document.querySelectorAll('.costs-tab').forEach(t => t.classList.remove('active'));
+        const activeTabButton = document.querySelector(`[data-tab="${tab}"]`);
+        if (activeTabButton) {
+            activeTabButton.classList.add('active');
+        }
+        
+        // Update active content
+        document.querySelectorAll('.costs-content').forEach(c => c.classList.remove('active'));
+        const activeContent = document.getElementById(`${tab}-content`);
+        if (activeContent) {
+            activeContent.classList.add('active');
+        }
+        
+        // Load data
+        loadData(tab);
+    }
+    
+    // Load data for current tab
+    function loadData(type) {
+        // Always fetch fresh data
+        showLoading(type);
+        fetchData(type);
+    }
+    
     // Show loading state
-    function showLoading() {
-        const container = document.getElementById('costs-content');
+    function showLoading(type) {
+        const container = document.getElementById(`${type}-content`);
         if (!container) return;
         container.innerHTML = `
             <div class="loading">
@@ -189,170 +277,249 @@
         `;
     }
     
+    // Fetch data from API
+    async function fetchData(type) {
+        try {
+            const response = await fetch(`${API_BASE}?action=costs`);
+            const result = await response.json();
+            
+            if (result.success) {
+                const allData = result.data || [];
+                
+                // Normalize is_vat_category values (handle 't'/'f' strings, true/false, 1/0, null)
+                const normalizedData = allData.map(item => {
+                    const isVatCat = item.is_vat_category;
+                    let normalizedValue = false;
+                    
+                    if (isVatCat === true || isVatCat === 't' || isVatCat === 1 || isVatCat === '1') {
+                        normalizedValue = true;
+                    } else if (isVatCat === false || isVatCat === 'f' || isVatCat === 0 || isVatCat === '0' || isVatCat === null || isVatCat === undefined) {
+                        normalizedValue = false;
+                    }
+                    
+                    return {
+                        ...item,
+                        is_vat_category: normalizedValue
+                    };
+                });
+                
+                // Separate costs and VAT categories
+                currentData.costs = normalizedData.filter(item => !item.is_vat_category);
+                currentData.vatCategories = normalizedData.filter(item => item.is_vat_category === true);
+                
+                // Also store with hyphenated key for direct access
+                currentData['vat-categories'] = currentData.vatCategories;
+                
+                console.log('Fetched data:', {
+                    total: normalizedData.length,
+                    costs: currentData.costs.length,
+                    vatCategories: currentData.vatCategories.length,
+                    'vat-categories': currentData['vat-categories'].length
+                });
+                
+                // Ensure the requested type has data
+                if (!currentData[type]) {
+                    currentData[type] = [];
+                }
+                
+                renderTable(type);
+            } else {
+                // Initialize both keys for consistency
+                if (!currentData.costs) currentData.costs = [];
+                if (!currentData.vatCategories) currentData.vatCategories = [];
+                currentData['vat-categories'] = currentData.vatCategories;
+                
+                // Ensure the type exists in currentData
+                if (!currentData[type]) {
+                    currentData[type] = [];
+                }
+                renderTable(type);
+                showToast('error', result.message);
+            }
+        } catch (error) {
+            console.error('Error fetching data:', error);
+            // Initialize both keys for consistency
+            if (!currentData.costs) currentData.costs = [];
+            if (!currentData.vatCategories) currentData.vatCategories = [];
+            currentData['vat-categories'] = currentData.vatCategories;
+            
+            // Ensure the type exists in currentData
+            if (!currentData[type]) {
+                currentData[type] = [];
+            }
+            renderTable(type);
+            showToast('error', tCommon.failed_to_load_data || 'Failed to load data');
+        }
+    }
+    
     // Render costs table
-    function renderTable() {
-        const container = document.getElementById('costs-content');
+    function renderTable(type, dataToRender = null) {
+        const container = document.getElementById(`${type}-content`);
         if (!container) return;
         
-        const data = currentData.costs || [];
-        const totalCount = data.length;
+        const data = dataToRender !== null ? dataToRender : (currentData[type] || []);
+        if (!Array.isArray(data)) {
+            console.error('Data is not an array for type:', type, data);
+            currentData[type] = [];
+            const emptyData = [];
+            return renderTable(type, emptyData);
+        }
+        
+        const isVatCategoryTab = type === 'vat-categories';
+        const titleText = isVatCategoryTab 
+            ? (tCosts.vat_categories || 'KDV Kategorisi')
+            : (tCosts.costs || 'Maliyetler');
+        const emptyTitle = isVatCategoryTab
+            ? (tCosts.no_vat_categories || 'No VAT categories found')
+            : (tCosts.no_costs || 'No costs found');
+        const addButtonText = isVatCategoryTab
+            ? (tCosts.add_vat_category || 'Add VAT Category')
+            : (tCosts.add_cost || 'Add Cost');
         
         if (data.length === 0) {
             container.innerHTML = `
                 <div class="costs-table-container">
                     <div class="costs-table-header">
-                        <div class="costs-table-title">
-                            <span class="material-symbols-rounded costs-title-icon">payments</span>
-                            <span class="costs-title-text">${tCosts.costs || 'Costs'}</span>
-                        </div>
-                        <button class="btn-add" id="addCostBtnEmpty">
+                        <div class="costs-table-title">${titleText}</div>
+                        <button class="btn-add" id="addCostBtnEmpty_${type}">
                             <span class="material-symbols-rounded">add</span>
-                            ${tCosts.add_cost || 'Add Cost'}
+                            ${tCosts.add_new || 'Add New'}
                         </button>
                     </div>
                     <div class="empty-state">
-                        <span class="material-symbols-rounded">payments</span>
-                        <h3>${tCosts.no_costs || 'No costs found'}</h3>
-                        <p>${tCosts.add_cost || 'Add your first cost to get started'}</p>
-                        <button class="btn-add btn-add-empty-state" id="addCostBtnEmptyState">
-                            <span class="material-symbols-rounded">add</span>
-                            ${tCosts.add_cost || 'Add Cost'}
-                        </button>
+                        <span class="material-symbols-rounded">${isVatCategoryTab ? 'category' : 'payments'}</span>
+                        <h3>${emptyTitle}</h3>
+                        <p>${addButtonText}</p>
                     </div>
                 </div>
             `;
+            attachActionListeners();
             return;
         }
+        
+        const totalCount = data.length;
         
         let html = '<div class="costs-table-container">';
         html += '<div class="costs-table-header">';
         html += `<div class="costs-table-title">
-                    <span class="material-symbols-rounded costs-title-icon">payments</span>
-                    <span class="costs-title-text">${tCosts.costs || 'Costs'}</span>
+                    <span class="material-symbols-rounded costs-title-icon">${isVatCategoryTab ? 'category' : 'payments'}</span>
+                    <span class="costs-title-text">${titleText}</span>
                     <span class="table-count-badge">${totalCount}</span>
                  </div>`;
         html += '<div class="table-actions-group">';
         html += `<div class="search-box">
                     <span class="material-symbols-rounded search-icon">search</span>
                     <input type="text" 
-                           id="costsSearchInput" 
+                           id="${type}SearchInput" 
                            placeholder="${tCommon.search || 'Search...'}" 
                            class="search-input"
-                           onkeyup="filterCostsTable(this.value)">
-                    <button class="search-clear search-clear-hidden" id="costsSearchClear" onclick="clearCostsSearch()">
+                           onkeyup="filterCostsTable('${type}', this.value)">
+                    <button class="search-clear search-clear-hidden" id="${type}SearchClear" onclick="clearCostsSearch('${type}')">
                         <span class="material-symbols-rounded">close</span>
                     </button>
                  </div>`;
-        html += `<button class="btn-add" id="addCostBtn" title="${tCosts.add_cost || 'Add Cost'}">
+        html += `<button class="btn-add" id="addCostBtn_${type}" title="${addButtonText}">
                     <span class="material-symbols-rounded">add</span>
-                    ${tCosts.add_cost || 'Add Cost'}
+                    ${addButtonText}
                  </button>`;
         html += '</div>';
         html += '</div>';
         html += '<div class="currencies-table-section">';
-        html += '<table class="costs-table" id="costsTable">';
+        html += `<table class="currencies-table" id="${type}Table">`;
         html += '<thead><tr>';
-        html += `<th class="sortable" onclick="sortTable('cost_code')">
+        html += `<th class="sortable" onclick="sortCostsTable('${type}', 'cost_code')">
                     ${tCosts.cost_code || 'Cost Code'}
-                    <span class="sort-icon"><span class="material-symbols-rounded">swap_vert</span></span>
+                    <span class="sort-icon">⇅</span>
                  </th>`;
-        html += `<th class="sortable" onclick="sortTable('name')">
+        html += `<th class="sortable" onclick="sortCostsTable('${type}', 'name')">
                     ${tCosts.cost_name || 'Cost Name'}
-                    <span class="sort-icon"><span class="material-symbols-rounded">swap_vert</span></span>
+                    <span class="sort-icon">⇅</span>
                  </th>`;
-        html += `<th class="sortable" onclick="sortTable('country_name')">
-                    ${tSidebar.country || 'Country'}
-                    <span class="sort-icon"><span class="material-symbols-rounded">swap_vert</span></span>
-                 </th>`;
-        html += `<th class="sortable" onclick="sortTable('region_name')">
-                    ${tSidebar.region || 'Region'}
-                    <span class="sort-icon"><span class="material-symbols-rounded">swap_vert</span></span>
-                 </th>`;
-        html += `<th class="sortable" onclick="sortTable('city_name')">
+        html += `<th class="sortable" onclick="sortCostsTable('${type}', 'city_name')">
                     ${tSidebar.city || 'City'}
-                    <span class="sort-icon"><span class="material-symbols-rounded">swap_vert</span></span>
+                    <span class="sort-icon">⇅</span>
                  </th>`;
         html += `<th class="no-sort">${tCommon.actions || 'Actions'}</th>`;
         html += '</tr></thead>';
-        html += '<tbody id="costsTableBody">';
+        html += `<tbody id="${type}TableBody">`;
         
         data.forEach((item, index) => {
-            html += `
-                <tr data-index="${index}" 
-                     data-code="${escapeHtml((item.cost_code || '').toLowerCase())}" 
-                     data-name="${escapeHtml((item.name || '').toLowerCase())}"
-                     data-country="${escapeHtml((item.country_name || '').toLowerCase())}"
-                     data-region="${escapeHtml((item.region_name || '').toLowerCase())}"
-                     data-city="${escapeHtml((item.city_name || '').toLowerCase())}">
-                    <td class="costs-code-cell">
-                        <span class="code-badge">${escapeHtml(item.cost_code || '') || '<span class="text-muted">-</span>'}</span>
-                    </td>
-                    <td class="costs-name-cell">
-                        <strong class="cost-name">${escapeHtml(item.name)}</strong>
-                    </td>
-                    <td class="costs-location-cell">
-                        ${item.country_name ? `<span class="location-badge">${escapeHtml(item.country_name)}</span>` : '<span class="text-muted">-</span>'}
-                    </td>
-                    <td class="costs-location-cell">${item.region_name ? escapeHtml(item.region_name) : '<span class="text-muted">-</span>'}</td>
-                    <td class="costs-location-cell">${item.city_name ? escapeHtml(item.city_name) : '<span class="text-muted">-</span>'}</td>
-                    <td class="costs-actions-cell">
-                        <div class="action-buttons">
-                            <button class="btn-icon" data-action="edit" data-id="${item.id}" title="${tCommon.edit || 'Edit'} ${escapeHtml(item.name)}">
-                                <span class="material-symbols-rounded">edit</span>
-                            </button>
-                            <button class="btn-icon btn-danger" data-action="delete" data-id="${item.id}" title="${tCommon.delete || 'Delete'} ${escapeHtml(item.name)}">
-                                <span class="material-symbols-rounded">delete</span>
-                            </button>
-                        </div>
-                    </td>
-                </tr>
-            `;
+            html += buildTableRow(type, item, index);
         });
         
         html += '</tbody></table>';
         html += '<div class="table-footer">';
-        html += `<div class="table-info">${tCommon.showing || 'Showing'} <strong>${totalCount}</strong> ${totalCount === 1 ? (tCosts.cost || 'cost') : (tCosts.costs || 'costs')}</div>`;
+        html += `<div class="table-info">${tCommon.showing || 'Showing'} <strong>${totalCount}</strong> ${totalCount === 1 ? 'item' : 'items'}</div>`;
         html += '</div>';
         html += '</div></div>';
         container.innerHTML = html;
         
-        // Attach event listeners
-        attachActionListeners();
+        // Store original data for filtering and sorting
+        window[`${type}TableData`] = data;
         
-        // Store original data for filtering
-        window.costsTableData = data;
+        // Attach event listeners to action buttons
+        attachActionListeners();
+    }
+    
+    // Build table row with data attributes for filtering
+    function buildTableRow(type, item, index) {
+        const escapeFunc = window.escapeHtml || ((text) => text ? String(text).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;') : '');
+        const escapedName = escapeFunc(item.name || '');
+        const escapedCode = escapeFunc(item.cost_code || '');
+        
+        let html = `<tr data-index="${index}" 
+                     data-code="${(item.cost_code || '').toLowerCase()}" 
+                     data-name="${(item.name || '').toLowerCase()}"
+                     data-city="${(item.city_name || '').toLowerCase()}">`;
+        html += `<td class="locations-code-cell">
+                    <span class="code-badge">${item.cost_code ? escapedCode : '<span class="text-muted">-</span>'}</span>
+                 </td>`;
+        html += `<td class="locations-name-cell">
+                    <strong>${escapedName}</strong>
+                 </td>`;
+        html += `<td class="locations-location-cell">${item.city_name ? escapeFunc(item.city_name) : '<span class="text-muted">-</span>'}</td>`;
+        html += '<td class="locations-actions-cell">';
+        html += '<div class="action-buttons">';
+        html += `<button class="btn-icon" data-action="edit" data-type="${type}" data-id="${item.id}" title="${tCommon.edit || 'Edit'} ${escapedName}">
+                    <span class="material-symbols-rounded">edit</span>
+                 </button>`;
+        html += `<button class="btn-icon btn-danger" data-action="delete" data-type="${type}" data-id="${item.id}" title="${tCommon.delete || 'Delete'} ${escapedName}">
+                    <span class="material-symbols-rounded">delete</span>
+                 </button>`;
+        html += '</div>';
+        html += '</td>';
+        html += '</tr>';
+        
+        return html;
     }
     
     // Attach event listeners to action buttons
     function attachActionListeners() {
         // Add button listeners
-        const addBtn = document.getElementById('addCostBtn');
-        if (addBtn) {
-            addBtn.addEventListener('click', openModal);
-        }
+        document.querySelectorAll('[id^="addCostBtn_"]').forEach(btn => {
+            const type = btn.id.replace('addCostBtn_', '');
+            btn.addEventListener('click', () => window.openModal(type));
+        });
         
-        const addBtnEmpty = document.getElementById('addCostBtnEmpty');
-        if (addBtnEmpty) {
-            addBtnEmpty.addEventListener('click', openModal);
-        }
-        
-        const addBtnEmptyState = document.getElementById('addCostBtnEmptyState');
-        if (addBtnEmptyState) {
-            addBtnEmptyState.addEventListener('click', openModal);
-        }
+        document.querySelectorAll('[id^="addCostBtnEmpty_"]').forEach(btn => {
+            const type = btn.id.replace('addCostBtnEmpty_', '');
+            btn.addEventListener('click', () => window.openModal(type));
+        });
         
         // Action button listeners
         document.querySelectorAll('[data-action="edit"]').forEach(btn => {
             btn.addEventListener('click', function() {
+                const type = this.getAttribute('data-type');
                 const id = parseInt(this.getAttribute('data-id'));
-                if (id) editItem(id);
+                if (type && id) window.editItem(type, id);
             });
         });
         
         document.querySelectorAll('[data-action="delete"]').forEach(btn => {
             btn.addEventListener('click', function() {
+                const type = this.getAttribute('data-type');
                 const id = parseInt(this.getAttribute('data-id'));
-                if (id) deleteItem(id);
+                if (type && id) window.deleteItem(type, id);
             });
         });
     }
@@ -360,10 +527,33 @@
     // Close modal
     function closeModal(modalId) {
         const modal = document.getElementById(modalId || 'costsModal');
+        
+        // Remove focus from any element inside the modal before closing
         if (modal) {
+            const focusedElement = modal.querySelector(':focus');
+            if (focusedElement) {
+                focusedElement.blur();
+            }
+            
             modal.classList.remove('active');
             modal.setAttribute('aria-hidden', 'true');
+            
+            // Return focus to the trigger element or a safe default
+            const activeElement = document.activeElement;
+            if (activeElement && modal.contains(activeElement)) {
+                // Find the button that opened the modal
+                const addButtons = document.querySelectorAll('[id^="addCostBtn"]');
+                if (addButtons.length > 0) {
+                    setTimeout(() => {
+                        addButtons[0].focus();
+                    }, 100);
+                } else {
+                    // Focus body as fallback
+                    document.body.focus();
+                }
+            }
         }
+        
         document.body.classList.remove('modal-open');
         document.body.style.overflow = '';
         
@@ -397,12 +587,18 @@
     }
     
     // Open modal for Costs
-    window.openModal = async function() {
+    window.openModal = async function(type) {
+        // If no type provided, use current tab
+        if (!type) {
+            type = currentTab;
+        }
         const modal = document.getElementById('costsModal');
         if (!modal) {
             console.error('Modal not found: costsModal');
             return;
         }
+        
+        const isVatCategoryTab = type === 'vat-categories';
         
         // Reset form
         const form = document.getElementById('costForm');
@@ -415,50 +611,88 @@
             periodCounter = 0;
         }
         
-        // Update modal title
+        // Update modal title and icon
         const title = document.getElementById('costModalTitle');
+        const modalIcon = document.querySelector('#costsModal .modal-icon .material-symbols-rounded');
         if (title) {
-            title.textContent = tCosts.add_cost || 'Add Cost';
+            title.textContent = isVatCategoryTab 
+                ? (tCosts.add_vat_category || 'Add VAT Category')
+                : (tCosts.add_cost || 'Add Cost');
+        }
+        if (modalIcon) {
+            modalIcon.textContent = isVatCategoryTab ? 'category' : 'payments';
         }
         
-        // Load countries and show modal
-        try {
-            await loadCountries();
-            
-            // Reset location selects
-            const regionSelect = document.getElementById('regionSelect');
-            const citySelect = document.getElementById('citySelect');
-            if (regionSelect) {
-                regionSelect.innerHTML = '<option value="">' + (tCosts.select_region || 'Select Region') + '</option>';
-                regionSelect.disabled = true;
-            }
-            if (citySelect) {
-                citySelect.innerHTML = '<option value="">' + (tCosts.select_city || 'Select City') + '</option>';
-                citySelect.disabled = true;
-            }
-            
-            // Show modal
-            modal.classList.add('active');
-            modal.setAttribute('aria-hidden', 'false');
-            document.body.classList.add('modal-open');
-            document.body.style.overflow = 'hidden';
-            
-            // Focus on first input after modal opens
-            setTimeout(() => {
-                const firstInput = modal.querySelector('input[name="name"]');
-                if (firstInput) {
-                    firstInput.focus();
-                }
-            }, 100);
-        } catch (error) {
-            console.error('Error loading modal data:', error);
-            showToast('error', tCommon.failed_to_load_data || 'Failed to load data');
+        // Set is_vat_category hidden field
+        const isVatCategoryInput = document.getElementById('isVatCategoryInput');
+        if (isVatCategoryInput) {
+            isVatCategoryInput.value = isVatCategoryTab ? '1' : '0';
         }
+        
+        // Show/hide form sections based on tab
+        const costsLocationRow = document.getElementById('costsLocationRow');
+        const periodsSection = document.getElementById('periodsSection');
+        
+        // Always show location row for both costs and VAT categories
+        if (costsLocationRow) {
+            costsLocationRow.style.display = '';
+        }
+        if (periodsSection) {
+            periodsSection.style.display = isVatCategoryTab ? 'none' : '';
+        }
+        
+        // Both Cost and VAT Category require full location hierarchy
+        const countrySelect = document.getElementById('countrySelect');
+        const regionSelect = document.getElementById('regionSelect');
+        const citySelect = document.getElementById('citySelect');
+        
+        if (countrySelect) {
+            countrySelect.required = true;
+            countrySelect.disabled = false;
+        }
+        
+        await loadCountries();
+        
+        // Reset location selects
+        if (regionSelect) {
+            regionSelect.innerHTML = '<option value="">' + (tCosts.select_region || 'Select Region') + '</option>';
+            regionSelect.disabled = true;
+            regionSelect.required = true;
+        }
+        if (citySelect) {
+            citySelect.innerHTML = '<option value="">' + (tCosts.select_city || 'Select City') + '</option>';
+            citySelect.disabled = true;
+            citySelect.required = true;
+        }
+        
+        // Show modal
+        modal.classList.add('active');
+        modal.setAttribute('aria-hidden', 'false');
+        document.body.classList.add('modal-open');
+        document.body.style.overflow = 'hidden';
+        
+        // Focus on first input after modal opens
+        setTimeout(() => {
+            const firstInput = modal.querySelector('input[name="name"]');
+            if (firstInput) {
+                firstInput.focus();
+            }
+        }, 100);
     };
     
     // Edit item
-    window.editItem = async function(id) {
-        const item = currentData.costs.find(item => item.id == id);
+    window.editItem = async function(type, id) {
+        // Backwards compatibility: if only id provided
+        if (!type && id && typeof id === 'number') {
+            type = currentTab;
+        } else if (!type && id) {
+            // id is actually type
+            type = id;
+            id = null;
+        }
+        const isVatCategoryTab = type === 'vat-categories';
+        const dataSource = isVatCategoryTab ? currentData.vatCategories : currentData.costs;
+        const item = dataSource.find(item => item.id == id);
         if (!item) {
             console.error('Item not found:', id);
             return;
@@ -481,15 +715,44 @@
                 
                 if (!modal || !form) return;
                 
-                // Update modal title
-                document.getElementById('costModalTitle').textContent = tCosts.edit_cost || 'Edit Cost';
+                const isVatCategory = cost.is_vat_category === true || cost.is_vat_category === 1;
+                
+                // Update modal title and icon
+                const title = document.getElementById('costModalTitle');
+                const modalIcon = document.querySelector('#costsModal .modal-icon .material-symbols-rounded');
+                if (title) {
+                    title.textContent = isVatCategory 
+                        ? (tCosts.edit_vat_category || 'Edit VAT Category')
+                        : (tCosts.edit_cost || 'Edit Cost');
+                }
+                if (modalIcon) {
+                    modalIcon.textContent = isVatCategory ? 'category' : 'payments';
+                }
+                
+                // Set is_vat_category hidden field
+                const isVatCategoryInput = document.getElementById('isVatCategoryInput');
+                if (isVatCategoryInput) {
+                    isVatCategoryInput.value = isVatCategory ? '1' : '0';
+                }
+                
+                // Show/hide form sections based on type
+                const costsLocationRow = document.getElementById('costsLocationRow');
+                const periodsSection = document.getElementById('periodsSection');
+                
+                // Always show location row for both costs and VAT categories
+                if (costsLocationRow) {
+                    costsLocationRow.style.display = '';
+                }
+                if (periodsSection) {
+                    periodsSection.style.display = isVatCategory ? 'none' : '';
+                }
                 
                 // Fill form
                 form.dataset.id = id;
                 document.getElementById('costCodeInput').value = cost.cost_code || '';
                 form.querySelector('input[name="name"]').value = cost.name || '';
                 
-                // Load and set location fields
+                // Both Cost and VAT Category use full location hierarchy
                 await loadCountries();
                 
                 if (cost.country_id) {
@@ -514,20 +777,18 @@
                 
                 // Wait a bit for modal to be fully rendered
                 setTimeout(async () => {
-                    // Load periods
-                    const periodsContainer = document.getElementById('periodsContainer');
-                    if (!periodsContainer) {
-                        console.error('periodsContainer not found after modal open!');
-                        return;
-                    }
-                    
-                    periodsContainer.innerHTML = '';
-                    periodCounter = 0;
-                    
-                    // Debug: Check if periods exist
-                    // Debug logs removed for production
-                    
-                    if (cost.periods && Array.isArray(cost.periods) && cost.periods.length > 0) {
+                    // Load periods only for normal costs
+                    if (!isVatCategory) {
+                        const periodsContainer = document.getElementById('periodsContainer');
+                        if (!periodsContainer) {
+                            console.error('periodsContainer not found after modal open!');
+                            return;
+                        }
+                        
+                        periodsContainer.innerHTML = '';
+                        periodCounter = 0;
+                        
+                        if (cost.periods && Array.isArray(cost.periods) && cost.periods.length > 0) {
                         // Sort periods: 
                         // 1. Periods with dates first (by start_date DESC - newest first)
                         // 2. Periods without dates after (by created_at DESC - newest first)
@@ -553,12 +814,12 @@
                         });
                         
                         for (let i = 0; i < sortedPeriods.length; i++) {
-                               const period = sortedPeriods[i];
-                    try {
-                        await addPeriod(period);
-                    } catch (error) {
-                        console.error(`Error adding period ${i + 1}:`, error);
-                    }
+                            const period = sortedPeriods[i];
+                            try {
+                                await addPeriod(period);
+                            } catch (error) {
+                                console.error(`Error adding period ${i + 1}:`, error);
+                            }
                         }
                     }
                     
@@ -575,6 +836,7 @@
                             });
                         }, 200);
                     }
+                } // End of if (!isVatCategory)
                 }, 100);
             } else {
                 showToast('error', result.message || 'Failed to load cost');
@@ -586,8 +848,16 @@
     };
     
     // Delete item
-    window.deleteItem = async function(id) {
-        const cost = currentData.costs.find(item => item.id == id);
+    window.deleteItem = async function(type, id) {
+        // If no type provided, use current tab
+        if (!type && id) {
+            type = currentTab;
+            id = type; // id was actually type
+            type = currentTab;
+        }
+        const isVatCategoryTab = type === 'vat-categories';
+        const dataSource = isVatCategoryTab ? currentData.vatCategories : currentData.costs;
+        const cost = dataSource.find(item => item.id == id);
         const costName = cost ? cost.name : '';
         const deleteConfirmMessage = costName 
             ? `${tCosts.delete_confirm || 'Are you sure you want to delete this cost?'}\n\n"${escapeHtml(costName)}"`
@@ -602,10 +872,10 @@
                 const result = await response.json();
                 
                 if (result.success) {
-                    currentData.costs = [];
+                    currentData[type] = [];
                     closeModal('costsModal');
                     showToast('success', tCommon.deleted_successfully || 'Item deleted successfully');
-                    await loadData();
+                    await loadData(type);
                 } else {
                     showToast('error', result.message || (tCommon.delete_failed || 'Failed to delete item'));
                 }
@@ -720,6 +990,41 @@
             }
         } catch (error) {
             console.error('Error loading cities:', error);
+        }
+    }
+    
+    // Load all cities for VAT Category (no region filter)
+    async function loadAllCitiesForVatCategory() {
+        const select = document.getElementById('vatCategoryCitySelect');
+        if (!select) return;
+        
+        try {
+            // Use locations API to get all cities
+            const locationsApiBase = pageConfig.locationsApiBase || (pageConfig.basePath + 'api/definitions/locations.php');
+            const response = await fetch(`${locationsApiBase}?action=cities`);
+            const result = await response.json();
+            
+            if (result.success && result.data) {
+                select.innerHTML = '<option value="">' + (tCosts.select_city || 'Select City') + '</option>';
+                
+                // Sort cities by name
+                const sortedCities = [...result.data].sort((a, b) => {
+                    return (a.name || '').localeCompare(b.name || '');
+                });
+                
+                sortedCities.forEach(city => {
+                    const option = document.createElement('option');
+                    option.value = city.id;
+                    option.textContent = city.name || '';
+                    select.appendChild(option);
+                });
+                
+                if (typeof window.initializeSelectSearch === 'function') {
+                    window.initializeSelectSearch(select);
+                }
+            }
+        } catch (error) {
+            console.error('Error loading cities for VAT category:', error);
         }
     }
     
@@ -1641,63 +1946,69 @@
         const form = e.target;
         clearFormErrors(form);
         
-        // Validate all period dates - both start and end are REQUIRED (no auto-fill)
-        const periodCounters = new Set();
-        form.querySelectorAll('input[id^="period_date_range_"]').forEach(input => {
-            const match = input.id.match(/period_date_range_(\d+)/);
-            if (match) {
-                periodCounters.add(parseInt(match[1]));
-            }
-        });
+        // Check if this is a VAT category
+        const isVatCategoryInput = document.getElementById('isVatCategoryInput');
+        const isVatCategory = isVatCategoryInput && isVatCategoryInput.value === '1';
         
-        let periodDateError = false;
-        let missingStartCount = 0;
-        let missingEndCount = 0;
-        
-        for (const counter of periodCounters) {
-            const startInput = document.getElementById(`period_start_date_${counter}`);
-            const endInput = document.getElementById(`period_end_date_${counter}`);
-            const rangeInput = document.getElementById(`period_date_range_${counter}`);
+        // Validate all period dates - only for normal costs (not VAT categories)
+        if (!isVatCategory) {
+            const periodCounters = new Set();
+            form.querySelectorAll('input[id^="period_date_range_"]').forEach(input => {
+                const match = input.id.match(/period_date_range_(\d+)/);
+                if (match) {
+                    periodCounters.add(parseInt(match[1]));
+                }
+            });
             
-            // Validate start date is filled
-            if (!startInput || !startInput.value) {
-                if (rangeInput) {
-                    rangeInput.classList.add('error');
-                    rangeInput.style.borderColor = '#dc3545';
-                    periodDateError = true;
-                    missingStartCount++;
+            let periodDateError = false;
+            let missingStartCount = 0;
+            let missingEndCount = 0;
+            
+            for (const counter of periodCounters) {
+                const startInput = document.getElementById(`period_start_date_${counter}`);
+                const endInput = document.getElementById(`period_end_date_${counter}`);
+                const rangeInput = document.getElementById(`period_date_range_${counter}`);
+                
+                // Validate start date is filled
+                if (!startInput || !startInput.value) {
+                    if (rangeInput) {
+                        rangeInput.classList.add('error');
+                        rangeInput.style.borderColor = '#dc3545';
+                        periodDateError = true;
+                        missingStartCount++;
+                    }
+                }
+                
+                // If start is set but end is not, auto-fill end with same date (single day)
+                if (startInput && startInput.value && (!endInput || !endInput.value)) {
+                    if (endInput) {
+                        endInput.value = startInput.value;
+                    }
+                }
+                
+                // Validate end date is filled (after auto-fill)
+                if (!endInput || !endInput.value) {
+                    if (rangeInput) {
+                        rangeInput.classList.add('error');
+                        rangeInput.style.borderColor = '#dc3545';
+                        periodDateError = true;
+                        missingEndCount++;
+                    }
                 }
             }
             
-            // If start is set but end is not, auto-fill end with same date (single day)
-            if (startInput && startInput.value && (!endInput || !endInput.value)) {
-                if (endInput) {
-                    endInput.value = startInput.value;
+            if (periodDateError) {
+                let errorMsg = tCommon.end_date_required || 'End date is required for all periods';
+                if (missingStartCount > 0 && missingEndCount > 0) {
+                    errorMsg = tCommon.fill_required_fields || 'All periods must have both start and end dates';
+                } else if (missingEndCount > 0) {
+                    errorMsg = tCommon.end_date_required || 'End date is required for all periods';
+                } else if (missingStartCount > 0) {
+                    errorMsg = tCommon.start_date_required || 'Start date is required for all periods';
                 }
+                showToast('error', errorMsg);
+                return false;
             }
-            
-            // Validate end date is filled (after auto-fill)
-            if (!endInput || !endInput.value) {
-                if (rangeInput) {
-                    rangeInput.classList.add('error');
-                    rangeInput.style.borderColor = '#dc3545';
-                    periodDateError = true;
-                    missingEndCount++;
-                }
-            }
-        }
-        
-        if (periodDateError) {
-            let errorMsg = tCommon.end_date_required || 'End date is required for all periods';
-            if (missingStartCount > 0 && missingEndCount > 0) {
-                errorMsg = tCommon.fill_required_fields || 'All periods must have both start and end dates';
-            } else if (missingEndCount > 0) {
-                errorMsg = tCommon.end_date_required || 'End date is required for all periods';
-            } else if (missingStartCount > 0) {
-                errorMsg = tCommon.start_date_required || 'Start date is required for all periods';
-            }
-            showToast('error', errorMsg);
-            return false;
         }
         
         // Validate form
@@ -1733,16 +2044,26 @@
         try {
             const formData = new FormData(form);
             
-            // Build data structure
-            const periods = buildPeriodsData(formData);
+            const isVatCategory = isVatCategoryInput && isVatCategoryInput.value === '1';
             
+            // Build data structure
             const data = {
                 name: formData.get('name').trim(),
-                country_id: formData.get('country_id') ? parseInt(formData.get('country_id')) : null,
-                region_id: formData.get('region_id') ? parseInt(formData.get('region_id')) : null,
-                city_id: formData.get('city_id') ? parseInt(formData.get('city_id')) : null,
-                periods: periods
+                is_vat_category: isVatCategory ? 1 : 0
             };
+            
+            // Both Cost and VAT Category use full location hierarchy
+            data.country_id = formData.get('country_id') ? parseInt(formData.get('country_id')) : null;
+            data.region_id = formData.get('region_id') ? parseInt(formData.get('region_id')) : null;
+            data.city_id = formData.get('city_id') ? parseInt(formData.get('city_id')) : null;
+            
+            if (isVatCategory) {
+                // VAT Category: No periods
+                data.periods = [];
+            } else {
+                // Normal Cost: Has periods
+                data.periods = buildPeriodsData(formData);
+            }
             
             if (form.dataset.id) {
                 data.id = parseInt(form.dataset.id);
@@ -1960,11 +2281,16 @@
             }
             
             if (result.success) {
-                currentData.costs = [];
+                // Get the type from the form (based on is_vat_category)
+                const isVatCategoryInput = document.getElementById('isVatCategoryInput');
+                const isVatCategory = isVatCategoryInput && isVatCategoryInput.value === '1';
+                const type = isVatCategory ? 'vat-categories' : 'costs';
+                
+                currentData[type] = [];
                 clearFormErrors(document.getElementById('costForm'));
                 closeModal('costsModal');
                 showToast('success', tCosts.cost_added || 'Cost created successfully');
-                await loadData();
+                await loadData(type);
             } else {
                 // Ensure we have an error message
                 const errorMsg = result.message || 'An error occurred while creating the cost.';
@@ -2028,10 +2354,15 @@
             }
             
             if (result.success) {
-                currentData.costs = [];
+                // Get the type from the form (based on is_vat_category)
+                const isVatCategoryInput = document.getElementById('isVatCategoryInput');
+                const isVatCategory = isVatCategoryInput && isVatCategoryInput.value === '1';
+                const type = isVatCategory ? 'vat-categories' : 'costs';
+                
+                currentData[type] = [];
                 clearFormErrors(document.getElementById('costForm'));
                 showToast('success', tCosts.cost_updated || 'Cost updated successfully');
-                await loadData();
+                await loadData(type);
                 closeModal('costsModal');
             } else {
                 // Ensure we have an error message
@@ -2062,98 +2393,74 @@
     }
     
     // Filter costs table
-    window.filterCostsTable = function(searchTerm) {
-        const tbody = document.getElementById('costsTableBody');
-        const clearBtn = document.getElementById('costsSearchClear');
+    window.filterCostsTable = function(type, searchTerm) {
+        const tbody = document.getElementById(`${type}TableBody`);
+        const clearBtn = document.getElementById(`${type}SearchClear`);
         
         if (!tbody) return;
         
-        const term = searchTerm.toLowerCase().trim();
-        const rows = tbody.querySelectorAll('tr');
-        let visibleCount = 0;
+        // Get data attributes based on type
+        let dataAttributes = ['code', 'name', 'city'];
         
-        rows.forEach(row => {
-            const code = row.getAttribute('data-code') || '';
-            const name = row.getAttribute('data-name') || '';
-            const country = row.getAttribute('data-country') || '';
-            const region = row.getAttribute('data-region') || '';
-            const city = row.getAttribute('data-city') || '';
-            
-            const matches = term === '' || 
-                          code.includes(term) || 
-                          name.includes(term) || 
-                          country.includes(term) || 
-                          region.includes(term) || 
-                          city.includes(term);
-            
-            row.style.display = matches ? '' : 'none';
-            if (matches) visibleCount++;
+        // Use generic filterTable function
+        window.filterTable(`${type}TableBody`, searchTerm, dataAttributes, `${type}SearchClear`, function(visibleCount) {
+            // Update footer count
+            const footer = document.querySelector(`#${type}-content .table-info`);
+            if (footer) {
+                footer.innerHTML = `${tCommon.showing || 'Showing'} <strong>${visibleCount}</strong> ${visibleCount === 1 ? 'item' : 'items'}`;
+            }
         });
-        
-        if (clearBtn) {
-            clearBtn.style.display = term ? 'flex' : 'none';
-        }
-        
-        const footer = document.querySelector('#costs-content .table-info');
-        if (footer) {
-            footer.innerHTML = `${tCommon.showing || 'Showing'} <strong>${visibleCount}</strong> ${visibleCount === 1 ? (tCosts.cost || 'cost') : (tCosts.costs || 'costs')}`;
-        }
     };
     
     // Clear costs search
-    window.clearCostsSearch = function() {
-        const input = document.getElementById('costsSearchInput');
-        const clearBtn = document.getElementById('costsSearchClear');
+    window.clearCostsSearch = function(type) {
+        const input = document.getElementById(`${type}SearchInput`);
+        const clearBtn = document.getElementById(`${type}SearchClear`);
         
         if (input) {
             input.value = '';
-            filterCostsTable('');
+            filterCostsTable(type, '');
         }
         if (clearBtn) {
             clearBtn.classList.add('search-clear-hidden');
         }
     };
     
-    // Sort table
-    window.sortTable = function(column) {
-        const tbody = document.getElementById('costsTableBody');
-        if (!tbody || !window.costsTableData) return;
-        
-        // Toggle sort direction
-        if (window.costsSortColumn === column) {
-            window.costsSortDirection = window.costsSortDirection === 'asc' ? 'desc' : 'asc';
-        } else {
-            window.costsSortColumn = column;
-            window.costsSortDirection = 'asc';
-        }
-        
-        // Sort data
-        const sortedData = [...window.costsTableData].sort((a, b) => {
-            let aVal = a[column] || '';
-            let bVal = b[column] || '';
-            
-            if (typeof aVal === 'string') {
-                aVal = aVal.toLowerCase();
-                bVal = bVal.toLowerCase();
-            }
-            
-            if (window.costsSortDirection === 'asc') {
-                return aVal > bVal ? 1 : aVal < bVal ? -1 : 0;
-            } else {
-                return aVal < bVal ? 1 : aVal > bVal ? -1 : 0;
-            }
-        });
-        
-        // Re-render table
-        renderTable();
-        
-        // Update table data
-        window.costsTableData = sortedData;
-        renderTable();
-    };
+    // Sort Costs table
+    let costsSortState = {};
     
-    window.costsSortColumn = null;
-    window.costsSortDirection = 'asc';
+    window.sortCostsTable = function(type, column) {
+        const data = window[`${type}TableData`];
+        if (!data || data.length === 0) return;
+        
+        const currentState = costsSortState[type] || { column: null, direction: 'asc' };
+        const result = window.sortTableData(data, column, currentState.column, currentState.direction);
+        
+        // Update sort state
+        costsSortState[type] = {
+            column: result.newColumn,
+            direction: result.newDirection
+        };
+        
+        // Re-render table with sorted data
+        renderTable(type, result.sortedData);
+        
+        // Update sort icons
+        const table = document.getElementById(`${type}Table`);
+        if (table) {
+            const headers = table.querySelectorAll('th.sortable .sort-icon');
+            headers.forEach(icon => {
+                icon.textContent = '⇅';
+                icon.style.color = '';
+            });
+            
+            const activeHeader = table.querySelector(`th[onclick*="${column}"] .sort-icon`);
+            if (activeHeader) {
+                activeHeader.textContent = result.newDirection === 'asc' ? '↑' : '↓';
+                activeHeader.style.color = '#151A2D';
+            }
+        }
+    };
     
     // Clear form errors
     function clearFormErrors(form) {
@@ -2296,14 +2603,17 @@
             return;
         }
         
-        // Handle cost name + city uniqueness errors
-        if (errorMsgLower.includes('cost with this name already exists') && errorMsgLower.includes('city')) {
-            console.log('handleApiError: Cost name duplicate detected');
+        // Handle cost/VAT category name + city uniqueness errors
+        // Pattern: "A [cost/VAT category] with this name already exists in this city"
+        if ((errorMsgLower.includes('with this name already exists') || 
+             errorMsgLower.includes('name already exists')) && 
+            errorMsgLower.includes('city')) {
+            console.log('handleApiError: Cost/VAT category name duplicate detected');
             if (form) {
                 highlightFieldError('costForm', 'name');
                 highlightFieldError('costForm', 'city_id');
             }
-            console.log('handleApiError: Calling showToast for cost name');
+            console.log('handleApiError: Calling showToast for cost/VAT category name duplicate');
             if (typeof window.showToast === 'function') {
                 window.showToast('error', errorMessage);
             } else {

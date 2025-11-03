@@ -189,6 +189,9 @@
                     </td>
                     <td>
                         <div class="action-buttons">
+                            <button class="btn-icon btn-info" onclick="addContract(${item.id})" title="${tMerchants.add_contract || 'Add Contract'} ${escapedName}">
+                                <span class="material-symbols-rounded">description</span>
+                            </button>
                             <button class="btn-icon" onclick="editItem(${item.id})" title="${tCommon.edit || 'Edit'} ${escapedName}">
                                 <span class="material-symbols-rounded">edit</span>
                             </button>
@@ -367,6 +370,12 @@
         form.querySelector('select[name="sub_region_id"]').value = item.sub_region_id;
         
         modal.classList.add('active');
+    };
+    
+    // Add contract for merchant
+    window.addContract = function(merchantId) {
+        const basePath = pageConfig.basePath || '../../';
+        window.location.href = `${basePath}app/definitions/merchant-contract.php?merchant_id=${merchantId}`;
     };
     
     // Delete item
